@@ -3,476 +3,683 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes, viewport-fit=cover">
-    <title>National ID System · Appointment</title>
-    <!-- Font Awesome for icons -->
+    <title>PhilSys · National ID Appointment</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     
     <style>
+        /* ========== DESIGN SYSTEM ========== */
+        :root {
+            --primary: #0b2f5c;
+            --primary-light: #1a4a7a;
+            --primary-dark: #071d38;
+            --secondary: #1a73e8;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+            --gray-50: #f9fafb;
+            --gray-100: #f3f4f6;
+            --gray-200: #e5e7eb;
+            --gray-300: #d1d5db;
+            --gray-400: #9ca3af;
+            --gray-500: #6b7280;
+            --gray-600: #4b5563;
+            --gray-700: #374151;
+            --gray-800: #1f2937;
+            --gray-900: #111827;
+            --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+            --shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+            --shadow-md: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+            --shadow-lg: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
+            --radius-sm: 8px;
+            --radius: 12px;
+            --radius-lg: 20px;
+            --radius-xl: 28px;
+            --transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
-            font-family: system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
         }
 
         body {
-            background: #f2f5f9;
-            display: flex;
-            justify-content: center;
-            align-items: center;
+            font-family: 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
+            background: linear-gradient(135deg, #f0f4f8 0%, #e9eef4 100%);
             min-height: 100vh;
-            padding: 16px 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px 16px;
+            line-height: 1.5;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
         }
 
-        /* privacy overlay / modal */
+        /* ========== PRIVACY MODAL ========== */
         .privacy-overlay {
             position: fixed;
-            top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.5);
+            inset: 0;
+            background: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(4px);
             display: flex;
             align-items: center;
             justify-content: center;
             z-index: 1000;
-            padding: 16px;
+            padding: 20px;
         }
+        
         .privacy-modal {
             background: white;
-            max-width: 580px;
+            max-width: 560px;
             width: 100%;
-            border-radius: 24px;
-            padding: 24px 20px;
-            box-shadow: 0 20px 40px rgba(0,0,0,0.2);
-            animation: fadeIn 0.2s;
-            max-height: 85vh;
+            border-radius: var(--radius-xl);
+            padding: 32px 28px;
+            box-shadow: var(--shadow-lg);
+            animation: slideUp 0.3s ease;
+            max-height: 80vh;
             overflow-y: auto;
         }
+        
         .privacy-modal h2 {
-            font-size: clamp(1.3rem, 5vw, 1.7rem);
-            color: #0b2f5c;
-            margin-bottom: 16px;
-            border-left: 5px solid #1a73e8;
-            padding-left: 16px;
+            font-size: 1.75rem;
+            font-weight: 700;
+            color: var(--primary);
+            margin-bottom: 20px;
+            letter-spacing: -0.02em;
+            border-left: 4px solid var(--secondary);
+            padding-left: 20px;
         }
+        
         .privacy-modal p {
-            color: #2c3e50;
-            line-height: 1.5;
-            margin-bottom: 14px;
-            font-size: clamp(0.9rem, 3.5vw, 0.95rem);
+            color: var(--gray-700);
+            line-height: 1.7;
+            margin-bottom: 16px;
+            font-size: 0.95rem;
         }
+        
         .privacy-modal .legal-ref {
             font-weight: 600;
-            color: #0b2f5c;
+            color: var(--primary);
         }
+        
         .btn-agree {
-            background: #0b2f5c;
+            background: var(--primary);
             color: white;
             border: none;
             font-weight: 600;
-            font-size: clamp(1rem, 4vw, 1.2rem);
-            padding: 16px 20px;
+            font-size: 1.1rem;
+            padding: 16px 24px;
             width: 100%;
-            border-radius: 50px;
-            margin-top: 20px;
+            border-radius: 60px;
+            margin-top: 24px;
             cursor: pointer;
-            transition: 0.2s;
-            border: 1px solid #1e4a7a;
-            -webkit-tap-highlight-color: transparent;
+            transition: var(--transition);
+            box-shadow: var(--shadow-sm);
+            letter-spacing: 0.3px;
         }
-        .btn-agree:active {
-            background: #1a3f6a;
-            transform: scale(0.98);
+        
+        .btn-agree:hover {
+            background: var(--primary-light);
+            transform: translateY(-1px);
+            box-shadow: var(--shadow-md);
         }
 
-        /* main appointment card */
+        /* ========== MAIN CARD ========== */
         .appointment-card {
-            max-width: 880px;
+            max-width: 1000px;
             width: 100%;
             background: white;
-            border-radius: 24px;
-            box-shadow: 0 12px 30px rgba(0,0,0,0.08);
+            border-radius: var(--radius-xl);
+            box-shadow: var(--shadow-lg);
             overflow: hidden;
-            border: 1px solid #e9ecf2;
+            border: 1px solid var(--gray-200);
         }
 
-        /* header with logos - mobile optimized */
         .card-header {
-            padding: 16px 16px 12px;
-            border-bottom: 1px solid #eef2f7;
+            padding: 20px 24px 16px;
+            background: linear-gradient(to bottom, white, var(--gray-50));
+            border-bottom: 1px solid var(--gray-200);
             display: flex;
             align-items: center;
-            gap: 8px;
+            gap: 16px;
             flex-wrap: wrap;
         }
+        
         .logos {
             display: flex;
             align-items: center;
-            gap: 8px;
-            flex-wrap: wrap;
+            gap: 12px;
         }
+        
         .logo-placeholder {
             display: flex;
             align-items: center;
-            gap: 6px;
+            gap: 8px;
             font-weight: 700;
-            color: #0b2f5c;
-            font-size: clamp(0.8rem, 3.5vw, 0.95rem);
+            color: var(--primary);
+            font-size: 1rem;
         }
+        
         .logo-placeholder i {
-            font-size: clamp(22px, 6vw, 28px);
-            color: #1e4a7a;
+            font-size: 28px;
+            color: var(--primary);
         }
+        
         .logo-sep {
-            font-size: 20px;
-            color: #a0b8cc;
+            font-size: 22px;
+            color: var(--gray-400);
             font-weight: 300;
         }
+        
         .header-title {
             margin-left: auto;
-            font-weight: 600;
-            color: #1e3a5f;
-            font-size: clamp(0.9rem, 4vw, 1rem);
+            font-weight: 700;
+            color: var(--primary);
+            font-size: 1.1rem;
         }
+        
         .center-name {
-            background: #e9f0fa;
-            padding: 6px 12px;
-            border-radius: 30px;
-            font-size: clamp(0.75rem, 3vw, 0.9rem);
-            color: #0b2f5c;
+            background: var(--primary);
+            padding: 8px 16px;
+            border-radius: 40px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: white;
             width: 100%;
             margin-top: 8px;
             text-align: center;
+            box-shadow: var(--shadow-sm);
         }
 
-        /* stepper - mobile scrollable - now 5 steps */
+        /* Stepper */
         .stepper {
             display: flex;
-            padding: 16px 8px 8px;
+            padding: 20px 20px 12px;
             gap: 6px;
-            border-bottom: 1px solid #e6ecf3;
+            background: white;
+            border-bottom: 1px solid var(--gray-200);
             overflow-x: auto;
-            white-space: nowrap;
-            -webkit-overflow-scrolling: touch;
             scrollbar-width: none;
         }
-        .stepper::-webkit-scrollbar {
-            display: none;
-        }
+        
+        .stepper::-webkit-scrollbar { display: none; }
+        
         .step {
             display: flex;
             align-items: center;
-            gap: 4px;
-            color: #6c7a8a;
+            gap: 8px;
+            color: var(--gray-500);
             font-weight: 500;
-            font-size: clamp(0.7rem, 3vw, 0.85rem);
+            font-size: 0.8rem;
             flex-shrink: 0;
+            padding: 4px 8px 4px 4px;
+            border-radius: 40px;
         }
+        
         .step .step-num {
-            width: 24px;
-            height: 24px;
-            background: #eef2f7;
-            border-radius: 30px;
+            width: 28px;
+            height: 28px;
+            background: var(--gray-100);
+            border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
             font-weight: 700;
-            color: #2c3e50;
+            color: var(--gray-600);
             font-size: 0.8rem;
         }
-        .step.active .step-num {
-            background: #0b2f5c;
-            color: white;
-        }
-        .step.active {
-            color: #0b2f5c;
-        }
-        .step.completed .step-num {
-            background: #1e6f3f;
-            color: white;
-        }
-        .step.completed .step-num::after {
-            content: '✓';
-        }
-        .step.completed .step-num span {
-            display: none;
-        }
+        
+        .step.active { color: var(--primary); background: var(--gray-50); }
+        .step.active .step-num { background: var(--primary); color: white; box-shadow: 0 2px 8px rgba(11, 47, 92, 0.2); }
+        .step.completed .step-num { background: var(--success); color: white; }
 
-        /* content body */
+        /* Content Body */
         .content-body {
-            padding: 20px 16px 24px;
+            padding: 28px 24px 32px;
+            background: white;
         }
 
         .booking-note {
-            background: #f8fafd;
-            padding: 12px 14px;
-            border-radius: 16px;
-            margin-bottom: 20px;
-            font-size: clamp(0.8rem, 3.5vw, 0.9rem);
-            color: #1e3a5f;
-            border: 1px solid #dde5ef;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%);
+            padding: 14px 20px;
+            border-radius: var(--radius-lg);
+            margin-bottom: 28px;
+            color: white;
             display: flex;
             justify-content: space-between;
             align-items: center;
             flex-wrap: wrap;
-            gap: 8px;
+            gap: 12px;
+            box-shadow: var(--shadow);
+        }
+        
+        .booking-note strong {
+            background: rgba(255, 255, 255, 0.2);
+            padding: 4px 12px;
+            border-radius: 40px;
+            font-size: 0.9rem;
         }
 
-        /* form sections */
         .section-title {
             font-weight: 700;
-            font-size: clamp(1.1rem, 5vw, 1.25rem);
-            margin-bottom: 16px;
-            color: #0b2f5c;
+            font-size: 1.5rem;
+            margin-bottom: 24px;
+            color: var(--gray-900);
         }
 
-        .service-selector {
-            margin-bottom: 24px;
+        /* Form Elements */
+        label {
+            display: block;
+            font-weight: 600;
+            font-size: 0.9rem;
+            color: var(--gray-700);
+            margin-bottom: 6px;
         }
 
         select, input {
             width: 100%;
             padding: 14px 16px;
-            border: 1.5px solid #cfdde9;
-            border-radius: 16px;
-            font-size: 16px;
+            border: 2px solid var(--gray-200);
+            border-radius: var(--radius);
+            font-size: 1rem;
             background: white;
-            transition: 0.15s;
-            -webkit-appearance: none;
-            appearance: none;
+            transition: var(--transition);
+            color: var(--gray-900);
         }
-        select {
-            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%230b2f5c' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
-            background-repeat: no-repeat;
-            background-position: right 16px center;
-            background-size: 16px;
-            padding-right: 40px;
-        }
+        
         select:focus, input:focus {
-            border-color: #1a73e8;
+            border-color: var(--secondary);
             outline: none;
-            box-shadow: 0 0 0 3px rgba(26,115,232,0.1);
+            box-shadow: 0 0 0 4px rgba(26, 115, 232, 0.1);
         }
 
-        .service-desc {
-            background: #f3f9ff;
-            padding: 14px 16px;
-            border-radius: 16px;
-            margin: 16px 0 12px;
-            border-left: 4px solid #1a73e8;
-            font-size: clamp(0.85rem, 3.5vw, 0.95rem);
+        /* Appointment Type Selector */
+        .appointment-type-selector {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+            margin-bottom: 28px;
         }
-        .service-desc p {
-            margin-bottom: 6px;
-        }
-        .badge-hours {
-            font-size: clamp(0.75rem, 3vw, 0.85rem);
-            color: #445e77;
-            margin-top: 8px;
-            display: flex;
-            align-items: center;
-            gap: 6px;
-            flex-wrap: wrap;
-        }
-        .btn-requirements {
-            background: none;
-            border: 1.5px solid #0b2f5c;
-            color: #0b2f5c;
-            padding: 12px 20px;
-            border-radius: 50px;
-            font-weight: 600;
-            margin: 12px 0 10px;
+        
+        .type-option {
+            padding: 24px 16px;
+            border: 2px solid var(--gray-200);
+            border-radius: var(--radius-lg);
+            text-align: center;
             cursor: pointer;
-            font-size: clamp(0.9rem, 4vw, 1rem);
-            transition: 0.1s;
-            width: 100%;
-            -webkit-tap-highlight-color: transparent;
+            background: white;
         }
-        .btn-requirements:active {
-            background: #0b2f5c;
-            color: white;
+        
+        .type-option:hover {
+            border-color: var(--secondary);
+            background: var(--gray-50);
+        }
+        
+        .type-option i {
+            font-size: 36px;
+            color: var(--primary);
+            margin-bottom: 12px;
+        }
+        
+        .type-option span {
+            display: block;
+            font-weight: 700;
+            font-size: 1.1rem;
+            color: var(--gray-800);
+        }
+        
+        .type-option small {
+            font-size: 0.8rem;
+            color: var(--gray-500);
+        }
+        
+        .type-option.selected {
+            border-color: var(--primary);
+            background: linear-gradient(135deg, #f0f7ff 0%, #e8f4fd 100%);
+            box-shadow: var(--shadow);
         }
 
+        /* Buttons */
         .btn-next {
-            background: #0b2f5c;
+            background: var(--primary);
             color: white;
             font-weight: 600;
             border: none;
-            padding: 16px 20px;
-            border-radius: 50px;
-            font-size: clamp(1rem, 4vw, 1.1rem);
+            padding: 16px 24px;
+            border-radius: 60px;
+            font-size: 1rem;
             cursor: pointer;
             width: 100%;
-            margin-top: 12px;
-            -webkit-tap-highlight-color: transparent;
-        }
-        .btn-next:active {
-            background: #1a3f6a;
-            transform: scale(0.98);
-        }
-
-        /* Form row for two fields */
-        .form-row {
-            display: flex;
-            gap: 16px;
             margin-top: 16px;
-            flex-wrap: wrap;
+            transition: var(--transition);
+            box-shadow: var(--shadow-sm);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
         }
-        .form-col {
-            flex: 1 1 100%;
+        
+        .btn-next:hover {
+            background: var(--primary-light);
+            transform: translateY(-1px);
+            box-shadow: var(--shadow);
         }
-        @media (min-width: 500px) {
-            .form-col {
-                flex: 1 1 calc(50% - 8px);
-            }
+        
+        .btn-next:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
         }
 
-        /* MODERN CALENDAR STYLES */
+        .btn-add-client {
+            background: white;
+            border: 2px dashed var(--primary);
+            color: var(--primary);
+            padding: 14px 20px;
+            border-radius: 60px;
+            font-weight: 600;
+            width: 100%;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .btn-requirements, .btn-view-req {
+            background: white;
+            border: 1.5px solid var(--primary);
+            color: var(--primary);
+            padding: 8px 16px;
+            border-radius: 40px;
+            font-weight: 500;
+            font-size: 0.85rem;
+            cursor: pointer;
+        }
+        
+        .btn-requirements:hover, .btn-view-req:hover {
+            background: var(--primary);
+            color: white;
+        }
+        /* Service description and requirements button container */
+#singleServiceSection {
+    text-align: center;
+}
+
+#singleServiceDesc {
+    text-align: center;
+}
+
+#singleServiceDesc p {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+}
+
+#showReqBtnSingle {
+    margin-left: auto !important;
+    margin-right: auto !important;
+    display: inline-flex !important;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+}
+
+        .back-btn {
+            background: transparent !important;
+            color: var(--gray-600) !important;
+            margin-top: 12px !important;
+            border: 1.5px solid var(--gray-300) !important;
+            box-shadow: none !important;
+        }
+
+        /* Client Cards */
+        .clients-list { margin-bottom: 24px; }
+        
+        .client-card {
+            background: white;
+            border-radius: var(--radius-lg);
+            padding: 20px;
+            margin-bottom: 16px;
+            border: 1px solid var(--gray-200);
+            box-shadow: var(--shadow-sm);
+        }
+        
+        .client-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+            padding-bottom: 12px;
+            border-bottom: 1px solid var(--gray-100);
+        }
+        
+        .client-title {
+            font-weight: 700;
+            color: var(--gray-900);
+            font-size: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .client-service-badge {
+            background: var(--primary);
+            color: white;
+            padding: 4px 12px;
+            border-radius: 40px;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+        
+        .btn-remove-client {
+            background: none;
+            border: none;
+            color: var(--danger);
+            font-size: 1.1rem;
+            cursor: pointer;
+            padding: 6px 10px;
+            border-radius: var(--radius-sm);
+        }
+        
+        .btn-remove-client:hover { background: #fee2e2; }
+
+        .req-ack-row {
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+            margin-top: 16px;
+            padding: 14px;
+            background: #fef3c7;
+            border-radius: var(--radius);
+            border-left: 4px solid var(--warning);
+        }
+        
+        .req-ack-row input {
+            width: 20px;
+            height: 20px;
+            min-height: 20px;
+            accent-color: var(--primary);
+        }
+        
+        .req-ack-row.acknowledged {
+            background: #d1fae5;
+            border-left-color: var(--success);
+        }
+
+        .identity-reminder {
+            background: #e0f2fe;
+            border-radius: var(--radius);
+            padding: 14px 16px;
+            margin-bottom: 16px;
+            border-left: 4px solid var(--secondary);
+        }
+        
+        .identity-reminder i {
+            color: var(--secondary);
+            margin-right: 8px;
+        }
+        
+        .identity-reminder strong { color: var(--gray-800); }
+        .identity-reminder p { color: var(--gray-700); font-size: 0.9rem; margin-top: 6px; margin-left: 26px; }
+
+        /* Requirements Summary Banner */
+        .req-summary-banner {
+            background: #fef3c7;
+            border-radius: var(--radius-lg);
+            padding: 16px 18px;
+            margin-bottom: 24px;
+            border-left: 5px solid var(--warning);
+        }
+        
+        .req-summary-banner.complete {
+            background: #d1fae5;
+            border-left-color: var(--success);
+        }
+        
+        .req-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 6px 0;
+            font-size: 0.9rem;
+        }
+
+        /* Form Grid */
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 16px;
+            margin-top: 12px;
+        }
+        
+        .form-row-three {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 12px;
+            margin-top: 12px;
+        }
+        
+        @media (min-width: 500px) {
+            .form-row { grid-template-columns: 1fr 1fr; }
+            .form-row-three { grid-template-columns: 1fr 1fr 1fr; }
+        }
+
+        /* Calendar */
         .calendar-container {
-            background: #fafcff;
-            border-radius: 20px;
-            padding: 16px;
+            background: white;
+            border-radius: var(--radius-lg);
+            padding: 20px;
             margin-bottom: 20px;
-            border: 1px solid #e0e8f0;
+            border: 1px solid var(--gray-200);
+            box-shadow: var(--shadow-sm);
         }
         
         .calendar-header {
             display: flex;
             align-items: center;
             justify-content: space-between;
-            margin-bottom: 16px;
+            margin-bottom: 20px;
         }
         
         .calendar-month-year {
             font-weight: 700;
-            font-size: 1.1rem;
-            color: #0b2f5c;
-        }
-        
-        .calendar-nav {
-            display: flex;
-            gap: 8px;
+            font-size: 1.2rem;
+            color: var(--gray-900);
         }
         
         .calendar-nav-btn {
-            width: 36px;
-            height: 36px;
+            width: 40px;
+            height: 40px;
             border-radius: 50%;
-            border: 1px solid #cfdde9;
+            border: 1px solid var(--gray-200);
             background: white;
-            color: #0b2f5c;
+            color: var(--gray-700);
             cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            transition: 0.15s;
-            -webkit-tap-highlight-color: transparent;
-        }
-        
-        .calendar-nav-btn:active {
-            background: #e9f0fa;
         }
         
         .calendar-weekdays {
             display: grid;
             grid-template-columns: repeat(7, 1fr);
             text-align: center;
-            margin-bottom: 8px;
+            margin-bottom: 10px;
         }
         
         .weekday {
             font-size: 0.75rem;
-            font-weight: 600;
-            color: #6c7a8a;
-            padding: 8px 0;
+            font-weight: 700;
+            color: var(--gray-500);
+            text-transform: uppercase;
+            padding: 10px 0;
         }
         
         .calendar-days {
             display: grid;
             grid-template-columns: repeat(7, 1fr);
-            gap: 4px;
+            gap: 6px;
         }
         
         .calendar-day {
             aspect-ratio: 1;
             display: flex;
+            flex-direction: column;
             align-items: center;
             justify-content: center;
             font-size: 0.9rem;
             font-weight: 500;
-            color: #2c3e50;
-            border-radius: 12px;
+            border-radius: var(--radius);
             cursor: pointer;
-            transition: 0.15s;
             background: white;
-            border: 1px solid transparent;
-            -webkit-tap-highlight-color: transparent;
+            border: 1px solid var(--gray-200);
         }
         
-        .calendar-day.empty {
-            cursor: default;
+        .calendar-day .slots-left {
+            font-size: 0.65rem;
+            font-weight: 600;
+            color: var(--success);
         }
         
-        .calendar-day.available {
-            background: #e8f4fd;
-            border-color: #b8d4f0;
-            color: #0b2f5c;
-        }
-        
-        .calendar-day.available:hover {
-            background: #d0e8ff;
-        }
-        
-        .calendar-day.selected {
-            background: #0b2f5c;
-            color: white;
-            border-color: #0b2f5c;
-        }
-        
-        .calendar-day.disabled {
-            color: #b0c0d0;
-            cursor: not-allowed;
-            background: #f5f8fc;
-        }
-        
-        .calendar-day.unavailable {
-            color: #b0c0d0;
-            cursor: not-allowed;
-            background: #f5f8fc;
-            text-decoration: line-through;
-        }
-        
+        .calendar-day.available { background: #e8f4fd; border-color: var(--secondary); }
+        .calendar-day.selected { background: var(--primary); color: white; border-color: var(--primary); }
+        .calendar-day.disabled { opacity: 0.5; cursor: not-allowed; background: var(--gray-100); }
+        .calendar-day.full { background: #fee2e2; border-color: #fecaca; cursor: not-allowed; }
+
         .selected-date-display {
-            background: #f3f9ff;
-            padding: 12px 16px;
-            border-radius: 16px;
-            margin: 16px 0;
+            background: linear-gradient(135deg, var(--gray-50) 0%, white 100%);
+            padding: 14px 18px;
+            border-radius: var(--radius);
+            margin: 20px 0;
             display: flex;
             align-items: center;
             gap: 12px;
-            flex-wrap: wrap;
-        }
-        
-        .selected-date-label {
+            border: 1px solid var(--gray-200);
             font-weight: 600;
-            color: #0b2f5c;
-        }
-        
-        .selected-date-value {
-            color: #1e3a5f;
-            flex: 1;
         }
 
-        /* Review section styles */
-        .review-container {
-            background: #f8fafd;
-            border-radius: 20px;
-            padding: 20px 16px;
+        .slot-info {
+            background: var(--gray-50);
+            padding: 12px 16px;
+            border-radius: var(--radius);
             margin-bottom: 20px;
+            border: 1px solid var(--gray-200);
+        }
+
+        /* Review Section */
+        .review-container {
+            background: var(--gray-50);
+            border-radius: var(--radius-lg);
+            padding: 24px;
+            margin-bottom: 24px;
+            border: 1px solid var(--gray-200);
         }
         
         .review-section {
             margin-bottom: 24px;
-            padding-bottom: 16px;
-            border-bottom: 1px solid #e0e8f0;
+            padding-bottom: 20px;
+            border-bottom: 1px solid var(--gray-200);
         }
         
         .review-section:last-child {
@@ -481,261 +688,167 @@
             padding-bottom: 0;
         }
         
-        .review-section-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
+        .review-section-title {
+            font-weight: 700;
+            color: var(--gray-900);
+            font-size: 1.1rem;
             margin-bottom: 12px;
         }
         
-        .review-section-title {
-            font-weight: 700;
-            color: #0b2f5c;
-            font-size: 1rem;
+        .client-summary-item {
+            padding: 12px 0;
+            border-bottom: 1px dashed var(--gray-300);
+        }
+
+        /* Confirmation */
+        .summary-box {
+            background: var(--gray-50);
+            border-radius: var(--radius-lg);
+            padding: 24px;
+            margin: 24px 0;
+            border: 1px solid var(--gray-200);
         }
         
-        .edit-link {
-            color: #1a73e8;
-            font-size: 0.85rem;
-            font-weight: 500;
-            cursor: pointer;
-            background: none;
-            border: none;
-            -webkit-tap-highlight-color: transparent;
-        }
-        
-        .edit-link i {
-            margin-right: 4px;
-        }
-        
-        .review-detail-row {
+        .summary-row {
             display: flex;
-            margin-bottom: 8px;
-            font-size: 0.95rem;
+            padding: 10px 0;
+            border-bottom: 1px solid var(--gray-200);
         }
         
-        .review-detail-label {
+        .summary-row:last-child { border-bottom: none; }
+        
+        .summary-label {
             width: 100px;
-            color: #5e7182;
-            font-weight: 500;
+            font-weight: 600;
+            color: var(--gray-600);
         }
         
-        .review-detail-value {
-            flex: 1;
-            color: #1e3a5f;
-            font-weight: 500;
-        }
-        
+        .summary-value { flex: 1; font-weight: 500; color: var(--gray-900); }
+
         .confirmation-checkbox {
             display: flex;
             align-items: flex-start;
-            gap: 12px;
-            margin: 20px 0;
-            padding: 16px;
-            background: #f3f9ff;
-            border-radius: 16px;
+            gap: 14px;
+            margin: 24px 0;
+            padding: 18px;
+            background: #e8f4fd;
+            border-radius: var(--radius);
+            border: 1px solid var(--secondary);
         }
         
         .confirmation-checkbox input {
-            width: 20px;
-            height: 20px;
-            min-height: 20px;
-            margin-top: 2px;
-            accent-color: #0b2f5c;
-        }
-        
-        .confirmation-checkbox label {
-            font-size: 0.9rem;
-            color: #1e3a5f;
-            line-height: 1.5;
+            width: 22px;
+            height: 22px;
+            min-height: 22px;
+            accent-color: var(--primary);
         }
 
-        .summary-box {
-            background: #f8fafd;
-            border-radius: 20px;
-            padding: 18px 16px;
-            margin: 24px 0 20px;
-        }
-        .summary-row {
-            display: flex;
-            margin-bottom: 12px;
-            font-size: clamp(0.9rem, 3.5vw, 1rem);
-            flex-wrap: wrap;
-        }
-        .summary-label {
-            width: 85px;
-            font-weight: 600;
-            color: #2e475c;
-        }
-        .summary-value {
-            flex: 1;
-            word-break: break-word;
-        }
-
-        .reminder {
-            font-size: clamp(0.75rem, 3vw, 0.85rem);
-            color: #6e7e8e;
-            margin-top: 16px;
-            text-align: center;
-            line-height: 1.5;
-        }
-
+        /* Footer */
         .footer-note {
-            border-top: 1px solid #e0e8f0;
-            padding: 16px;
+            background: var(--gray-50);
+            border-top: 1px solid var(--gray-200);
+            padding: 18px 24px;
             display: flex;
             flex-direction: column;
             align-items: center;
-            text-align: center;
-            gap: 6px;
-            color: #3a5a78;
-            font-size: clamp(0.7rem, 3vw, 0.8rem);
+            gap: 8px;
+            color: var(--gray-500);
+            font-size: 0.8rem;
         }
+        
         @media (min-width: 600px) {
-            .footer-note {
-                flex-direction: row;
-                justify-content: space-between;
-                text-align: left;
-                padding: 16px 24px;
-            }
+            .footer-note { flex-direction: row; justify-content: space-between; }
         }
 
-        /* requirement modal - mobile friendly */
+        /* Modal */
         .modal-overlay {
             position: fixed;
-            top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.4);
+            inset: 0;
+            background: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(4px);
             display: none;
             align-items: center;
             justify-content: center;
             z-index: 2000;
-            padding: 16px;
+            padding: 20px;
         }
+        
         .modal-content {
             background: white;
             max-width: 700px;
             width: 100%;
-            max-height: 80vh;
+            max-height: 75vh;
             overflow-y: auto;
-            border-radius: 24px;
-            padding: 22px 18px;
-            -webkit-overflow-scrolling: touch;
+            border-radius: var(--radius-xl);
+            padding: 28px;
+            box-shadow: var(--shadow-lg);
         }
+        
         .modal-header {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 16px;
+            margin-bottom: 20px;
         }
+        
         .modal-header h3 {
-            color: #0b2f5c;
-            font-size: clamp(1.1rem, 5vw, 1.3rem);
+            color: var(--gray-900);
+            font-size: 1.4rem;
+            font-weight: 700;
         }
+        
         .close-modal {
             font-size: 28px;
             cursor: pointer;
-            color: #5f7d9c;
-            padding: 4px;
-            -webkit-tap-highlight-color: transparent;
+            color: var(--gray-500);
+            width: 36px;
+            height: 36px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
         }
-        .req-list {
-            margin: 16px 0;
-            font-size: clamp(0.85rem, 3.5vw, 0.95rem);
-        }
-        .req-list h4 {
-            color: #0b2f5c;
-            margin: 16px 0 8px;
-            font-size: 1rem;
-        }
-        .req-list ul {
-            padding-left: 20px;
-            margin-bottom: 12px;
-        }
-        .req-list li {
-            margin-bottom: 4px;
-        }
+        
+        .close-modal:hover { background: var(--gray-100); }
+        
         .btn-understand {
-            background: #0b2f5c;
+            background: var(--primary);
             color: white;
             border: none;
-            padding: 16px 20px;
-            border-radius: 50px;
+            padding: 16px 24px;
+            border-radius: 60px;
             width: 100%;
             font-weight: 600;
-            margin-top: 20px;
+            margin-top: 24px;
             cursor: pointer;
-            font-size: clamp(0.95rem, 4vw, 1.05rem);
-            -webkit-tap-highlight-color: transparent;
-        }
-        .btn-understand:active {
-            background: #1a3f6a;
         }
 
-        .hidden {
-            display: none !important;
+        .req-list h4 { color: var(--gray-900); margin: 20px 0 12px; }
+        .req-list ul { padding-left: 24px; margin-bottom: 16px; }
+        .req-list li { margin-bottom: 8px; color: var(--gray-700); }
+
+        .hidden { display: none !important; }
+
+        .service-option-tag {
+            display: inline-block;
+            background: var(--primary);
+            color: white;
+            padding: 3px 10px;
+            border-radius: 40px;
+            font-size: 0.7rem;
+            font-weight: 600;
+            margin-left: 8px;
         }
 
-        /* back buttons styling */
-        .back-btn {
-            background: transparent !important;
-            color: #0b2f5c !important;
-            margin-top: 12px !important;
-            border: 1.5px solid #cfdde9 !important;
-        }
-        .back-btn:active {
-            background: #f0f4fa !important;
-        }
-
-        /* contact note */
-        .contact-note {
-            font-size: clamp(0.7rem, 3vw, 0.8rem);
-            color: #5d7386;
-            margin-top: 6px;
-        }
-
-        /* improved tap targets */
-        button, select, input, .close-modal, .calendar-day {
-            min-height: 44px;
-        }
-        select, input {
-            min-height: 52px;
-        }
-
-        /* Submit button disabled state */
-        .btn-next:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
-        }
-
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(10px); } 
+        @keyframes slideUp {
+            from { opacity: 0; transform: translateY(20px); }
             to { opacity: 1; transform: translateY(0); }
         }
 
-        /* small screen adjustments */
         @media (max-width: 480px) {
-            body {
-                padding: 8px 6px;
-            }
-            .appointment-card {
-                border-radius: 20px;
-            }
-            .card-header {
-                padding: 12px 12px 8px;
-            }
-            .content-body {
-                padding: 16px 12px 20px;
-            }
-            .btn-next, .btn-requirements, .btn-agree {
-                padding: 14px 16px;
-            }
-        }
-
-        /* landscape orientation fix */
-        @media (max-height: 500px) and (orientation: landscape) {
-            .privacy-modal {
-                max-height: 90vh;
-            }
+            body { padding: 8px; }
+            .content-body { padding: 20px 16px; }
+            .appointment-type-selector { grid-template-columns: 1fr; }
         }
     </style>
 </head>
@@ -744,7 +857,7 @@
 <!-- PRIVACY NOTICE MODAL -->
 <div class="privacy-overlay" id="privacyModal">
     <div class="privacy-modal">
-        <h2>Privacy Notice – National ID Appointment System</h2>
+        <h2>Privacy Notice</h2>
         <p>This system collects and processes limited personal information solely for the purpose of scheduling, managing, and confirming National ID System appointments, in accordance with the <span class="legal-ref">Data Privacy Act of 2012 (RA 10173)</span> and applicable Philippine Statistics Authority (PSA) policies.</p>
         <p>The personal data collected include your full name, email address or mobile number, selected service, and preferred appointment schedule.</p>
         <p>Your personal data shall be used exclusively for appointment management and communication purposes. These data are stored securely and protected by appropriate administrative, technical, and physical safeguards.</p>
@@ -758,7 +871,7 @@
 
 <!-- REQUIREMENTS MODAL -->
 <div class="modal-overlay" id="reqModal">
-    <div class="modal-content" id="reqModalContent">
+    <div class="modal-content">
         <div class="modal-header">
             <h3 id="modalServiceTitle">Requirements</h3>
             <span class="close-modal" id="closeReqModal">&times;</span>
@@ -769,57 +882,101 @@
 </div>
 
 <!-- MAIN APPOINTMENT CARD -->
-<div class="appointment-card" id="mainAppCard">
+<div class="appointment-card">
     <div class="card-header">
         <div class="logos">
-            <div class="logo-placeholder"><i class="fas fa-shield-alt"></i> PSA Logo</div>
+            <div class="logo-placeholder"><i class="fas fa-shield-alt"></i> PSA</div>
             <span class="logo-sep">|</span>
-            <div class="logo-placeholder"><i class="fas fa-id-card"></i> National ID Logo</div>
+            <div class="logo-placeholder"><i class="fas fa-id-card"></i> PhilSys</div>
         </div>
         <div class="header-title">National ID System</div>
         <div class="center-name"><i class="fas fa-map-pin"></i> PSA CDO - Fixed Registration Center</div>
     </div>
 
-    <!-- stepper - 5 steps -->
     <div class="stepper">
-        <div class="step active" id="step1"><span class="step-num">1</span> Service</div>
-        <div class="step" id="step2"><span class="step-num">2</span> Schedule</div>
-        <div class="step" id="step3"><span class="step-num">3</span> Details</div>
-        <div class="step" id="step4"><span class="step-num">4</span> Review</div>
-        <div class="step" id="step5"><span class="step-num">5</span> Confirm</div>
+        <div class="step active" id="step1"><span class="step-num">1</span> Type</div>
+        <div class="step" id="step2"><span class="step-num">2</span> Clients</div>
+        <div class="step" id="step3"><span class="step-num">3</span> Schedule</div>
+        <div class="step" id="step4"><span class="step-num">4</span> Contact</div>
+        <div class="step" id="step5"><span class="step-num">5</span> Review</div>
+        <div class="step" id="step6"><span class="step-num">6</span> Confirm</div>
     </div>
 
     <div class="content-body">
         <div class="booking-note">
-            <span><i class="far fa-calendar-alt"></i> Appointment Schedule</span>
+            <span><i class="far fa-calendar-alt"></i> Appointment Scheduling</span>
             <span><strong>Booking until 31 May 2026</strong></span>
         </div>
 
-        <!-- ========= SERVICE SECTION ========= -->
-        <div id="sectionService">
-            <div class="section-title">Select Service</div>
-            <div class="service-selector">
-                <label>Select Service *</label>
-                <select id="serviceSelect">
+        <!-- STEP 1: TYPE -->
+        <div id="sectionType">
+            <div class="section-title">Select Appointment Type</div>
+            <div class="appointment-type-selector">
+                <div class="type-option selected" id="typeSingle">
+                    <i class="fas fa-user"></i>
+                    <span>Single Appointment</span>
+                    <small>One person, one service</small>
+                </div>
+                <div class="type-option" id="typeMultiple">
+                    <i class="fas fa-users"></i>
+                    <span>Family / Group</span>
+                    <small>2-10 persons, any services</small>
+                </div>
+            </div>
+            <div id="singleServiceSection">
+                <label>Select Service <span style="color: var(--danger);">*</span></label>
+                <select id="singleServiceSelect">
                     <option value="">-- Select Service --</option>
                     <option value="reg">National ID Registration</option>
                     <option value="correction">Correction/Updating of Demographic Information</option>
                     <option value="ephilid">Issuance of National ID Paper Form (ePhilID)</option>
                     <option value="trn">Retrieval of TRN / Other Concern</option>
                 </select>
-                <div class="badge-hours"><i class="far fa-clock"></i> Saturday: CLOSED • Sunday: CLOSED • Booking window: current + next month</div>
+                <div id="singleServiceDesc" style="margin-top: 16px; color: var(--gray-500);">
+                    <p><i class="fas fa-info-circle"></i> Select a service to view details.</p>
+                </div>
+                <button class="btn-requirements" id="showReqBtnSingle" style="display:none; margin-top: 8px;">
+                    <i class="fas fa-book"></i> View Requirements
+                </button>
             </div>
-
-            <div id="serviceDescBox" class="service-desc">
-                <p><i class="fas fa-info-circle"></i> Select a service to see details.</p>
-            </div>
-            <button class="btn-requirements" id="showReqBtn" style="display:none;">📋 Requirements</button>
-            <button class="btn-next" id="nextToSchedule">Next: Schedule →</button>
+            <button class="btn-next" id="nextToClients">Next Step <i class="fas fa-arrow-right"></i></button>
         </div>
 
-        <!-- ========= SCHEDULE SECTION (DATE ONLY) ========= -->
+        <!-- STEP 2: CLIENTS -->
+        <div id="sectionClients" class="hidden">
+            <div class="section-title"><span id="clientsTitle">Family / Group Members</span></div>
+            <p style="color: var(--gray-500); margin-bottom: 20px;"><span id="clientsSubtitle">Add all persons who will attend.</span></p>
+            
+            <div class="req-summary-banner" id="reqSummaryBanner">
+                <strong><i class="fas fa-clipboard-list"></i> Requirements Status</strong>
+                <div id="reqSummaryList"></div>
+            </div>
+            
+            <div class="clients-list" id="clientsList"></div>
+            
+            <button class="btn-add-client" id="addClientBtn">
+                <i class="fas fa-plus-circle"></i> Add Another Person
+            </button>
+            
+            <div id="clientCountContainer" style="margin-top: 20px; padding: 14px; background: var(--gray-50); border-radius: var(--radius); border: 1px solid var(--gray-200);">
+                <p style="display: flex; justify-content: space-between;">
+                    <span><i class="fas fa-users" style="color: var(--primary);"></i> <strong>Total persons:</strong></span>
+                    <span style="font-weight: 700; color: var(--primary);"><span id="clientCount">1</span> / 10</span>
+                </p>
+            </div>
+            
+            <button class="btn-next" id="nextToSchedule">Next: Select Date <i class="fas fa-arrow-right"></i></button>
+            <button class="btn-next back-btn" id="backToTypeFromClients"><i class="fas fa-arrow-left"></i> Back</button>
+        </div>
+
+        <!-- STEP 3: SCHEDULE -->
         <div id="sectionSchedule" class="hidden">
             <div class="section-title">Select Appointment Date</div>
+            
+            <div class="slot-info" id="slotInfo">
+                <i class="fas fa-calendar-check" style="color: var(--primary);"></i>
+                <span id="slotInfoText">Select an available date</span>
+            </div>
             
             <div class="calendar-container">
                 <div class="calendar-header">
@@ -836,154 +993,123 @@
                 <div class="calendar-days" id="calendarDays"></div>
             </div>
             
-            <div class="selected-date-display" id="selectedDateDisplay">
-                <span class="selected-date-label"><i class="far fa-calendar-check"></i> Selected Date:</span>
-                <span class="selected-date-value" id="selectedDateText">Tuesday, April 14, 2026</span>
+            <div class="selected-date-display">
+                <i class="far fa-check-circle" style="color: var(--success);"></i>
+                <span>Selected Date:</span>
+                <span id="selectedDateText" style="font-weight: 600; color: var(--gray-900);">Tuesday, April 14, 2026</span>
             </div>
             
-            <p style="color: #5e7182; font-size: 0.85rem; margin: 8px 0 16px;">
-                <i class="fas fa-info-circle"></i> Your appointment will be scheduled for the full day. Please arrive during office hours.
+            <button class="btn-next" id="nextToContact">Next: Contact Info <i class="fas fa-arrow-right"></i></button>
+            <button class="btn-next back-btn" id="backToClients"><i class="fas fa-arrow-left"></i> Back</button>
+        </div>
+
+        <!-- STEP 4: CONTACT -->
+        <div id="sectionContact" class="hidden">
+            <div class="section-title">Primary Contact Information</div>
+            <p style="color: var(--gray-500); margin-bottom: 24px;">
+                <i class="fas fa-phone-alt"></i> Who should we contact?
             </p>
             
-            <button class="btn-next" id="nextToDetails">Next: Applicant Details →</button>
-            <button class="btn-requirements back-btn" id="backToServiceBtn">← Back to Service</button>
-        </div>
-
-        <!-- ========= DETAILS SECTION (WITH SEX AND BIRTHDATE) ========= -->
-        <div id="sectionDetails" class="hidden">
-            <div class="section-title">Applicant Details</div>
-            
-            <div>
-                <label>Full Name *</label>
-                <input type="text" id="fullName" placeholder="Enter full name" value="Juan Dela Cruz">
+            <div style="margin-bottom: 20px;">
+                <label>Contact Person Name <span style="color: var(--danger);">*</span></label>
+                <input type="text" id="contactName" placeholder="e.g., Maria Dela Cruz" value="Maria Dela Cruz">
             </div>
             
-            <div class="form-row">
-                <div class="form-col">
-                    <label>Sex *</label>
-                    <select id="sexSelect">
-                        <option value="">-- Select Sex --</option>
-                        <option value="Male" selected>Male</option>
-                        <option value="Female">Female</option>
-                    </select>
-                </div>
-                <div class="form-col">
-                    <label>Birthdate *</label>
-                    <input type="date" id="birthdate" value="1990-01-15">
-                </div>
-            </div>
-            
-            <div style="margin-top: 16px;">
+            <div style="margin-bottom: 20px;">
                 <label>Email Address</label>
-                <input type="email" id="email" placeholder="example@gmail.com" value="juan.delacruz@email.com">
+                <input type="email" id="contactEmail" placeholder="maria@example.com" value="maria.delacruz@email.com">
             </div>
             
-            <div style="margin-top: 16px;">
-                <label>Mobile Number</label>
-                <input type="tel" id="mobile" placeholder="09XXXXXXXXX" value="09171234567">
-                <div class="contact-note">Enter at least one contact detail.</div>
+            <div style="margin-bottom: 20px;">
+                <label>Mobile Number <span style="color: var(--danger);">*</span></label>
+                <input type="tel" id="contactMobile" placeholder="09XXXXXXXXX" value="09171234567">
             </div>
             
-            <button class="btn-next" id="nextToReview">Review Appointment →</button>
-            <button class="btn-requirements back-btn" id="backToScheduleBtn">← Back to Schedule</button>
+            <button class="btn-next" id="nextToReview">Review Appointment <i class="fas fa-arrow-right"></i></button>
+            <button class="btn-next back-btn" id="backToScheduleFromContact"><i class="fas fa-arrow-left"></i> Back</button>
         </div>
 
-        <!-- ========= REVIEW SECTION ========= -->
+        <!-- STEP 5: REVIEW -->
         <div id="sectionReview" class="hidden">
             <div class="section-title">Review Your Appointment</div>
-            <p style="color: #5e7182; margin-bottom: 16px; font-size: 0.9rem;">
-                <i class="fas fa-info-circle"></i> Please review all details below. Click "Edit" to make changes.
-            </p>
             
             <div class="review-container">
                 <div class="review-section">
-                    <div class="review-section-header">
-                        <span class="review-section-title"><i class="fas fa-tag"></i> Selected Service</span>
-                        <button class="edit-link" data-edit="service"><i class="fas fa-pen"></i> Edit</button>
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 12px;">
+                        <span class="review-section-title"><i class="fas fa-tag" style="color: var(--primary);"></i> Type</span>
+                        <button class="edit-link" data-edit="type" style="color: var(--secondary);"><i class="fas fa-pen"></i> Edit</button>
                     </div>
-                    <div class="review-detail-row">
-                        <span class="review-detail-label">Service:</span>
-                        <span class="review-detail-value" id="reviewService">National ID Registration</span>
-                    </div>
+                    <div><span id="reviewType" style="font-weight: 600;">-</span></div>
                 </div>
                 
                 <div class="review-section">
-                    <div class="review-section-header">
-                        <span class="review-section-title"><i class="far fa-calendar-alt"></i> Schedule</span>
-                        <button class="edit-link" data-edit="schedule"><i class="fas fa-pen"></i> Edit</button>
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 12px;">
+                        <span class="review-section-title"><i class="fas fa-users" style="color: var(--primary);"></i> Clients (<span id="reviewClientCount">1</span>)</span>
+                        <button class="edit-link" data-edit="clients" style="color: var(--secondary);"><i class="fas fa-pen"></i> Edit</button>
                     </div>
-                    <div class="review-detail-row">
-                        <span class="review-detail-label">Date:</span>
-                        <span class="review-detail-value" id="reviewDate">Tuesday, April 14, 2026</span>
-                    </div>
+                    <div id="reviewClientsList"></div>
                 </div>
                 
                 <div class="review-section">
-                    <div class="review-section-header">
-                        <span class="review-section-title"><i class="fas fa-user"></i> Applicant Details</span>
-                        <button class="edit-link" data-edit="details"><i class="fas fa-pen"></i> Edit</button>
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 12px;">
+                        <span class="review-section-title"><i class="far fa-calendar-alt" style="color: var(--primary);"></i> Schedule</span>
+                        <button class="edit-link" data-edit="schedule" style="color: var(--secondary);"><i class="fas fa-pen"></i> Edit</button>
                     </div>
-                    <div class="review-detail-row">
-                        <span class="review-detail-label">Full Name:</span>
-                        <span class="review-detail-value" id="reviewFullName">Juan Dela Cruz</span>
+                    <div><span id="reviewDate" style="font-weight: 600;">-</span></div>
+                </div>
+                
+                <div class="review-section">
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 12px;">
+                        <span class="review-section-title"><i class="fas fa-address-book" style="color: var(--primary);"></i> Contact</span>
+                        <button class="edit-link" data-edit="contact" style="color: var(--secondary);"><i class="fas fa-pen"></i> Edit</button>
                     </div>
-                    <div class="review-detail-row">
-                        <span class="review-detail-label">Sex:</span>
-                        <span class="review-detail-value" id="reviewSex">Male</span>
-                    </div>
-                    <div class="review-detail-row">
-                        <span class="review-detail-label">Birthdate:</span>
-                        <span class="review-detail-value" id="reviewBirthdate">January 15, 1990</span>
-                    </div>
-                    <div class="review-detail-row">
-                        <span class="review-detail-label">Email:</span>
-                        <span class="review-detail-value" id="reviewEmail">juan.delacruz@email.com</span>
-                    </div>
-                    <div class="review-detail-row">
-                        <span class="review-detail-label">Mobile:</span>
-                        <span class="review-detail-value" id="reviewMobile">09171234567</span>
+                    <div>
+                        <span id="reviewContactName" style="font-weight: 600;">-</span><br>
+                        <span id="reviewContactEmail" style="color: var(--gray-500);">-</span><br>
+                        <span id="reviewContactMobile" style="font-weight: 500;">-</span>
                     </div>
                 </div>
             </div>
             
-            <button class="btn-next" id="nextToConfirm">Proceed to Confirm →</button>
-            <button class="btn-requirements back-btn" id="backToDetailsFromReview">← Back to Details</button>
+            <button class="btn-next" id="nextToConfirm">Proceed to Confirm <i class="fas fa-arrow-right"></i></button>
+            <button class="btn-next back-btn" id="backToContact"><i class="fas fa-arrow-left"></i> Back</button>
         </div>
 
-        <!-- ========= CONFIRM SECTION ========= -->
+        <!-- STEP 6: CONFIRM -->
         <div id="sectionConfirm" class="hidden">
             <div class="section-title">Confirm Appointment</div>
             
             <div class="summary-box">
-                <div class="summary-row"><span class="summary-label">Service</span> <span class="summary-value" id="sumService">National ID Registration</span></div>
-                <div class="summary-row"><span class="summary-label">Date</span> <span class="summary-value" id="sumDate">Tuesday, April 14, 2026</span></div>
-                <div class="summary-row"><span class="summary-label">Name</span> <span class="summary-value" id="sumName">Juan Dela Cruz</span></div>
-                <div class="summary-row"><span class="summary-label">Sex</span> <span class="summary-value" id="sumSex">Male</span></div>
-                <div class="summary-row"><span class="summary-label">Birthdate</span> <span class="summary-value" id="sumBirthdate">January 15, 1990</span></div>
-                <div class="summary-row"><span class="summary-label">Contact</span> <span class="summary-value" id="sumContact">juan.delacruz@email.com / 09171234567</span></div>
+                <div class="summary-row"><span class="summary-label">Type</span><span class="summary-value" id="sumType">-</span></div>
+                <div class="summary-row"><span class="summary-label">Clients</span><span class="summary-value" id="sumClients">-</span></div>
+                <div class="summary-row"><span class="summary-label">Date</span><span class="summary-value" id="sumDate">-</span></div>
+                <div class="summary-row"><span class="summary-label">Contact</span><span class="summary-value" id="sumContact">-</span></div>
             </div>
             
             <div class="confirmation-checkbox">
                 <input type="checkbox" id="confirmCheckbox">
                 <label for="confirmCheckbox">
-                    I confirm that all information provided is accurate and complete. I understand that providing false information may result in cancellation of my appointment.
+                    <strong>I confirm that all information is accurate and complete.</strong><br>
+                    <span style="font-size: 0.85rem; color: var(--gray-500);">I have read all service requirements and will bring necessary documents.</span>
                 </label>
             </div>
             
             <button class="btn-next" id="submitRequestBtn" disabled>
-                <i class="fas fa-check-circle"></i> Confirm & Submit Appointment
+                <i class="fas fa-check-circle"></i> Confirm & Submit
             </button>
-            <p class="reminder">Please review the details before submitting.</p>
-            <div class="reminder" style="margin-top: 8px;">
-                <i class="far fa-bell"></i> Reminder: Not all clients may receive an email notification. If your Appointment Slip is generated, your booking was recorded successfully.
+            
+            <div class="reminder" style="margin-top: 20px;">
+                <i class="far fa-bell" style="color: var(--warning);"></i> 
+                Reminder: If your Appointment Slip is generated, your booking was recorded.
             </div>
-            <button class="btn-requirements back-btn" id="backToReviewBtn">← Back to Review</button>
+            
+            <button class="btn-next back-btn" id="backToReview"><i class="fas fa-arrow-left"></i> Back</button>
         </div>
     </div>
-
+    
     <div class="footer-note">
-        <span>Philippine Statistics Authority</span>
-        <span>National ID System (PhilSys) · Official Appointment Booking Portal</span>
+        <span><i class="far fa-copyright"></i> Philippine Statistics Authority</span>
+        <span>National ID System (PhilSys) · Official Portal</span>
         <span>© 2026 All Rights Reserved</span>
     </div>
 </div>
@@ -992,288 +1118,367 @@
     (function(){
         'use strict';
 
-        // ========== STATE ==========
-        let currentService = '';
-        let serviceText = '';
+        let appointmentType = 'single';
+        let singleService = 'reg';
+        let singleServiceText = 'National ID Registration';
+        const serviceOptions = {
+            'reg': 'National ID Registration',
+            'correction': 'Correction/Updating',
+            'ephilid': 'ePhilID Issuance',
+            'trn': 'TRN Retrieval'
+        };
+        
+        const requirementsContent = {
+            'reg': `<h4><i class="fas fa-id-card"></i> National ID Registration</h4><p><strong>PRIMARY DOCUMENTS:</strong></p><ul><li>PSA Birth Certificate + 1 government-issued ID (Passport, UMID, Driver's License)</li></ul><p><strong>SECONDARY DOCUMENTS:</strong></p><ul><li>PSA/LCRO Birth Certificate</li><li>Voter's ID, Postal ID, PhilHealth ID</li><li>Employee ID, School ID, Barangay Certificate</li></ul><p><em>⚠️ Bring original documents.</em></p>`,
+            'correction': `<h4><i class="fas fa-pen"></i> Correction/Updating</h4><p><strong>Required Documents by Field:</strong></p><ul><li><strong>First/Last Name:</strong> Birth Certificate, Marriage Certificate</li><li><strong>Sex/DOB:</strong> Birth Certificate</li><li><strong>Address:</strong> Barangay Certificate + Billing</li></ul><p><em>⚠️ Bring ORIGINAL copies.</em></p>`,
+            'ephilid': `<h4><i class="fas fa-print"></i> ePhilID Printing</h4><p><strong>Requirements:</strong></p><ul><li>Transaction slip or reference number</li></ul><p><strong>Representative:</strong> Authorization letter + IDs</p><p><strong>Minor:</strong> Birth Certificate + Guardian ID</p>`,
+            'trn': `<h4><i class="fas fa-search"></i> TRN Retrieval</h4><p><strong>Provide:</strong></p><ul><li>First, Middle, Last Name</li><li>Date of Birth</li><li>Sex</li></ul><p><em>🔒 Confidential per RA 10173.</em></p>`
+        };
+        
+        const identityReminders = {
+            'reg': 'The person named below must be the one registering for the National ID.',
+            'correction': 'The person named below must be the one requesting the correction/update.',
+            'ephilid': 'The person named below must be the one claiming the ePhilID.',
+            'trn': 'The person named below must be the one requesting TRN retrieval.'
+        };
+        
+        // Client structure with separate name fields
+        let clients = [{ 
+            id: 1, 
+            firstName: 'Juan', 
+            middleName: 'Santos', 
+            lastName: 'Dela Cruz',
+            suffix: '',
+            sex: 'Male', 
+            birthdate: '1990-01-15', 
+            service: 'reg', 
+            reqAcknowledged: false 
+        }];
+        let nextClientId = 2;
+        
         let currentDate = new Date(2026, 3, 1);
         let selectedDate = new Date(2026, 3, 14);
-        
-        const availableDates = new Set([
-            '2026-04-01', '2026-04-02', '2026-04-03',
-            '2026-04-06', '2026-04-07', '2026-04-08', '2026-04-09', '2026-04-10',
-            '2026-04-13', '2026-04-14', '2026-04-15', '2026-04-16', '2026-04-17',
-            '2026-04-20', '2026-04-21', '2026-04-22', '2026-04-23', '2026-04-24',
-            '2026-04-27', '2026-04-28', '2026-04-29', '2026-04-30'
-        ]);
+        const dailyCapacity = 20;
+        const getBookedSlots = (k) => { const d = parseInt(k.split('-')[2]); return d===14?8:d===15?18:d===16?20:Math.floor(Math.random()*12); };
+        const availableDates = new Set(['2026-04-01','2026-04-02','2026-04-03','2026-04-06','2026-04-07','2026-04-08','2026-04-09','2026-04-10','2026-04-13','2026-04-14','2026-04-15','2026-04-16','2026-04-17','2026-04-20','2026-04-21','2026-04-22','2026-04-23','2026-04-24','2026-04-27','2026-04-28','2026-04-29','2026-04-30']);
 
-        // ========== DOM ELEMENTS ==========
         const privacyModal = document.getElementById('privacyModal');
-        const agreeBtn = document.getElementById('agreePrivacyBtn');
-        const serviceSelect = document.getElementById('serviceSelect');
-        const serviceDescBox = document.getElementById('serviceDescBox');
-        const showReqBtn = document.getElementById('showReqBtn');
         const reqModal = document.getElementById('reqModal');
-        const closeReqModal = document.getElementById('closeReqModal');
-        const understandBtn = document.getElementById('understandBtn');
-        const modalServiceTitle = document.getElementById('modalServiceTitle');
-        const modalBodyContent = document.getElementById('modalBodyContent');
-
-        const sectionService = document.getElementById('sectionService');
-        const sectionSchedule = document.getElementById('sectionSchedule');
-        const sectionDetails = document.getElementById('sectionDetails');
-        const sectionReview = document.getElementById('sectionReview');
-        const sectionConfirm = document.getElementById('sectionConfirm');
-
-        const nextToSchedule = document.getElementById('nextToSchedule');
-        const backToServiceBtn = document.getElementById('backToServiceBtn');
-        const nextToDetails = document.getElementById('nextToDetails');
-        const backToScheduleBtn = document.getElementById('backToScheduleBtn');
-        const nextToReview = document.getElementById('nextToReview');
-        const backToDetailsFromReview = document.getElementById('backToDetailsFromReview');
-        const nextToConfirm = document.getElementById('nextToConfirm');
-        const backToReviewBtn = document.getElementById('backToReviewBtn');
-        const submitBtn = document.getElementById('submitRequestBtn');
-
-        // Summary elements
-        const sumService = document.getElementById('sumService');
-        const sumDate = document.getElementById('sumDate');
-        const sumName = document.getElementById('sumName');
-        const sumSex = document.getElementById('sumSex');
-        const sumBirthdate = document.getElementById('sumBirthdate');
-        const sumContact = document.getElementById('sumContact');
+        const modalTitle = document.getElementById('modalServiceTitle');
+        const modalBody = document.getElementById('modalBodyContent');
+        const sections = { 
+            type: document.getElementById('sectionType'), 
+            clients: document.getElementById('sectionClients'), 
+            schedule: document.getElementById('sectionSchedule'), 
+            contact: document.getElementById('sectionContact'), 
+            review: document.getElementById('sectionReview'), 
+            confirm: document.getElementById('sectionConfirm') 
+        };
         
-        // Input elements
-        const fullNameInput = document.getElementById('fullName');
-        const sexSelect = document.getElementById('sexSelect');
-        const birthdateInput = document.getElementById('birthdate');
-        const emailInput = document.getElementById('email');
-        const mobileInput = document.getElementById('mobile');
-
-        // Review elements
-        const reviewService = document.getElementById('reviewService');
-        const reviewDate = document.getElementById('reviewDate');
-        const reviewFullName = document.getElementById('reviewFullName');
-        const reviewSex = document.getElementById('reviewSex');
-        const reviewBirthdate = document.getElementById('reviewBirthdate');
-        const reviewEmail = document.getElementById('reviewEmail');
-        const reviewMobile = document.getElementById('reviewMobile');
-
-        // Calendar elements
-        const calendarMonthYear = document.getElementById('calendarMonthYear');
-        const calendarDays = document.getElementById('calendarDays');
-        const prevMonthBtn = document.getElementById('prevMonthBtn');
-        const nextMonthBtn = document.getElementById('nextMonthBtn');
-        const selectedDateText = document.getElementById('selectedDateText');
-        const confirmCheckbox = document.getElementById('confirmCheckbox');
-
-        // ========== PRIVACY ==========
-        agreeBtn.addEventListener('click', () => privacyModal.style.display = 'none');
-
-        // ========== SERVICE ==========
-        serviceSelect.addEventListener('change', function() {
-            const val = serviceSelect.value;
-            currentService = val;
-            updateServiceDescription(val);
-            showReqBtn.style.display = val ? 'block' : 'none';
-            if(val) {
-                serviceText = serviceSelect.options[serviceSelect.selectedIndex].text;
-                updateAllSummaries();
-            } else {
-                serviceDescBox.innerHTML = `<p><i class="fas fa-info-circle"></i> Select a service to see details.</p>`;
-            }
-        });
-
-        function updateServiceDescription(serviceKey) {
-            let desc = '';
-            if(serviceKey === 'reg') desc = `<strong>National ID Registration</strong><p>Bring original supporting documents for first-time registration.</p>`;
-            else if(serviceKey === 'correction') desc = `<strong>Correction/Updating of Demographic Information</strong><p>Prepare documents that support the exact field to be corrected.</p>`;
-            else if(serviceKey === 'ephilid') desc = `<strong>Issuance of National ID Paper Form (ePhilID)</strong><p>This service is for clients requesting their National ID in paper format.</p>`;
-            else if(serviceKey === 'trn') desc = `<strong>Retrieval of TRN / Other Concern</strong><p>Prepare details that can help personnel verify your concern quickly.</p>`;
-            if(desc) serviceDescBox.innerHTML = desc + `<div class="badge-hours"><i class="far fa-clock"></i> Saturday: CLOSED • Sunday: CLOSED</div>`;
-        }
-
-        function formatDisplayDate(date) {
-            return date.toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+        function formatDateKey(d) { return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`; }
+        function formatDisplayDate(d) { return d.toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' }); }
+        function formatBirthdate(d) { return d?new Date(d).toLocaleDateString('en-US',{year:'numeric',month:'long',day:'numeric'}):''; }
+        function getServiceName(c) { return serviceOptions[c]||c; }
+        function canAccommodate(k, n) { return (getBookedSlots(k)+n) <= dailyCapacity; }
+        function getSlotsLeft(k) { return Math.max(0, dailyCapacity - getBookedSlots(k)); }
+        function allRequirementsAcknowledged() { return clients.every(c => c.reqAcknowledged); }
+        
+        function getFullName(c) {
+            const parts = [c.firstName, c.middleName, c.lastName].filter(p => p && p.trim());
+            let fullName = parts.join(' ') || '(No name)';
+            if (c.suffix) fullName += ' ' + c.suffix;
+            return fullName;
         }
         
-        function formatBirthdate(dateStr) {
-            if(!dateStr) return 'Not provided';
-            const d = new Date(dateStr);
-            return d.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
-        }
-
-        function updateAllSummaries() {
-            const serviceDisplay = serviceText || 'Not selected';
-            sumService.textContent = serviceDisplay;
-            reviewService.textContent = serviceDisplay;
-            
-            const dateDisplay = formatDisplayDate(selectedDate);
-            sumDate.textContent = dateDisplay;
-            reviewDate.textContent = dateDisplay;
-            selectedDateText.textContent = dateDisplay;
-            
-            const fullName = fullNameInput.value || 'Not provided';
-            sumName.textContent = fullName;
-            reviewFullName.textContent = fullName;
-            
-            const sex = sexSelect.value || 'Not selected';
-            sumSex.textContent = sex;
-            reviewSex.textContent = sex;
-            
-            const birthdate = birthdateInput.value;
-            const birthdateDisplay = birthdate ? formatBirthdate(birthdate) : 'Not provided';
-            sumBirthdate.textContent = birthdateDisplay;
-            reviewBirthdate.textContent = birthdateDisplay;
-            
-            const email = emailInput.value || 'Not provided';
-            const mobile = mobileInput.value || 'Not provided';
-            reviewEmail.textContent = email;
-            reviewMobile.textContent = mobile;
-            sumContact.textContent = `${email} / ${mobile}`;
-        }
-
-        // ========== REQUIREMENTS MODAL ==========
-        function getRequirementsContent(service) {
-            if(service === 'reg') return `<h4>Supporting Documents – Filipino Citizens</h4><p><strong>PRIMARY:</strong> PSA Birth Certificate + 1 gov ID; Passport, UMID, Driver's License.</p>`;
-            if(service === 'correction') return `<h4>Updating of Demographic Information</h4><p>First Name: Birth certificate. Last Name: Marriage cert.</p>`;
-            if(service === 'ephilid') return `<h4>ePhilID Printing</h4><p>Present transaction slip. Representative: authorization letter & IDs.</p>`;
-            if(service === 'trn') return `<h4>TRN Retrieval</h4><p>Provide: First, Middle, Last name, DOB, Sex.</p>`;
-            return 'Select a service first.';
-        }
-
-        showReqBtn.addEventListener('click', () => {
-            if(!currentService) return;
-            modalServiceTitle.textContent = serviceSelect.options[serviceSelect.selectedIndex].text + ' Requirements';
-            modalBodyContent.innerHTML = getRequirementsContent(currentService);
-            reqModal.style.display = 'flex';
-        });
-        closeReqModal.addEventListener('click', () => reqModal.style.display = 'none');
-        understandBtn.addEventListener('click', () => reqModal.style.display = 'none');
-        window.addEventListener('click', (e) => { if(e.target === reqModal) reqModal.style.display = 'none'; });
-
-        // ========== CALENDAR ==========
-        function formatDateKey(date) {
-            return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
-        }
-        function isDateAvailable(date) { return availableDates.has(formatDateKey(date)); }
-        function isSameDate(d1, d2) { return d1.getFullYear() === d2.getFullYear() && d1.getMonth() === d2.getMonth() && d1.getDate() === d2.getDate(); }
-        
-        function renderCalendar() {
-            const year = currentDate.getFullYear(), month = currentDate.getMonth();
-            calendarMonthYear.textContent = new Date(year, month, 1).toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
-            const firstDay = new Date(year, month, 1);
-            let startDay = firstDay.getDay() || 7;
-            startDay = startDay === 7 ? 0 : startDay - 1;
-            const daysInMonth = new Date(year, month + 1, 0).getDate();
+        function updateReqSummary() {
+            const list = document.getElementById('reqSummaryList');
+            const banner = document.getElementById('reqSummaryBanner');
             let html = '';
-            for (let i = 0; i < startDay; i++) html += '<div class="calendar-day empty"></div>';
-            const today = new Date(); today.setHours(0, 0, 0, 0);
-            for (let day = 1; day <= daysInMonth; day++) {
-                const date = new Date(year, month, day);
-                const dateKey = formatDateKey(date);
-                const isAvailable = availableDates.has(dateKey);
-                const isSelected = isSameDate(date, selectedDate);
-                const isPast = date < today && !isSameDate(date, today);
-                let classes = 'calendar-day';
-                if (isAvailable && !isPast) classes += ' available';
-                if (isSelected) classes += ' selected';
-                if (isPast) classes += ' disabled';
-                if (!isAvailable && !isPast) classes += ' unavailable';
-                html += `<div class="${classes}" data-date="${dateKey}">${day}</div>`;
+            let allAcked = true;
+            clients.forEach((c, i) => {
+                const svc = appointmentType === 'single' ? singleService : c.service;
+                const acked = c.reqAcknowledged;
+                if (!acked) allAcked = false;
+                const displayName = getFullName(c);
+                html += `<div class="req-item"><i class="fas ${acked ? 'fa-check-circle' : 'fa-exclamation-circle'}" style="color:${acked?'var(--success)':'var(--warning)'};"></i> ${displayName || 'Person '+(i+1)} - ${getServiceName(svc)} ${acked ? '✓' : '(Pending)'}</div>`;
+            });
+            list.innerHTML = html;
+            banner.classList.toggle('complete', allAcked);
+            document.getElementById('nextToSchedule').disabled = !allAcked;
+        }
+
+        function renderClients() {
+            const container = document.getElementById('clientsList');
+            const isMultiple = appointmentType === 'multiple';
+            const addBtn = document.getElementById('addClientBtn');
+            const countContainer = document.getElementById('clientCountContainer');
+            
+            if (appointmentType === 'single') {
+                addBtn.classList.add('hidden');
+                countContainer.classList.add('hidden');
+                document.getElementById('clientsTitle').textContent = 'Client Information';
+                document.getElementById('clientsSubtitle').textContent = 'Enter the details of the person for this appointment.';
+            } else {
+                addBtn.classList.remove('hidden');
+                countContainer.classList.remove('hidden');
+                document.getElementById('clientsTitle').textContent = 'Family / Group Members';
+                document.getElementById('clientsSubtitle').textContent = 'Add all persons who will attend. Each can select their own service.';
             }
-            calendarDays.innerHTML = html;
-            document.querySelectorAll('.calendar-day[data-date]').forEach(el => {
-                el.addEventListener('click', () => {
-                    const dateKey = el.dataset.date;
-                    if (availableDates.has(dateKey)) {
-                        const [y, m, d] = dateKey.split('-').map(Number);
-                        selectedDate = new Date(y, m - 1, d);
-                        renderCalendar();
-                        updateAllSummaries();
-                    }
-                });
+            
+            container.innerHTML = '';
+            clients.forEach((c, i) => {
+                const svc = isMultiple ? c.service : singleService;
+                const reminder = identityReminders[svc] || 'Please ensure the information is accurate.';
+                
+                const card = document.createElement('div'); card.className = 'client-card';
+                card.innerHTML = `
+                    <div class="client-header">
+                        <span class="client-title"><i class="fas fa-user-circle"></i> ${appointmentType === 'single' ? 'Client Information' : 'Person '+(i+1)} ${isMultiple?`<span class="client-service-badge">${getServiceName(svc)}</span>`:''}</span>
+                        <div style="display: flex; gap: 8px;">
+                            <button class="btn-view-req" data-id="${c.id}"><i class="fas fa-book"></i> View Requirements</button>
+                            ${(appointmentType === 'multiple' && clients.length > 1) ? `<button class="btn-remove-client" data-id="${c.id}"><i class="fas fa-trash-alt"></i></button>` : ''}
+                        </div>
+                    </div>
+                    
+                    <div class="identity-reminder">
+                        <i class="fas fa-id-card"></i>
+                        <strong>Important:</strong> ${reminder}
+                    </div>
+                    
+                    <div class="form-row">
+    <div class="form-col">
+        <label>First Name <span style="color: var(--danger);">*</span></label>
+        <input class="client-firstname" data-id="${c.id}" value="${c.firstName || ''}" placeholder="First Name">
+    </div>
+    <div class="form-col">
+        <label>Middle Name</label>
+        <input class="client-middlename" data-id="${c.id}" value="${c.middleName || ''}" placeholder="Middle Name">
+    </div>
+</div>
+<div class="form-row">
+    <div class="form-col">
+        <label>Last Name <span style="color: var(--danger);">*</span></label>
+        <input class="client-lastname" data-id="${c.id}" value="${c.lastName || ''}" placeholder="Last Name">
+    </div>
+    <div class="form-col">
+        <label>Suffix</label>
+        <select class="client-suffix" data-id="${c.id}">
+            <option value="" ${!c.suffix ? 'selected' : ''}>-- None --</option>
+            <option value="Jr." ${c.suffix === 'Jr.' ? 'selected' : ''}>Jr.</option>
+            <option value="Sr." ${c.suffix === 'Sr.' ? 'selected' : ''}>Sr.</option>
+            <option value="I" ${c.suffix === 'I' ? 'selected' : ''}>I</option>
+            <option value="II" ${c.suffix === 'II' ? 'selected' : ''}>II</option>
+            <option value="III" ${c.suffix === 'III' ? 'selected' : ''}>III</option>
+            <option value="IV" ${c.suffix === 'IV' ? 'selected' : ''}>IV</option>
+            <option value="V" ${c.suffix === 'V' ? 'selected' : ''}>V</option>
+        </select>
+    </div>
+</div>
+                    
+                    <div class="form-row">
+                        <div class="form-col">
+                            <label>Sex <span style="color: var(--danger);">*</span></label>
+                            <select class="client-sex" data-id="${c.id}">
+                                <option value="Male" ${c.sex==='Male'?'selected':''}>Male</option>
+                                <option value="Female" ${c.sex==='Female'?'selected':''}>Female</option>
+                            </select>
+                        </div>
+                        <div class="form-col">
+                            <label>Birthdate <span style="color: var(--danger);">*</span></label>
+                            <input type="date" class="client-birthdate" data-id="${c.id}" value="${c.birthdate}">
+                        </div>
+                    </div>
+                    
+                    ${isMultiple ? `<div class="form-col" style="margin-top: 12px;"><label>Service <span style="color: var(--danger);">*</span></label><select class="client-service" data-id="${c.id}"><option value="reg" ${c.service==='reg'?'selected':''}>National ID Registration</option><option value="correction" ${c.service==='correction'?'selected':''}>Correction/Updating</option><option value="ephilid" ${c.service==='ephilid'?'selected':''}>ePhilID Issuance</option><option value="trn" ${c.service==='trn'?'selected':''}>TRN Retrieval / Other Concerb</option></select></div>` : ''}
+                    
+                    <div class="req-ack-row ${c.reqAcknowledged ? 'acknowledged' : ''}">
+                        <input type="checkbox" class="req-ack" data-id="${c.id}" ${c.reqAcknowledged ? 'checked' : ''}>
+                        <label>I have read and understood the requirements for <strong>${getServiceName(svc)}</strong>. I will bring all necessary documents.</label>
+                    </div>
+                `;
+                container.appendChild(card);
             });
+            
+            document.querySelectorAll('.client-firstname').forEach(e=>e.addEventListener('input', (ev)=>{ const c=clients.find(x=>x.id==ev.target.dataset.id); if(c)c.firstName=ev.target.value; }));
+            document.querySelectorAll('.client-middlename').forEach(e=>e.addEventListener('input', (ev)=>{ const c=clients.find(x=>x.id==ev.target.dataset.id); if(c)c.middleName=ev.target.value; }));
+            document.querySelectorAll('.client-lastname').forEach(e=>e.addEventListener('input', (ev)=>{ const c=clients.find(x=>x.id==ev.target.dataset.id); if(c)c.lastName=ev.target.value; }));
+            document.querySelectorAll('.client-suffix').forEach(e=>e.addEventListener('change', (ev)=>{ const c=clients.find(x=>x.id==ev.target.dataset.id); if(c)c.suffix=ev.target.value; }));
+            document.querySelectorAll('.client-sex').forEach(e=>e.addEventListener('change', (ev)=>{ const c=clients.find(x=>x.id==ev.target.dataset.id); if(c)c.sex=ev.target.value; }));
+            document.querySelectorAll('.client-birthdate').forEach(e=>e.addEventListener('input', (ev)=>{ const c=clients.find(x=>x.id==ev.target.dataset.id); if(c)c.birthdate=ev.target.value; }));
+            document.querySelectorAll('.client-service').forEach(e=>e.addEventListener('change', (ev)=>{ 
+                const c=clients.find(x=>x.id==ev.target.dataset.id); 
+                if(c){c.service=ev.target.value; c.reqAcknowledged=false; renderClients(); updateReqSummary(); }
+            }));
+            document.querySelectorAll('.req-ack').forEach(e=>e.addEventListener('change', (ev)=>{ const c=clients.find(x=>x.id==ev.target.dataset.id); if(c){c.reqAcknowledged=ev.target.checked; renderClients(); updateReqSummary(); }}));
+            document.querySelectorAll('.btn-view-req').forEach(b=>b.addEventListener('click', (ev)=>{
+                const id = ev.target.closest('.btn-view-req').dataset.id;
+                const client = clients.find(c=>c.id==id);
+                const svc = appointmentType==='single'?singleService:client.service;
+                modalTitle.textContent = `${getServiceName(svc)} Requirements`;
+                modalBody.innerHTML = requirementsContent[svc] || '<p>Requirements not available.</p>';
+                reqModal.style.display = 'flex';
+            }));
+            document.querySelectorAll('.btn-remove-client').forEach(b=>b.addEventListener('click', (ev)=>{
+                const id = ev.target.closest('.btn-remove-client').dataset.id;
+                clients = clients.filter(c=>c.id!=id);
+                renderClients();
+                updateReqSummary();
+                document.getElementById('clientCount').textContent = clients.length;
+            }));
+            
+            document.getElementById('clientCount').textContent = clients.length;
+            updateReqSummary();
         }
 
-        prevMonthBtn.addEventListener('click', () => { currentDate.setMonth(currentDate.getMonth() - 1); renderCalendar(); });
-        nextMonthBtn.addEventListener('click', () => { currentDate.setMonth(currentDate.getMonth() + 1); renderCalendar(); });
-
-        // ========== NAVIGATION ==========
-        function setActiveStep(stepNumber) {
-            document.querySelectorAll('.step').forEach((el, idx) => {
-                el.classList.remove('active', 'completed');
-                if (idx + 1 < stepNumber) el.classList.add('completed');
-                else if (idx + 1 === stepNumber) el.classList.add('active');
-            });
+        function renderCalendar() {
+            const y = currentDate.getFullYear(), m = currentDate.getMonth();
+            document.getElementById('calendarMonthYear').textContent = new Date(y,m,1).toLocaleDateString('en-US',{month:'long',year:'numeric'});
+            const first = new Date(y,m,1); let start = first.getDay()||7; start = start===7?0:start-1;
+            const days = new Date(y,m+1,0).getDate();
+            let html = ''; for(let i=0;i<start;i++) html+='<div class="calendar-day empty"></div>';
+            const today = new Date(); today.setHours(0,0,0,0);
+            for(let d=1;d<=days;d++){
+                const date = new Date(y,m,d), key = formatDateKey(date);
+                const avail = availableDates.has(key), past = date<today, canFit = canAccommodate(key, clients.length);
+                let cls = 'calendar-day';
+                if(avail&&!past&&canFit) cls+=' available';
+                if(date.getTime()===selectedDate.getTime()) cls+=' selected';
+                if(past) cls+=' disabled';
+                if(avail&&!past&&!canFit) cls+=' full';
+                html+=`<div class="${cls}" data-date="${key}">${d}${avail&&!past?`<span class="slots-left">${getSlotsLeft(key)}</span>`:''}</div>`;
+            }
+            document.getElementById('calendarDays').innerHTML = html;
+            document.querySelectorAll('.calendar-day[data-date]').forEach(el=>el.addEventListener('click', ()=>{
+                const k = el.dataset.date; if(!availableDates.has(k)) return;
+                if(!canAccommodate(k, clients.length)){ alert(`Only ${getSlotsLeft(k)} slots available.`); return; }
+                const [y,m,d] = k.split('-').map(Number); selectedDate = new Date(y,m-1,d);
+                renderCalendar(); document.getElementById('selectedDateText').textContent = formatDisplayDate(selectedDate);
+                document.getElementById('slotInfoText').innerHTML = `✓ ${getSlotsLeft(k)} slots available.`;
+            }));
         }
+
+        function setActiveStep(s){ document.querySelectorAll('.step').forEach((e,i)=>e.classList.toggle('active', i+1===s)); }
+        function showSection(s){ Object.values(sections).forEach(x=>x.classList.add('hidden')); s.classList.remove('hidden'); }
         
-        function showSection(section) {
-            [sectionService, sectionSchedule, sectionDetails, sectionReview, sectionConfirm].forEach(s => s.classList.add('hidden'));
-            section.classList.remove('hidden');
-            window.scrollTo({ top: 0, behavior: 'smooth' });
-        }
-
-        // Edit links
+        document.getElementById('agreePrivacyBtn').onclick = ()=>privacyModal.style.display='none';
+        
+        document.getElementById('typeSingle').onclick = ()=>{
+            appointmentType='single'; 
+            document.getElementById('typeSingle').classList.add('selected'); 
+            document.getElementById('typeMultiple').classList.remove('selected');
+            document.getElementById('singleServiceSection').style.display='block';
+            if (clients.length > 1) clients = [clients[0]];
+            clients.forEach(c=>c.service=singleService);
+            renderClients();
+        };
+        
+        document.getElementById('typeMultiple').onclick = ()=>{
+            appointmentType='multiple'; 
+            document.getElementById('typeMultiple').classList.add('selected'); 
+            document.getElementById('typeSingle').classList.remove('selected');
+            document.getElementById('singleServiceSection').style.display='none';
+            renderClients();
+        };
+        
+        document.getElementById('singleServiceSelect').onchange = function(){
+            singleService = this.value; 
+            singleServiceText = serviceOptions[this.value]||'';
+document.getElementById('singleServiceDesc').innerHTML = this.value ? 
+    `<p style="color: var(--gray-700);"><i class="fas fa-check-circle" style="color: var(--success);"></i> ${singleServiceText} selected. Click 'View Requirements' for details.</p>` : 
+    '<p style="color: var(--gray-500);"><i class="fas fa-info-circle"></i> Select a service.</p>';
+        document.getElementById('showReqBtnSingle').style.display = this.value?'block':'none';
+            if(appointmentType==='single'){ clients.forEach(c=>c.service=singleService); renderClients(); }
+        };
+        
+        document.getElementById('showReqBtnSingle').onclick = ()=>{
+            modalTitle.textContent = singleServiceText + ' Requirements';
+            modalBody.innerHTML = requirementsContent[singleService] || '';
+            reqModal.style.display='flex';
+        };
+        
+        document.getElementById('addClientBtn').onclick = ()=>{
+            if (appointmentType === 'single') return;
+            if(clients.length>=10){ alert('Maximum 5 persons.'); return; }
+            clients.push({ id: nextClientId++, firstName:'', middleName:'', lastName:'',suffix:'', sex:'Male', birthdate:'', service: 'reg', reqAcknowledged:false });
+            renderClients();
+        };
+        
+        document.getElementById('nextToClients').onclick = ()=>{
+            if(appointmentType==='single' && !singleService){ alert('Please select a service'); return; }
+            renderClients(); showSection(sections.clients); setActiveStep(2);
+        };
+        
+        document.getElementById('backToTypeFromClients').onclick = ()=>{ showSection(sections.type); setActiveStep(1); };
+        
+        document.getElementById('nextToSchedule').onclick = ()=>{
+            for (let c of clients) {
+                if (!c.firstName?.trim() || !c.lastName?.trim()) { alert('First Name and Last Name are required for all clients'); return; }
+                if (!c.sex) { alert('Please select sex for all clients'); return; }
+                if (!c.birthdate) { alert('Please enter birthdate for all clients'); return; }
+                if (appointmentType === 'multiple' && !c.service) { alert('Please select service for all clients'); return; }
+            }
+            if(!allRequirementsAcknowledged()){ alert('Please acknowledge all requirements.'); return; }
+            renderCalendar(); showSection(sections.schedule); setActiveStep(3);
+        };
+        
+        document.getElementById('backToClients').onclick = ()=>{ showSection(sections.clients); setActiveStep(2); };
+        document.getElementById('prevMonthBtn').onclick = ()=>{ currentDate.setMonth(currentDate.getMonth()-1); renderCalendar(); };
+        document.getElementById('nextMonthBtn').onclick = ()=>{ currentDate.setMonth(currentDate.getMonth()+1); renderCalendar(); };
+        
+        document.getElementById('nextToContact').onclick = ()=>{
+            if(!canAccommodate(formatDateKey(selectedDate), clients.length)){ alert('Not enough slots.'); return; }
+            showSection(sections.contact); setActiveStep(4);
+        };
+        
+        document.getElementById('backToScheduleFromContact').onclick = ()=>{ showSection(sections.schedule); setActiveStep(3); };
+        
+        document.getElementById('nextToReview').onclick = ()=>{
+            const name=document.getElementById('contactName').value, mob=document.getElementById('contactMobile').value;
+            if(!name||!mob){ alert('Contact name and mobile required.'); return; }
+            document.getElementById('reviewType').textContent = appointmentType==='single'?'Single':'Family / Group';
+            document.getElementById('reviewClientCount').textContent = clients.length;
+            document.getElementById('reviewClientsList').innerHTML = clients.map((c,i)=>`<div class="client-summary-item"><strong>${i+1}. ${getFullName(c)}</strong> - ${getServiceName(appointmentType==='single'?singleService:c.service)}</div>`).join('');
+            document.getElementById('reviewDate').textContent = formatDisplayDate(selectedDate);
+            document.getElementById('reviewContactName').textContent = name;
+            document.getElementById('reviewContactEmail').textContent = document.getElementById('contactEmail').value || 'Not provided';
+            document.getElementById('reviewContactMobile').textContent = mob;
+            showSection(sections.review); setActiveStep(5);
+        };
+        
+        document.getElementById('backToContact').onclick = ()=>{ showSection(sections.contact); setActiveStep(4); };
+        
+        document.getElementById('nextToConfirm').onclick = ()=>{
+            document.getElementById('sumType').textContent = appointmentType==='single'?'Single':'Multiple';
+            document.getElementById('sumClients').textContent = clients.length+' person(s)';
+            document.getElementById('sumDate').textContent = formatDisplayDate(selectedDate);
+            document.getElementById('sumContact').textContent = document.getElementById('contactName').value + ' / ' + document.getElementById('contactMobile').value;
+            showSection(sections.confirm); setActiveStep(6);
+        };
+        
+        document.getElementById('backToReview').onclick = ()=>{ showSection(sections.review); setActiveStep(5); };
+        document.getElementById('confirmCheckbox').onchange = (e)=>document.getElementById('submitRequestBtn').disabled = !e.target.checked;
+        
+        document.getElementById('submitRequestBtn').onclick = ()=>{
+            const serviceSummary = clients.map(c => `${getFullName(c)} (${getServiceName(appointmentType==='single'?singleService:c.service)})`).join(', ');
+            alert(`✅ Appointment confirmed for ${clients.length} person(s)!\n\n${serviceSummary}\nDate: ${formatDisplayDate(selectedDate)}`);
+        };
+        
+        document.getElementById('closeReqModal').onclick = ()=>reqModal.style.display='none';
+        document.getElementById('understandBtn').onclick = ()=>reqModal.style.display='none';
+        
         document.querySelectorAll('[data-edit]').forEach(btn => {
             btn.addEventListener('click', (e) => {
                 const target = e.target.closest('[data-edit]').dataset.edit;
-                if (target === 'service') { showSection(sectionService); setActiveStep(1); }
-                else if (target === 'schedule') { showSection(sectionSchedule); setActiveStep(2); }
-                else if (target === 'details') { showSection(sectionDetails); setActiveStep(3); }
+                if (target === 'type') { showSection(sections.type); setActiveStep(1); }
+                else if (target === 'clients') { showSection(sections.clients); setActiveStep(2); }
+                else if (target === 'schedule') { showSection(sections.schedule); setActiveStep(3); }
+                else if (target === 'contact') { showSection(sections.contact); setActiveStep(4); }
             });
         });
-
-        nextToSchedule.addEventListener('click', () => {
-            if(!currentService) { alert('Please select a service'); return; }
-            showSection(sectionSchedule); setActiveStep(2);
-            renderCalendar();
-        });
-        backToServiceBtn.addEventListener('click', () => { showSection(sectionService); setActiveStep(1); });
         
-        nextToDetails.addEventListener('click', () => {
-            showSection(sectionDetails); setActiveStep(3);
-        });
-        backToScheduleBtn.addEventListener('click', () => { showSection(sectionSchedule); setActiveStep(2); });
-        
-        nextToReview.addEventListener('click', () => {
-            const name = fullNameInput.value.trim();
-            const sex = sexSelect.value;
-            const birthdate = birthdateInput.value;
-            if(!name) { alert('Full name required'); return; }
-            if(!sex) { alert('Please select sex'); return; }
-            if(!birthdate) { alert('Please enter birthdate'); return; }
-            updateAllSummaries();
-            showSection(sectionReview); setActiveStep(4);
-        });
-        backToDetailsFromReview.addEventListener('click', () => { showSection(sectionDetails); setActiveStep(3); });
-        
-        nextToConfirm.addEventListener('click', () => {
-            updateAllSummaries();
-            showSection(sectionConfirm); setActiveStep(5);
-        });
-        backToReviewBtn.addEventListener('click', () => { showSection(sectionReview); setActiveStep(4); });
-        
-        confirmCheckbox.addEventListener('change', () => {
-            submitBtn.disabled = !confirmCheckbox.checked;
-        });
-        
-        submitBtn.addEventListener('click', () => {
-            if (!confirmCheckbox.checked) { alert('Please confirm the information is accurate'); return; }
-            alert('✅ Appointment confirmed! (Frontend demo)\nYour appointment has been successfully booked.');
-        });
-
-        // ========== INITIALIZE ==========
-        serviceSelect.value = 'ephilid';
-        currentService = 'ephilid';
-        serviceText = 'Issuance of National ID Paper Form (ePhilID)';
-        updateServiceDescription('ephilid');
-        showReqBtn.style.display = 'block';
-        
-        selectedDate = new Date(2026, 3, 14);
-        currentDate = new Date(2026, 3, 1);
-        renderCalendar();
-        updateAllSummaries();
-        
+        singleServiceSelect.value='reg'; singleServiceSelect.dispatchEvent(new Event('change'));
+        renderClients();
+        window.addEventListener('click', (e) => { if(e.target === reqModal) reqModal.style.display = 'none'; });
         document.addEventListener('keydown', (e) => { if(e.key === 'Escape') reqModal.style.display = 'none'; });
     })();
 </script>
