@@ -309,6 +309,22 @@
             transform: scale(0.98);
         }
 
+        /* Form row for two fields */
+        .form-row {
+            display: flex;
+            gap: 16px;
+            margin-top: 16px;
+            flex-wrap: wrap;
+        }
+        .form-col {
+            flex: 1 1 100%;
+        }
+        @media (min-width: 500px) {
+            .form-col {
+                flex: 1 1 calc(50% - 8px);
+            }
+        }
+
         /* MODERN CALENDAR STYLES */
         .calendar-container {
             background: #fafcff;
@@ -424,59 +440,6 @@
             text-decoration: line-through;
         }
         
-        /* Time slots - chip style */
-        .time-slots-section {
-            margin-top: 20px;
-        }
-        
-        .time-slots-label {
-            font-weight: 600;
-            color: #1e3a5f;
-            margin-bottom: 12px;
-            font-size: 0.95rem;
-        }
-        
-        .time-slots-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
-            gap: 10px;
-        }
-        
-        .time-slot-chip {
-            background: white;
-            border: 1.5px solid #cfdde9;
-            border-radius: 40px;
-            padding: 12px 8px;
-            text-align: center;
-            font-size: 0.9rem;
-            font-weight: 500;
-            color: #2c3e50;
-            cursor: pointer;
-            transition: 0.15s;
-            -webkit-tap-highlight-color: transparent;
-        }
-        
-        .time-slot-chip.available {
-            border-color: #0b2f5c;
-            color: #0b2f5c;
-        }
-        
-        .time-slot-chip.available:hover {
-            background: #f0f7ff;
-        }
-        
-        .time-slot-chip.selected {
-            background: #0b2f5c;
-            color: white;
-            border-color: #0b2f5c;
-        }
-        
-        .time-slot-chip.disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
-            background: #f0f4fa;
-        }
-        
         .selected-date-display {
             background: #f3f9ff;
             padding: 12px 16px;
@@ -495,16 +458,7 @@
         
         .selected-date-value {
             color: #1e3a5f;
-        }
-        
-        .selected-time-value {
-            background: #0b2f5c;
-            color: white;
-            padding: 4px 12px;
-            border-radius: 30px;
-            font-size: 0.85rem;
-            font-weight: 600;
-            margin-left: auto;
+            flex: 1;
         }
 
         /* Review section styles */
@@ -616,18 +570,6 @@
         .summary-value {
             flex: 1;
             word-break: break-word;
-        }
-
-        .ready-badge {
-            display: inline-block;
-            background: #e2f0e6;
-            color: #1e6f3f;
-            padding: 6px 12px;
-            border-radius: 30px;
-            font-size: clamp(0.7rem, 3vw, 0.8rem);
-            font-weight: 600;
-            margin-right: 8px;
-            margin-bottom: 6px;
         }
 
         .reminder {
@@ -752,7 +694,7 @@
         }
 
         /* improved tap targets */
-        button, select, input, .close-modal, .calendar-day, .time-slot-chip {
+        button, select, input, .close-modal, .calendar-day {
             min-height: 44px;
         }
         select, input {
@@ -786,9 +728,6 @@
             }
             .btn-next, .btn-requirements, .btn-agree {
                 padding: 14px 16px;
-            }
-            .time-slots-grid {
-                grid-template-columns: repeat(3, 1fr);
             }
         }
 
@@ -824,9 +763,7 @@
             <h3 id="modalServiceTitle">Requirements</h3>
             <span class="close-modal" id="closeReqModal">&times;</span>
         </div>
-        <div id="modalBodyContent" class="req-list">
-            <!-- filled via js -->
-        </div>
+        <div id="modalBodyContent" class="req-list"></div>
         <button class="btn-understand" id="understandBtn">I Understand</button>
     </div>
 </div>
@@ -880,9 +817,9 @@
             <button class="btn-next" id="nextToSchedule">Next: Schedule →</button>
         </div>
 
-        <!-- ========= SCHEDULE SECTION ========= -->
+        <!-- ========= SCHEDULE SECTION (DATE ONLY) ========= -->
         <div id="sectionSchedule" class="hidden">
-            <div class="section-title">Select Schedule</div>
+            <div class="section-title">Select Appointment Date</div>
             
             <div class="calendar-container">
                 <div class="calendar-header">
@@ -900,41 +837,58 @@
             </div>
             
             <div class="selected-date-display" id="selectedDateDisplay">
-                <span class="selected-date-label"><i class="far fa-calendar-check"></i> Selected:</span>
-                <span class="selected-date-value" id="selectedDateText">April 14, 2026 (Monday)</span>
-                <span class="selected-time-value" id="selectedTimeChip">10:00 AM</span>
+                <span class="selected-date-label"><i class="far fa-calendar-check"></i> Selected Date:</span>
+                <span class="selected-date-value" id="selectedDateText">Tuesday, April 14, 2026</span>
             </div>
             
-            <div class="time-slots-section">
-                <div class="time-slots-label"><i class="far fa-clock"></i> Available Time Slots</div>
-                <div class="time-slots-grid" id="timeSlotsGrid"></div>
-            </div>
+            <p style="color: #5e7182; font-size: 0.85rem; margin: 8px 0 16px;">
+                <i class="fas fa-info-circle"></i> Your appointment will be scheduled for the full day. Please arrive during office hours.
+            </p>
             
             <button class="btn-next" id="nextToDetails">Next: Applicant Details →</button>
             <button class="btn-requirements back-btn" id="backToServiceBtn">← Back to Service</button>
         </div>
 
-        <!-- ========= DETAILS SECTION ========= -->
+        <!-- ========= DETAILS SECTION (WITH SEX AND BIRTHDATE) ========= -->
         <div id="sectionDetails" class="hidden">
             <div class="section-title">Applicant Details</div>
+            
             <div>
                 <label>Full Name *</label>
                 <input type="text" id="fullName" placeholder="Enter full name" value="Juan Dela Cruz">
             </div>
+            
+            <div class="form-row">
+                <div class="form-col">
+                    <label>Sex *</label>
+                    <select id="sexSelect">
+                        <option value="">-- Select Sex --</option>
+                        <option value="Male" selected>Male</option>
+                        <option value="Female">Female</option>
+                    </select>
+                </div>
+                <div class="form-col">
+                    <label>Birthdate *</label>
+                    <input type="date" id="birthdate" value="1990-01-15">
+                </div>
+            </div>
+            
             <div style="margin-top: 16px;">
                 <label>Email Address</label>
                 <input type="email" id="email" placeholder="example@gmail.com" value="juan.delacruz@email.com">
             </div>
+            
             <div style="margin-top: 16px;">
                 <label>Mobile Number</label>
                 <input type="tel" id="mobile" placeholder="09XXXXXXXXX" value="09171234567">
                 <div class="contact-note">Enter at least one contact detail.</div>
             </div>
+            
             <button class="btn-next" id="nextToReview">Review Appointment →</button>
             <button class="btn-requirements back-btn" id="backToScheduleBtn">← Back to Schedule</button>
         </div>
 
-        <!-- ========= REVIEW SECTION (Step 4) ========= -->
+        <!-- ========= REVIEW SECTION ========= -->
         <div id="sectionReview" class="hidden">
             <div class="section-title">Review Your Appointment</div>
             <p style="color: #5e7182; margin-bottom: 16px; font-size: 0.9rem;">
@@ -942,7 +896,6 @@
             </p>
             
             <div class="review-container">
-                <!-- Service Review -->
                 <div class="review-section">
                     <div class="review-section-header">
                         <span class="review-section-title"><i class="fas fa-tag"></i> Selected Service</span>
@@ -954,7 +907,6 @@
                     </div>
                 </div>
                 
-                <!-- Schedule Review -->
                 <div class="review-section">
                     <div class="review-section-header">
                         <span class="review-section-title"><i class="far fa-calendar-alt"></i> Schedule</span>
@@ -964,13 +916,8 @@
                         <span class="review-detail-label">Date:</span>
                         <span class="review-detail-value" id="reviewDate">Tuesday, April 14, 2026</span>
                     </div>
-                    <div class="review-detail-row">
-                        <span class="review-detail-label">Time:</span>
-                        <span class="review-detail-value" id="reviewTime">10:00 AM</span>
-                    </div>
                 </div>
                 
-                <!-- Applicant Details Review -->
                 <div class="review-section">
                     <div class="review-section-header">
                         <span class="review-section-title"><i class="fas fa-user"></i> Applicant Details</span>
@@ -979,6 +926,14 @@
                     <div class="review-detail-row">
                         <span class="review-detail-label">Full Name:</span>
                         <span class="review-detail-value" id="reviewFullName">Juan Dela Cruz</span>
+                    </div>
+                    <div class="review-detail-row">
+                        <span class="review-detail-label">Sex:</span>
+                        <span class="review-detail-value" id="reviewSex">Male</span>
+                    </div>
+                    <div class="review-detail-row">
+                        <span class="review-detail-label">Birthdate:</span>
+                        <span class="review-detail-value" id="reviewBirthdate">January 15, 1990</span>
                     </div>
                     <div class="review-detail-row">
                         <span class="review-detail-label">Email:</span>
@@ -995,15 +950,16 @@
             <button class="btn-requirements back-btn" id="backToDetailsFromReview">← Back to Details</button>
         </div>
 
-        <!-- ========= CONFIRM SECTION (Step 5) ========= -->
+        <!-- ========= CONFIRM SECTION ========= -->
         <div id="sectionConfirm" class="hidden">
             <div class="section-title">Confirm Appointment</div>
             
             <div class="summary-box">
                 <div class="summary-row"><span class="summary-label">Service</span> <span class="summary-value" id="sumService">National ID Registration</span></div>
                 <div class="summary-row"><span class="summary-label">Date</span> <span class="summary-value" id="sumDate">Tuesday, April 14, 2026</span></div>
-                <div class="summary-row"><span class="summary-label">Time</span> <span class="summary-value" id="sumTime">10:00 AM</span></div>
                 <div class="summary-row"><span class="summary-label">Name</span> <span class="summary-value" id="sumName">Juan Dela Cruz</span></div>
+                <div class="summary-row"><span class="summary-label">Sex</span> <span class="summary-value" id="sumSex">Male</span></div>
+                <div class="summary-row"><span class="summary-label">Birthdate</span> <span class="summary-value" id="sumBirthdate">January 15, 1990</span></div>
                 <div class="summary-row"><span class="summary-label">Contact</span> <span class="summary-value" id="sumContact">juan.delacruz@email.com / 09171234567</span></div>
             </div>
             
@@ -1039,10 +995,8 @@
         // ========== STATE ==========
         let currentService = '';
         let serviceText = '';
-        
         let currentDate = new Date(2026, 3, 1);
         let selectedDate = new Date(2026, 3, 14);
-        let selectedTime = '10:00 AM';
         
         const availableDates = new Set([
             '2026-04-01', '2026-04-02', '2026-04-03',
@@ -1051,8 +1005,6 @@
             '2026-04-20', '2026-04-21', '2026-04-22', '2026-04-23', '2026-04-24',
             '2026-04-27', '2026-04-28', '2026-04-29', '2026-04-30'
         ]);
-        
-        const timeSlots = ['9:00 AM', '10:00 AM', '11:00 AM', '1:00 PM', '2:00 PM', '3:00 PM', '4:00 PM'];
 
         // ========== DOM ELEMENTS ==========
         const privacyModal = document.getElementById('privacyModal');
@@ -1082,29 +1034,36 @@
         const backToReviewBtn = document.getElementById('backToReviewBtn');
         const submitBtn = document.getElementById('submitRequestBtn');
 
+        // Summary elements
         const sumService = document.getElementById('sumService');
         const sumDate = document.getElementById('sumDate');
-        const sumTime = document.getElementById('sumTime');
         const sumName = document.getElementById('sumName');
+        const sumSex = document.getElementById('sumSex');
+        const sumBirthdate = document.getElementById('sumBirthdate');
         const sumContact = document.getElementById('sumContact');
+        
+        // Input elements
         const fullNameInput = document.getElementById('fullName');
+        const sexSelect = document.getElementById('sexSelect');
+        const birthdateInput = document.getElementById('birthdate');
         const emailInput = document.getElementById('email');
         const mobileInput = document.getElementById('mobile');
 
+        // Review elements
         const reviewService = document.getElementById('reviewService');
         const reviewDate = document.getElementById('reviewDate');
-        const reviewTime = document.getElementById('reviewTime');
         const reviewFullName = document.getElementById('reviewFullName');
+        const reviewSex = document.getElementById('reviewSex');
+        const reviewBirthdate = document.getElementById('reviewBirthdate');
         const reviewEmail = document.getElementById('reviewEmail');
         const reviewMobile = document.getElementById('reviewMobile');
 
+        // Calendar elements
         const calendarMonthYear = document.getElementById('calendarMonthYear');
         const calendarDays = document.getElementById('calendarDays');
         const prevMonthBtn = document.getElementById('prevMonthBtn');
         const nextMonthBtn = document.getElementById('nextMonthBtn');
         const selectedDateText = document.getElementById('selectedDateText');
-        const selectedTimeChip = document.getElementById('selectedTimeChip');
-        const timeSlotsGrid = document.getElementById('timeSlotsGrid');
         const confirmCheckbox = document.getElementById('confirmCheckbox');
 
         // ========== PRIVACY ==========
@@ -1133,6 +1092,16 @@
             if(desc) serviceDescBox.innerHTML = desc + `<div class="badge-hours"><i class="far fa-clock"></i> Saturday: CLOSED • Sunday: CLOSED</div>`;
         }
 
+        function formatDisplayDate(date) {
+            return date.toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+        }
+        
+        function formatBirthdate(dateStr) {
+            if(!dateStr) return 'Not provided';
+            const d = new Date(dateStr);
+            return d.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+        }
+
         function updateAllSummaries() {
             const serviceDisplay = serviceText || 'Not selected';
             sumService.textContent = serviceDisplay;
@@ -1141,13 +1110,20 @@
             const dateDisplay = formatDisplayDate(selectedDate);
             sumDate.textContent = dateDisplay;
             reviewDate.textContent = dateDisplay;
-            
-            sumTime.textContent = selectedTime || 'Not selected';
-            reviewTime.textContent = selectedTime || 'Not selected';
+            selectedDateText.textContent = dateDisplay;
             
             const fullName = fullNameInput.value || 'Not provided';
             sumName.textContent = fullName;
             reviewFullName.textContent = fullName;
+            
+            const sex = sexSelect.value || 'Not selected';
+            sumSex.textContent = sex;
+            reviewSex.textContent = sex;
+            
+            const birthdate = birthdateInput.value;
+            const birthdateDisplay = birthdate ? formatBirthdate(birthdate) : 'Not provided';
+            sumBirthdate.textContent = birthdateDisplay;
+            reviewBirthdate.textContent = birthdateDisplay;
             
             const email = emailInput.value || 'Not provided';
             const mobile = mobileInput.value || 'Not provided';
@@ -1178,9 +1154,6 @@
         // ========== CALENDAR ==========
         function formatDateKey(date) {
             return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
-        }
-        function formatDisplayDate(date) {
-            return date.toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
         }
         function isDateAvailable(date) { return availableDates.has(formatDateKey(date)); }
         function isSameDate(d1, d2) { return d1.getFullYear() === d2.getFullYear() && d1.getMonth() === d2.getMonth() && d1.getDate() === d2.getDate(); }
@@ -1216,44 +1189,10 @@
                         const [y, m, d] = dateKey.split('-').map(Number);
                         selectedDate = new Date(y, m - 1, d);
                         renderCalendar();
-                        updateSelectedDisplay();
-                        renderTimeSlots();
                         updateAllSummaries();
                     }
                 });
             });
-        }
-        
-        function renderTimeSlots() {
-            const isAvailable = isDateAvailable(selectedDate);
-            const today = new Date(); today.setHours(0, 0, 0, 0);
-            const isPast = selectedDate < today;
-            let html = '';
-            timeSlots.forEach(slot => {
-                const isSelected = slot === selectedTime;
-                const disabled = !isAvailable || isPast;
-                let classes = 'time-slot-chip';
-                if (!disabled) classes += ' available';
-                if (isSelected && !disabled) classes += ' selected';
-                if (disabled) classes += ' disabled';
-                html += `<div class="${classes}" data-time="${slot}">${slot}</div>`;
-            });
-            timeSlotsGrid.innerHTML = html;
-            document.querySelectorAll('.time-slot-chip[data-time]').forEach(el => {
-                el.addEventListener('click', () => {
-                    if (!el.classList.contains('disabled')) {
-                        selectedTime = el.dataset.time;
-                        renderTimeSlots();
-                        updateSelectedDisplay();
-                        updateAllSummaries();
-                    }
-                });
-            });
-        }
-        
-        function updateSelectedDisplay() {
-            selectedDateText.textContent = formatDisplayDate(selectedDate);
-            selectedTimeChip.textContent = selectedTime || 'Select time';
         }
 
         prevMonthBtn.addEventListener('click', () => { currentDate.setMonth(currentDate.getMonth() - 1); renderCalendar(); });
@@ -1287,19 +1226,22 @@
         nextToSchedule.addEventListener('click', () => {
             if(!currentService) { alert('Please select a service'); return; }
             showSection(sectionSchedule); setActiveStep(2);
-            renderCalendar(); renderTimeSlots(); updateSelectedDisplay();
+            renderCalendar();
         });
         backToServiceBtn.addEventListener('click', () => { showSection(sectionService); setActiveStep(1); });
         
         nextToDetails.addEventListener('click', () => {
-            if(!selectedTime) { alert('Please select a time slot'); return; }
             showSection(sectionDetails); setActiveStep(3);
         });
         backToScheduleBtn.addEventListener('click', () => { showSection(sectionSchedule); setActiveStep(2); });
         
         nextToReview.addEventListener('click', () => {
             const name = fullNameInput.value.trim();
+            const sex = sexSelect.value;
+            const birthdate = birthdateInput.value;
             if(!name) { alert('Full name required'); return; }
+            if(!sex) { alert('Please select sex'); return; }
+            if(!birthdate) { alert('Please enter birthdate'); return; }
             updateAllSummaries();
             showSection(sectionReview); setActiveStep(4);
         });
@@ -1311,7 +1253,6 @@
         });
         backToReviewBtn.addEventListener('click', () => { showSection(sectionReview); setActiveStep(4); });
         
-        // Enable/disable submit based on checkbox
         confirmCheckbox.addEventListener('change', () => {
             submitBtn.disabled = !confirmCheckbox.checked;
         });
@@ -1329,11 +1270,8 @@
         showReqBtn.style.display = 'block';
         
         selectedDate = new Date(2026, 3, 14);
-        selectedTime = '11:00 AM';
         currentDate = new Date(2026, 3, 1);
         renderCalendar();
-        renderTimeSlots();
-        updateSelectedDisplay();
         updateAllSummaries();
         
         document.addEventListener('keydown', (e) => { if(e.key === 'Escape') reqModal.style.display = 'none'; });
