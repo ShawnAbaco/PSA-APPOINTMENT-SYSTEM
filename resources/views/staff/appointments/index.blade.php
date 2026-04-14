@@ -1,37 +1,212 @@
+{{-- resources/views/staff/appointments/index.blade.php --}}
 @extends('layouts.staff')
 
 @section('content')
-<div class="container-fluid">
-    <div class="d-flex justify-content-between mb-4">
-        <h1 class="h3">Appointments List</h1>
-        <a href="{{ route('staff.appointments.create') }}" class="btn btn-primary">New Appointment</a>
-    </div>
-    
-    <div class="card">
-        <div class="card-body">
-            <div class="table-responsive">
-                <table class="table table-hover">
-                    <thead>
-                        <tr><th>Appointment #</th><th>Date</th><th>Contact Person</th><th>Clients</th><th>Status</th><th>Actions</th></tr>
-                    </thead>
-                    <tbody>
-                        @forelse($appointments as $appointment)
-                        <tr>
-                            <td>{{ $appointment->appointment_number }}</td>
-                            <td>{{ date('M d, Y', strtotime($appointment->appointment_date)) }}</td>
-                            <td>{{ $appointment->contact_name }}</td>
-                            <td>{{ $appointment->clients->count() }}</td>
-                            <td><span class="status-badge status-{{ $appointment->status }}">{{ ucfirst($appointment->status) }}</span></td>
-                            <td><a href="{{ route('staff.appointments.show', $appointment->id) }}" class="btn btn-sm btn-info">View</a></td>
-                        </tr>
-                        @empty
-                        <tr><td colspan="6" class="text-center">No appointments found.</td></tr>
-                        @endforelse
-                    </tbody>
-                </table>
-                {{ $appointments->links() }}
+    <div class="appointments-container">
+        <!-- Header Section -->
+        <div class="appointments-header">
+            <div class="header-left">
+                <h1 class="page-title">Appointments List</h1>
+                <p class="page-subtitle">Manage and track all client appointments</p>
+            </div>
+        </div>
+
+        <!-- Filters Bar -->
+        <div class="filters-bar">
+            <div class="filter-group">
+                <i class="fas fa-search"></i>
+                <input type="text" id="searchAppointment" placeholder="Search by appointment # or client..."
+                    class="filter-input">
+            </div>
+            <div class="filter-group">
+                <i class="fas fa-calendar-alt"></i>
+                <select id="statusFilter" class="filter-select">
+                    <option value="">All Status</option>
+                    <option value="pending">Pending</option>
+                    <option value="confirmed">Confirmed</option>
+                    <option value="completed">Completed</option>
+                    <option value="cancelled">Cancelled</option>
+                </select>
+            </div>
+            <div class="filter-group">
+                <i class="fas fa-calendar-week"></i>
+                <input type="date" id="dateFilter" class="filter-input">
+            </div>
+            <button class="btn btn-outline" id="resetFilters">
+                <i class="fas fa-undo-alt"></i> Reset
+            </button>
+        </div>
+
+        <!-- Appointments Card -->
+        <div class="data-card">
+            <div class="data-card-header">
+                <div class="card-header-left">
+                    <h5 class="data-card-title">All Appointments</h5>
+                    <span class="appointment-count">{{ $appointments->total() ?? count($appointments) }} total</span>
+                </div>
+                <div class="card-header-right">
+                    <button class="icon-btn" id="refreshBtn" title="Refresh">
+                        <i class="fas fa-sync-alt"></i>
+                    </button>
+                </div>
+            </div>
+            <div class="data-card-body">
+                <div class="table-wrapper">
+                    <table class="appointments-table">
+                        <thead>
+                            <tr>
+                                <th>Appointment #</th>
+                                <th>Date</th>
+                                <th>Contact Person</th>
+                                <th>Clients</th>
+                                <th>Status</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @forelse($appointments as $appointment)
+                                <tr class="appointment-row" data-status="{{ $appointment->status }}"
+                                    data-date="{{ $appointment->appointment_date }}">
+                                    <td class="appointment-number">
+                                        <i class="fas fa-hashtag"></i>
+                                        {{ $appointment->appointment_number }}
+                                    </td>
+                                    <td class="appointment-date">
+                                        <i class="fas fa-calendar-day"></i>
+                                        {{ date('M d, Y', strtotime($appointment->appointment_date)) }}
+                                        <small
+                                            class="time-badge">{{ date('h:i A', strtotime($appointment->appointment_time ?? '09:00')) }}</small>
+                                    </td>
+                                    <td class="contact-info">
+                                        <div class="contact-details">
+                                            <strong>{{ $appointment->contact_name }}</strong>
+                                            <small>{{ $appointment->contact_phone ?? 'No phone' }}</small>
+                                        </div>
+                                    </td>
+                                    <td class="clients-count">
+                                        <span class="client-badge">
+                                            <i class="fas fa-users"></i>
+                                            {{ $appointment->clients->count() }} person(s)
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <span class="status-badge status-{{ $appointment->status }}">
+                                            <i
+                                                class="fas {{ $appointment->status == 'confirmed' ? 'fa-check-circle' : ($appointment->status == 'pending' ? 'fa-clock' : ($appointment->status == 'completed' ? 'fa-check-double' : 'fa-times-circle')) }}"></i>
+                                            {{ ucfirst($appointment->status) }}
+                                        </span>
+                                    </td>
+                                    <td class="actions-cell">
+                                        <a href="{{ route('staff.appointments.show', $appointment->id) }}"
+                                            class="action-btn view-btn" title="View Details">
+                                            <i class="fas fa-eye"></i>
+                                            <span>View</span>
+                                        </a>
+                                        <button class="action-btn edit-btn" onclick="quickEdit({{ $appointment->id }})"
+                                            title="Quick Edit">
+                                            <i class="fas fa-edit"></i>
+                                        </button>
+                                    </td>
+                                </tr>
+                            @empty
+                                <tr>
+                                    <td colspan="6" class="empty-state">
+                                        <i class="fas fa-calendar-times"></i>
+                                        <h4>No Appointments Found</h4>
+                                    </td>
+                                </tr>
+                            @endforelse
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Pagination -->
+                @if ($appointments->hasPages())
+                    <div class="pagination-container">
+                        {{ $appointments->links() }}
+                    </div>
+                @endif
             </div>
         </div>
     </div>
-</div>
+
+    <script>
+        // Search functionality
+        document.getElementById('searchAppointment')?.addEventListener('keyup', function() {
+            filterTable();
+        });
+
+        // Status filter
+        document.getElementById('statusFilter')?.addEventListener('change', function() {
+            filterTable();
+        });
+
+        // Date filter
+        document.getElementById('dateFilter')?.addEventListener('change', function() {
+            filterTable();
+        });
+
+        // Reset filters
+        document.getElementById('resetFilters')?.addEventListener('click', function() {
+            document.getElementById('searchAppointment').value = '';
+            document.getElementById('statusFilter').value = '';
+            document.getElementById('dateFilter').value = '';
+            filterTable();
+        });
+
+        // Refresh button
+        document.getElementById('refreshBtn')?.addEventListener('click', function() {
+            location.reload();
+        });
+
+        function filterTable() {
+            const searchTerm = document.getElementById('searchAppointment')?.value.toLowerCase() || '';
+            const statusFilter = document.getElementById('statusFilter')?.value || '';
+            const dateFilter = document.getElementById('dateFilter')?.value || '';
+
+            const rows = document.querySelectorAll('.appointment-row');
+            let visibleCount = 0;
+
+            rows.forEach(row => {
+                const appointmentNumber = row.querySelector('.appointment-number')?.textContent.toLowerCase() || '';
+                const contactName = row.querySelector('.contact-details strong')?.textContent.toLowerCase() || '';
+                const rowStatus = row.getAttribute('data-status') || '';
+                const rowDate = row.getAttribute('data-date') || '';
+
+                let matchesSearch = searchTerm === '' || appointmentNumber.includes(searchTerm) || contactName
+                    .includes(searchTerm);
+                let matchesStatus = statusFilter === '' || rowStatus === statusFilter;
+                let matchesDate = dateFilter === '' || rowDate === dateFilter;
+
+                if (matchesSearch && matchesStatus && matchesDate) {
+                    row.style.display = '';
+                    visibleCount++;
+                } else {
+                    row.style.display = 'none';
+                }
+            });
+
+            // Show/hide empty message
+            const tbody = document.querySelector('.appointments-table tbody');
+            const emptyRow = tbody?.querySelector('.empty-state-row');
+
+            if (visibleCount === 0 && !document.querySelector('.empty-state')) {
+                if (!emptyRow && tbody) {
+                    const tr = document.createElement('tr');
+                    tr.className = 'empty-state-row';
+                    tr.innerHTML =
+                        '<td colspan="6" class="empty-state"><i class="fas fa-filter"></i><h4>No matching appointments</h4><p>Try adjusting your filters</p></td>';
+                    tbody.appendChild(tr);
+                }
+            } else if (emptyRow) {
+                emptyRow.remove();
+            }
+        }
+
+        // Quick edit function
+        function quickEdit(id) {
+            // Implement quick edit modal or redirect
+            window.location.href = `/staff/appointments/${id}/edit`;
+        }
+    </script>
 @endsection
