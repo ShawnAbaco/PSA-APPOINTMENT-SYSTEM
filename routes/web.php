@@ -5,6 +5,8 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Session;
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Web\PageController;
+use App\Http\Controllers\Client\AppointmentController;
+
 
 // FORCE LOGOUT - Complete session and cookie cleanup
 Route::get('/force-logout', function() {
@@ -31,7 +33,7 @@ Route::get('/force-logout', function() {
 
 // Public routes
 Route::get('/', [PageController::class, 'landing'])->name('landing');
-Route::get('/appointment', [PageController::class, 'appointment'])->name('appointment');
+Route::get('/appointment', [AppointmentController::class, 'index'])->name('appointment');
 
 // Login routes
 Route::get('/login', [LoginController::class, 'showLoginForm'])->name('login');
@@ -49,6 +51,12 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
     Route::put('/appointments/{id}/status', [App\Http\Controllers\Admin\AppointmentController::class, 'updateStatus'])->name('appointments.status');
     Route::delete('/appointments/{id}', [App\Http\Controllers\Admin\AppointmentController::class, 'destroy'])->name('appointments.destroy');
     Route::get('/calendar', [App\Http\Controllers\Admin\AppointmentController::class, 'calendar'])->name('calendar');
+
+    // Add to admin routes
+Route::get('/slots', [App\Http\Controllers\Admin\SettingsController::class, 'manageSlots'])->name('slots.index');
+Route::post('/slots', [App\Http\Controllers\Admin\SettingsController::class, 'createSlot'])->name('slots.store');
+Route::put('/slots/{id}', [App\Http\Controllers\Admin\SettingsController::class, 'updateSlot'])->name('slots.update');
+
     
     // Users
     Route::get('/users', [App\Http\Controllers\Admin\UserController::class, 'index'])->name('users.index');
@@ -94,4 +102,13 @@ Route::middleware(['auth', 'staff'])->prefix('staff')->name('staff.')->group(fun
     Route::get('/clients/export/csv', [App\Http\Controllers\Staff\ClientController::class, 'export'])->name('clients.export');
     Route::get('/clients/search/ajax', [App\Http\Controllers\Staff\ClientController::class, 'search'])->name('clients.search');
     Route::get('/clients/statistics/data', [App\Http\Controllers\Staff\ClientController::class, 'statistics'])->name('clients.statistics');
+});
+
+
+// Client appointment routes
+Route::prefix('client')->name('client.')->group(function () {
+    Route::get('/appointment', [App\Http\Controllers\Client\AppointmentController::class, 'index'])->name('appointment');
+    Route::post('/appointment/store', [App\Http\Controllers\Client\AppointmentController::class, 'store'])->name('appointment.store');
+    Route::get('/appointment/available-dates', [App\Http\Controllers\Client\AppointmentController::class, 'getAvailableDates'])->name('appointment.available-dates');
+    Route::get('/appointment/check-availability', [App\Http\Controllers\Client\AppointmentController::class, 'checkAvailability'])->name('appointment.check-availability');
 });

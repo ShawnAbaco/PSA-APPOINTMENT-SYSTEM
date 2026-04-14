@@ -27,7 +27,18 @@ class Setting extends Model
     public static function get($key, $default = null)
     {
         $setting = static::where('key', $key)->first();
-        return $setting ? $setting->value : $default;
+        if ($setting) {
+            // Decode JSON value if needed
+            $value = $setting->value;
+            if ($setting->type === 'boolean') {
+                return filter_var($value, FILTER_VALIDATE_BOOLEAN);
+            }
+            if ($setting->type === 'number') {
+                return (int)$value;
+            }
+            return $value;
+        }
+        return $default;
     }
 
     /**
@@ -44,13 +55,5 @@ class Setting extends Model
                 'description' => $description,
             ]
         );
-    }
-
-    /**
-     * Get all settings grouped
-     */
-    public static function getAllGrouped()
-    {
-        return static::all()->groupBy('group');
     }
 }

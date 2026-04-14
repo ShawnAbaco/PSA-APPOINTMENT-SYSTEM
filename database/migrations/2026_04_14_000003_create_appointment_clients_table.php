@@ -11,6 +11,7 @@ return new class extends Migration
     {
         Schema::create('appointment_clients', function (Blueprint $table) {
             $table->id();
+            $table->string('client_number')->nullable()->unique();
             $table->foreignId('appointment_id')->constrained()->onDelete('cascade');
             
             // Client personal information
@@ -36,6 +37,7 @@ return new class extends Migration
             $table->timestamps();
             
             // Indexes
+            $table->index('client_number');
             $table->index(['last_name', 'first_name']);
             $table->index('service');
         });

@@ -6,6 +6,7 @@
     <meta charset="UTF-8">
     <meta name="viewport"
         content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes, viewport-fit=cover">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>PhilSys · National ID Appointment</title>
     <link rel="icon" type="image/png" sizes="32x32" href="{{ asset('images/psa.png') }}">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
@@ -51,6 +52,147 @@
         </div>
     </div>
 
+    <!-- SUCCESS MODAL -->
+<div class="modal-overlay" id="successModal">
+    <div class="modal-content" style="max-width: 600px; text-align: center;">
+        <div class="modal-header">
+            <h3 style="color: var(--success);"><i class="fas fa-check-circle"></i> Appointment Confirmed!</h3>
+            <span class="close-modal" id="closeSuccessModal">&times;</span>
+        </div>
+        <div id="successBody" style="padding: 20px;">
+            <p>Your appointment has been successfully booked.</p>
+            <div id="successDetails"></div>
+            <div style="display: flex; gap: 10px; justify-content: center; margin-top: 20px;">
+                <button class="btn-next" id="printSummaryBtn" style="background: #6c757d;">
+                    <i class="fas fa-print"></i> Print
+                </button>
+                <button class="btn-next" id="downloadPdfBtn" style="background: #dc3545;">
+                    <i class="fas fa-file-pdf"></i> Download PDF
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+    <!-- LOADING OVERLAY -->
+    <div id="loadingOverlay" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); z-index: 9999; align-items: center; justify-content: center;">
+        <div style="background: white; padding: 20px; border-radius: 10px; text-align: center;">
+            <div class="spinner" style="width: 40px; height: 40px; border: 4px solid #f3f3f3; border-top: 4px solid #2c5f8a; border-radius: 50%; animation: spin 1s linear infinite; margin: 0 auto 15px;"></div>
+            <p>Processing your appointment...</p>
+        </div>
+    </div>
+
+    <style>
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        .spinner {
+            width: 40px;
+            height: 40px;
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #2c5f8a;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+         /* Receipt styles for PDF/Print */
+    .receipt-container {
+        font-family: 'Courier New', monospace;
+        max-width: 400px;
+        margin: 0 auto;
+        padding: 20px;
+        background: white;
+    }
+    .receipt-header {
+        text-align: center;
+        border-bottom: 2px solid #2c5f8a;
+        padding-bottom: 15px;
+        margin-bottom: 15px;
+    }
+    .receipt-header img {
+        width: 60px;
+        margin-bottom: 10px;
+    }
+    .receipt-header h2 {
+        color: #2c5f8a;
+        margin: 5px 0;
+        font-size: 18px;
+    }
+    .receipt-header p {
+        margin: 3px 0;
+        font-size: 12px;
+        color: #666;
+    }
+    .receipt-divider {
+        border-top: 1px dashed #999;
+        margin: 15px 0;
+    }
+    .receipt-row {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 8px;
+        font-size: 12px;
+    }
+    .receipt-label {
+        font-weight: bold;
+        color: #333;
+    }
+    .receipt-value {
+        color: #555;
+    }
+    .receipt-clients {
+        margin-top: 15px;
+    }
+    .receipt-clients table {
+        width: 100%;
+        font-size: 11px;
+        border-collapse: collapse;
+    }
+    .receipt-clients th, .receipt-clients td {
+        border: 1px solid #ddd;
+        padding: 5px;
+        text-align: left;
+    }
+    .receipt-clients th {
+        background: #f5f5f5;
+    }
+    .receipt-footer {
+        text-align: center;
+        font-size: 10px;
+        color: #999;
+        margin-top: 20px;
+        border-top: 1px dashed #999;
+        padding-top: 15px;
+    }
+    .barcode {
+        font-family: 'Courier New', monospace;
+        letter-spacing: 2px;
+        font-size: 14px;
+        text-align: center;
+        margin: 10px 0;
+    }
+    @media print {
+        body * {
+            visibility: hidden;
+        }
+        .receipt-container, .receipt-container * {
+            visibility: visible;
+        }
+        .receipt-container {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+        }
+        .btn-next {
+            display: none;
+        }
+    }
+
+
+    </style>
+
     <!-- MAIN APPOINTMENT CARD -->
     <div class="appointment-card">
         <div class="card-header">
@@ -75,7 +217,7 @@
         <div class="content-body">
             <div class="booking-note">
                 <span><i class="far fa-calendar-alt"></i> Appointment Scheduling</span>
-                <span><strong>Booking until 31 May 2026</strong></span>
+                <span><strong>Book your appointment now</strong></span>
             </div>
 
             <!-- STEP 1: TYPE -->
@@ -97,10 +239,9 @@
                     <label>Select Service <span style="color: var(--danger);">*</span></label>
                     <select id="singleServiceSelect">
                         <option value="">-- Select Service --</option>
-                        <option value="reg">National ID Registration</option>
-                        <option value="correction">Correction/Updating of Demographic Information</option>
-                        <option value="ephilid">Issuance of National ID Paper Form (ePhilID)</option>
-                        <option value="trn">Retrieval of TRN / Other Concern</option>
+                        @foreach($services as $service)
+                            <option value="{{ $service->code }}">{{ $service->name }}</option>
+                        @endforeach
                     </select>
                     <div id="singleServiceDesc" style="margin-top: 16px; color: var(--gray-500);">
                         <p><i class="fas fa-info-circle"></i> Select a service to view details.</p>
@@ -115,8 +256,7 @@
             <!-- STEP 2: CLIENTS -->
             <div id="sectionClients" class="hidden">
                 <div class="section-title"><span id="clientsTitle">Family / Group Members</span></div>
-                <p style="color: var(--gray-500); margin-bottom: 20px;"><span id="clientsSubtitle">Add all persons who
-                        will attend.</span></p>
+                <p style="color: var(--gray-500); margin-bottom: 20px;"><span id="clientsSubtitle">Add all persons who will attend.</span></p>
 
                 <div class="req-summary-banner" id="reqSummaryBanner">
                     <strong><i class="fas fa-clipboard-list"></i> Requirements Status</strong>
@@ -132,17 +272,13 @@
                 <div id="clientCountContainer"
                     style="margin-top: 20px; padding: 14px; background: var(--gray-50); border-radius: var(--radius); border: 1px solid var(--gray-200);">
                     <p style="display: flex; justify-content: space-between;">
-                        <span><i class="fas fa-users" style="color: var(--primary);"></i> <strong>Total
-                                persons:</strong></span>
-                        <span style="font-weight: 700; color: var(--primary);"><span id="clientCount">1</span> /
-                            10</span>
+                        <span><i class="fas fa-users" style="color: var(--primary);"></i> <strong>Total persons:</strong></span>
+                        <span style="font-weight: 700; color: var(--primary);"><span id="clientCount">1</span> / 10</span>
                     </p>
                 </div>
 
-                <button class="btn-next" id="nextToSchedule">Next: Select Date <i
-                        class="fas fa-arrow-right"></i></button>
-                <button class="btn-next back-btn" id="backToTypeFromClients"><i class="fas fa-arrow-left"></i>
-                    Back</button>
+                <button class="btn-next" id="nextToSchedule">Next: Select Date <i class="fas fa-arrow-right"></i></button>
+                <button class="btn-next back-btn" id="backToTypeFromClients"><i class="fas fa-arrow-left"></i> Back</button>
             </div>
 
             <!-- STEP 3: SCHEDULE -->
@@ -156,31 +292,28 @@
 
                 <div class="calendar-container">
                     <div class="calendar-header">
-                        <span class="calendar-month-year" id="calendarMonthYear">April 2026</span>
+                        <span class="calendar-month-year" id="calendarMonthYear">Loading...</span>
                         <div class="calendar-nav">
-                            <button class="calendar-nav-btn" id="prevMonthBtn"><i
-                                    class="fas fa-chevron-left"></i></button>
-                            <button class="calendar-nav-btn" id="nextMonthBtn"><i
-                                    class="fas fa-chevron-right"></i></button>
+                            <button class="calendar-nav-btn" id="prevMonthBtn"><i class="fas fa-chevron-left"></i></button>
+                            <button class="calendar-nav-btn" id="nextMonthBtn"><i class="fas fa-chevron-right"></i></button>
                         </div>
                     </div>
                     <div class="calendar-weekdays">
                         <span class="weekday">Mo</span><span class="weekday">Tu</span><span class="weekday">We</span>
-                        <span class="weekday">Th</span><span class="weekday">Fr</span><span
-                            class="weekday">Sa</span><span class="weekday">Su</span>
+                        <span class="weekday">Th</span><span class="weekday">Fr</span><span class="weekday">Sa</span><span class="weekday">Su</span>
                     </div>
-                    <div class="calendar-days" id="calendarDays"></div>
+                    <div class="calendar-days" id="calendarDays">
+                        <div class="loading-spinner">Loading calendar...</div>
+                    </div>
                 </div>
 
                 <div class="selected-date-display">
                     <i class="far fa-check-circle" style="color: var(--success);"></i>
                     <span>Selected Date:</span>
-                    <span id="selectedDateText" style="font-weight: 600; color: var(--gray-900);">Tuesday, April 14,
-                        2026</span>
+                    <span id="selectedDateText" style="font-weight: 600; color: var(--gray-900);">No date selected</span>
                 </div>
 
-                <button class="btn-next" id="nextToContact">Next: Contact Info <i
-                        class="fas fa-arrow-right"></i></button>
+                <button class="btn-next" id="nextToContact">Next: Contact Info <i class="fas fa-arrow-right"></i></button>
                 <button class="btn-next back-btn" id="backToClients"><i class="fas fa-arrow-left"></i> Back</button>
             </div>
 
@@ -193,25 +326,21 @@
 
                 <div style="margin-bottom: 20px;">
                     <label>Contact Person Name <span style="color: var(--danger);">*</span></label>
-                    <input type="text" id="contactName" placeholder="e.g., Maria Dela Cruz"
-                        value="Maria Dela Cruz">
+                    <input type="text" id="contactName" placeholder="e.g., Maria Dela Cruz">
                 </div>
 
                 <div style="margin-bottom: 20px;">
                     <label>Email Address</label>
-                    <input type="email" id="contactEmail" placeholder="maria@example.com"
-                        value="maria.delacruz@email.com">
+                    <input type="email" id="contactEmail" placeholder="maria@example.com">
                 </div>
 
                 <div style="margin-bottom: 20px;">
                     <label>Mobile Number <span style="color: var(--danger);">*</span></label>
-                    <input type="tel" id="contactMobile" placeholder="09XXXXXXXXX" value="09171234567">
+                    <input type="tel" id="contactMobile" placeholder="09XXXXXXXXX">
                 </div>
 
-                <button class="btn-next" id="nextToReview">Review Appointment <i
-                        class="fas fa-arrow-right"></i></button>
-                <button class="btn-next back-btn" id="backToScheduleFromContact"><i class="fas fa-arrow-left"></i>
-                    Back</button>
+                <button class="btn-next" id="nextToReview">Review Appointment <i class="fas fa-arrow-right"></i></button>
+                <button class="btn-next back-btn" id="backToScheduleFromContact"><i class="fas fa-arrow-left"></i> Back</button>
             </div>
 
             <!-- STEP 5: REVIEW -->
@@ -221,41 +350,32 @@
                 <div class="review-container">
                     <div class="review-section">
                         <div style="display: flex; justify-content: space-between; margin-bottom: 12px;">
-                            <span class="review-section-title"><i class="fas fa-tag"
-                                    style="color: var(--primary);"></i> Type</span>
-                            <button class="edit-link" data-edit="type" style="color: var(--secondary);"><i
-                                    class="fas fa-pen"></i> Edit</button>
+                            <span class="review-section-title"><i class="fas fa-tag" style="color: var(--primary);"></i> Type</span>
+                            <button class="edit-link" data-edit="type" style="color: var(--secondary);"><i class="fas fa-pen"></i> Edit</button>
                         </div>
                         <div><span id="reviewType" style="font-weight: 600;">-</span></div>
                     </div>
 
                     <div class="review-section">
                         <div style="display: flex; justify-content: space-between; margin-bottom: 12px;">
-                            <span class="review-section-title"><i class="fas fa-users"
-                                    style="color: var(--primary);"></i> Clients (<span
-                                    id="reviewClientCount">1</span>)</span>
-                            <button class="edit-link" data-edit="clients" style="color: var(--secondary);"><i
-                                    class="fas fa-pen"></i> Edit</button>
+                            <span class="review-section-title"><i class="fas fa-users" style="color: var(--primary);"></i> Clients (<span id="reviewClientCount">1</span>)</span>
+                            <button class="edit-link" data-edit="clients" style="color: var(--secondary);"><i class="fas fa-pen"></i> Edit</button>
                         </div>
                         <div id="reviewClientsList"></div>
                     </div>
 
                     <div class="review-section">
                         <div style="display: flex; justify-content: space-between; margin-bottom: 12px;">
-                            <span class="review-section-title"><i class="far fa-calendar-alt"
-                                    style="color: var(--primary);"></i> Schedule</span>
-                            <button class="edit-link" data-edit="schedule" style="color: var(--secondary);"><i
-                                    class="fas fa-pen"></i> Edit</button>
+                            <span class="review-section-title"><i class="far fa-calendar-alt" style="color: var(--primary);"></i> Schedule</span>
+                            <button class="edit-link" data-edit="schedule" style="color: var(--secondary);"><i class="fas fa-pen"></i> Edit</button>
                         </div>
                         <div><span id="reviewDate" style="font-weight: 600;">-</span></div>
                     </div>
 
                     <div class="review-section">
                         <div style="display: flex; justify-content: space-between; margin-bottom: 12px;">
-                            <span class="review-section-title"><i class="fas fa-address-book"
-                                    style="color: var(--primary);"></i> Contact</span>
-                            <button class="edit-link" data-edit="contact" style="color: var(--secondary);"><i
-                                    class="fas fa-pen"></i> Edit</button>
+                            <span class="review-section-title"><i class="fas fa-address-book" style="color: var(--primary);"></i> Contact</span>
+                            <button class="edit-link" data-edit="contact" style="color: var(--secondary);"><i class="fas fa-pen"></i> Edit</button>
                         </div>
                         <div>
                             <span id="reviewContactName" style="font-weight: 600;">-</span><br>
@@ -265,8 +385,7 @@
                     </div>
                 </div>
 
-                <button class="btn-next" id="nextToConfirm">Proceed to Confirm <i
-                        class="fas fa-arrow-right"></i></button>
+                <button class="btn-next" id="nextToConfirm">Proceed to Confirm <i class="fas fa-arrow-right"></i></button>
                 <button class="btn-next back-btn" id="backToContact"><i class="fas fa-arrow-left"></i> Back</button>
             </div>
 
@@ -275,22 +394,17 @@
                 <div class="section-title">Confirm Appointment</div>
 
                 <div class="summary-box">
-                    <div class="summary-row"><span class="summary-label">Type</span><span class="summary-value"
-                            id="sumType">-</span></div>
-                    <div class="summary-row"><span class="summary-label">Clients</span><span class="summary-value"
-                            id="sumClients">-</span></div>
-                    <div class="summary-row"><span class="summary-label">Date</span><span class="summary-value"
-                            id="sumDate">-</span></div>
-                    <div class="summary-row"><span class="summary-label">Contact</span><span class="summary-value"
-                            id="sumContact">-</span></div>
+                    <div class="summary-row"><span class="summary-label">Type</span><span class="summary-value" id="sumType">-</span></div>
+                    <div class="summary-row"><span class="summary-label">Clients</span><span class="summary-value" id="sumClients">-</span></div>
+                    <div class="summary-row"><span class="summary-label">Date</span><span class="summary-value" id="sumDate">-</span></div>
+                    <div class="summary-row"><span class="summary-label">Contact</span><span class="summary-value" id="sumContact">-</span></div>
                 </div>
 
                 <div class="confirmation-checkbox">
                     <input type="checkbox" id="confirmCheckbox">
                     <label for="confirmCheckbox">
                         <strong>I confirm that all information is accurate and complete.</strong><br>
-                        <span style="font-size: 0.85rem; color: var(--gray-500);">I have read all service requirements
-                            and will bring necessary documents.</span>
+                        <span style="font-size: 0.85rem; color: var(--gray-500);">I have read all service requirements and will bring necessary documents.</span>
                     </label>
                 </div>
 
@@ -300,7 +414,7 @@
 
                 <div class="reminder" style="margin-top: 20px;">
                     <i class="far fa-bell" style="color: var(--warning);"></i>
-                    Reminder: If your Appointment Slip is generated, your booking was recorded.
+                    Reminder: Please save your appointment reference number for verification.
                 </div>
 
                 <button class="btn-next back-btn" id="backToReview"><i class="fas fa-arrow-left"></i> Back</button>
@@ -310,7 +424,7 @@
         <div class="footer-note">
             <span><i class="far fa-copyright"></i> Philippine Statistics Authority</span>
             <span>National ID System (PhilSys) · Official Portal</span>
-            <span>© 2026 All Rights Reserved</span>
+            <span>© {{ date('Y') }} All Rights Reserved</span>
         </div>
     </div>
 
@@ -321,6 +435,9 @@
             let appointmentType = 'single';
             let singleService = 'reg';
             let singleServiceText = 'National ID Registration';
+            let selectedDate = null;
+            let availableDatesData = [];
+            
             const serviceOptions = {
                 'reg': 'National ID Registration',
                 'correction': 'Correction/Updating',
@@ -342,37 +459,28 @@
                 'trn': 'The person named below must be the one requesting TRN retrieval.'
             };
 
-            // Client structure with separate name fields
             let clients = [{
                 id: 1,
-                firstName: 'Juan',
-                middleName: 'Santos',
-                lastName: 'Dela Cruz',
+                firstName: '',
+                middleName: '',
+                lastName: '',
                 suffix: '',
                 sex: 'Male',
-                birthdate: '1990-01-15',
+                birthdate: '',
                 service: 'reg',
                 reqAcknowledged: false
             }];
             let nextClientId = 2;
 
-            let currentDate = new Date(2026, 3, 1);
-            let selectedDate = new Date(2026, 3, 14);
-            const dailyCapacity = 20;
-            const getBookedSlots = (k) => {
-                const d = parseInt(k.split('-')[2]);
-                return d === 14 ? 8 : d === 15 ? 18 : d === 16 ? 20 : Math.floor(Math.random() * 12);
-            };
-            const availableDates = new Set(['2026-04-01', '2026-04-02', '2026-04-03', '2026-04-06', '2026-04-07',
-                '2026-04-08', '2026-04-09', '2026-04-10', '2026-04-13', '2026-04-14', '2026-04-15',
-                '2026-04-16', '2026-04-17', '2026-04-20', '2026-04-21', '2026-04-22', '2026-04-23',
-                '2026-04-24', '2026-04-27', '2026-04-28', '2026-04-29', '2026-04-30'
-            ]);
+            let currentMonth = new Date().getMonth();
+            let currentYear = new Date().getFullYear();
 
             const privacyModal = document.getElementById('privacyModal');
             const reqModal = document.getElementById('reqModal');
+            const successModal = document.getElementById('successModal');
             const modalTitle = document.getElementById('modalServiceTitle');
             const modalBody = document.getElementById('modalBodyContent');
+            
             const sections = {
                 type: document.getElementById('sectionType'),
                 clients: document.getElementById('sectionClients'),
@@ -382,12 +490,17 @@
                 confirm: document.getElementById('sectionConfirm')
             };
 
-            function formatDateKey(d) {
-                return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+            function showLoading() {
+                document.getElementById('loadingOverlay').style.display = 'flex';
+            }
+
+            function hideLoading() {
+                document.getElementById('loadingOverlay').style.display = 'none';
             }
 
             function formatDisplayDate(d) {
-                return d.toLocaleDateString('en-US', {
+                if (!d) return 'No date selected';
+                return new Date(d).toLocaleDateString('en-US', {
                     weekday: 'long',
                     year: 'numeric',
                     month: 'long',
@@ -395,28 +508,8 @@
                 });
             }
 
-            function formatBirthdate(d) {
-                return d ? new Date(d).toLocaleDateString('en-US', {
-                    year: 'numeric',
-                    month: 'long',
-                    day: 'numeric'
-                }) : '';
-            }
-
             function getServiceName(c) {
                 return serviceOptions[c] || c;
-            }
-
-            function canAccommodate(k, n) {
-                return (getBookedSlots(k) + n) <= dailyCapacity;
-            }
-
-            function getSlotsLeft(k) {
-                return Math.max(0, dailyCapacity - getBookedSlots(k));
-            }
-
-            function allRequirementsAcknowledged() {
-                return clients.every(c => c.reqAcknowledged);
             }
 
             function getFullName(c) {
@@ -424,6 +517,10 @@
                 let fullName = parts.join(' ') || '(No name)';
                 if (c.suffix) fullName += ' ' + c.suffix;
                 return fullName;
+            }
+
+            function allRequirementsAcknowledged() {
+                return clients.every(c => c.reqAcknowledged);
             }
 
             function updateReqSummary() {
@@ -436,13 +533,89 @@
                     const acked = c.reqAcknowledged;
                     if (!acked) allAcked = false;
                     const displayName = getFullName(c);
-                    html +=
-                        `<div class="req-item"><i class="fas ${acked ? 'fa-check-circle' : 'fa-exclamation-circle'}" style="color:${acked?'var(--success)':'var(--warning)'};"></i> ${displayName || 'Person '+(i+1)} - ${getServiceName(svc)} ${acked ? '✓' : '(Pending)'}</div>`;
+                    html += `<div class="req-item"><i class="fas ${acked ? 'fa-check-circle' : 'fa-exclamation-circle'}" style="color:${acked?'var(--success)':'var(--warning)'};"></i> ${displayName || 'Person '+(i+1)} - ${getServiceName(svc)} ${acked ? '✓' : '(Pending)'}</div>`;
                 });
                 list.innerHTML = html;
                 banner.classList.toggle('complete', allAcked);
-                document.getElementById('nextToSchedule').disabled = !allAcked;
+                const nextBtn = document.getElementById('nextToSchedule');
+                if (nextBtn) nextBtn.disabled = !allAcked;
             }
+
+           async function loadAvailableDates() {
+    const clientCount = appointmentType === 'multiple' ? clients.length : 1;
+    
+    try {
+        const response = await fetch(`{{ route('client.appointment.available-dates') }}?month=${currentMonth + 1}&year=${currentYear}&client_count=${clientCount}`);
+        
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        
+        const data = await response.json();
+        
+        if (data.success) {
+            availableDatesData = data.dates;
+            renderCalendar();
+        } else {
+            console.error('API returned error:', data.message);
+            document.getElementById('calendarDays').innerHTML = '<div class="error">' + (data.message || 'Failed to load available dates') + '</div>';
+        }
+    } catch (error) {
+        console.error('Error loading dates:', error);
+        document.getElementById('calendarDays').innerHTML = '<div class="error">Failed to load available dates. Please try again later.</div>';
+    }
+}
+
+            function renderCalendar() {
+    const monthNames = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+    document.getElementById('calendarMonthYear').textContent = `${monthNames[currentMonth]} ${currentYear}`;
+    
+    const firstDay = new Date(currentYear, currentMonth, 1);
+    const startDayOfWeek = firstDay.getDay() || 7;
+    const startOffset = startDayOfWeek === 7 ? 0 : startDayOfWeek - 1;
+    const daysInMonth = new Date(currentYear, currentMonth + 1, 0).getDate();
+    
+    let html = '';
+    for (let i = 0; i < startOffset; i++) {
+        html += '<div class="calendar-day empty"></div>';
+    }
+    
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    
+    for (let d = 1; d <= daysInMonth; d++) {
+        const date = new Date(currentYear, currentMonth, d);
+        const dateKey = `${currentYear}-${String(currentMonth + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
+        const dateData = availableDatesData ? availableDatesData.find(item => item.date === dateKey) : null;
+        const isPast = date < today;
+        const isSelected = selectedDate === dateKey;
+        
+        let cls = 'calendar-day';
+        if (isPast) cls += ' disabled';
+        else if (dateData && dateData.available_slots > 0) cls += ' available';
+        else if (!dateData) cls += ' disabled';
+        if (isSelected) cls += ' selected';
+        
+        let slotsHtml = '';
+        if (dateData && !isPast) {
+            slotsHtml = `<span class="slots-left">${dateData.available_slots}</span>`;
+        }
+        
+        html += `<div class="${cls}" data-date="${dateKey}" data-slots="${dateData ? dateData.available_slots : 0}">${d}${slotsHtml}</div>`;
+    }
+    
+    document.getElementById('calendarDays').innerHTML = html;
+    
+    document.querySelectorAll('.calendar-day.available').forEach(el => {
+        el.addEventListener('click', () => {
+            const dateKey = el.dataset.date;
+            selectedDate = dateKey;
+            document.getElementById('selectedDateText').textContent = formatDisplayDate(dateKey);
+            document.getElementById('slotInfoText').innerHTML = `✓ ${el.dataset.slots} slots available for this date.`;
+            renderCalendar();
+        });
+    });
+}
 
             function renderClients() {
                 const container = document.getElementById('clientsList');
@@ -454,14 +627,12 @@
                     addBtn.classList.add('hidden');
                     countContainer.classList.add('hidden');
                     document.getElementById('clientsTitle').textContent = 'Client Information';
-                    document.getElementById('clientsSubtitle').textContent =
-                        'Enter the details of the person for this appointment.';
+                    document.getElementById('clientsSubtitle').textContent = 'Enter the details of the person for this appointment.';
                 } else {
                     addBtn.classList.remove('hidden');
                     countContainer.classList.remove('hidden');
                     document.getElementById('clientsTitle').textContent = 'Family / Group Members';
-                    document.getElementById('clientsSubtitle').textContent =
-                        'Add all persons who will attend. Each can select their own service.';
+                    document.getElementById('clientsSubtitle').textContent = 'Add all persons who will attend. Each can select their own service.';
                 }
 
                 container.innerHTML = '';
@@ -472,73 +643,74 @@
                     const card = document.createElement('div');
                     card.className = 'client-card';
                     card.innerHTML = `
-                    <div class="client-header">
-                        <span class="client-title"><i class="fas fa-user-circle"></i> ${appointmentType === 'single' ? 'Client Information' : 'Person '+(i+1)} ${isMultiple?`<span class="client-service-badge">${getServiceName(svc)}</span>`:''}</span>
-                        <div style="display: flex; gap: 8px;">
-                            <button class="btn-view-req" data-id="${c.id}"><i class="fas fa-book"></i> View Requirements</button>
-                            ${(appointmentType === 'multiple' && clients.length > 1) ? `<button class="btn-remove-client" data-id="${c.id}"><i class="fas fa-trash-alt"></i></button>` : ''}
+                        <div class="client-header">
+                            <span class="client-title"><i class="fas fa-user-circle"></i> ${appointmentType === 'single' ? 'Client Information' : 'Person '+(i+1)} ${isMultiple?`<span class="client-service-badge">${getServiceName(svc)}</span>`:''}</span>
+                            <div style="display: flex; gap: 8px;">
+                                <button class="btn-view-req" data-id="${c.id}"><i class="fas fa-book"></i> View Requirements</button>
+                                ${(appointmentType === 'multiple' && clients.length > 1) ? `<button class="btn-remove-client" data-id="${c.id}"><i class="fas fa-trash-alt"></i></button>` : ''}
+                            </div>
                         </div>
-                    </div>
-                    
-                    <div class="identity-reminder">
-                        <i class="fas fa-id-card"></i>
-                        <strong>Important:</strong> ${reminder}
-                    </div>
-                    
-                    <div class="form-row">
-    <div class="form-col">
-        <label>First Name <span style="color: var(--danger);">*</span></label>
-        <input class="client-firstname" data-id="${c.id}" value="${c.firstName || ''}" placeholder="First Name">
-    </div>
-    <div class="form-col">
-        <label>Middle Name</label>
-        <input class="client-middlename" data-id="${c.id}" value="${c.middleName || ''}" placeholder="Middle Name">
-    </div>
-</div>
-<div class="form-row">
-    <div class="form-col">
-        <label>Last Name <span style="color: var(--danger);">*</span></label>
-        <input class="client-lastname" data-id="${c.id}" value="${c.lastName || ''}" placeholder="Last Name">
-    </div>
-    <div class="form-col">
-        <label>Suffix</label>
-        <select class="client-suffix" data-id="${c.id}">
-            <option value="" ${!c.suffix ? 'selected' : ''}>-- None --</option>
-            <option value="Jr." ${c.suffix === 'Jr.' ? 'selected' : ''}>Jr.</option>
-            <option value="Sr." ${c.suffix === 'Sr.' ? 'selected' : ''}>Sr.</option>
-            <option value="I" ${c.suffix === 'I' ? 'selected' : ''}>I</option>
-            <option value="II" ${c.suffix === 'II' ? 'selected' : ''}>II</option>
-            <option value="III" ${c.suffix === 'III' ? 'selected' : ''}>III</option>
-            <option value="IV" ${c.suffix === 'IV' ? 'selected' : ''}>IV</option>
-            <option value="V" ${c.suffix === 'V' ? 'selected' : ''}>V</option>
-        </select>
-    </div>
-</div>
-                    
-                    <div class="form-row">
-                        <div class="form-col">
-                            <label>Sex <span style="color: var(--danger);">*</span></label>
-                            <select class="client-sex" data-id="${c.id}">
-                                <option value="Male" ${c.sex==='Male'?'selected':''}>Male</option>
-                                <option value="Female" ${c.sex==='Female'?'selected':''}>Female</option>
-                            </select>
+                        <div class="identity-reminder">
+                            <i class="fas fa-id-card"></i>
+                            <strong>Important:</strong> ${reminder}
                         </div>
-                        <div class="form-col">
-                            <label>Birthdate <span style="color: var(--danger);">*</span></label>
-                            <input type="date" class="client-birthdate" data-id="${c.id}" value="${c.birthdate}">
+                        <div class="form-row">
+                            <div class="form-col">
+                                <label>First Name <span style="color: var(--danger);">*</span></label>
+                                <input class="client-firstname" data-id="${c.id}" value="${c.firstName || ''}" placeholder="First Name">
+                            </div>
+                            <div class="form-col">
+                                <label>Middle Name</label>
+                                <input class="client-middlename" data-id="${c.id}" value="${c.middleName || ''}" placeholder="Middle Name">
+                            </div>
                         </div>
-                    </div>
-                    
-                    ${isMultiple ? `<div class="form-col" style="margin-top: 12px;"><label>Service <span style="color: var(--danger);">*</span></label><select class="client-service" data-id="${c.id}"><option value="reg" ${c.service==='reg'?'selected':''}>National ID Registration</option><option value="correction" ${c.service==='correction'?'selected':''}>Correction/Updating</option><option value="ephilid" ${c.service==='ephilid'?'selected':''}>ePhilID Issuance</option><option value="trn" ${c.service==='trn'?'selected':''}>TRN Retrieval / Other Concerb</option></select></div>` : ''}
-                    
-                    <div class="req-ack-row ${c.reqAcknowledged ? 'acknowledged' : ''}">
-                        <input type="checkbox" class="req-ack" data-id="${c.id}" ${c.reqAcknowledged ? 'checked' : ''}>
-                        <label>I have read and understood the requirements for <strong>${getServiceName(svc)}</strong>. I will bring all necessary documents.</label>
-                    </div>
-                `;
+                        <div class="form-row">
+                            <div class="form-col">
+                                <label>Last Name <span style="color: var(--danger);">*</span></label>
+                                <input class="client-lastname" data-id="${c.id}" value="${c.lastName || ''}" placeholder="Last Name">
+                            </div>
+                            <div class="form-col">
+                                <label>Suffix</label>
+                                <select class="client-suffix" data-id="${c.id}">
+                                    <option value="" ${!c.suffix ? 'selected' : ''}>-- None --</option>
+                                    <option value="Jr." ${c.suffix === 'Jr.' ? 'selected' : ''}>Jr.</option>
+                                    <option value="Sr." ${c.suffix === 'Sr.' ? 'selected' : ''}>Sr.</option>
+                                    <option value="I" ${c.suffix === 'I' ? 'selected' : ''}>I</option>
+                                    <option value="II" ${c.suffix === 'II' ? 'selected' : ''}>II</option>
+                                    <option value="III" ${c.suffix === 'III' ? 'selected' : ''}>III</option>
+                                    <option value="IV" ${c.suffix === 'IV' ? 'selected' : ''}>IV</option>
+                                    <option value="V" ${c.suffix === 'V' ? 'selected' : ''}>V</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-col">
+                                <label>Sex <span style="color: var(--danger);">*</span></label>
+                                <select class="client-sex" data-id="${c.id}">
+                                    <option value="Male" ${c.sex==='Male'?'selected':''}>Male</option>
+                                    <option value="Female" ${c.sex==='Female'?'selected':''}>Female</option>
+                                </select>
+                            </div>
+                            <div class="form-col">
+                                <label>Birthdate <span style="color: var(--danger);">*</span></label>
+                                <input type="date" class="client-birthdate" data-id="${c.id}" value="${c.birthdate}">
+                            </div>
+                        </div>
+                        ${isMultiple ? `<div class="form-col" style="margin-top: 12px;"><label>Service <span style="color: var(--danger);">*</span></label><select class="client-service" data-id="${c.id}"><option value="reg" ${c.service==='reg'?'selected':''}>National ID Registration</option><option value="correction" ${c.service==='correction'?'selected':''}>Correction/Updating</option><option value="ephilid" ${c.service==='ephilid'?'selected':''}>ePhilID Issuance</option><option value="trn" ${c.service==='trn'?'selected':''}>TRN Retrieval</option></select></div>` : ''}
+                        <div class="req-ack-row ${c.reqAcknowledged ? 'acknowledged' : ''}">
+                            <input type="checkbox" class="req-ack" data-id="${c.id}" ${c.reqAcknowledged ? 'checked' : ''}>
+                            <label>I have read and understood the requirements for <strong>${getServiceName(svc)}</strong>. I will bring all necessary documents.</label>
+                        </div>
+                    `;
                     container.appendChild(card);
                 });
 
+                attachClientEvents();
+                document.getElementById('clientCount').textContent = clients.length;
+                updateReqSummary();
+            }
+
+            function attachClientEvents() {
                 document.querySelectorAll('.client-firstname').forEach(e => e.addEventListener('input', (ev) => {
                     const c = clients.find(x => x.id == ev.target.dataset.id);
                     if (c) c.firstName = ev.target.value;
@@ -595,57 +767,6 @@
                     updateReqSummary();
                     document.getElementById('clientCount').textContent = clients.length;
                 }));
-
-                document.getElementById('clientCount').textContent = clients.length;
-                updateReqSummary();
-            }
-
-            function renderCalendar() {
-                const y = currentDate.getFullYear(),
-                    m = currentDate.getMonth();
-                document.getElementById('calendarMonthYear').textContent = new Date(y, m, 1).toLocaleDateString(
-                    'en-US', {
-                        month: 'long',
-                        year: 'numeric'
-                    });
-                const first = new Date(y, m, 1);
-                let start = first.getDay() || 7;
-                start = start === 7 ? 0 : start - 1;
-                const days = new Date(y, m + 1, 0).getDate();
-                let html = '';
-                for (let i = 0; i < start; i++) html += '<div class="calendar-day empty"></div>';
-                const today = new Date();
-                today.setHours(0, 0, 0, 0);
-                for (let d = 1; d <= days; d++) {
-                    const date = new Date(y, m, d),
-                        key = formatDateKey(date);
-                    const avail = availableDates.has(key),
-                        past = date < today,
-                        canFit = canAccommodate(key, clients.length);
-                    let cls = 'calendar-day';
-                    if (avail && !past && canFit) cls += ' available';
-                    if (date.getTime() === selectedDate.getTime()) cls += ' selected';
-                    if (past) cls += ' disabled';
-                    if (avail && !past && !canFit) cls += ' full';
-                    html +=
-                        `<div class="${cls}" data-date="${key}">${d}${avail&&!past?`<span class="slots-left">${getSlotsLeft(key)}</span>`:''}</div>`;
-                }
-                document.getElementById('calendarDays').innerHTML = html;
-                document.querySelectorAll('.calendar-day[data-date]').forEach(el => el.addEventListener('click', () => {
-                    const k = el.dataset.date;
-                    if (!availableDates.has(k)) return;
-                    if (!canAccommodate(k, clients.length)) {
-                        alert(`Only ${getSlotsLeft(k)} slots available.`);
-                        return;
-                    }
-                    const [y, m, d] = k.split('-').map(Number);
-                    selectedDate = new Date(y, m - 1, d);
-                    renderCalendar();
-                    document.getElementById('selectedDateText').textContent = formatDisplayDate(
-                        selectedDate);
-                    document.getElementById('slotInfoText').innerHTML =
-                        `✓ ${getSlotsLeft(k)} slots available.`;
-                }));
             }
 
             function setActiveStep(s) {
@@ -657,6 +778,7 @@
                 s.classList.remove('hidden');
             }
 
+            // Event Listeners
             document.getElementById('agreePrivacyBtn').onclick = () => privacyModal.style.display = 'none';
 
             document.getElementById('typeSingle').onclick = () => {
@@ -699,7 +821,7 @@
             document.getElementById('addClientBtn').onclick = () => {
                 if (appointmentType === 'single') return;
                 if (clients.length >= 10) {
-                    alert('Maximum 5 persons.');
+                    alert('Maximum 10 persons.');
                     return;
                 }
                 clients.push({
@@ -754,7 +876,7 @@
                     alert('Please acknowledge all requirements.');
                     return;
                 }
-                renderCalendar();
+                loadAvailableDates();
                 showSection(sections.schedule);
                 setActiveStep(3);
             };
@@ -763,18 +885,28 @@
                 showSection(sections.clients);
                 setActiveStep(2);
             };
+            
             document.getElementById('prevMonthBtn').onclick = () => {
-                currentDate.setMonth(currentDate.getMonth() - 1);
-                renderCalendar();
+                currentMonth--;
+                if (currentMonth < 0) {
+                    currentMonth = 11;
+                    currentYear--;
+                }
+                loadAvailableDates();
             };
+            
             document.getElementById('nextMonthBtn').onclick = () => {
-                currentDate.setMonth(currentDate.getMonth() + 1);
-                renderCalendar();
+                currentMonth++;
+                if (currentMonth > 11) {
+                    currentMonth = 0;
+                    currentYear++;
+                }
+                loadAvailableDates();
             };
 
             document.getElementById('nextToContact').onclick = () => {
-                if (!canAccommodate(formatDateKey(selectedDate), clients.length)) {
-                    alert('Not enough slots.');
+                if (!selectedDate) {
+                    alert('Please select an appointment date.');
                     return;
                 }
                 showSection(sections.contact);
@@ -787,22 +919,20 @@
             };
 
             document.getElementById('nextToReview').onclick = () => {
-                const name = document.getElementById('contactName').value,
-                    mob = document.getElementById('contactMobile').value;
+                const name = document.getElementById('contactName').value;
+                const mob = document.getElementById('contactMobile').value;
                 if (!name || !mob) {
-                    alert('Contact name and mobile required.');
+                    alert('Contact name and mobile number are required.');
                     return;
                 }
-                document.getElementById('reviewType').textContent = appointmentType === 'single' ? 'Single' :
-                    'Family / Group';
+                document.getElementById('reviewType').textContent = appointmentType === 'single' ? 'Single' : 'Family / Group';
                 document.getElementById('reviewClientCount').textContent = clients.length;
                 document.getElementById('reviewClientsList').innerHTML = clients.map((c, i) =>
                     `<div class="client-summary-item"><strong>${i+1}. ${getFullName(c)}</strong> - ${getServiceName(appointmentType==='single'?singleService:c.service)}</div>`
                 ).join('');
                 document.getElementById('reviewDate').textContent = formatDisplayDate(selectedDate);
                 document.getElementById('reviewContactName').textContent = name;
-                document.getElementById('reviewContactEmail').textContent = document.getElementById('contactEmail')
-                    .value || 'Not provided';
+                document.getElementById('reviewContactEmail').textContent = document.getElementById('contactEmail').value || 'Not provided';
                 document.getElementById('reviewContactMobile').textContent = mob;
                 showSection(sections.review);
                 setActiveStep(5);
@@ -814,12 +944,10 @@
             };
 
             document.getElementById('nextToConfirm').onclick = () => {
-                document.getElementById('sumType').textContent = appointmentType === 'single' ? 'Single' :
-                    'Multiple';
+                document.getElementById('sumType').textContent = appointmentType === 'single' ? 'Single' : 'Multiple';
                 document.getElementById('sumClients').textContent = clients.length + ' person(s)';
                 document.getElementById('sumDate').textContent = formatDisplayDate(selectedDate);
-                document.getElementById('sumContact').textContent = document.getElementById('contactName').value +
-                    ' / ' + document.getElementById('contactMobile').value;
+                document.getElementById('sumContact').textContent = document.getElementById('contactName').value + ' / ' + document.getElementById('contactMobile').value;
                 showSection(sections.confirm);
                 setActiveStep(6);
             };
@@ -828,20 +956,320 @@
                 showSection(sections.review);
                 setActiveStep(5);
             };
-            document.getElementById('confirmCheckbox').onchange = (e) => document.getElementById('submitRequestBtn')
-                .disabled = !e.target.checked;
-
-            document.getElementById('submitRequestBtn').onclick = () => {
-                const serviceSummary = clients.map(c =>
-                        `${getFullName(c)} (${getServiceName(appointmentType==='single'?singleService:c.service)})`)
-                    .join(', ');
-                alert(
-                    `✅ Appointment confirmed for ${clients.length} person(s)!\n\n${serviceSummary}\nDate: ${formatDisplayDate(selectedDate)}`
-                );
+            
+            document.getElementById('confirmCheckbox').onchange = (e) => {
+                document.getElementById('submitRequestBtn').disabled = !e.target.checked;
             };
+
+            document.getElementById('submitRequestBtn').onclick = async () => {
+    const formData = {
+        appointment_type: appointmentType,
+        appointment_date: selectedDate,
+        contact_name: document.getElementById('contactName').value,
+        contact_email: document.getElementById('contactEmail').value,
+        contact_mobile: document.getElementById('contactMobile').value,
+        clients: clients.map(c => ({
+            first_name: c.firstName,
+            middle_name: c.middleName,
+            last_name: c.lastName,
+            suffix: c.suffix,
+            sex: c.sex,
+            birthdate: c.birthdate,
+            service: appointmentType === 'single' ? singleService : c.service
+        }))
+    };
+    
+    showLoading();
+    
+    try {
+        const response = await fetch('{{ route("client.appointment.store") }}', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+            },
+            body: JSON.stringify(formData)
+        });
+        
+        const result = await response.json();
+        
+        if (result.success) {
+            // Store appointment data for receipt
+            window.lastAppointment = {
+                number: result.appointment.number,
+                reference_code: result.appointment.reference_code,
+                date: result.appointment.date,
+                clients_count: result.appointment.clients_count,
+                contact_name: formData.contact_name,
+                contact_email: formData.contact_email,
+                contact_mobile: formData.contact_mobile,
+                appointment_date: selectedDate,
+                clients: formData.clients,
+                appointment_type: appointmentType,
+                service: appointmentType === 'single' ? getServiceName(singleService) : 'Multiple Services'
+            };
+            
+            // Generate receipt HTML
+            const receiptHtml = generateReceiptHTML(window.lastAppointment);
+            document.getElementById('successDetails').innerHTML = `
+                <p><strong>Appointment Number:</strong> ${result.appointment.number}</p>
+                <p><strong>Reference Code:</strong> ${result.appointment.reference_code}</p>
+                <p><strong>Date:</strong> ${result.appointment.date}</p>
+                <p><strong>Clients:</strong> ${result.appointment.clients_count} person(s)</p>
+                <hr>
+                <p><small>Click Download PDF to save your appointment receipt.</small></p>
+            `;
+            
+            // Store receipt HTML for PDF download
+            window.receiptHTML = receiptHtml;
+            
+            successModal.style.display = 'flex';
+        } else {
+            alert('Error: ' + result.message);
+        }
+    } catch (error) {
+        alert('Failed to submit appointment. Please try again.');
+    } finally {
+        hideLoading();
+    }
+};
+
+// Function to generate receipt HTML
+// Function to generate receipt HTML
+function generateReceiptHTML(data) {
+    const serviceNames = {
+        'reg': 'National ID Registration',
+        'correction': 'Correction/Updating',
+        'ephilid': 'ePhilID Issuance',
+        'trn': 'TRN Retrieval'
+    };
+    
+    let clientsHtml = '';
+    data.clients.forEach((client, index) => {
+        const serviceName = appointmentType === 'single' ? serviceNames[singleService] : serviceNames[client.service];
+        const middleName = client.middle_name ? ' ' + client.middle_name : '';
+        clientsHtml += `
+            <tr style="border-bottom: 1px solid #ddd;">
+                <td style="padding: 8px; border: 1px solid #ddd;">${index + 1}</td>
+                <td style="padding: 8px; border: 1px solid #ddd;">${client.last_name}, ${client.first_name}${middleName} ${client.suffix || ''}</td>
+                <td style="padding: 8px; border: 1px solid #ddd;">${serviceName}</td>
+            </tr>
+        `;
+    });
+    
+    // Generate a unique ID for QR code
+    const qrId = 'qrcode_' + Date.now();
+    
+    return `
+        <div class="receipt-container" id="receiptContainer" style="font-family: 'Courier New', monospace; max-width: 400px; margin: 0 auto; padding: 20px; background: white;">
+            <div class="receipt-header" style="text-align: center; border-bottom: 2px solid #2c5f8a; padding-bottom: 15px; margin-bottom: 15px;">
+                <img src="{{ asset('images/psa.png') }}" alt="PSA Logo" style="width: 60px; margin-bottom: 10px;">
+                <h2 style="color: #2c5f8a; margin: 5px 0; font-size: 18px;">Philippine Statistics Authority</h2>
+                <p style="margin: 3px 0; font-size: 12px; color: #666;">National ID Appointment System</p>
+                <p style="margin: 3px 0; font-size: 12px; color: #666;">PSA CDO - Fixed Registration Center</p>
+            </div>
+            
+            <div style="border-top: 1px dashed #999; margin: 15px 0;"></div>
+            
+            <div style="display: flex; justify-content: space-between; margin-bottom: 8px; font-size: 12px;">
+                <span style="font-weight: bold;">Appointment Number:</span>
+                <span>${data.number}</span>
+            </div>
+            <div style="display: flex; justify-content: space-between; margin-bottom: 8px; font-size: 12px;">
+                <span style="font-weight: bold;">Reference Code:</span>
+                <span>${data.reference_code}</span>
+            </div>
+            <div style="display: flex; justify-content: space-between; margin-bottom: 8px; font-size: 12px;">
+                <span style="font-weight: bold;">Appointment Date:</span>
+                <span>${data.date}</span>
+            </div>
+            <div style="display: flex; justify-content: space-between; margin-bottom: 8px; font-size: 12px;">
+                <span style="font-weight: bold;">Appointment Type:</span>
+                <span>${data.appointment_type === 'single' ? 'Single' : 'Family/Group'}</span>
+            </div>
+            <div style="display: flex; justify-content: space-between; margin-bottom: 8px; font-size: 12px;">
+                <span style="font-weight: bold;">Total Clients:</span>
+                <span>${data.clients_count} person(s)</span>
+            </div>
+            
+            <div style="border-top: 1px dashed #999; margin: 15px 0;"></div>
+            
+            <div style="display: flex; justify-content: space-between; margin-bottom: 8px; font-size: 12px;">
+                <span style="font-weight: bold;">Contact Person:</span>
+                <span>${data.contact_name}</span>
+            </div>
+            <div style="display: flex; justify-content: space-between; margin-bottom: 8px; font-size: 12px;">
+                <span style="font-weight: bold;">Contact Number:</span>
+                <span>${data.contact_mobile}</span>
+            </div>
+            ${data.contact_email ? `<div style="display: flex; justify-content: space-between; margin-bottom: 8px; font-size: 12px;">
+                <span style="font-weight: bold;">Email:</span>
+                <span>${data.contact_email}</span>
+            </div>` : ''}
+            
+            <div style="border-top: 1px dashed #999; margin: 15px 0;"></div>
+            
+            <div class="receipt-clients" style="margin-top: 15px;">
+                <strong style="display: block; margin-bottom: 10px;">Client Information:</strong>
+                <table style="width: 100%; font-size: 11px; border-collapse: collapse;">
+                    <thead>
+                        <tr style="background: #f5f5f5;">
+                            <th style="border: 1px solid #ddd; padding: 8px; text-align: left;">#</th>
+                            <th style="border: 1px solid #ddd; padding: 8px; text-align: left;">Name</th>
+                            <th style="border: 1px solid #ddd; padding: 8px; text-align: left;">Service</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${clientsHtml}
+                    </tbody>
+                </table>
+            </div>
+            
+            <div style="border-top: 1px dashed #999; margin: 15px 0;"></div>
+            
+            <!-- QR Code Section -->
+            <div style="text-align: center; margin: 15px 0;">
+                <div id="${qrId}" style="display: inline-block;"></div>
+                <div style="font-family: monospace; letter-spacing: 2px; font-size: 12px; margin-top: 10px;">${data.reference_code}</div>
+            </div>
+            
+            <div style="border-top: 1px dashed #999; margin: 15px 0;"></div>
+            
+            <div class="receipt-footer" style="text-align: center; font-size: 10px; color: #999; margin-top: 20px; padding-top: 15px;">
+                <p>Please bring this receipt and valid ID on your appointment date.</p>
+                <p>Arrive 15 minutes before your scheduled time.</p>
+                <p>For inquiries: misamisoriental@psa.gov.ph | 0956 576 6106</p>
+                <p>Generated on: ${new Date().toLocaleString()}</p>
+            </div>
+        </div>
+        <script>
+            // Generate QR code after element is added to DOM
+            setTimeout(function() {
+                const qrDiv = document.getElementById('${qrId}');
+                if (qrDiv && typeof QRCode !== 'undefined') {
+                    new QRCode(qrDiv, {
+                        text: '${data.reference_code}',
+                        width: 100,
+                        height: 100,
+                        colorDark: '#000000',
+                        colorLight: '#ffffff',
+                        correctLevel: QRCode.CorrectLevel.H
+                    });
+                }
+            }, 100);
+        </script>
+    `;
+}
+
+// Print function
+// Print function
+// Print function
+document.getElementById('printSummaryBtn').onclick = () => {
+    if (!window.receiptHTML) {
+        alert('Receipt not ready. Please try again.');
+        return;
+    }
+    
+    const printWindow = window.open('', '_blank');
+    printWindow.document.write(`
+        <html>
+            <head>
+                <title>PSA Appointment Receipt</title>
+                <style>
+                    * {
+                        margin: 0;
+                        padding: 0;
+                        box-sizing: border-box;
+                    }
+                    body { 
+                        font-family: 'Courier New', monospace; 
+                        margin: 0; 
+                        padding: 20px; 
+                        background: white;
+                    }
+                    .receipt-container {
+                        max-width: 400px;
+                        margin: 0 auto;
+                        padding: 20px;
+                        background: white;
+                    }
+                    .receipt-header { text-align: center; border-bottom: 2px solid #2c5f8a; padding-bottom: 15px; margin-bottom: 15px; }
+                    .receipt-header img { width: 60px; margin-bottom: 10px; }
+                    .receipt-header h2 { color: #2c5f8a; margin: 5px 0; font-size: 18px; }
+                    .receipt-header p { margin: 3px 0; font-size: 12px; color: #666; }
+                    .receipt-divider { border-top: 1px dashed #999; margin: 15px 0; }
+                    .receipt-row { display: flex; justify-content: space-between; margin-bottom: 8px; font-size: 12px; }
+                    .receipt-label { font-weight: bold; }
+                    .receipt-clients { margin-top: 15px; }
+                    .receipt-clients table { width: 100%; font-size: 11px; border-collapse: collapse; }
+                    .receipt-clients th, .receipt-clients td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+                    .receipt-clients th { background: #f5f5f5; }
+                    .receipt-footer { text-align: center; font-size: 10px; color: #999; margin-top: 20px; border-top: 1px dashed #999; padding-top: 15px; }
+                    .barcode { font-family: monospace; letter-spacing: 2px; font-size: 14px; text-align: center; margin: 10px 0; }
+                    .qr-code { text-align: center; margin: 15px 0; }
+                    @media print {
+                        body { margin: 0; padding: 0; }
+                        .btn-next { display: none; }
+                    }
+                </style>
+            </head>
+            <body>
+                ${window.receiptHTML}
+            </body>
+        </html>
+    `);
+    printWindow.document.close();
+    printWindow.print();
+};
+
+// PDF Download function
+// PDF Download function
+document.getElementById('downloadPdfBtn').onclick = async () => {
+    if (!window.receiptHTML) {
+        alert('Receipt not ready. Please try again.');
+        return;
+    }
+    
+    showLoading();
+    
+    try {
+        // Create a temporary container for the receipt
+        const container = document.createElement('div');
+        container.innerHTML = window.receiptHTML;
+        container.style.position = 'absolute';
+        container.style.left = '-9999px';
+        container.style.top = '-9999px';
+        document.body.appendChild(container);
+        
+        // Wait for QR code to generate
+        await new Promise(resolve => setTimeout(resolve, 500));
+        
+        const opt = {
+            margin: [0.5, 0.5, 0.5, 0.5],
+            filename: `PSA_Appointment_${window.lastAppointment?.number || 'receipt'}.pdf`,
+            image: { type: 'jpeg', quality: 0.98 },
+            html2canvas: { scale: 2, logging: false, useCORS: true },
+            jsPDF: { unit: 'in', format: 'a4', orientation: 'portrait' }
+        };
+        
+        await html2pdf().set(opt).from(container).save();
+        
+        // Clean up
+        document.body.removeChild(container);
+        hideLoading();
+        
+    } catch (err) {
+        console.error('PDF generation failed:', err);
+        hideLoading();
+        alert('Failed to generate PDF. Please try printing instead.');
+    }
+};
 
             document.getElementById('closeReqModal').onclick = () => reqModal.style.display = 'none';
             document.getElementById('understandBtn').onclick = () => reqModal.style.display = 'none';
+            document.getElementById('closeSuccessModal').onclick = () => successModal.style.display = 'none';
+            
+           
 
             document.querySelectorAll('[data-edit]').forEach(btn => {
                 btn.addEventListener('click', (e) => {
@@ -862,17 +1290,27 @@
                 });
             });
 
-            singleServiceSelect.value = 'reg';
-            singleServiceSelect.dispatchEvent(new Event('change'));
+            // Initialize
+            document.getElementById('singleServiceSelect').value = 'reg';
+            document.getElementById('singleServiceSelect').dispatchEvent(new Event('change'));
             renderClients();
+            
             window.addEventListener('click', (e) => {
                 if (e.target === reqModal) reqModal.style.display = 'none';
+                if (e.target === successModal) successModal.style.display = 'none';
             });
+            
             document.addEventListener('keydown', (e) => {
-                if (e.key === 'Escape') reqModal.style.display = 'none';
+                if (e.key === 'Escape') {
+                    reqModal.style.display = 'none';
+                    successModal.style.display = 'none';
+                }
             });
         })();
     </script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js" integrity="sha512-GsLlZN/3F2ErC5ifS5QtgpiJtWd43JWSuIgh7mbzZ8zBps+dvLusV+eNQATqgA/HdeKFVgA5v3S/cIrLF7QnIg==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+<script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
+
 </body>
 
 </html>

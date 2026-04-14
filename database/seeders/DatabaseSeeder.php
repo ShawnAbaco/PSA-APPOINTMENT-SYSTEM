@@ -15,11 +15,18 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
+        // Call the UserSeeder to create admin, staff, and regular users
+        $this->call(UserSeeder::class);
+        
+        // Call the AppointmentSlotSeeder to generate appointment slots for future dates
+        $this->call(AppointmentSlotSeeder::class);
+        
+        // Optional: Keep the factory for testing (commented out)
         // User::factory(10)->create();
-
-        User::factory()->create([
-            'name' => 'Test User',
-            'email' => 'test@example.com',
-        ]);
+        
+        // User::factory()->create([
+        //     'name' => 'Test User',
+        //     'email' => 'test@example.com',
+        // ]);
     }
 }
