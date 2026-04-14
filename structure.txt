@@ -1,0 +1,54 @@
+app/
+├── Http/
+│   ├── Controllers/
+│   │   ├── Admin/
+│   │   │   ├── DashboardController.php
+│   │   │   ├── AppointmentController.php
+│   │   │   ├── UserController.php
+│   │   │   ├── ReportController.php
+│   │   │   └── SettingsController.php
+│   │   ├── Staff/
+│   │   │   ├── DashboardController.php
+│   │   │   ├── AppointmentController.php
+│   │   │   └── ClientController.php
+│   │   ├── Auth/
+│   │   │   └── LoginController.php
+│   │   └── Web/
+│   │       └── PageController.php
+│   └── Middleware/
+│       ├── AdminMiddleware.php
+│       └── StaffMiddleware.php
+├── Models/
+│   ├── User.php
+│   ├── Appointment.php
+│   ├── AppointmentClient.php
+│   └── ActivityLog.php
+└── Views/
+    ├── layouts/
+    │   ├── admin.blade.php
+    │   ├── staff.blade.php
+    │   └── app.blade.php
+    ├── admin/
+    │   ├── dashboard.blade.php
+    │   ├── appointments/
+    │   │   ├── index.blade.php
+    │   │   ├── show.blade.php
+    │   │   └── calendar.blade.php
+    │   ├── users/
+    │   │   ├── index.blade.php
+    │   │   ├── create.blade.php
+    │   │   └── edit.blade.php
+    │   ├── reports/
+    │   │   └── index.blade.php
+    │   └── settings/
+    │       └── index.blade.php
+    ├── staff/
+    │   ├── dashboard.blade.php
+    │   ├── appointments/
+    │   │   ├── index.blade.php
+    │   │   ├── show.blade.php
+    │   │   └── create.blade.php
+    │   └── clients/
+    │       └── index.blade.php
+    └── auth/
+        └── login.blade.php

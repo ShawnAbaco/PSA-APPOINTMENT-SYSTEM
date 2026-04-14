@@ -53,26 +53,26 @@
     </div>
 
     <!-- SUCCESS MODAL -->
-<div class="modal-overlay" id="successModal">
-    <div class="modal-content" style="max-width: 600px; text-align: center;">
-        <div class="modal-header">
-            <h3 style="color: var(--success);"><i class="fas fa-check-circle"></i> Appointment Confirmed!</h3>
-            <span class="close-modal" id="closeSuccessModal">&times;</span>
-        </div>
-        <div id="successBody" style="padding: 20px;">
-            <p>Your appointment has been successfully booked.</p>
-            <div id="successDetails"></div>
-            <div style="display: flex; gap: 10px; justify-content: center; margin-top: 20px;">
-                <button class="btn-next" id="printSummaryBtn" style="background: #6c757d;">
-                    <i class="fas fa-print"></i> Print
-                </button>
-                <button class="btn-next" id="downloadPdfBtn" style="background: #dc3545;">
-                    <i class="fas fa-file-pdf"></i> Download PDF
-                </button>
+    <div class="modal-overlay" id="successModal">
+        <div class="modal-content" style="max-width: 600px; text-align: center;">
+            <div class="modal-header">
+                <h3 style="color: var(--success);"><i class="fas fa-check-circle"></i> Appointment Confirmed!</h3>
+                <span class="close-modal" id="closeSuccessModal">&times;</span>
+            </div>
+            <div id="successBody" style="padding: 20px;">
+                <p>Your appointment has been successfully booked.</p>
+                <div id="successDetails"></div>
+                <div style="display: flex; gap: 10px; justify-content: center; margin-top: 20px;">
+                    <button class="btn-next" id="printSummaryBtn" style="background: #6c757d;">
+                        <i class="fas fa-print"></i> Print
+                    </button>
+                    <button class="btn-next" id="downloadPdfBtn" style="background: #dc3545;">
+                        <i class="fas fa-file-pdf"></i> Download PDF
+                    </button>
+                </div>
             </div>
         </div>
     </div>
-</div>
 
     <!-- LOADING OVERLAY -->
     <div id="loadingOverlay" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); z-index: 9999; align-items: center; justify-content: center;">
@@ -96,101 +96,103 @@
             animation: spin 1s linear infinite;
         }
 
-         /* Receipt styles for PDF/Print */
-    .receipt-container {
-        font-family: 'Courier New', monospace;
-        max-width: 400px;
-        margin: 0 auto;
-        padding: 20px;
-        background: white;
-    }
-    .receipt-header {
-        text-align: center;
-        border-bottom: 2px solid #2c5f8a;
-        padding-bottom: 15px;
-        margin-bottom: 15px;
-    }
-    .receipt-header img {
-        width: 60px;
-        margin-bottom: 10px;
-    }
-    .receipt-header h2 {
-        color: #2c5f8a;
-        margin: 5px 0;
-        font-size: 18px;
-    }
-    .receipt-header p {
-        margin: 3px 0;
-        font-size: 12px;
-        color: #666;
-    }
-    .receipt-divider {
-        border-top: 1px dashed #999;
-        margin: 15px 0;
-    }
-    .receipt-row {
-        display: flex;
-        justify-content: space-between;
-        margin-bottom: 8px;
-        font-size: 12px;
-    }
-    .receipt-label {
-        font-weight: bold;
-        color: #333;
-    }
-    .receipt-value {
-        color: #555;
-    }
-    .receipt-clients {
-        margin-top: 15px;
-    }
-    .receipt-clients table {
-        width: 100%;
-        font-size: 11px;
-        border-collapse: collapse;
-    }
-    .receipt-clients th, .receipt-clients td {
-        border: 1px solid #ddd;
-        padding: 5px;
-        text-align: left;
-    }
-    .receipt-clients th {
-        background: #f5f5f5;
-    }
-    .receipt-footer {
-        text-align: center;
-        font-size: 10px;
-        color: #999;
-        margin-top: 20px;
-        border-top: 1px dashed #999;
-        padding-top: 15px;
-    }
-    .barcode {
-        font-family: 'Courier New', monospace;
-        letter-spacing: 2px;
-        font-size: 14px;
-        text-align: center;
-        margin: 10px 0;
-    }
-    @media print {
-        body * {
-            visibility: hidden;
-        }
-        .receipt-container, .receipt-container * {
-            visibility: visible;
-        }
+        /* Receipt styles for PDF/Print */
         .receipt-container {
-            position: absolute;
-            top: 0;
-            left: 0;
+            font-family: 'Courier New', monospace;
+            max-width: 400px;
+            margin: 0 auto;
+            padding: 20px;
+            background: white;
+        }
+        .receipt-header {
+            text-align: center;
+            border-bottom: 2px solid #2c5f8a;
+            padding-bottom: 15px;
+            margin-bottom: 15px;
+        }
+        .receipt-header img {
+            width: 60px;
+            margin-bottom: 10px;
+        }
+        .receipt-header h2 {
+            color: #2c5f8a;
+            margin: 5px 0;
+            font-size: 18px;
+        }
+        .receipt-header p {
+            margin: 3px 0;
+            font-size: 12px;
+            color: #666;
+        }
+        .receipt-divider {
+            border-top: 1px dashed #999;
+            margin: 15px 0;
+        }
+        .receipt-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 8px;
+            font-size: 12px;
+        }
+        .receipt-label {
+            font-weight: bold;
+            color: #333;
+        }
+        .receipt-value {
+            color: #555;
+        }
+        .receipt-clients {
+            margin-top: 15px;
+        }
+        .receipt-clients table {
             width: 100%;
+            font-size: 11px;
+            border-collapse: collapse;
         }
-        .btn-next {
-            display: none;
+        .receipt-clients th, .receipt-clients td {
+            border: 1px solid #ddd;
+            padding: 5px;
+            text-align: left;
         }
-    }
-
-
+        .receipt-clients th {
+            background: #f5f5f5;
+        }
+        .receipt-footer {
+            text-align: center;
+            font-size: 10px;
+            color: #999;
+            margin-top: 20px;
+            border-top: 1px dashed #999;
+            padding-top: 15px;
+        }
+        .barcode {
+            font-family: 'Courier New', monospace;
+            letter-spacing: 2px;
+            font-size: 14px;
+            text-align: center;
+            margin: 10px 0;
+        }
+        .qr-code {
+            text-align: center;
+            margin: 15px 0;
+        }
+        @media print {
+            body * {
+                visibility: hidden;
+            }
+            .receipt-container, .receipt-container * {
+                visibility: visible;
+            }
+            .receipt-container {
+                position: absolute;
+                top: 0;
+                left: 0;
+                width: 100%;
+            }
+            .btn-next {
+                display: none;
+            }
+        }
     </style>
 
     <!-- MAIN APPOINTMENT CARD -->
@@ -541,81 +543,81 @@
                 if (nextBtn) nextBtn.disabled = !allAcked;
             }
 
-           async function loadAvailableDates() {
-    const clientCount = appointmentType === 'multiple' ? clients.length : 1;
-    
-    try {
-        const response = await fetch(`{{ route('client.appointment.available-dates') }}?month=${currentMonth + 1}&year=${currentYear}&client_count=${clientCount}`);
-        
-        if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
-        }
-        
-        const data = await response.json();
-        
-        if (data.success) {
-            availableDatesData = data.dates;
-            renderCalendar();
-        } else {
-            console.error('API returned error:', data.message);
-            document.getElementById('calendarDays').innerHTML = '<div class="error">' + (data.message || 'Failed to load available dates') + '</div>';
-        }
-    } catch (error) {
-        console.error('Error loading dates:', error);
-        document.getElementById('calendarDays').innerHTML = '<div class="error">Failed to load available dates. Please try again later.</div>';
-    }
-}
+            async function loadAvailableDates() {
+                const clientCount = appointmentType === 'multiple' ? clients.length : 1;
+                
+                try {
+                    const response = await fetch(`{{ route('client.appointment.available-dates') }}?month=${currentMonth + 1}&year=${currentYear}&client_count=${clientCount}`);
+                    
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! status: ${response.status}`);
+                    }
+                    
+                    const data = await response.json();
+                    
+                    if (data.success) {
+                        availableDatesData = data.dates;
+                        renderCalendar();
+                    } else {
+                        console.error('API returned error:', data.message);
+                        document.getElementById('calendarDays').innerHTML = '<div class="error">' + (data.message || 'Failed to load available dates') + '</div>';
+                    }
+                } catch (error) {
+                    console.error('Error loading dates:', error);
+                    document.getElementById('calendarDays').innerHTML = '<div class="error">Failed to load available dates. Please try again later.</div>';
+                }
+            }
 
             function renderCalendar() {
-    const monthNames = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
-    document.getElementById('calendarMonthYear').textContent = `${monthNames[currentMonth]} ${currentYear}`;
-    
-    const firstDay = new Date(currentYear, currentMonth, 1);
-    const startDayOfWeek = firstDay.getDay() || 7;
-    const startOffset = startDayOfWeek === 7 ? 0 : startDayOfWeek - 1;
-    const daysInMonth = new Date(currentYear, currentMonth + 1, 0).getDate();
-    
-    let html = '';
-    for (let i = 0; i < startOffset; i++) {
-        html += '<div class="calendar-day empty"></div>';
-    }
-    
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    
-    for (let d = 1; d <= daysInMonth; d++) {
-        const date = new Date(currentYear, currentMonth, d);
-        const dateKey = `${currentYear}-${String(currentMonth + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
-        const dateData = availableDatesData ? availableDatesData.find(item => item.date === dateKey) : null;
-        const isPast = date < today;
-        const isSelected = selectedDate === dateKey;
-        
-        let cls = 'calendar-day';
-        if (isPast) cls += ' disabled';
-        else if (dateData && dateData.available_slots > 0) cls += ' available';
-        else if (!dateData) cls += ' disabled';
-        if (isSelected) cls += ' selected';
-        
-        let slotsHtml = '';
-        if (dateData && !isPast) {
-            slotsHtml = `<span class="slots-left">${dateData.available_slots}</span>`;
-        }
-        
-        html += `<div class="${cls}" data-date="${dateKey}" data-slots="${dateData ? dateData.available_slots : 0}">${d}${slotsHtml}</div>`;
-    }
-    
-    document.getElementById('calendarDays').innerHTML = html;
-    
-    document.querySelectorAll('.calendar-day.available').forEach(el => {
-        el.addEventListener('click', () => {
-            const dateKey = el.dataset.date;
-            selectedDate = dateKey;
-            document.getElementById('selectedDateText').textContent = formatDisplayDate(dateKey);
-            document.getElementById('slotInfoText').innerHTML = `✓ ${el.dataset.slots} slots available for this date.`;
-            renderCalendar();
-        });
-    });
-}
+                const monthNames = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+                document.getElementById('calendarMonthYear').textContent = `${monthNames[currentMonth]} ${currentYear}`;
+                
+                const firstDay = new Date(currentYear, currentMonth, 1);
+                const startDayOfWeek = firstDay.getDay() || 7;
+                const startOffset = startDayOfWeek === 7 ? 0 : startDayOfWeek - 1;
+                const daysInMonth = new Date(currentYear, currentMonth + 1, 0).getDate();
+                
+                let html = '';
+                for (let i = 0; i < startOffset; i++) {
+                    html += '<div class="calendar-day empty"></div>';
+                }
+                
+                const today = new Date();
+                today.setHours(0, 0, 0, 0);
+                
+                for (let d = 1; d <= daysInMonth; d++) {
+                    const date = new Date(currentYear, currentMonth, d);
+                    const dateKey = `${currentYear}-${String(currentMonth + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
+                    const dateData = availableDatesData ? availableDatesData.find(item => item.date === dateKey) : null;
+                    const isPast = date < today;
+                    const isSelected = selectedDate === dateKey;
+                    
+                    let cls = 'calendar-day';
+                    if (isPast) cls += ' disabled';
+                    else if (dateData && dateData.available_slots > 0) cls += ' available';
+                    else if (!dateData) cls += ' disabled';
+                    if (isSelected) cls += ' selected';
+                    
+                    let slotsHtml = '';
+                    if (dateData && !isPast) {
+                        slotsHtml = `<span class="slots-left">${dateData.available_slots}</span>`;
+                    }
+                    
+                    html += `<div class="${cls}" data-date="${dateKey}" data-slots="${dateData ? dateData.available_slots : 0}">${d}${slotsHtml}</div>`;
+                }
+                
+                document.getElementById('calendarDays').innerHTML = html;
+                
+                document.querySelectorAll('.calendar-day.available').forEach(el => {
+                    el.addEventListener('click', () => {
+                        const dateKey = el.dataset.date;
+                        selectedDate = dateKey;
+                        document.getElementById('selectedDateText').textContent = formatDisplayDate(dateKey);
+                        document.getElementById('slotInfoText').innerHTML = `✓ ${el.dataset.slots} slots available for this date.`;
+                        renderCalendar();
+                    });
+                });
+            }
 
             function renderClients() {
                 const container = document.getElementById('clientsList');
@@ -962,314 +964,325 @@
             };
 
             document.getElementById('submitRequestBtn').onclick = async () => {
-    const formData = {
-        appointment_type: appointmentType,
-        appointment_date: selectedDate,
-        contact_name: document.getElementById('contactName').value,
-        contact_email: document.getElementById('contactEmail').value,
-        contact_mobile: document.getElementById('contactMobile').value,
-        clients: clients.map(c => ({
-            first_name: c.firstName,
-            middle_name: c.middleName,
-            last_name: c.lastName,
-            suffix: c.suffix,
-            sex: c.sex,
-            birthdate: c.birthdate,
-            service: appointmentType === 'single' ? singleService : c.service
-        }))
-    };
-    
-    showLoading();
-    
-    try {
-        const response = await fetch('{{ route("client.appointment.store") }}', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
-            },
-            body: JSON.stringify(formData)
-        });
-        
-        const result = await response.json();
-        
-        if (result.success) {
-            // Store appointment data for receipt
-            window.lastAppointment = {
-                number: result.appointment.number,
-                reference_code: result.appointment.reference_code,
-                date: result.appointment.date,
-                clients_count: result.appointment.clients_count,
-                contact_name: formData.contact_name,
-                contact_email: formData.contact_email,
-                contact_mobile: formData.contact_mobile,
-                appointment_date: selectedDate,
-                clients: formData.clients,
-                appointment_type: appointmentType,
-                service: appointmentType === 'single' ? getServiceName(singleService) : 'Multiple Services'
+                const formData = {
+                    appointment_type: appointmentType,
+                    appointment_date: selectedDate,
+                    contact_name: document.getElementById('contactName').value,
+                    contact_email: document.getElementById('contactEmail').value,
+                    contact_mobile: document.getElementById('contactMobile').value,
+                    clients: clients.map(c => ({
+                        first_name: c.firstName,
+                        middle_name: c.middleName,
+                        last_name: c.lastName,
+                        suffix: c.suffix,
+                        sex: c.sex,
+                        birthdate: c.birthdate,
+                        service: appointmentType === 'single' ? singleService : c.service
+                    }))
+                };
+                
+                showLoading();
+                
+                try {
+                    const response = await fetch('{{ route("client.appointment.store") }}', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+                        },
+                        body: JSON.stringify(formData)
+                    });
+                    
+                    const result = await response.json();
+                    
+                    if (result.success) {
+                        // Store appointment data for receipt
+                        window.lastAppointment = {
+                            number: result.appointment.number,
+                            reference_code: result.appointment.reference_code,
+                            date: result.appointment.date,
+                            clients_count: result.appointment.clients_count,
+                            contact_name: formData.contact_name,
+                            contact_email: formData.contact_email,
+                            contact_mobile: formData.contact_mobile,
+                            appointment_date: selectedDate,
+                            clients: formData.clients,
+                            appointment_type: appointmentType,
+                            service: appointmentType === 'single' ? getServiceName(singleService) : 'Multiple Services'
+                        };
+                        
+                        // Generate receipt HTML
+                        const receiptHtml = generateReceiptHTML(window.lastAppointment);
+                        document.getElementById('successDetails').innerHTML = `
+                            <p><strong>Appointment Number:</strong> ${result.appointment.number}</p>
+                            <p><strong>Reference Code:</strong> ${result.appointment.reference_code}</p>
+                            <p><strong>Date:</strong> ${result.appointment.date}</p>
+                            <p><strong>Clients:</strong> ${result.appointment.clients_count} person(s)</p>
+                            <hr>
+                            <p><small>Click Download PDF to save your appointment receipt.</small></p>
+                        `;
+                        
+                        // Store receipt HTML for PDF download
+                        window.receiptHTML = receiptHtml;
+                        
+                        successModal.style.display = 'flex';
+                    } else {
+                        alert('Error: ' + result.message);
+                    }
+                } catch (error) {
+                    alert('Failed to submit appointment. Please try again.');
+                } finally {
+                    hideLoading();
+                }
             };
-            
-            // Generate receipt HTML
-            const receiptHtml = generateReceiptHTML(window.lastAppointment);
-            document.getElementById('successDetails').innerHTML = `
-                <p><strong>Appointment Number:</strong> ${result.appointment.number}</p>
-                <p><strong>Reference Code:</strong> ${result.appointment.reference_code}</p>
-                <p><strong>Date:</strong> ${result.appointment.date}</p>
-                <p><strong>Clients:</strong> ${result.appointment.clients_count} person(s)</p>
-                <hr>
-                <p><small>Click Download PDF to save your appointment receipt.</small></p>
-            `;
-            
-            // Store receipt HTML for PDF download
-            window.receiptHTML = receiptHtml;
-            
-            successModal.style.display = 'flex';
-        } else {
-            alert('Error: ' + result.message);
-        }
-    } catch (error) {
-        alert('Failed to submit appointment. Please try again.');
-    } finally {
-        hideLoading();
-    }
-};
 
-// Function to generate receipt HTML
-// Function to generate receipt HTML
-function generateReceiptHTML(data) {
-    const serviceNames = {
-        'reg': 'National ID Registration',
-        'correction': 'Correction/Updating',
-        'ephilid': 'ePhilID Issuance',
-        'trn': 'TRN Retrieval'
-    };
-    
-    let clientsHtml = '';
-    data.clients.forEach((client, index) => {
-        const serviceName = appointmentType === 'single' ? serviceNames[singleService] : serviceNames[client.service];
-        const middleName = client.middle_name ? ' ' + client.middle_name : '';
-        clientsHtml += `
-            <tr style="border-bottom: 1px solid #ddd;">
-                <td style="padding: 8px; border: 1px solid #ddd;">${index + 1}</td>
-                <td style="padding: 8px; border: 1px solid #ddd;">${client.last_name}, ${client.first_name}${middleName} ${client.suffix || ''}</td>
-                <td style="padding: 8px; border: 1px solid #ddd;">${serviceName}</td>
-            </tr>
-        `;
-    });
-    
-    // Generate a unique ID for QR code
-    const qrId = 'qrcode_' + Date.now();
-    
-    return `
-        <div class="receipt-container" id="receiptContainer" style="font-family: 'Courier New', monospace; max-width: 400px; margin: 0 auto; padding: 20px; background: white;">
-            <div class="receipt-header" style="text-align: center; border-bottom: 2px solid #2c5f8a; padding-bottom: 15px; margin-bottom: 15px;">
-                <img src="{{ asset('images/psa.png') }}" alt="PSA Logo" style="width: 60px; margin-bottom: 10px;">
-                <h2 style="color: #2c5f8a; margin: 5px 0; font-size: 18px;">Philippine Statistics Authority</h2>
-                <p style="margin: 3px 0; font-size: 12px; color: #666;">National ID Appointment System</p>
-                <p style="margin: 3px 0; font-size: 12px; color: #666;">PSA CDO - Fixed Registration Center</p>
-            </div>
-            
-            <div style="border-top: 1px dashed #999; margin: 15px 0;"></div>
-            
-            <div style="display: flex; justify-content: space-between; margin-bottom: 8px; font-size: 12px;">
-                <span style="font-weight: bold;">Appointment Number:</span>
-                <span>${data.number}</span>
-            </div>
-            <div style="display: flex; justify-content: space-between; margin-bottom: 8px; font-size: 12px;">
-                <span style="font-weight: bold;">Reference Code:</span>
-                <span>${data.reference_code}</span>
-            </div>
-            <div style="display: flex; justify-content: space-between; margin-bottom: 8px; font-size: 12px;">
-                <span style="font-weight: bold;">Appointment Date:</span>
-                <span>${data.date}</span>
-            </div>
-            <div style="display: flex; justify-content: space-between; margin-bottom: 8px; font-size: 12px;">
-                <span style="font-weight: bold;">Appointment Type:</span>
-                <span>${data.appointment_type === 'single' ? 'Single' : 'Family/Group'}</span>
-            </div>
-            <div style="display: flex; justify-content: space-between; margin-bottom: 8px; font-size: 12px;">
-                <span style="font-weight: bold;">Total Clients:</span>
-                <span>${data.clients_count} person(s)</span>
-            </div>
-            
-            <div style="border-top: 1px dashed #999; margin: 15px 0;"></div>
-            
-            <div style="display: flex; justify-content: space-between; margin-bottom: 8px; font-size: 12px;">
-                <span style="font-weight: bold;">Contact Person:</span>
-                <span>${data.contact_name}</span>
-            </div>
-            <div style="display: flex; justify-content: space-between; margin-bottom: 8px; font-size: 12px;">
-                <span style="font-weight: bold;">Contact Number:</span>
-                <span>${data.contact_mobile}</span>
-            </div>
-            ${data.contact_email ? `<div style="display: flex; justify-content: space-between; margin-bottom: 8px; font-size: 12px;">
-                <span style="font-weight: bold;">Email:</span>
-                <span>${data.contact_email}</span>
-            </div>` : ''}
-            
-            <div style="border-top: 1px dashed #999; margin: 15px 0;"></div>
-            
-            <div class="receipt-clients" style="margin-top: 15px;">
-                <strong style="display: block; margin-bottom: 10px;">Client Information:</strong>
-                <table style="width: 100%; font-size: 11px; border-collapse: collapse;">
-                    <thead>
-                        <tr style="background: #f5f5f5;">
-                            <th style="border: 1px solid #ddd; padding: 8px; text-align: left;">#</th>
-                            <th style="border: 1px solid #ddd; padding: 8px; text-align: left;">Name</th>
-                            <th style="border: 1px solid #ddd; padding: 8px; text-align: left;">Service</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        ${clientsHtml}
-                    </tbody>
-                </table>
-            </div>
-            
-            <div style="border-top: 1px dashed #999; margin: 15px 0;"></div>
-            
-            <!-- QR Code Section -->
-            <div style="text-align: center; margin: 15px 0;">
-                <div id="${qrId}" style="display: inline-block;"></div>
-                <div style="font-family: monospace; letter-spacing: 2px; font-size: 12px; margin-top: 10px;">${data.reference_code}</div>
-            </div>
-            
-            <div style="border-top: 1px dashed #999; margin: 15px 0;"></div>
-            
-            <div class="receipt-footer" style="text-align: center; font-size: 10px; color: #999; margin-top: 20px; padding-top: 15px;">
-                <p>Please bring this receipt and valid ID on your appointment date.</p>
-                <p>Arrive 15 minutes before your scheduled time.</p>
-                <p>For inquiries: misamisoriental@psa.gov.ph | 0956 576 6106</p>
-                <p>Generated on: ${new Date().toLocaleString()}</p>
-            </div>
-        </div>
-        <script>
-            // Generate QR code after element is added to DOM
-            setTimeout(function() {
-                const qrDiv = document.getElementById('${qrId}');
-                if (qrDiv && typeof QRCode !== 'undefined') {
-                    new QRCode(qrDiv, {
-                        text: '${data.reference_code}',
-                        width: 100,
-                        height: 100,
-                        colorDark: '#000000',
-                        colorLight: '#ffffff',
-                        correctLevel: QRCode.CorrectLevel.H
+            // Function to generate receipt HTML with QR Code
+            function generateReceiptHTML(data) {
+                const serviceNames = {
+                    'reg': 'National ID Registration',
+                    'correction': 'Correction/Updating',
+                    'ephilid': 'ePhilID Issuance',
+                    'trn': 'TRN Retrieval'
+                };
+                
+                // Build clients table HTML
+                let clientsHtml = '';
+                if (data.clients && data.clients.length > 0) {
+                    data.clients.forEach((client, index) => {
+                        const serviceName = appointmentType === 'single' ? serviceNames[singleService] : serviceNames[client.service];
+                        const middleName = client.middle_name ? ' ' + client.middle_name : '';
+                        const fullName = `${client.last_name}, ${client.first_name}${middleName} ${client.suffix || ''}`.trim();
+                        clientsHtml += `
+                            <tr>
+                                <td style="padding: 8px; border: 1px solid #ddd; text-align: left;">${index + 1}</td>
+                                <td style="padding: 8px; border: 1px solid #ddd; text-align: left;">${fullName}</td>
+                                <td style="padding: 8px; border: 1px solid #ddd; text-align: left;">${serviceName}</td>
+                            </tr>
+                        `;
                     });
                 }
-            }, 100);
-        </script>
-    `;
-}
+                
+                const qrId = 'qrcode_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+                
+                return `
+                    <div class="receipt-container" id="receiptContainer" style="font-family: 'Courier New', monospace; max-width: 400px; margin: 0 auto; padding: 20px; background: white; border: 1px solid #ddd;">
+                        <div class="receipt-header" style="text-align: center; border-bottom: 2px solid #2c5f8a; padding-bottom: 15px; margin-bottom: 15px;">
+                            <img src="{{ asset('images/psa.png') }}" alt="PSA Logo" style="width: 60px; margin-bottom: 10px;">
+                            <h2 style="color: #2c5f8a; margin: 5px 0; font-size: 18px;">Philippine Statistics Authority</h2>
+                            <p style="margin: 3px 0; font-size: 12px; color: #666;">National ID Appointment System</p>
+                            <p style="margin: 3px 0; font-size: 12px; color: #666;">PSA CDO - Fixed Registration Center</p>
+                        </div>
+                        
+                        <div style="border-top: 1px dashed #999; margin: 15px 0;"></div>
+                        
+                        <div style="display: flex; justify-content: space-between; margin-bottom: 8px; font-size: 12px;">
+                            <span style="font-weight: bold;">Appointment Number:</span>
+                            <span>${data.number}</span>
+                        </div>
+                        <div style="display: flex; justify-content: space-between; margin-bottom: 8px; font-size: 12px;">
+                            <span style="font-weight: bold;">Reference Code:</span>
+                            <span>${data.reference_code}</span>
+                        </div>
+                        <div style="display: flex; justify-content: space-between; margin-bottom: 8px; font-size: 12px;">
+                            <span style="font-weight: bold;">Appointment Date:</span>
+                            <span>${data.date}</span>
+                        </div>
+                        <div style="display: flex; justify-content: space-between; margin-bottom: 8px; font-size: 12px;">
+                            <span style="font-weight: bold;">Appointment Type:</span>
+                            <span>${data.appointment_type === 'single' ? 'Single' : 'Family/Group'}</span>
+                        </div>
+                        <div style="display: flex; justify-content: space-between; margin-bottom: 8px; font-size: 12px;">
+                            <span style="font-weight: bold;">Total Clients:</span>
+                            <span>${data.clients_count} person(s)</span>
+                        </div>
+                        
+                        <div style="border-top: 1px dashed #999; margin: 15px 0;"></div>
+                        
+                        <div style="display: flex; justify-content: space-between; margin-bottom: 8px; font-size: 12px;">
+                            <span style="font-weight: bold;">Contact Person:</span>
+                            <span>${data.contact_name}</span>
+                        </div>
+                        <div style="display: flex; justify-content: space-between; margin-bottom: 8px; font-size: 12px;">
+                            <span style="font-weight: bold;">Contact Number:</span>
+                            <span>${data.contact_mobile}</span>
+                        </div>
+                        ${data.contact_email ? `<div style="display: flex; justify-content: space-between; margin-bottom: 8px; font-size: 12px;">
+                            <span style="font-weight: bold;">Email:</span>
+                            <span>${data.contact_email}</span>
+                        </div>` : ''}
+                        
+                        <div style="border-top: 1px dashed #999; margin: 15px 0;"></div>
+                        
+                        <div style="margin-top: 15px;">
+                            <strong style="display: block; margin-bottom: 10px; font-size: 12px;">Client Information:</strong>
+                            <table style="width: 100%; font-size: 11px; border-collapse: collapse;">
+                                <thead>
+                                    <tr style="background: #f5f5f5;">
+                                        <th style="padding: 8px; border: 1px solid #ddd; text-align: left;">#</th>
+                                        <th style="padding: 8px; border: 1px solid #ddd; text-align: left;">Name</th>
+                                        <th style="padding: 8px; border: 1px solid #ddd; text-align: left;">Service</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    ${clientsHtml}
+                                </tbody>
+                            </table>
+                        </div>
+                        
+                        <div style="border-top: 1px dashed #999; margin: 15px 0;"></div>
+                        
+                        <div style="text-align: center; margin: 15px 0;">
+                            <div id="${qrId}" style="display: inline-block;"></div>
+                            <div style="font-family: monospace; letter-spacing: 2px; font-size: 12px; margin-top: 10px;">${data.reference_code}</div>
+                        </div>
+                        
+                        <div style="border-top: 1px dashed #999; margin: 15px 0;"></div>
+                        
+                        <div style="text-align: center; font-size: 10px; color: #999; margin-top: 20px; padding-top: 15px;">
+                            <p>Please bring this receipt and valid ID on your appointment date.</p>
+                            <p>Arrive 15 minutes before your scheduled time.</p>
+                            <p>For inquiries: misamisoriental@psa.gov.ph | 0956 576 6106</p>
+                            <p>Generated on: ${new Date().toLocaleString()}</p>
+                        </div>
+                    </div>
+                    <script>
+                        (function() {
+                            var qrDiv = document.getElementById('${qrId}');
+                            if (qrDiv && typeof QRCode !== 'undefined') {
+                                new QRCode(qrDiv, {
+                                    text: '${data.reference_code}',
+                                    width: 100,
+                                    height: 100,
+                                    colorDark: '#000000',
+                                    colorLight: '#ffffff',
+                                    correctLevel: QRCode.CorrectLevel.H
+                                });
+                            }
+                        })();
+                    <\/script>
+                `;
+            }
 
-// Print function
-// Print function
-// Print function
-document.getElementById('printSummaryBtn').onclick = () => {
-    if (!window.receiptHTML) {
-        alert('Receipt not ready. Please try again.');
-        return;
-    }
-    
-    const printWindow = window.open('', '_blank');
-    printWindow.document.write(`
-        <html>
-            <head>
-                <title>PSA Appointment Receipt</title>
-                <style>
-                    * {
-                        margin: 0;
-                        padding: 0;
-                        box-sizing: border-box;
-                    }
-                    body { 
-                        font-family: 'Courier New', monospace; 
-                        margin: 0; 
-                        padding: 20px; 
-                        background: white;
-                    }
-                    .receipt-container {
-                        max-width: 400px;
-                        margin: 0 auto;
-                        padding: 20px;
-                        background: white;
-                    }
-                    .receipt-header { text-align: center; border-bottom: 2px solid #2c5f8a; padding-bottom: 15px; margin-bottom: 15px; }
-                    .receipt-header img { width: 60px; margin-bottom: 10px; }
-                    .receipt-header h2 { color: #2c5f8a; margin: 5px 0; font-size: 18px; }
-                    .receipt-header p { margin: 3px 0; font-size: 12px; color: #666; }
-                    .receipt-divider { border-top: 1px dashed #999; margin: 15px 0; }
-                    .receipt-row { display: flex; justify-content: space-between; margin-bottom: 8px; font-size: 12px; }
-                    .receipt-label { font-weight: bold; }
-                    .receipt-clients { margin-top: 15px; }
-                    .receipt-clients table { width: 100%; font-size: 11px; border-collapse: collapse; }
-                    .receipt-clients th, .receipt-clients td { border: 1px solid #ddd; padding: 8px; text-align: left; }
-                    .receipt-clients th { background: #f5f5f5; }
-                    .receipt-footer { text-align: center; font-size: 10px; color: #999; margin-top: 20px; border-top: 1px dashed #999; padding-top: 15px; }
-                    .barcode { font-family: monospace; letter-spacing: 2px; font-size: 14px; text-align: center; margin: 10px 0; }
-                    .qr-code { text-align: center; margin: 15px 0; }
-                    @media print {
-                        body { margin: 0; padding: 0; }
-                        .btn-next { display: none; }
-                    }
-                </style>
-            </head>
-            <body>
-                ${window.receiptHTML}
-            </body>
-        </html>
-    `);
-    printWindow.document.close();
-    printWindow.print();
-};
+            // Print function
+            document.getElementById('printSummaryBtn').onclick = () => {
+                if (!window.receiptHTML) {
+                    alert('Receipt not ready. Please try again.');
+                    return;
+                }
+                
+                const printWindow = window.open('', '_blank');
+                printWindow.document.write(`
+                    <html>
+                        <head>
+                            <title>PSA Appointment Receipt</title>
+                            <style>
+                                * {
+                                    margin: 0;
+                                    padding: 0;
+                                    box-sizing: border-box;
+                                }
+                                body { 
+                                    font-family: 'Courier New', monospace; 
+                                    margin: 0; 
+                                    padding: 20px; 
+                                    background: white;
+                                }
+                                .receipt-container {
+                                    max-width: 400px;
+                                    margin: 0 auto;
+                                    padding: 20px;
+                                    background: white;
+                                    border: 1px solid #ddd;
+                                }
+                                .receipt-header { text-align: center; border-bottom: 2px solid #2c5f8a; padding-bottom: 15px; margin-bottom: 15px; }
+                                .receipt-header img { width: 60px; margin-bottom: 10px; }
+                                .receipt-header h2 { color: #2c5f8a; margin: 5px 0; font-size: 18px; }
+                                .receipt-header p { margin: 3px 0; font-size: 12px; color: #666; }
+                                .receipt-divider { border-top: 1px dashed #999; margin: 15px 0; }
+                                .receipt-row { display: flex; justify-content: space-between; margin-bottom: 8px; font-size: 12px; }
+                                .receipt-label { font-weight: bold; }
+                                .receipt-clients { margin-top: 15px; }
+                                .receipt-clients table { width: 100%; font-size: 11px; border-collapse: collapse; }
+                                .receipt-clients th, .receipt-clients td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+                                .receipt-clients th { background: #f5f5f5; }
+                                .receipt-footer { text-align: center; font-size: 10px; color: #999; margin-top: 20px; border-top: 1px dashed #999; padding-top: 15px; }
+                                .barcode { font-family: monospace; letter-spacing: 2px; font-size: 14px; text-align: center; margin: 10px 0; }
+                                .qr-code { text-align: center; margin: 15px 0; }
+                                @media print {
+                                    body { margin: 0; padding: 0; }
+                                    .btn-next { display: none; }
+                                }
+                            </style>
+                        </head>
+                        <body>
+                            ${window.receiptHTML}
+                        </body>
+                    </html>
+                `);
+                printWindow.document.close();
+                setTimeout(() => {
+                    printWindow.print();
+                }, 500);
+            };
 
-// PDF Download function
-// PDF Download function
-document.getElementById('downloadPdfBtn').onclick = async () => {
-    if (!window.receiptHTML) {
-        alert('Receipt not ready. Please try again.');
-        return;
-    }
-    
-    showLoading();
-    
-    try {
-        // Create a temporary container for the receipt
-        const container = document.createElement('div');
-        container.innerHTML = window.receiptHTML;
-        container.style.position = 'absolute';
-        container.style.left = '-9999px';
-        container.style.top = '-9999px';
-        document.body.appendChild(container);
-        
-        // Wait for QR code to generate
-        await new Promise(resolve => setTimeout(resolve, 500));
-        
-        const opt = {
-            margin: [0.5, 0.5, 0.5, 0.5],
-            filename: `PSA_Appointment_${window.lastAppointment?.number || 'receipt'}.pdf`,
-            image: { type: 'jpeg', quality: 0.98 },
-            html2canvas: { scale: 2, logging: false, useCORS: true },
-            jsPDF: { unit: 'in', format: 'a4', orientation: 'portrait' }
-        };
-        
-        await html2pdf().set(opt).from(container).save();
-        
-        // Clean up
-        document.body.removeChild(container);
-        hideLoading();
-        
-    } catch (err) {
-        console.error('PDF generation failed:', err);
-        hideLoading();
-        alert('Failed to generate PDF. Please try printing instead.');
-    }
-};
+            // PDF Download function
+            document.getElementById('downloadPdfBtn').onclick = async () => {
+                if (!window.receiptHTML) {
+                    alert('Receipt not ready. Please try again.');
+                    return;
+                }
+                
+                showLoading();
+                
+                try {
+                    // Create a temporary container for the receipt
+                    const container = document.createElement('div');
+                    container.innerHTML = window.receiptHTML;
+                    container.style.position = 'absolute';
+                    container.style.left = '-9999px';
+                    container.style.top = '-9999px';
+                    container.style.width = '400px';
+                    container.style.background = 'white';
+                    document.body.appendChild(container);
+                    
+                    // Wait for QR code to generate
+                    await new Promise(resolve => setTimeout(resolve, 1500));
+                    
+                    // Find the receipt container inside the temporary element
+                    const receiptElement = container.querySelector('#receiptContainer') || container;
+                    
+                    const opt = {
+                        margin: [0.5, 0.5, 0.5, 0.5],
+                        filename: `PSA_Appointment_${window.lastAppointment?.number || 'receipt'}.pdf`,
+                        image: { type: 'jpeg', quality: 0.98 },
+                        html2canvas: { 
+                            scale: 2, 
+                            logging: false, 
+                            useCORS: true,
+                            backgroundColor: '#ffffff'
+                        },
+                        jsPDF: { unit: 'in', format: 'a4', orientation: 'portrait' }
+                    };
+                    
+                    await html2pdf().set(opt).from(receiptElement).save();
+                    
+                    // Clean up
+                    document.body.removeChild(container);
+                    hideLoading();
+                    
+                } catch (err) {
+                    console.error('PDF generation failed:', err);
+                    hideLoading();
+                    alert('Failed to generate PDF. Please try printing instead.');
+                    if (container && container.parentNode) {
+                        document.body.removeChild(container);
+                    }
+                }
+            };
 
             document.getElementById('closeReqModal').onclick = () => reqModal.style.display = 'none';
             document.getElementById('understandBtn').onclick = () => reqModal.style.display = 'none';
             document.getElementById('closeSuccessModal').onclick = () => successModal.style.display = 'none';
-            
-           
 
             document.querySelectorAll('[data-edit]').forEach(btn => {
                 btn.addEventListener('click', (e) => {
@@ -1309,7 +1322,7 @@ document.getElementById('downloadPdfBtn').onclick = async () => {
         })();
     </script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js" integrity="sha512-GsLlZN/3F2ErC5ifS5QtgpiJtWd43JWSuIgh7mbzZ8zBps+dvLusV+eNQATqgA/HdeKFVgA5v3S/cIrLF7QnIg==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
-<script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
 
 </body>
 
