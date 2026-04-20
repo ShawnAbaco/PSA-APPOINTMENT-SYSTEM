@@ -77,8 +77,7 @@ Route::prefix('slots')->name('slots.')->group(function () {
     Route::post('/bulk-generate', [App\Http\Controllers\Admin\SlotController::class, 'bulkGenerate'])->name('bulk-generate');
     Route::put('/{id}/toggle-holiday', [App\Http\Controllers\Admin\SlotController::class, 'toggleHoliday'])->name('toggle-holiday');
     Route::get('/details/{date}', [App\Http\Controllers\Admin\SlotController::class, 'getSlotDetails'])->name('details');
-    Route::get('/json', [App\Http\Controllers\Admin\SlotController::class, 'getSlotsJson'])->name('json');
-});
+    Route::get('/json', [App\Http\Controllers\Admin\SlotController::class, 'getSlotsJson'])->name('json');});
 
 
     

@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Setting;
 use App\Models\AppointmentSlot;
 use App\Models\ServiceSlotsConfig;
+use App\Models\WorkingDaysDefault;
 use App\Services\MailService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
@@ -22,12 +23,22 @@ class SettingsController extends Controller
         // Get service configurations
         $serviceConfigs = ServiceSlotsConfig::all();
         
+        // Get working days from working_days_defaults table
+        $workingDaysDefaults = WorkingDaysDefault::all()->pluck('is_working', 'day_of_week')->toArray();
+        $workingDaysList = [];
+        foreach ($workingDaysDefaults as $day => $isWorking) {
+            if ($isWorking) {
+                $workingDaysList[] = $day;
+            }
+        }
+        $workingDaysValue = implode(',', $workingDaysList);
+        
         // Initialize settings array with defaults
         $settings = [
             'advance_booking_days' => 30,
             'cancellation_hours' => 24,
             'enable_email' => true,
-            'working_days' => '1,2,3,4,5',
+            'working_days' => $workingDaysValue ?: '1,2,3,4,5',
             'email_host' => 'smtp.gmail.com',
             'email_port' => 587,
             'email_encryption' => 'tls',
@@ -131,9 +142,25 @@ class SettingsController extends Controller
             }
         }
         
-        // Save working days
+        // ========== UPDATE WORKING DAYS IN working_days_defaults TABLE ==========
         if ($request->has('working_days')) {
-            $workingDaysValue = implode(',', $request->working_days);
+            $workingDaysArray = $request->working_days;
+            
+            // Update each day's is_working status
+            for ($day = 1; $day <= 7; $day++) {
+                $isWorking = in_array($day, $workingDaysArray) ? 1 : 0;
+                
+                WorkingDaysDefault::updateOrCreate(
+                    ['day_of_week' => $day],
+                    [
+                        'is_working' => $isWorking,
+                        'updated_at' => now(),
+                    ]
+                );
+            }
+            
+            // Also save to settings table for backward compatibility
+            $workingDaysValue = implode(',', $workingDaysArray);
             Setting::updateOrCreate(
                 ['key' => 'working_days'],
                 [
@@ -144,6 +171,7 @@ class SettingsController extends Controller
                 ]
             );
         }
+        // ========== END WORKING DAYS UPDATE ==========
         
         // Update service capacities in service_slots_config table
         $serviceCapacities = [

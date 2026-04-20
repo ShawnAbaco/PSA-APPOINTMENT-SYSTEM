@@ -1,6 +1,7 @@
 @extends('layouts.admin')
 
 @section('content')
+<meta name="working-days" content="{{ $workingDays ?? '1,2,3,4,5' }}">
 <div class="container-fluid px-4">
     <!-- Header -->
     <div class="d-flex justify-content-between align-items-center mb-4">
@@ -21,60 +22,60 @@
     <!-- Stats Cards -->
     <div class="row g-3 mb-4">
         <div class="col-md-3">
-    <div class="card border-0 shadow-sm rounded-4">
-        <div class="card-body p-3">
-            <div class="d-flex justify-content-between align-items-center">
-                <div>
-                    <p class="text-muted mb-1 small">Half Days</p>
-                    <h3 class="mb-0 fw-bold text-warning">{{ $totalHalfDays ?? 0 }}</h3>
-                </div>
-                <div class="rounded-circle bg-warning bg-opacity-10 p-3">
-                    <i class="fas fa-sun text-warning fs-4"></i>
+            <div class="card border-0 shadow-sm rounded-3">
+                <div class="card-body p-3">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <p class="text-muted mb-1 small">Total Slots</p>
+                            <h3 class="mb-0 fw-bold">{{ $totalSlots }}</h3>
+                        </div>
+                        <div class="bg-primary bg-opacity-10 p-2 rounded-circle">
+                            <i class="fas fa-calendar-week text-primary fs-5"></i>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
-    </div>
-</div>
         <div class="col-md-3">
-            <div class="card border-0 shadow-sm rounded-4">
+            <div class="card border-0 shadow-sm rounded-3">
+                <div class="card-body p-3">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <p class="text-muted mb-1 small">Half Days</p>
+                            <h3 class="mb-0 fw-bold text-warning">{{ $totalHalfDays ?? 0 }}</h3>
+                        </div>
+                        <div class="bg-warning bg-opacity-10 p-2 rounded-circle">
+                            <i class="fas fa-sun text-warning fs-5"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card border-0 shadow-sm rounded-3">
                 <div class="card-body p-3">
                     <div class="d-flex justify-content-between align-items-center">
                         <div>
                             <p class="text-muted mb-1 small">Holidays</p>
                             <h3 class="mb-0 fw-bold text-danger">{{ $totalHolidays }}</h3>
                         </div>
-                        <div class="rounded-circle bg-danger bg-opacity-10 p-3">
-                            <i class="fas fa-calendar-times text-danger fs-4"></i>
+                        <div class="bg-danger bg-opacity-10 p-2 rounded-circle">
+                            <i class="fas fa-calendar-times text-danger fs-5"></i>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
         <div class="col-md-3">
-            <div class="card border-0 shadow-sm rounded-4">
-                <div class="card-body p-3">
-                    <div class="d-flex justify-content-between align-items-center">
-                        <div>
-                            <p class="text-muted mb-1 small">Special Days</p>
-                            <h3 class="mb-0 fw-bold text-warning">{{ $totalSpecialDays }}</h3>
-                        </div>
-                        <div class="rounded-circle bg-warning bg-opacity-10 p-3">
-                            <i class="fas fa-star text-warning fs-4"></i>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-3">
-            <div class="card border-0 shadow-sm rounded-4">
+            <div class="card border-0 shadow-sm rounded-3">
                 <div class="card-body p-3">
                     <div class="d-flex justify-content-between align-items-center">
                         <div>
                             <p class="text-muted mb-1 small">Total Booked</p>
                             <h3 class="mb-0 fw-bold text-success">{{ $totalBooked }}</h3>
                         </div>
-                        <div class="rounded-circle bg-success bg-opacity-10 p-3">
-                            <i class="fas fa-users text-success fs-4"></i>
+                        <div class="bg-success bg-opacity-10 p-2 rounded-circle">
+                            <i class="fas fa-users text-success fs-5"></i>
                         </div>
                     </div>
                 </div>
@@ -82,39 +83,39 @@
         </div>
     </div>
 
-    <!-- Calendar -->
-    <div class="card border-0 shadow-sm rounded-4">
-        <div class="card-header bg-white border-0 pt-4 px-4">
-            <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
+    <!-- Modern Calendar -->
+    <div class="card border-0 shadow-sm rounded-3">
+        <div class="card-header bg-white border-0 pt-3 px-3">
+            <div class="d-flex justify-content-between align-items-center">
                 <div class="d-flex gap-2 align-items-center">
-                    <button id="prevMonth" class="btn btn-outline-secondary rounded-circle" style="width: 40px; height: 40px;">
-                        <i class="fas fa-chevron-left"></i>
+                    <button id="prevMonth" class="btn btn-sm btn-outline-secondary rounded-circle" style="width: 34px; height: 34px;">
+                        <i class="fas fa-chevron-left fa-sm"></i>
                     </button>
-                    <h3 id="calendarMonthYear" class="mb-0 fw-bold" style="min-width: 200px; text-align: center;"></h3>
-                    <button id="nextMonth" class="btn btn-outline-secondary rounded-circle" style="width: 40px; height: 40px;">
-                        <i class="fas fa-chevron-right"></i>
+                    <h4 id="calendarMonthYear" class="mb-0 fw-semibold" style="min-width: 180px; text-align: center;"></h4>
+                    <button id="nextMonth" class="btn btn-sm btn-outline-secondary rounded-circle" style="width: 34px; height: 34px;">
+                        <i class="fas fa-chevron-right fa-sm"></i>
                     </button>
                 </div>
-                <button id="todayBtn" class="btn btn-outline-primary rounded-pill">
-                    <i class="fas fa-calendar-day me-2"></i>Today
+                <button id="todayBtn" class="btn btn-sm btn-outline-primary rounded-pill px-3">
+                    <i class="fas fa-calendar-day me-1"></i>Today
                 </button>
             </div>
         </div>
-        <div class="card-body p-4">
-            <div class="calendar-grid">
+        <div class="card-body p-3">
+            <div class="calendar-wrapper">
                 <div class="calendar-weekdays">
-                    <div class="weekday">Mon</div>
-                    <div class="weekday">Tue</div>
-                    <div class="weekday">Wed</div>
-                    <div class="weekday">Thu</div>
-                    <div class="weekday">Fri</div>
-                    <div class="weekday">Sat</div>
-                    <div class="weekday">Sun</div>
+                    <div>Mon</div>
+                    <div>Tue</div>
+                    <div>Wed</div>
+                    <div>Thu</div>
+                    <div>Fri</div>
+                    <div>Sat</div>
+                    <div>Sun</div>
                 </div>
                 <div class="calendar-days" id="calendarDays">
-                    <div class="loading-spinner text-center py-5">
-                        <div class="spinner-border text-primary" role="status"></div>
-                        <p class="mt-2 text-muted">Loading calendar...</p>
+                    <div class="text-center py-5">
+                        <div class="spinner-border text-primary spinner-border-sm" role="status"></div>
+                        <p class="mt-2 text-muted small mb-0">Loading calendar...</p>
                     </div>
                 </div>
             </div>
@@ -124,87 +125,64 @@
 
 <!-- Bulk Generate Modal -->
 <div class="modal fade" id="bulkGenerateModal" tabindex="-1">
-    <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content rounded-4">
-            <div class="modal-header border-0 pt-4 px-4">
-                <h5 class="modal-title fw-bold">Bulk Generate Slots</h5>
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content rounded-3">
+            <div class="modal-header border-0 pt-3 px-4">
+                <h5 class="modal-title fw-semibold">Bulk Generate Slots</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <form method="POST" action="{{ route('admin.slots.bulk-generate') }}" id="bulkGenerateForm">
                 @csrf
                 <div class="modal-body px-4">
-                    <div class="mb-3">
-                        <label class="form-label fw-semibold">Start Date</label>
-                        <input type="date" name="start_date" id="startDate" class="form-control rounded-3" required>
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label small fw-semibold">Start Date</label>
+                            <input type="date" name="start_date" id="startDate" class="form-control form-control-sm rounded-2" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label small fw-semibold">End Date</label>
+                            <input type="date" name="end_date" id="endDate" class="form-control form-control-sm rounded-2" required>
+                        </div>
                     </div>
-                    <div class="mb-3">
-                        <label class="form-label fw-semibold">End Date</label>
-                        <input type="date" name="end_date" id="endDate" class="form-control rounded-3" required>
+                    <div class="row g-3 mt-2">
+                        <div class="col-md-3">
+                            <label class="form-label small fw-semibold">REG Capacity</label>
+                            <input type="number" name="reg_capacity" class="form-control form-control-sm rounded-2" value="10" min="0" max="100" required>
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label small fw-semibold">COR Capacity</label>
+                            <input type="number" name="correction_capacity" class="form-control form-control-sm rounded-2" value="5" min="0" max="100" required>
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label small fw-semibold">EPH Capacity</label>
+                            <input type="number" name="ephilid_capacity" class="form-control form-control-sm rounded-2" value="3" min="0" max="100" required>
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label small fw-semibold">TRN Capacity</label>
+                            <input type="number" name="trn_capacity" class="form-control form-control-sm rounded-2" value="2" min="0" max="100" required>
+                        </div>
                     </div>
-                    <div class="mb-3">
-                        <label class="form-label fw-semibold">Total Capacity</label>
-                        <input type="number" name="total_capacity" class="form-control rounded-3" value="20" min="1" max="100" required>
-                        <small class="text-muted">Default capacity for all generated slots</small>
-                    </div>
-                    
-                    <!-- Day Selection -->
-                    <div class="mb-3">
-                        <label class="form-label fw-semibold">Select Days to Include</label>
-                        <div class="row g-2">
-                            <div class="col-4 col-md-3">
-                                <div class="form-check">
-                                    <input type="checkbox" name="days[]" value="1" id="dayMon" class="form-check-input">
-                                    <label class="form-check-label" for="dayMon">Monday</label>
-                                </div>
-                            </div>
-                            <div class="col-4 col-md-3">
-                                <div class="form-check">
-                                    <input type="checkbox" name="days[]" value="2" id="dayTue" class="form-check-input">
-                                    <label class="form-check-label" for="dayTue">Tuesday</label>
-                                </div>
-                            </div>
-                            <div class="col-4 col-md-3">
-                                <div class="form-check">
-                                    <input type="checkbox" name="days[]" value="3" id="dayWed" class="form-check-input">
-                                    <label class="form-check-label" for="dayWed">Wednesday</label>
-                                </div>
-                            </div>
-                            <div class="col-4 col-md-3">
-                                <div class="form-check">
-                                    <input type="checkbox" name="days[]" value="4" id="dayThu" class="form-check-input">
-                                    <label class="form-check-label" for="dayThu">Thursday</label>
-                                </div>
-                            </div>
-                            <div class="col-4 col-md-3">
-                                <div class="form-check">
-                                    <input type="checkbox" name="days[]" value="5" id="dayFri" class="form-check-input">
-                                    <label class="form-check-label" for="dayFri">Friday</label>
-                                </div>
-                            </div>
-                            <div class="col-4 col-md-3">
-                                <div class="form-check">
-                                    <input type="checkbox" name="days[]" value="6" id="daySat" class="form-check-input">
-                                    <label class="form-check-label" for="daySat">Saturday</label>
-                                </div>
-                            </div>
-                            <div class="col-4 col-md-3">
-                                <div class="form-check">
-                                    <input type="checkbox" name="days[]" value="7" id="daySun" class="form-check-input">
-                                    <label class="form-check-label" for="daySun">Sunday</label>
-                                </div>
-                            </div>
+                    <div class="mt-3">
+                        <label class="form-label small fw-semibold">Days to Include</label>
+                        <div class="d-flex flex-wrap gap-3 mt-1">
+                            <label class="form-check"><input type="checkbox" name="days[]" value="1" class="form-check-input"> Monday</label>
+                            <label class="form-check"><input type="checkbox" name="days[]" value="2" class="form-check-input"> Tuesday</label>
+                            <label class="form-check"><input type="checkbox" name="days[]" value="3" class="form-check-input"> Wednesday</label>
+                            <label class="form-check"><input type="checkbox" name="days[]" value="4" class="form-check-input"> Thursday</label>
+                            <label class="form-check"><input type="checkbox" name="days[]" value="5" class="form-check-input"> Friday</label>
+                            <label class="form-check"><input type="checkbox" name="days[]" value="6" class="form-check-input"> Saturday</label>
+                            <label class="form-check"><input type="checkbox" name="days[]" value="7" class="form-check-input"> Sunday</label>
                         </div>
                         <div class="mt-2">
-                            <button type="button" id="selectAllDays" class="btn btn-sm btn-link p-0 me-2">Select All</button>
-                            <button type="button" id="selectWeekdays" class="btn btn-sm btn-link p-0 me-2">Weekdays (Mon-Fri)</button>
-                            <button type="button" id="selectWeekends" class="btn btn-sm btn-link p-0">Weekends (Sat-Sun)</button>
+                            <button type="button" id="selectAllDays" class="btn btn-link btn-sm p-0 me-3">Select All</button>
+                            <button type="button" id="selectWeekdays" class="btn btn-link btn-sm p-0 me-3">Weekdays</button>
+                            <button type="button" id="selectWeekends" class="btn btn-link btn-sm p-0">Weekends</button>
                         </div>
-                        <small class="text-muted">Leave unchecked to include all days</small>
                     </div>
                 </div>
-                <div class="modal-footer border-0 pb-4 px-4">
-                    <button type="button" class="btn btn-light rounded-pill px-4" data-bs-dismiss="modal">Cancel</button>
-                    <button type="submit" class="btn btn-primary rounded-pill px-4">Generate Slots</button>
+                <div class="modal-footer border-0 pb-3 px-4">
+                    <button type="button" class="btn btn-sm btn-light rounded-pill px-3" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-sm btn-primary rounded-pill px-3">Generate Slots</button>
                 </div>
             </form>
         </div>
@@ -212,57 +190,122 @@
 </div>
 
 <style>
-.calendar-grid {
+.calendar-day.non-working {
+    background: #f5f5f5;
+    opacity: 0.6;
+    cursor: default;
+}
+.calendar-day.non-working:hover {
+    transform: none;
+    box-shadow: none;
+    background: #f5f5f5;
+}
+.non-working-label {
+    font-size: 0.6rem;
+    color: #999;
+    text-align: center;
+    margin-top: 20px;
+}
+.service-badges {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 4px;
+    margin-top: 4px;
+}
+.service-badge {
+    display: inline-block;
+    font-size: 0.65rem;
+    font-weight: 600;
+    padding: 2px 5px;
+    border-radius: 4px;
+    min-width: 32px;
+    text-align: center;
+}
+.service-badge.available {
+    background: #c8e6c9;
+    color: #2e7d32;
+}
+.service-badge.full {
+    background: #ffcdd2;
+    color: #c62828;
+}
+.not-configured {
+    font-size: 0.6rem;
+    color: #6c757d;
+    text-align: center;
+    margin-top: 8px;
+}
+a.text-decoration-none {
+    text-decoration: none !important;
+}
+.calendar-day .day-number {
+    text-decoration: none;
+    border-bottom: none !important;
+}
+.calendar-day a,
+.calendar-day a:hover,
+.calendar-day a:focus,
+.calendar-day a:active {
+    text-decoration: none !important;
+    border-bottom: none !important;
+}
+.calendar-wrapper {
     background: white;
-    border-radius: 16px;
+    border-radius: 12px;
+    overflow: hidden;
 }
 .calendar-weekdays {
     display: grid;
     grid-template-columns: repeat(7, 1fr);
-    gap: 8px;
-    margin-bottom: 12px;
+    gap: 6px;
+    margin-bottom: 8px;
 }
-.weekday {
+.calendar-weekdays div {
     text-align: center;
-    padding: 12px;
+    padding: 8px 4px;
     font-weight: 600;
+    font-size: 0.75rem;
     color: #6c757d;
-    font-size: 0.875rem;
     text-transform: uppercase;
     letter-spacing: 0.5px;
 }
 .calendar-days {
     display: grid;
     grid-template-columns: repeat(7, 1fr);
-    gap: 8px;
+    gap: 6px;
 }
 .calendar-day {
-    min-height: 120px;
+    min-height: 110px;
     background: #f8f9fa;
-    border-radius: 12px;
-    padding: 10px;
+    border-radius: 10px;
+    padding: 8px;
     transition: all 0.2s ease;
+    border: 1px solid #e9ecef;
+    display: flex;
+    flex-direction: column;
     cursor: pointer;
-    border: 1px solid transparent;
 }
 .calendar-day:not(.past):hover {
     transform: translateY(-2px);
     box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-    background: #fff;
-    border-color: #e0e0e0;
+    background: #ffffff;
+    border-color: #dee2e6;
 }
 .calendar-day.empty {
     background: transparent;
+    border-color: transparent;
     cursor: default;
+    box-shadow: none;
 }
 .calendar-day.empty:hover {
     transform: none;
-    box-shadow: none;
+    background: transparent;
 }
 .calendar-day.past {
     opacity: 0.5;
-    cursor: not-allowed;
     background: #e9ecef;
+    cursor: not-allowed;
 }
 .calendar-day.past:hover {
     transform: none;
@@ -271,9 +314,10 @@
 .calendar-day.today {
     background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
     color: white;
+    border-color: transparent;
 }
 .calendar-day.today .day-number {
-    background: rgba(255,255,255,0.3);
+    background: rgba(255,255,255,0.2);
     color: white;
 }
 .calendar-day.holiday {
@@ -288,79 +332,56 @@
     background: #e8eaf6;
     border-color: #c5cae9;
 }
-.calendar-day.full {
-    background: #e0e7ff;
-}
 .day-number {
-    font-size: 1rem;
-    font-weight: 600;
-    width: 32px;
-    height: 32px;
+    font-size: 0.9rem;
+    font-weight: 700;
+    width: 28px;
+    height: 28px;
     display: flex;
     align-items: center;
     justify-content: center;
     border-radius: 50%;
     margin-bottom: 8px;
-}
-.calendar-day:not(.today):not(.past) .day-number {
     background: white;
     color: #2c3e50;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
 }
-.slot-info {
-    font-size: 0.7rem;
-    margin-top: 8px;
-}
-.slot-capacity {
-    display: inline-block;
-    padding: 2px 8px;
+.badge-icon {
+    font-size: 0.6rem;
+    padding: 3px 6px;
     border-radius: 12px;
-    font-size: 0.7rem;
+    text-align: center;
+    margin-bottom: 6px;
     font-weight: 500;
 }
-.slot-capacity.available {
-    background: #d1fae5;
-    color: #065f46;
-}
-.slot-capacity.full {
-    background: #fee2e2;
-    color: #991b1b;
-}
-.slot-badge {
-    display: inline-block;
-    padding: 2px 6px;
-    border-radius: 8px;
-    font-size: 0.65rem;
-    margin-top: 4px;
-}
-.slot-badge.holiday {
+.badge-icon.holiday {
     background: #dc2626;
     color: white;
 }
-.slot-badge.half-day {
+.badge-icon.half-day {
     background: #f59e0b;
     color: white;
 }
-.slot-badge.special {
+.badge-icon.special {
     background: #5e35b1;
     color: white;
 }
-.slot-stats {
-    font-size: 0.65rem;
-    color: #6c757d;
-}
 .progress {
-    background-color: #e5e7eb;
-    border-radius: 10px;
+    height: 3px;
+    background: #e5e7eb;
+    border-radius: 3px;
     overflow: hidden;
+    margin-top: 6px;
 }
 .progress-bar {
     transition: width 0.3s ease;
 }
-.loading-spinner {
-    grid-column: 1 / -1;
-    text-align: center;
-    padding: 40px;
+.slot-notes {
+    font-size: 0.6rem;
+    color: #6c757d;
+    margin-top: 4px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 a.text-decoration-none {
     display: block;
@@ -374,11 +395,25 @@ a.text-decoration-none:hover {
     pointer-events: none;
 }
 @media (max-width: 768px) {
-    .calendar-day { min-height: 90px; padding: 6px; }
-    .day-number { width: 24px; height: 24px; font-size: 0.75rem; }
-    .slot-info { font-size: 0.6rem; }
-    .slot-capacity { font-size: 0.6rem; padding: 1px 4px; }
-    .weekday { font-size: 0.7rem; padding: 8px; }
+    .calendar-day {
+        min-height: 85px;
+        padding: 5px;
+    }
+    .day-number {
+        width: 22px;
+        height: 22px;
+        font-size: 0.75rem;
+        margin-bottom: 4px;
+    }
+    .badge-icon {
+        font-size: 0.55rem;
+        padding: 2px 4px;
+        margin-bottom: 4px;
+    }
+    .calendar-weekdays div {
+        font-size: 0.65rem;
+        padding: 5px;
+    }
 }
 </style>
 
@@ -406,7 +441,7 @@ async function loadSlots() {
         renderCalendar();
     } catch (error) {
         console.error('Error loading slots:', error);
-        document.getElementById('calendarDays').innerHTML = '<div class="loading-spinner text-danger">Failed to load slots. Please refresh the page.</div>';
+        document.getElementById('calendarDays').innerHTML = '<div class="text-center text-danger small py-4">Failed to load slots. Please refresh the page.</div>';
     }
 }
 
@@ -422,8 +457,19 @@ function renderCalendar() {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
     
+    const serviceShort = { 'reg': 'R', 'correction': 'C', 'ephilid': 'E', 'trn': 'T' };
+    
+    let workingDays = [1, 2, 3, 4, 5];
+    const workingDaysMeta = document.querySelector('meta[name="working-days"]');
+    if (workingDaysMeta) {
+        workingDays = workingDaysMeta.getAttribute('content').split(',').map(Number);
+    }
+    
     let html = '';
-    for (let i = 0; i < startOffset; i++) html += '<div class="calendar-day empty"></div>';
+    
+    for (let i = 0; i < startOffset; i++) {
+        html += '<div class="calendar-day empty"></div>';
+    }
     
     for (let d = 1; d <= daysInMonth; d++) {
         const date = new Date(year, month, d);
@@ -431,80 +477,116 @@ function renderCalendar() {
         const slot = slotsData[dateKey];
         const isPast = date < today;
         const isToday = formatDate(date) === formatDate(new Date());
+        const dayOfWeek = date.getDay() || 7;
+        const isWorkingDay = workingDays.includes(dayOfWeek);
         
-        let capacityHtml = '', badgeHtml = '', statusClass = '';
+        let dayClass = 'calendar-day';
+        if (isPast) dayClass += ' past';
+        if (isToday) dayClass += ' today';
+        if (!isWorkingDay && !slot) dayClass += ' non-working';
         
-        if (slot) {
-            switch(slot.day_type) {
-                case 'holiday':
-                    statusClass = 'holiday';
-                    badgeHtml = '<div class="slot-badge holiday"><i class="fas fa-gift me-1"></i>Holiday</div>';
-                    capacityHtml = '<div class="slot-capacity full">No appointments</div>';
-                    if (slot.notes) capacityHtml += `<div class="small text-muted mt-1">📝 ${slot.notes.substring(0, 30)}</div>`;
-                    break;
-                case 'half_day':
-                    statusClass = 'half-day';
-                    badgeHtml = '<div class="slot-badge half-day"><i class="fas fa-sun me-1"></i>Half Day</div>';
-                    capacityHtml = `<div class="slot-capacity ${slot.available_count > 0 ? 'available' : 'full'}">
-                        ${slot.available_count > 0 ? `✅ ${slot.available_count} slots left` : '❌ Full'}
-                    </div>
-                    <div class="slot-stats mt-1">📊 ${slot.booked_count}/${slot.total_capacity} booked (50% capacity)</div>`;
-                    break;
-                case 'special':
-                    statusClass = 'special';
-                    badgeHtml = '<div class="slot-badge special"><i class="fas fa-star me-1"></i>Special Day</div>';
-                    capacityHtml = `<div class="slot-capacity ${slot.available_count > 0 ? 'available' : 'full'}">
-                        ${slot.available_count > 0 ? `✅ ${slot.available_count} slots left` : '❌ Full'}
-                    </div>
-                    <div class="slot-stats mt-1">📊 ${slot.booked_count}/${slot.total_capacity} booked</div>`;
-                    if (slot.notes) capacityHtml += `<div class="small text-muted mt-1">📝 ${slot.notes.substring(0, 30)}</div>`;
-                    break;
-                default: // working
-                    const percentage = (slot.booked_count / slot.total_capacity) * 100;
-                    capacityHtml = `<div class="slot-capacity ${slot.available_count > 0 ? 'available' : 'full'}">
-                        ${slot.available_count > 0 ? `✅ ${slot.available_count} slots left` : '❌ Full'}
-                    </div>
-                    <div class="progress mt-1" style="height: 4px;">
-                        <div class="progress-bar bg-${percentage >= 80 ? 'danger' : (percentage >= 50 ? 'warning' : 'success')}" style="width: ${percentage}%;"></div>
-                    </div>`;
-                    if (slot.available_count === 0) statusClass = 'full';
+        let content = '';
+        
+        if (!isWorkingDay && !slot) {
+            content = '<div class="non-working-label">Non-working day</div>';
+        } else if (slot) {
+            if (slot.day_type === 'holiday') {
+                dayClass += ' holiday';
+                content = '<div class="badge-icon holiday">🎄 Holiday</div>';
+            } else if (slot.day_type === 'half_day') {
+                dayClass += ' half-day';
+                content = '<div class="badge-icon half-day">🌙 Half Day</div>';
+            } else if (slot.day_type === 'special') {
+                dayClass += ' special';
+                content = '<div class="badge-icon special">⭐ Special</div>';
             }
-        } else if (!isPast) {
-            capacityHtml = '<div class="slot-capacity" style="background:#e5e7eb;color:#6b7280;">Not configured</div>';
-            capacityHtml += '<div class="small text-muted mt-1">Click to configure</div>';
+            
+            let badgesHtml = '<div class="service-badges">';
+            const services = ['reg', 'correction', 'ephilid', 'trn'];
+            for (const svc of services) {
+                const available = slot[`${svc}_available`] || 0;
+                const capacity = slot[`${svc}_capacity`] || 0;
+                if (capacity > 0) {
+                    const statusClass = available > 0 ? 'available' : 'full';
+                    badgesHtml += `<span class="service-badge ${statusClass}">${serviceShort[svc]}${available}</span>`;
+                }
+            }
+            badgesHtml += '</div>';
+            content += badgesHtml;
+            
+            if (slot.day_type === 'working') {
+                const totalCap = (slot.reg_capacity||0) + (slot.correction_capacity||0) + (slot.ephilid_capacity||0) + (slot.trn_capacity||0);
+                const totalBooked = (slot.reg_booked||0) + (slot.correction_booked||0) + (slot.ephilid_booked||0) + (slot.trn_booked||0);
+                const percent = totalCap > 0 ? (totalBooked / totalCap) * 100 : 0;
+                const barColor = percent >= 80 ? 'danger' : (percent >= 50 ? 'warning' : 'success');
+                content += `<div class="progress"><div class="progress-bar bg-${barColor}" style="width: ${percent}%"></div></div>`;
+            }
+            
+            if (slot.notes) {
+                content += `<div class="slot-notes" title="${slot.notes}">📝 ${slot.notes.substring(0, 20)}${slot.notes.length > 20 ? '...' : ''}</div>`;
+            }
+        } else if (isWorkingDay) {
+            content = '<div class="not-configured">Click to configure</div>';
         }
         
-        let dayClass = `calendar-day ${isPast ? 'past' : ''} ${isToday ? 'today' : ''} ${statusClass}`;
-        const editUrl = (!isPast && slot?.id) ? `/admin/slots/${slot.id}/edit` : (!isPast ? `/admin/slots/create?date=${dateKey}` : '#');
+        const editUrl = (!isPast && (slot || isWorkingDay)) ? `/admin/slots/create?date=${dateKey}` : '#';
         
-        if (isPast) {
-            html += `<div class="${dayClass}"><div class="day-number">${d}</div><div class="slot-info">${capacityHtml}${badgeHtml}</div></div>`;
+        if (isPast || (!isWorkingDay && !slot)) {
+            html += `<div class="${dayClass}"><div class="day-number">${d}</div>${content}</div>`;
         } else {
-            html += `<a href="${editUrl}" class="text-decoration-none" style="display:block;color:inherit;"><div class="${dayClass}"><div class="day-number">${d}</div><div class="slot-info">${capacityHtml}${badgeHtml}</div></div></a>`;
+            html += `<a href="${editUrl}" class="text-decoration-none"><div class="${dayClass}"><div class="day-number">${d}</div>${content}</div></a>`;
         }
     }
+    
     document.getElementById('calendarDays').innerHTML = html;
 }
 
 // Day selection helpers
-document.getElementById('selectAllDays')?.addEventListener('click', () => document.querySelectorAll('#bulkGenerateForm input[name="days[]"]').forEach(cb => cb.checked = true));
-document.getElementById('selectWeekdays')?.addEventListener('click', () => document.querySelectorAll('#bulkGenerateForm input[name="days[]"]').forEach(cb => cb.checked = [1,2,3,4,5].includes(parseInt(cb.value))));
-document.getElementById('selectWeekends')?.addEventListener('click', () => document.querySelectorAll('#bulkGenerateForm input[name="days[]"]').forEach(cb => cb.checked = [6,7].includes(parseInt(cb.value))));
+document.getElementById('selectAllDays')?.addEventListener('click', () => {
+    document.querySelectorAll('#bulkGenerateForm input[name="days[]"]').forEach(cb => cb.checked = true);
+});
+document.getElementById('selectWeekdays')?.addEventListener('click', () => {
+    document.querySelectorAll('#bulkGenerateForm input[name="days[]"]').forEach(cb => {
+        cb.checked = [1,2,3,4,5].includes(parseInt(cb.value));
+    });
+});
+document.getElementById('selectWeekends')?.addEventListener('click', () => {
+    document.querySelectorAll('#bulkGenerateForm input[name="days[]"]').forEach(cb => {
+        cb.checked = [6,7].includes(parseInt(cb.value));
+    });
+});
 
 // Validate bulk generate dates
 document.getElementById('bulkGenerateForm')?.addEventListener('submit', function(e) {
     const startDate = new Date(document.getElementById('startDate').value);
     const endDate = new Date(document.getElementById('endDate').value);
     const today = new Date();
-    today.setHours(0,0,0,0);
-    if (startDate < today) { e.preventDefault(); alert('Start date cannot be in the past.'); return false; }
-    if (endDate < startDate) { e.preventDefault(); alert('End date must be after start date.'); return false; }
+    today.setHours(0, 0, 0, 0);
+    if (startDate < today) {
+        e.preventDefault();
+        alert('Start date cannot be in the past.');
+        return false;
+    }
+    if (endDate < startDate) {
+        e.preventDefault();
+        alert('End date must be after start date.');
+        return false;
+    }
 });
 
 // Calendar navigation
-document.getElementById('prevMonth')?.addEventListener('click', () => { currentDate.setMonth(currentDate.getMonth() - 1); loadSlots(); });
-document.getElementById('nextMonth')?.addEventListener('click', () => { currentDate.setMonth(currentDate.getMonth() + 1); loadSlots(); });
-document.getElementById('todayBtn')?.addEventListener('click', () => { currentDate = new Date(); loadSlots(); });
+document.getElementById('prevMonth')?.addEventListener('click', () => {
+    currentDate.setMonth(currentDate.getMonth() - 1);
+    loadSlots();
+});
+document.getElementById('nextMonth')?.addEventListener('click', () => {
+    currentDate.setMonth(currentDate.getMonth() + 1);
+    loadSlots();
+});
+document.getElementById('todayBtn')?.addEventListener('click', () => {
+    currentDate = new Date();
+    loadSlots();
+});
 
 loadSlots();
 </script>

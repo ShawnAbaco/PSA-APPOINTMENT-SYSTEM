@@ -6,10 +6,14 @@ use App\Http\Controllers\Controller;
 use App\Models\AppointmentSlot;
 use App\Models\Appointment;
 use App\Models\AppointmentClient;
+use App\Models\WorkingDaysDefault;
+use App\Models\WorkingDaysOverride;
+use App\Models\ServiceSlotsConfig;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use App\Models\Setting;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 
 class SlotController extends Controller
 {
@@ -40,12 +44,24 @@ class SlotController extends Controller
         $currentMonth = $request->get('month', date('m'));
         $currentYear = $request->get('year', date('Y'));
         
-        return view('admin.slots.index', compact('slots', 'totalSlots', 'totalHolidays', 'totalSpecialDays', 'totalHalfDays', 'totalBooked', 'currentMonth', 'currentYear'));
+        // Get working days for meta tag
+        $workingDaysArray = [1,2,3,4,5];
+        try {
+            $workingDaysArray = WorkingDaysDefault::where('is_working', true)->pluck('day_of_week')->toArray();
+            if (empty($workingDaysArray)) {
+                $workingDaysArray = [1,2,3,4,5];
+            }
+        } catch (\Exception $e) {
+            Log::warning('WorkingDaysDefault table not ready: ' . $e->getMessage());
+        }
+        $workingDays = implode(',', $workingDaysArray);
+        
+        return view('admin.slots.index', compact('slots', 'totalSlots', 'totalHolidays', 'totalSpecialDays', 'totalHalfDays', 'totalBooked', 'currentMonth', 'currentYear', 'workingDays'));
     }
     
     public function create()
     {
-        $serviceConfigs = \App\Models\ServiceSlotsConfig::all();
+        $serviceConfigs = ServiceSlotsConfig::all();
         return view('admin.slots.create', compact('serviceConfigs'));
     }
     
@@ -71,7 +87,7 @@ class SlotController extends Controller
     public function edit($id)
     {
         $slot = AppointmentSlot::findOrFail($id);
-        $serviceConfigs = \App\Models\ServiceSlotsConfig::all();
+        $serviceConfigs = ServiceSlotsConfig::all();
         return view('admin.slots.edit', compact('slot', 'serviceConfigs'));
     }
     
@@ -111,29 +127,23 @@ class SlotController extends Controller
         $slot->ephilid_booked = $bookedCounts['ephilid'] ?? 0;
         $slot->trn_booked = $bookedCounts['trn'] ?? 0;
         
-        // If holiday, set all available to 0
+        // Calculate available based on day type
         if ($slot->day_type === 'holiday') {
             $slot->reg_available = 0;
             $slot->correction_available = 0;
             $slot->ephilid_available = 0;
             $slot->trn_available = 0;
         } elseif ($slot->day_type === 'half_day') {
-            $slot->reg_available = ceil($slot->reg_capacity / 2) - $slot->reg_booked;
-            $slot->correction_available = ceil($slot->correction_capacity / 2) - $slot->correction_booked;
-            $slot->ephilid_available = ceil($slot->ephilid_capacity / 2) - $slot->ephilid_booked;
-            $slot->trn_available = ceil($slot->trn_capacity / 2) - $slot->trn_booked;
+            $slot->reg_available = max(0, ceil($slot->reg_capacity / 2) - $slot->reg_booked);
+            $slot->correction_available = max(0, ceil($slot->correction_capacity / 2) - $slot->correction_booked);
+            $slot->ephilid_available = max(0, ceil($slot->ephilid_capacity / 2) - $slot->ephilid_booked);
+            $slot->trn_available = max(0, ceil($slot->trn_capacity / 2) - $slot->trn_booked);
         } else {
-            $slot->reg_available = $slot->reg_capacity - $slot->reg_booked;
-            $slot->correction_available = $slot->correction_capacity - $slot->correction_booked;
-            $slot->ephilid_available = $slot->ephilid_capacity - $slot->ephilid_booked;
-            $slot->trn_available = $slot->trn_capacity - $slot->trn_booked;
+            $slot->reg_available = max(0, $slot->reg_capacity - $slot->reg_booked);
+            $slot->correction_available = max(0, $slot->correction_capacity - $slot->correction_booked);
+            $slot->ephilid_available = max(0, $slot->ephilid_capacity - $slot->ephilid_booked);
+            $slot->trn_available = max(0, $slot->trn_capacity - $slot->trn_booked);
         }
-        
-        // Ensure no negative values
-        $slot->reg_available = max(0, $slot->reg_available);
-        $slot->correction_available = max(0, $slot->correction_available);
-        $slot->ephilid_available = max(0, $slot->ephilid_available);
-        $slot->trn_available = max(0, $slot->trn_available);
         
         $slot->save();
         
@@ -215,10 +225,30 @@ class SlotController extends Controller
             $month = $request->get('month', date('m'));
             $year = $request->get('year', date('Y'));
             
+            // Get default capacities from service_slots_config
+            $defaultCapacities = ServiceSlotsConfig::all()->pluck('default_capacity', 'service_code')->toArray();
+            
+            $defaultRegCapacity = $defaultCapacities['reg'] ?? 10;
+            $defaultCorrectionCapacity = $defaultCapacities['correction'] ?? 5;
+            $defaultEphilidCapacity = $defaultCapacities['ephilid'] ?? 3;
+            $defaultTrnCapacity = $defaultCapacities['trn'] ?? 2;
+            
             $slots = AppointmentSlot::whereMonth('date', $month)
                 ->whereYear('date', $year)
                 ->get()
                 ->keyBy('date');
+            
+            // Get actual booked counts from appointment_clients for accuracy
+            $clientBookedCounts = AppointmentClient::whereHas('appointment', function($query) use ($month, $year) {
+                $query->whereMonth('appointment_date', $month)
+                      ->whereYear('appointment_date', $year)
+                      ->whereIn('status', ['pending', 'confirmed']);
+            })
+            ->selectRaw('DATE(appointments.appointment_date) as date, service, COUNT(*) as count')
+            ->join('appointments', 'appointment_clients.appointment_id', '=', 'appointments.id')
+            ->groupBy('date', 'service')
+            ->get()
+            ->groupBy('date');
             
             $result = [];
             $daysInMonth = Carbon::create($year, $month)->daysInMonth;
@@ -226,30 +256,86 @@ class SlotController extends Controller
             for ($day = 1; $day <= $daysInMonth; $day++) {
                 $date = Carbon::create($year, $month, $day)->format('Y-m-d');
                 
+                // Get actual booked counts from clients
+                $bookedData = $clientBookedCounts->get($date);
+                $regBooked = 0;
+                $correctionBooked = 0;
+                $ephilidBooked = 0;
+                $trnBooked = 0;
+                
+                if ($bookedData) {
+                    foreach ($bookedData as $item) {
+                        switch ($item->service) {
+                            case 'reg': $regBooked = $item->count; break;
+                            case 'correction': $correctionBooked = $item->count; break;
+                            case 'ephilid': $ephilidBooked = $item->count; break;
+                            case 'trn': $trnBooked = $item->count; break;
+                        }
+                    }
+                }
+                
                 if ($slots->has($date)) {
                     $slot = $slots->get($date);
+                    
+                    // Use slot values if they exist
+                    $regCapacity = $slot->reg_capacity;
+                    $correctionCapacity = $slot->correction_capacity;
+                    $ephilidCapacity = $slot->ephilid_capacity;
+                    $trnCapacity = $slot->trn_capacity;
+                    
+                    // Calculate available based on day type and slot values
+                    if ($slot->day_type === 'holiday') {
+                        $regAvailable = 0;
+                        $correctionAvailable = 0;
+                        $ephilidAvailable = 0;
+                        $trnAvailable = 0;
+                    } elseif ($slot->day_type === 'half_day') {
+                        $regAvailable = max(0, ceil($regCapacity / 2) - $regBooked);
+                        $correctionAvailable = max(0, ceil($correctionCapacity / 2) - $correctionBooked);
+                        $ephilidAvailable = max(0, ceil($ephilidCapacity / 2) - $ephilidBooked);
+                        $trnAvailable = max(0, ceil($trnCapacity / 2) - $trnBooked);
+                    } else {
+                        $regAvailable = max(0, $regCapacity - $regBooked);
+                        $correctionAvailable = max(0, $correctionCapacity - $correctionBooked);
+                        $ephilidAvailable = max(0, $ephilidCapacity - $ephilidBooked);
+                        $trnAvailable = max(0, $trnCapacity - $trnBooked);
+                    }
+                    
                     $result[$date] = [
                         'id' => $slot->id,
                         'day_type' => $slot->day_type,
-                        'total_capacity' => $slot->total_capacity,
-                        'reg_capacity' => $slot->reg_capacity,
-                        'reg_booked' => $slot->reg_booked,
-                        'reg_available' => $slot->reg_available,
-                        'correction_capacity' => $slot->correction_capacity,
-                        'correction_booked' => $slot->correction_booked,
-                        'correction_available' => $slot->correction_available,
-                        'ephilid_capacity' => $slot->ephilid_capacity,
-                        'ephilid_booked' => $slot->ephilid_booked,
-                        'ephilid_available' => $slot->ephilid_available,
-                        'trn_capacity' => $slot->trn_capacity,
-                        'trn_booked' => $slot->trn_booked,
-                        'trn_available' => $slot->trn_available,
+                        'reg_capacity' => (int)$regCapacity,
+                        'reg_booked' => (int)$regBooked,
+                        'reg_available' => (int)$regAvailable,
+                        'correction_capacity' => (int)$correctionCapacity,
+                        'correction_booked' => (int)$correctionBooked,
+                        'correction_available' => (int)$correctionAvailable,
+                        'ephilid_capacity' => (int)$ephilidCapacity,
+                        'ephilid_booked' => (int)$ephilidBooked,
+                        'ephilid_available' => (int)$ephilidAvailable,
+                        'trn_capacity' => (int)$trnCapacity,
+                        'trn_booked' => (int)$trnBooked,
+                        'trn_available' => (int)$trnAvailable,
                         'notes' => $slot->notes,
                     ];
                 } else {
+                    // No slot exists - use default capacities from service_slots_config
                     $result[$date] = [
                         'exists' => false,
                         'day_type' => 'working',
+                        'reg_capacity' => (int)$defaultRegCapacity,
+                        'reg_booked' => (int)$regBooked,
+                        'reg_available' => max(0, $defaultRegCapacity - $regBooked),
+                        'correction_capacity' => (int)$defaultCorrectionCapacity,
+                        'correction_booked' => (int)$correctionBooked,
+                        'correction_available' => max(0, $defaultCorrectionCapacity - $correctionBooked),
+                        'ephilid_capacity' => (int)$defaultEphilidCapacity,
+                        'ephilid_booked' => (int)$ephilidBooked,
+                        'ephilid_available' => max(0, $defaultEphilidCapacity - $ephilidBooked),
+                        'trn_capacity' => (int)$defaultTrnCapacity,
+                        'trn_booked' => (int)$trnBooked,
+                        'trn_available' => max(0, $defaultTrnCapacity - $trnBooked),
+                        'notes' => null,
                     ];
                 }
             }
@@ -257,7 +343,7 @@ class SlotController extends Controller
             return response()->json(['slots' => $result]);
             
         } catch (\Exception $e) {
-            \Log::error('Error in getSlotsJson: ' . $e->getMessage());
+            Log::error('Error in getSlotsJson: ' . $e->getMessage());
             return response()->json(['slots' => [], 'error' => $e->getMessage()], 500);
         }
     }
