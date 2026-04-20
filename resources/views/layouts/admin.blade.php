@@ -951,6 +951,13 @@
                     </a>
                 </div>
                 <div class="nav-item">
+    <a href="{{ route('admin.slots.index') }}" 
+       class="nav-link {{ request()->routeIs('admin.slots.*') ? 'active' : '' }}">
+        <i class="fas fa-calendar-week"></i>
+        <span>Slot Management</span>
+    </a>
+</div>
+                <div class="nav-item">
                     <a href="{{ route('admin.settings.index') }}"
                         class="nav-link {{ request()->routeIs('admin.settings.*') ? 'active' : '' }}">
                         <i class="fas fa-cog"></i>

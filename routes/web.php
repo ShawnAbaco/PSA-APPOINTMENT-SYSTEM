@@ -8,6 +8,9 @@ use App\Http\Controllers\Web\PageController;
 use App\Http\Controllers\Client\AppointmentController;
 
 
+
+
+
 // FORCE LOGOUT - Complete session and cookie cleanup
 Route::get('/force-logout', function() {
     Auth::logout();
@@ -53,9 +56,30 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
     Route::get('/calendar', [App\Http\Controllers\Admin\AppointmentController::class, 'calendar'])->name('calendar');
 
     // Add to admin routes
-Route::get('/slots', [App\Http\Controllers\Admin\SettingsController::class, 'manageSlots'])->name('slots.index');
-Route::post('/slots', [App\Http\Controllers\Admin\SettingsController::class, 'createSlot'])->name('slots.store');
-Route::put('/slots/{id}', [App\Http\Controllers\Admin\SettingsController::class, 'updateSlot'])->name('slots.update');
+// Route::get('/slots', [App\Http\Controllers\Admin\SettingsController::class, 'manageSlots'])->name('slots.index');
+// Route::post('/slots', [App\Http\Controllers\Admin\SettingsController::class, 'createSlot'])->name('slots.store');
+// Route::put('/slots/{id}', [App\Http\Controllers\Admin\SettingsController::class, 'updateSlot'])->name('slots.update');
+
+
+// Add this inside the admin routes group
+Route::post('/settings/test-email', [App\Http\Controllers\Admin\SettingsController::class, 'testEmail'])->name('settings.test-email');
+// Add this inside admin routes group
+Route::post('/settings/sync-slots', [App\Http\Controllers\Admin\SettingsController::class, 'syncAllSlots'])->name('settings.sync-slots');
+
+// Slot Management (Appointment Slots)
+Route::prefix('slots')->name('slots.')->group(function () {
+    Route::get('/', [App\Http\Controllers\Admin\SlotController::class, 'index'])->name('index');
+    Route::get('/create', [App\Http\Controllers\Admin\SlotController::class, 'create'])->name('create');
+    Route::post('/', [App\Http\Controllers\Admin\SlotController::class, 'store'])->name('store');
+    Route::get('/{id}/edit', [App\Http\Controllers\Admin\SlotController::class, 'edit'])->name('edit');
+    Route::put('/{id}', [App\Http\Controllers\Admin\SlotController::class, 'update'])->name('update');
+    Route::delete('/{id}', [App\Http\Controllers\Admin\SlotController::class, 'destroy'])->name('destroy');
+    Route::post('/bulk-generate', [App\Http\Controllers\Admin\SlotController::class, 'bulkGenerate'])->name('bulk-generate');
+    Route::put('/{id}/toggle-holiday', [App\Http\Controllers\Admin\SlotController::class, 'toggleHoliday'])->name('toggle-holiday');
+    Route::get('/details/{date}', [App\Http\Controllers\Admin\SlotController::class, 'getSlotDetails'])->name('details');
+    Route::get('/json', [App\Http\Controllers\Admin\SlotController::class, 'getSlotsJson'])->name('json');
+});
+
 
     
     // Users

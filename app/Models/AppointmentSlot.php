@@ -15,8 +15,7 @@ class AppointmentSlot extends Model
         'booked_count',
         'available_count',
         'time_slots',
-        'is_holiday',
-        'is_special_non_working',
+        'day_type',  // working, half_day, holiday, special
         'notes',
         'created_by'
     ];
@@ -24,40 +23,40 @@ class AppointmentSlot extends Model
     protected $casts = [
         'date' => 'date',
         'time_slots' => 'array',
-        'is_holiday' => 'boolean',
-        'is_special_non_working' => 'boolean',
     ];
 
-    /**
-     * Get available slots for a specific date
-     */
-    public static function getAvailableSlots($date, $defaultCapacity = 20)
+    // Helper methods for day type
+    public function isWorkingDay()
     {
-        $slot = static::where('date', $date)->first();
-        
-        if (!$slot) {
-            return $defaultCapacity;
-        }
-        
-        if ($slot->is_holiday || $slot->is_special_non_working) {
+        return $this->day_type === 'working';
+    }
+    
+    public function isHalfDay()
+    {
+        return $this->day_type === 'half_day';
+    }
+    
+    public function isHoliday()
+    {
+        return $this->day_type === 'holiday';
+    }
+    
+    public function isSpecialDay()
+    {
+        return $this->day_type === 'special';
+    }
+    
+    // Get available slots based on day type
+    public function getAvailableSlotsAttribute()
+    {
+        if ($this->isHoliday()) {
             return 0;
         }
         
-        return $slot->available_count ?? ($slot->total_capacity - $slot->booked_count);
-    }
-    
-    /**
-     * Check if date is bookable
-     */
-    public static function isBookable($date, $clientCount = 1)
-    {
-        $slot = static::where('date', $date)->first();
-        
-        if ($slot && ($slot->is_holiday || $slot->is_special_non_working)) {
-            return false;
+        if ($this->isHalfDay()) {
+            return ceil($this->total_capacity / 2) - $this->booked_count;
         }
         
-        $availableSlots = self::getAvailableSlots($date);
-        return $availableSlots >= $clientCount;
+        return $this->total_capacity - $this->booked_count;
     }
 }

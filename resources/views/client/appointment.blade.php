@@ -96,101 +96,129 @@
             animation: spin 1s linear infinite;
         }
 
-        /* Receipt styles for PDF/Print */
-        .receipt-container {
-            font-family: 'Courier New', monospace;
-            max-width: 400px;
-            margin: 0 auto;
-            padding: 20px;
+        /* Calendar styles - Clean & Simple */
+        .calendar-container {
             background: white;
+            border-radius: 16px;
+            padding: 20px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
         }
-        .receipt-header {
-            text-align: center;
-            border-bottom: 2px solid #2c5f8a;
-            padding-bottom: 15px;
-            margin-bottom: 15px;
-        }
-        .receipt-header img {
-            width: 60px;
-            margin-bottom: 10px;
-        }
-        .receipt-header h2 {
-            color: #2c5f8a;
-            margin: 5px 0;
-            font-size: 18px;
-        }
-        .receipt-header p {
-            margin: 3px 0;
-            font-size: 12px;
-            color: #666;
-        }
-        .receipt-divider {
-            border-top: 1px dashed #999;
-            margin: 15px 0;
-        }
-        .receipt-row {
+        .calendar-header {
             display: flex;
             justify-content: space-between;
-            margin-bottom: 8px;
-            font-size: 12px;
+            align-items: center;
+            margin-bottom: 20px;
         }
-        .receipt-label {
-            font-weight: bold;
-            color: #333;
+        .calendar-weekdays {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            text-align: center;
+            font-weight: 600;
+            margin-bottom: 10px;
+            font-size: 0.85rem;
+            color: #666;
         }
-        .receipt-value {
-            color: #555;
+        .calendar-days {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 6px;
         }
-        .receipt-clients {
-            margin-top: 15px;
+        .calendar-day {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 10px 6px;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-align: center;
+            border: 1px solid transparent;
+            position: relative;
         }
-        .receipt-clients table {
-            width: 100%;
-            font-size: 11px;
-            border-collapse: collapse;
+        .calendar-day.available {
+            background: #e8f5e9;
         }
-        .receipt-clients th, .receipt-clients td {
-            border: 1px solid #ddd;
-            padding: 5px;
-            text-align: left;
+        .calendar-day.available:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            border-color: #4caf50;
         }
-        .receipt-clients th {
+        .calendar-day.disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
             background: #f5f5f5;
         }
-        .receipt-footer {
-            text-align: center;
-            font-size: 10px;
-            color: #999;
-            margin-top: 20px;
-            border-top: 1px dashed #999;
-            padding-top: 15px;
+        .calendar-day.selected {
+            border: 2px solid #2c5f8a;
+            background: #e3f2fd;
         }
-        .barcode {
-            font-family: 'Courier New', monospace;
-            letter-spacing: 2px;
-            font-size: 14px;
-            text-align: center;
-            margin: 10px 0;
+        .day-number {
+            font-size: 1.1rem;
+            font-weight: 700;
+            margin-bottom: 6px;
         }
-        .qr-code {
-            text-align: center;
-            margin: 15px 0;
+        /* Simple slot indicators */
+        .slot-indicators {
+            display: flex;
+            justify-content: center;
+            gap: 4px;
+            flex-wrap: wrap;
+            margin-top: 4px;
         }
-        @media print {
-            body * {
-                visibility: hidden;
+        .slot-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #ccc;
+        }
+        .slot-dot.available {
+            background: #4caf50;
+        }
+        .slot-dot.full {
+            background: #f44336;
+        }
+        .slot-count {
+            font-size: 0.7rem;
+            font-weight: 600;
+            padding: 2px 6px;
+            border-radius: 12px;
+            display: inline-block;
+        }
+        .slot-count.available {
+            background: #4caf50;
+            color: white;
+        }
+        .slot-count.full {
+            background: #f44336;
+            color: white;
+        }
+        .service-badge {
+            display: inline-block;
+            font-size: 0.65rem;
+            padding: 2px 4px;
+            margin: 1px;
+            border-radius: 4px;
+            background: rgba(0,0,0,0.05);
+        }
+        .service-badge.available {
+            background: #c8e6c9;
+            color: #2e7d32;
+        }
+        .service-badge.full {
+            background: #ffcdd2;
+            color: #c62828;
+        }
+        @media (max-width: 768px) {
+            .calendar-day {
+                padding: 6px 3px;
             }
-            .receipt-container, .receipt-container * {
-                visibility: visible;
+            .day-number {
+                font-size: 0.9rem;
             }
-            .receipt-container {
-                position: absolute;
-                top: 0;
-                left: 0;
-                width: 100%;
+            .service-badge {
+                font-size: 0.55rem;
+                padding: 1px 2px;
             }
-            .btn-next {
-                display: none;
+            .slot-count {
+                font-size: 0.6rem;
             }
         }
     </style>
@@ -545,14 +573,20 @@
 
             async function loadAvailableDates() {
                 const clientCount = appointmentType === 'multiple' ? clients.length : 1;
+                const selectedService = appointmentType === 'single' ? singleService : null;
+                
+                let url = `{{ route('client.appointment.available-dates') }}?month=${currentMonth + 1}&year=${currentYear}&client_count=${clientCount}`;
+                
+                if (appointmentType === 'multiple') {
+                    const services = [...new Set(clients.map(c => c.service))];
+                    url += `&services=${services.join(',')}`;
+                } else if (selectedService) {
+                    url += `&service=${selectedService}`;
+                }
                 
                 try {
-                    const response = await fetch(`{{ route('client.appointment.available-dates') }}?month=${currentMonth + 1}&year=${currentYear}&client_count=${clientCount}`);
-                    
-                    if (!response.ok) {
-                        throw new Error(`HTTP error! status: ${response.status}`);
-                    }
-                    
+                    const response = await fetch(url);
+                    if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
                     const data = await response.json();
                     
                     if (data.success) {
@@ -569,55 +603,79 @@
             }
 
             function renderCalendar() {
-                const monthNames = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
-                document.getElementById('calendarMonthYear').textContent = `${monthNames[currentMonth]} ${currentYear}`;
-                
-                const firstDay = new Date(currentYear, currentMonth, 1);
-                const startDayOfWeek = firstDay.getDay() || 7;
-                const startOffset = startDayOfWeek === 7 ? 0 : startDayOfWeek - 1;
-                const daysInMonth = new Date(currentYear, currentMonth + 1, 0).getDate();
-                
-                let html = '';
-                for (let i = 0; i < startOffset; i++) {
-                    html += '<div class="calendar-day empty"></div>';
+    const monthNames = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+    document.getElementById('calendarMonthYear').textContent = `${monthNames[currentMonth]} ${currentYear}`;
+    
+    const firstDay = new Date(currentYear, currentMonth, 1);
+    const startDayOfWeek = firstDay.getDay() || 7;
+    const startOffset = startDayOfWeek === 7 ? 0 : startDayOfWeek - 1;
+    const daysInMonth = new Date(currentYear, currentMonth + 1, 0).getDate();
+    
+    let html = '';
+    for (let i = 0; i < startOffset; i++) {
+        html += '<div class="calendar-day empty"></div>';
+    }
+    
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    
+    // Get the list of services that have been selected by clients
+    const selectedServices = [...new Set(clients.map(c => c.service))];
+    
+    const serviceShort = {
+        'reg': 'R',
+        'correction': 'C',
+        'ephilid': 'E',
+        'trn': 'T'
+    };
+    
+    for (let d = 1; d <= daysInMonth; d++) {
+        const date = new Date(currentYear, currentMonth, d);
+        const dateKey = `${currentYear}-${String(currentMonth + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
+        const dateData = availableDatesData ? availableDatesData.find(item => item.date === dateKey) : null;
+        const isPast = date < today;
+        const isSelected = selectedDate === dateKey;
+        
+        let cls = 'calendar-day';
+        if (isPast) cls += ' disabled';
+        else if (dateData && dateData.available) cls += ' available';
+        else if (!dateData) cls += ' disabled';
+        if (isSelected) cls += ' selected';
+        
+        let indicatorsHtml = '';
+        
+        if (dateData && !isPast && dateData.available) {
+            if (appointmentType === 'multiple' && dateData.service_availability) {
+                // Only show badges for services that have been selected by clients
+                indicatorsHtml = '<div class="slot-indicators">';
+                for (const service of selectedServices) {
+                    const slots = dateData.service_availability[service] || 0;
+                    const badgeClass = slots > 0 ? 'available' : 'full';
+                    indicatorsHtml += `<span class="service-badge ${badgeClass}">${serviceShort[service]}${slots}</span>`;
                 }
-                
-                const today = new Date();
-                today.setHours(0, 0, 0, 0);
-                
-                for (let d = 1; d <= daysInMonth; d++) {
-                    const date = new Date(currentYear, currentMonth, d);
-                    const dateKey = `${currentYear}-${String(currentMonth + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
-                    const dateData = availableDatesData ? availableDatesData.find(item => item.date === dateKey) : null;
-                    const isPast = date < today;
-                    const isSelected = selectedDate === dateKey;
-                    
-                    let cls = 'calendar-day';
-                    if (isPast) cls += ' disabled';
-                    else if (dateData && dateData.available_slots > 0) cls += ' available';
-                    else if (!dateData) cls += ' disabled';
-                    if (isSelected) cls += ' selected';
-                    
-                    let slotsHtml = '';
-                    if (dateData && !isPast) {
-                        slotsHtml = `<span class="slots-left">${dateData.available_slots}</span>`;
-                    }
-                    
-                    html += `<div class="${cls}" data-date="${dateKey}" data-slots="${dateData ? dateData.available_slots : 0}">${d}${slotsHtml}</div>`;
-                }
-                
-                document.getElementById('calendarDays').innerHTML = html;
-                
-                document.querySelectorAll('.calendar-day.available').forEach(el => {
-                    el.addEventListener('click', () => {
-                        const dateKey = el.dataset.date;
-                        selectedDate = dateKey;
-                        document.getElementById('selectedDateText').textContent = formatDisplayDate(dateKey);
-                        document.getElementById('slotInfoText').innerHTML = `✓ ${el.dataset.slots} slots available for this date.`;
-                        renderCalendar();
-                    });
-                });
+                indicatorsHtml += '</div>';
+            } else {
+                // Single number for single appointment
+                const countClass = dateData.available_slots > 0 ? 'available' : 'full';
+                indicatorsHtml = `<div class="slot-count ${countClass}">${dateData.available_slots}</div>`;
             }
+        }
+        
+        html += `<div class="${cls}" data-date="${dateKey}" onclick="selectDate('${dateKey}', ${dateData ? (dateData.available_slots || 0) : 0})">`;
+        html += `<div class="day-number">${d}</div>`;
+        html += indicatorsHtml;
+        html += `</div>`;
+    }
+    
+    document.getElementById('calendarDays').innerHTML = html;
+}
+
+            window.selectDate = function(dateKey, slots) {
+                selectedDate = dateKey;
+                document.getElementById('selectedDateText').textContent = formatDisplayDate(dateKey);
+                document.getElementById('slotInfoText').innerHTML = `✓ ${slots} slots available for this date.`;
+                renderCalendar();
+            };
 
             function renderClients() {
                 const container = document.getElementById('clientsList');
@@ -996,7 +1054,6 @@
                     const result = await response.json();
                     
                     if (result.success) {
-                        // Store appointment data for receipt
                         window.lastAppointment = {
                             number: result.appointment.number,
                             reference_code: result.appointment.reference_code,
@@ -1011,7 +1068,6 @@
                             service: appointmentType === 'single' ? getServiceName(singleService) : 'Multiple Services'
                         };
                         
-                        // Generate receipt HTML
                         const receiptHtml = generateReceiptHTML(window.lastAppointment);
                         document.getElementById('successDetails').innerHTML = `
                             <p><strong>Appointment Number:</strong> ${result.appointment.number}</p>
@@ -1022,9 +1078,7 @@
                             <p><small>Click Download PDF to save your appointment receipt.</small></p>
                         `;
                         
-                        // Store receipt HTML for PDF download
                         window.receiptHTML = receiptHtml;
-                        
                         successModal.style.display = 'flex';
                     } else {
                         alert('Error: ' + result.message);
@@ -1036,7 +1090,6 @@
                 }
             };
 
-            // Function to generate receipt HTML with QR Code
             function generateReceiptHTML(data) {
                 const serviceNames = {
                     'reg': 'National ID Registration',
@@ -1045,7 +1098,6 @@
                     'trn': 'TRN Retrieval'
                 };
                 
-                // Build clients table HTML
                 let clientsHtml = '';
                 if (data.clients && data.clients.length > 0) {
                     data.clients.forEach((client, index) => {
@@ -1054,9 +1106,9 @@
                         const fullName = `${client.last_name}, ${client.first_name}${middleName} ${client.suffix || ''}`.trim();
                         clientsHtml += `
                             <tr>
-                                <td style="padding: 8px; border: 1px solid #ddd; text-align: left;">${index + 1}</td>
-                                <td style="padding: 8px; border: 1px solid #ddd; text-align: left;">${fullName}</td>
-                                <td style="padding: 8px; border: 1px solid #ddd; text-align: left;">${serviceName}</td>
+                                <td style="padding: 8px; border: 1px solid #ddd;">${index + 1}</td>
+                                <td style="padding: 8px; border: 1px solid #ddd;">${fullName}</td>
+                                <td style="padding: 8px; border: 1px solid #ddd;">${serviceName}</td>
                             </tr>
                         `;
                     });
@@ -1065,177 +1117,70 @@
                 const qrId = 'qrcode_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
                 
                 return `
-                    <div class="receipt-container" id="receiptContainer" style="font-family: 'Courier New', monospace; max-width: 400px; margin: 0 auto; padding: 20px; background: white; border: 1px solid #ddd;">
-                        <div class="receipt-header" style="text-align: center; border-bottom: 2px solid #2c5f8a; padding-bottom: 15px; margin-bottom: 15px;">
-                            <img src="{{ asset('images/psa.png') }}" alt="PSA Logo" style="width: 60px; margin-bottom: 10px;">
-                            <h2 style="color: #2c5f8a; margin: 5px 0; font-size: 18px;">Philippine Statistics Authority</h2>
-                            <p style="margin: 3px 0; font-size: 12px; color: #666;">National ID Appointment System</p>
-                            <p style="margin: 3px 0; font-size: 12px; color: #666;">PSA CDO - Fixed Registration Center</p>
+                    <div class="receipt-container" id="receiptContainer">
+                        <div class="receipt-header">
+                            <img src="{{ asset('images/psa.png') }}" alt="PSA Logo" style="width: 60px;">
+                            <h2>Philippine Statistics Authority</h2>
+                            <p>National ID Appointment System</p>
+                            <p>PSA CDO - Fixed Registration Center</p>
                         </div>
-                        
-                        <div style="border-top: 1px dashed #999; margin: 15px 0;"></div>
-                        
-                        <div style="display: flex; justify-content: space-between; margin-bottom: 8px; font-size: 12px;">
-                            <span style="font-weight: bold;">Appointment Number:</span>
-                            <span>${data.number}</span>
-                        </div>
-                        <div style="display: flex; justify-content: space-between; margin-bottom: 8px; font-size: 12px;">
-                            <span style="font-weight: bold;">Reference Code:</span>
-                            <span>${data.reference_code}</span>
-                        </div>
-                        <div style="display: flex; justify-content: space-between; margin-bottom: 8px; font-size: 12px;">
-                            <span style="font-weight: bold;">Appointment Date:</span>
-                            <span>${data.date}</span>
-                        </div>
-                        <div style="display: flex; justify-content: space-between; margin-bottom: 8px; font-size: 12px;">
-                            <span style="font-weight: bold;">Appointment Type:</span>
-                            <span>${data.appointment_type === 'single' ? 'Single' : 'Family/Group'}</span>
-                        </div>
-                        <div style="display: flex; justify-content: space-between; margin-bottom: 8px; font-size: 12px;">
-                            <span style="font-weight: bold;">Total Clients:</span>
-                            <span>${data.clients_count} person(s)</span>
-                        </div>
-                        
-                        <div style="border-top: 1px dashed #999; margin: 15px 0;"></div>
-                        
-                        <div style="display: flex; justify-content: space-between; margin-bottom: 8px; font-size: 12px;">
-                            <span style="font-weight: bold;">Contact Person:</span>
-                            <span>${data.contact_name}</span>
-                        </div>
-                        <div style="display: flex; justify-content: space-between; margin-bottom: 8px; font-size: 12px;">
-                            <span style="font-weight: bold;">Contact Number:</span>
-                            <span>${data.contact_mobile}</span>
-                        </div>
-                        ${data.contact_email ? `<div style="display: flex; justify-content: space-between; margin-bottom: 8px; font-size: 12px;">
-                            <span style="font-weight: bold;">Email:</span>
-                            <span>${data.contact_email}</span>
-                        </div>` : ''}
-                        
-                        <div style="border-top: 1px dashed #999; margin: 15px 0;"></div>
-                        
-                        <div style="margin-top: 15px;">
-                            <strong style="display: block; margin-bottom: 10px; font-size: 12px;">Client Information:</strong>
-                            <table style="width: 100%; font-size: 11px; border-collapse: collapse;">
-                                <thead>
-                                    <tr style="background: #f5f5f5;">
-                                        <th style="padding: 8px; border: 1px solid #ddd; text-align: left;">#</th>
-                                        <th style="padding: 8px; border: 1px solid #ddd; text-align: left;">Name</th>
-                                        <th style="padding: 8px; border: 1px solid #ddd; text-align: left;">Service</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    ${clientsHtml}
-                                </tbody>
-                            </table>
-                        </div>
-                        
-                        <div style="border-top: 1px dashed #999; margin: 15px 0;"></div>
-                        
-                        <div style="text-align: center; margin: 15px 0;">
-                            <div id="${qrId}" style="display: inline-block;"></div>
-                            <div style="font-family: monospace; letter-spacing: 2px; font-size: 12px; margin-top: 10px;">${data.reference_code}</div>
-                        </div>
-                        
-                        <div style="border-top: 1px dashed #999; margin: 15px 0;"></div>
-                        
-                        <div style="text-align: center; font-size: 10px; color: #999; margin-top: 20px; padding-top: 15px;">
-                            <p>Please bring this receipt and valid ID on your appointment date.</p>
-                            <p>Arrive 15 minutes before your scheduled time.</p>
-                            <p>For inquiries: misamisoriental@psa.gov.ph | 0956 576 6106</p>
-                            <p>Generated on: ${new Date().toLocaleString()}</p>
-                        </div>
+                        <div class="receipt-divider"></div>
+                        <div class="receipt-row"><span class="receipt-label">Appointment Number:</span><span class="receipt-value">${data.number}</span></div>
+                        <div class="receipt-row"><span class="receipt-label">Reference Code:</span><span class="receipt-value">${data.reference_code}</span></div>
+                        <div class="receipt-row"><span class="receipt-label">Appointment Date:</span><span class="receipt-value">${data.date}</span></div>
+                        <div class="receipt-row"><span class="receipt-label">Appointment Type:</span><span class="receipt-value">${data.appointment_type === 'single' ? 'Single' : 'Family/Group'}</span></div>
+                        <div class="receipt-row"><span class="receipt-label">Total Clients:</span><span class="receipt-value">${data.clients_count} person(s)</span></div>
+                        <div class="receipt-divider"></div>
+                        <div class="receipt-row"><span class="receipt-label">Contact Person:</span><span class="receipt-value">${data.contact_name}</span></div>
+                        <div class="receipt-row"><span class="receipt-label">Contact Number:</span><span class="receipt-value">${data.contact_mobile}</span></div>
+                        ${data.contact_email ? `<div class="receipt-row"><span class="receipt-label">Email:</span><span class="receipt-value">${data.contact_email}</span></div>` : ''}
+                        <div class="receipt-divider"></div>
+                        <div class="receipt-clients"><strong>Client Information:</strong><table><thead><tr><th>#</th><th>Name</th><th>Service</th></tr></thead><tbody>${clientsHtml}</tbody></table></div>
+                        <div class="qr-code"><div id="${qrId}"></div><div class="barcode">${data.reference_code}</div></div>
+                        <div class="receipt-footer"><p>Please bring this receipt and valid ID on your appointment date.</p><p>Arrive 15 minutes before your scheduled time.</p><p>For inquiries: misamisoriental@psa.gov.ph | 0956 576 6106</p><p>Generated on: ${new Date().toLocaleString()}</p></div>
                     </div>
-                    <script>
-                        (function() {
-                            var qrDiv = document.getElementById('${qrId}');
-                            if (qrDiv && typeof QRCode !== 'undefined') {
-                                new QRCode(qrDiv, {
-                                    text: '${data.reference_code}',
-                                    width: 100,
-                                    height: 100,
-                                    colorDark: '#000000',
-                                    colorLight: '#ffffff',
-                                    correctLevel: QRCode.CorrectLevel.H
-                                });
-                            }
-                        })();
-                    <\/script>
+                    <script>setTimeout(function(){var qrDiv=document.getElementById('${qrId}');if(qrDiv&&typeof QRCode!=='undefined'){new QRCode(qrDiv,{text:'${data.reference_code}',width:100,height:100,colorDark:'#000000',colorLight:'#ffffff',correctLevel:QRCode.CorrectLevel.H})}},100);<\/script>
                 `;
             }
 
-            // Print function
             document.getElementById('printSummaryBtn').onclick = () => {
                 if (!window.receiptHTML) {
                     alert('Receipt not ready. Please try again.');
                     return;
                 }
-                
                 const printWindow = window.open('', '_blank');
                 printWindow.document.write(`
-                    <html>
-                        <head>
-                            <title>PSA Appointment Receipt</title>
-                            <style>
-                                * {
-                                    margin: 0;
-                                    padding: 0;
-                                    box-sizing: border-box;
-                                }
-                                body { 
-                                    font-family: 'Courier New', monospace; 
-                                    margin: 0; 
-                                    padding: 20px; 
-                                    background: white;
-                                }
-                                .receipt-container {
-                                    max-width: 400px;
-                                    margin: 0 auto;
-                                    padding: 20px;
-                                    background: white;
-                                    border: 1px solid #ddd;
-                                }
-                                .receipt-header { text-align: center; border-bottom: 2px solid #2c5f8a; padding-bottom: 15px; margin-bottom: 15px; }
-                                .receipt-header img { width: 60px; margin-bottom: 10px; }
-                                .receipt-header h2 { color: #2c5f8a; margin: 5px 0; font-size: 18px; }
-                                .receipt-header p { margin: 3px 0; font-size: 12px; color: #666; }
-                                .receipt-divider { border-top: 1px dashed #999; margin: 15px 0; }
-                                .receipt-row { display: flex; justify-content: space-between; margin-bottom: 8px; font-size: 12px; }
-                                .receipt-label { font-weight: bold; }
-                                .receipt-clients { margin-top: 15px; }
-                                .receipt-clients table { width: 100%; font-size: 11px; border-collapse: collapse; }
-                                .receipt-clients th, .receipt-clients td { border: 1px solid #ddd; padding: 8px; text-align: left; }
-                                .receipt-clients th { background: #f5f5f5; }
-                                .receipt-footer { text-align: center; font-size: 10px; color: #999; margin-top: 20px; border-top: 1px dashed #999; padding-top: 15px; }
-                                .barcode { font-family: monospace; letter-spacing: 2px; font-size: 14px; text-align: center; margin: 10px 0; }
-                                .qr-code { text-align: center; margin: 15px 0; }
-                                @media print {
-                                    body { margin: 0; padding: 0; }
-                                    .btn-next { display: none; }
-                                }
-                            </style>
-                        </head>
-                        <body>
-                            ${window.receiptHTML}
-                        </body>
-                    </html>
+                    <html><head><title>PSA Appointment Receipt</title>
+                    <style>
+                        body{font-family:'Courier New',monospace;margin:0;padding:20px;background:white}
+                        .receipt-container{max-width:400px;margin:0 auto;padding:20px;background:white;border:1px solid #ddd}
+                        .receipt-header{text-align:center;border-bottom:2px solid #2c5f8a;padding-bottom:15px;margin-bottom:15px}
+                        .receipt-header img{width:60px;margin-bottom:10px}
+                        .receipt-header h2{color:#2c5f8a;margin:5px 0;font-size:18px}
+                        .receipt-divider{border-top:1px dashed #999;margin:15px 0}
+                        .receipt-row{display:flex;justify-content:space-between;margin-bottom:8px;font-size:12px}
+                        .receipt-label{font-weight:bold}
+                        .receipt-clients table{width:100%;font-size:11px;border-collapse:collapse}
+                        .receipt-clients th,.receipt-clients td{border:1px solid #ddd;padding:8px;text-align:left}
+                        .receipt-clients th{background:#f5f5f5}
+                        .receipt-footer{text-align:center;font-size:10px;color:#999;margin-top:20px;border-top:1px dashed #999;padding-top:15px}
+                        .barcode{font-family:monospace;letter-spacing:2px;font-size:14px;text-align:center;margin:10px 0}
+                        .qr-code{text-align:center;margin:15px 0}
+                        @media print{body{margin:0;padding:0}}
+                    </style>
+                    </head><body>${window.receiptHTML}</body></html>
                 `);
                 printWindow.document.close();
-                setTimeout(() => {
-                    printWindow.print();
-                }, 500);
+                setTimeout(() => printWindow.print(), 500);
             };
 
-            // PDF Download function
             document.getElementById('downloadPdfBtn').onclick = async () => {
                 if (!window.receiptHTML) {
                     alert('Receipt not ready. Please try again.');
                     return;
                 }
-                
                 showLoading();
-                
                 try {
-                    // Create a temporary container for the receipt
                     const container = document.createElement('div');
                     container.innerHTML = window.receiptHTML;
                     container.style.position = 'absolute';
@@ -1244,39 +1189,23 @@
                     container.style.width = '400px';
                     container.style.background = 'white';
                     document.body.appendChild(container);
-                    
-                    // Wait for QR code to generate
                     await new Promise(resolve => setTimeout(resolve, 1500));
-                    
-                    // Find the receipt container inside the temporary element
                     const receiptElement = container.querySelector('#receiptContainer') || container;
-                    
                     const opt = {
                         margin: [0.5, 0.5, 0.5, 0.5],
                         filename: `PSA_Appointment_${window.lastAppointment?.number || 'receipt'}.pdf`,
                         image: { type: 'jpeg', quality: 0.98 },
-                        html2canvas: { 
-                            scale: 2, 
-                            logging: false, 
-                            useCORS: true,
-                            backgroundColor: '#ffffff'
-                        },
+                        html2canvas: { scale: 2, logging: false, useCORS: true, backgroundColor: '#ffffff' },
                         jsPDF: { unit: 'in', format: 'a4', orientation: 'portrait' }
                     };
-                    
                     await html2pdf().set(opt).from(receiptElement).save();
-                    
-                    // Clean up
                     document.body.removeChild(container);
                     hideLoading();
-                    
                 } catch (err) {
                     console.error('PDF generation failed:', err);
                     hideLoading();
                     alert('Failed to generate PDF. Please try printing instead.');
-                    if (container && container.parentNode) {
-                        document.body.removeChild(container);
-                    }
+                    if (container && container.parentNode) document.body.removeChild(container);
                 }
             };
 
@@ -1303,7 +1232,6 @@
                 });
             });
 
-            // Initialize
             document.getElementById('singleServiceSelect').value = 'reg';
             document.getElementById('singleServiceSelect').dispatchEvent(new Event('change'));
             renderClients();
