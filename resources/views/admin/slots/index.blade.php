@@ -123,73 +123,10 @@
     </div>
 </div>
 
-<!-- Bulk Generate Modal -->
-<div class="modal fade" id="bulkGenerateModal" tabindex="-1">
-    <div class="modal-dialog modal-dialog-centered modal-lg">
-        <div class="modal-content rounded-3">
-            <div class="modal-header border-0 pt-3 px-4">
-                <h5 class="modal-title fw-semibold">Bulk Generate Slots</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-            </div>
-            <form method="POST" action="{{ route('admin.slots.bulk-generate') }}" id="bulkGenerateForm">
-                @csrf
-                <div class="modal-body px-4">
-                    <div class="row g-3">
-                        <div class="col-md-6">
-                            <label class="form-label small fw-semibold">Start Date</label>
-                            <input type="date" name="start_date" id="startDate" class="form-control form-control-sm rounded-2" required>
-                        </div>
-                        <div class="col-md-6">
-                            <label class="form-label small fw-semibold">End Date</label>
-                            <input type="date" name="end_date" id="endDate" class="form-control form-control-sm rounded-2" required>
-                        </div>
-                    </div>
-                    <div class="row g-3 mt-2">
-                        <div class="col-md-3">
-                            <label class="form-label small fw-semibold">REG Capacity</label>
-                            <input type="number" name="reg_capacity" class="form-control form-control-sm rounded-2" value="10" min="0" max="100" required>
-                        </div>
-                        <div class="col-md-3">
-                            <label class="form-label small fw-semibold">COR Capacity</label>
-                            <input type="number" name="correction_capacity" class="form-control form-control-sm rounded-2" value="5" min="0" max="100" required>
-                        </div>
-                        <div class="col-md-3">
-                            <label class="form-label small fw-semibold">EPH Capacity</label>
-                            <input type="number" name="ephilid_capacity" class="form-control form-control-sm rounded-2" value="3" min="0" max="100" required>
-                        </div>
-                        <div class="col-md-3">
-                            <label class="form-label small fw-semibold">TRN Capacity</label>
-                            <input type="number" name="trn_capacity" class="form-control form-control-sm rounded-2" value="2" min="0" max="100" required>
-                        </div>
-                    </div>
-                    <div class="mt-3">
-                        <label class="form-label small fw-semibold">Days to Include</label>
-                        <div class="d-flex flex-wrap gap-3 mt-1">
-                            <label class="form-check"><input type="checkbox" name="days[]" value="1" class="form-check-input"> Monday</label>
-                            <label class="form-check"><input type="checkbox" name="days[]" value="2" class="form-check-input"> Tuesday</label>
-                            <label class="form-check"><input type="checkbox" name="days[]" value="3" class="form-check-input"> Wednesday</label>
-                            <label class="form-check"><input type="checkbox" name="days[]" value="4" class="form-check-input"> Thursday</label>
-                            <label class="form-check"><input type="checkbox" name="days[]" value="5" class="form-check-input"> Friday</label>
-                            <label class="form-check"><input type="checkbox" name="days[]" value="6" class="form-check-input"> Saturday</label>
-                            <label class="form-check"><input type="checkbox" name="days[]" value="7" class="form-check-input"> Sunday</label>
-                        </div>
-                        <div class="mt-2">
-                            <button type="button" id="selectAllDays" class="btn btn-link btn-sm p-0 me-3">Select All</button>
-                            <button type="button" id="selectWeekdays" class="btn btn-link btn-sm p-0 me-3">Weekdays</button>
-                            <button type="button" id="selectWeekends" class="btn btn-link btn-sm p-0">Weekends</button>
-                        </div>
-                    </div>
-                </div>
-                <div class="modal-footer border-0 pb-3 px-4">
-                    <button type="button" class="btn btn-sm btn-light rounded-pill px-3" data-bs-dismiss="modal">Cancel</button>
-                    <button type="submit" class="btn btn-sm btn-primary rounded-pill px-3">Generate Slots</button>
-                </div>
-            </form>
-        </div>
-    </div>
-</div>
+
 
 <style>
+    
 .calendar-day.non-working {
     background: #f5f5f5;
     opacity: 0.6;
@@ -459,37 +396,55 @@ function renderCalendar() {
     
     const serviceShort = { 'reg': 'R', 'correction': 'C', 'ephilid': 'E', 'trn': 'T' };
     
-    let workingDays = [1, 2, 3, 4, 5];
+    // Get working days from meta tag (should be: 1,2,3,4,5,6 for Mon-Sat, Sunday=7 is excluded)
+    let workingDays = [1, 2, 3, 4, 5]; // Default: Mon-Fri
     const workingDaysMeta = document.querySelector('meta[name="working-days"]');
     if (workingDaysMeta) {
         workingDays = workingDaysMeta.getAttribute('content').split(',').map(Number);
+        console.log('Working days:', workingDays); // Debug: should show [1,2,3,4,5,6] if Saturday is working
     }
     
     let html = '';
     
+    // Empty cells for days before month starts
     for (let i = 0; i < startOffset; i++) {
         html += '<div class="calendar-day empty"></div>';
     }
     
+    // Render each day of the month
     for (let d = 1; d <= daysInMonth; d++) {
         const date = new Date(year, month, d);
         const dateKey = formatDate(date);
         const slot = slotsData[dateKey];
         const isPast = date < today;
         const isToday = formatDate(date) === formatDate(new Date());
-        const dayOfWeek = date.getDay() || 7;
+        
+        // Convert JavaScript day (0=Sunday, 1=Monday) to your database format (1=Monday, 7=Sunday)
+        let dayOfWeek = date.getDay(); // 0-6
+        if (dayOfWeek === 0) {
+            dayOfWeek = 7; // Sunday becomes 7
+        }
+        // Saturday is 6, stays as 6
+        
         const isWorkingDay = workingDays.includes(dayOfWeek);
         
         let dayClass = 'calendar-day';
         if (isPast) dayClass += ' past';
         if (isToday) dayClass += ' today';
-        if (!isWorkingDay && !slot) dayClass += ' non-working';
+        
+        // Special styling for non-working days (like Sunday when is_working=0)
+        if (!isWorkingDay) {
+            dayClass += ' non-working';
+        }
         
         let content = '';
         
-        if (!isWorkingDay && !slot) {
-            content = '<div class="non-working-label">Non-working day</div>';
-        } else if (slot) {
+        // Handle non-working days (Sunday)
+        if (!isWorkingDay) {
+            content = '<div class="non-working-label">🔒 Non-working day</div>';
+        } 
+        // Handle days with slots configured
+        else if (slot) {
             if (slot.day_type === 'holiday') {
                 dayClass += ' holiday';
                 content = '<div class="badge-icon holiday">🎄 Holiday</div>';
@@ -525,17 +480,14 @@ function renderCalendar() {
             if (slot.notes) {
                 content += `<div class="slot-notes" title="${slot.notes}">📝 ${slot.notes.substring(0, 20)}${slot.notes.length > 20 ? '...' : ''}</div>`;
             }
-        } else if (isWorkingDay) {
-            content = '<div class="not-configured">Click to configure</div>';
+        } 
+        // Handle working days without slots configured
+        else if (isWorkingDay) {
+            content = '<div class="not-configured">⚙️ Not configured</div>';
         }
         
-        const editUrl = (!isPast && (slot || isWorkingDay)) ? `/admin/slots/create?date=${dateKey}` : '#';
-        
-        if (isPast || (!isWorkingDay && !slot)) {
-            html += `<div class="${dayClass}"><div class="day-number">${d}</div>${content}</div>`;
-        } else {
-            html += `<a href="${editUrl}" class="text-decoration-none"><div class="${dayClass}"><div class="day-number">${d}</div>${content}</div></a>`;
-        }
+        // Render the day (always as div, no clickable links)
+        html += `<div class="${dayClass}"><div class="day-number">${d}</div>${content}</div>`;
     }
     
     document.getElementById('calendarDays').innerHTML = html;
