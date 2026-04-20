@@ -6,6 +6,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Admin Panel - PSA Appointment System</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <link rel="stylesheet" href="https://unpkg.com/leaflet-routing-machine@3.2.12/dist/leaflet-routing-machine.css" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <style>
@@ -951,12 +953,12 @@
                     </a>
                 </div>
                 <div class="nav-item">
-    <a href="{{ route('admin.slots.index') }}" 
-       class="nav-link {{ request()->routeIs('admin.slots.*') ? 'active' : '' }}">
-        <i class="fas fa-calendar-week"></i>
-        <span>Slot Management</span>
-    </a>
-</div>
+                    <a href="{{ route('admin.slots.index') }}"
+                        class="nav-link {{ request()->routeIs('admin.slots.*') ? 'active' : '' }}">
+                        <i class="fas fa-calendar-week"></i>
+                        <span>Slot Management</span>
+                    </a>
+                </div>
                 <div class="nav-item">
                     <a href="{{ route('admin.settings.index') }}"
                         class="nav-link {{ request()->routeIs('admin.settings.*') ? 'active' : '' }}">
@@ -1042,7 +1044,8 @@
 
     <!-- Toast Container -->
     <div class="toast-container" id="toastContainer"></div>
-
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="https://unpkg.com/leaflet-routing-machine@3.2.12/dist/leaflet-routing-machine.js"></script>
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script>

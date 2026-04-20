@@ -1,4 +1,5 @@
 <?php
+// app/Http/Controllers/Admin/ReportController.php
 
 namespace App\Http\Controllers\Admin;
 
@@ -12,6 +13,10 @@ use Illuminate\Support\Facades\DB;
 
 class ReportController extends Controller
 {
+
+    const PSA_LAT = 8.4815315;
+    const PSA_LNG = 124.6549067;
+
     public function index(Request $request)
     {
         // Get date range from request or default to current month
@@ -67,6 +72,98 @@ class ReportController extends Controller
             ->orderBy('appointment_count', 'desc')
             ->limit(10)
             ->get();
+        
+        // ========== NEW: LOCATION-BASED ANALYTICS ==========
+        
+        // 1. City Summary with status breakdown
+        $citySummary = Appointment::whereBetween('appointment_date', [$startDateCarbon, $endDateCarbon])
+            ->whereNotNull('user_city')
+            ->select(
+                'user_city',
+                DB::raw('COUNT(*) as total_bookings'),
+                DB::raw("SUM(CASE WHEN status = 'pending' THEN 1 ELSE 0 END) as pending"),
+                DB::raw("SUM(CASE WHEN status = 'confirmed' THEN 1 ELSE 0 END) as confirmed"),
+                DB::raw("SUM(CASE WHEN status = 'completed' THEN 1 ELSE 0 END) as completed"),
+                DB::raw("SUM(CASE WHEN status = 'cancelled' THEN 1 ELSE 0 END) as cancelled"),
+                DB::raw("SUM(CASE WHEN status = 'no_show' THEN 1 ELSE 0 END) as no_show")
+            )
+            ->groupBy('user_city')
+            ->orderBy('total_bookings', 'desc')
+            ->get();
+        
+        // Calculate trend for each city
+        $previousStart = Carbon::parse($startDate)->subDays(30)->startOfDay();
+        $previousEnd = Carbon::parse($endDate)->subDays(30)->endOfDay();
+        
+        foreach ($citySummary as $cityItem) {
+            $previousCount = Appointment::where('user_city', $cityItem->user_city)
+                ->whereBetween('appointment_date', [$previousStart, $previousEnd])
+                ->count();
+            
+            if ($previousCount > 0) {
+                $cityItem->trend = round((($cityItem->total_bookings - $previousCount) / $previousCount) * 100, 1);
+            } else {
+                $cityItem->trend = $cityItem->total_bookings > 0 ? 100 : 0;
+            }
+        }
+        
+        // 2. Statistics cards for locations
+        $uniqueLocations = $citySummary->count();
+        $topCity = $citySummary->first()->user_city ?? 'N/A';
+        $topCityCount = $citySummary->first()->total_bookings ?? 0;
+        $completionRate = $summary['total'] > 0 ? round(($summary['completed'] / $summary['total']) * 100, 1) : 0;
+        
+        // 3. Location data for map
+        $bookingLocations = Appointment::whereBetween('appointment_date', [$startDateCarbon, $endDateCarbon])
+            ->whereNotNull('user_lat')
+            ->whereNotNull('user_lng')
+            ->whereNotNull('user_city')
+            ->select(
+                'user_city as city',
+                'user_lat as lat',
+                'user_lng as lng',
+                DB::raw('COUNT(*) as count'),
+                DB::raw("SUM(CASE WHEN status = 'pending' THEN 1 ELSE 0 END) as pending"),
+                DB::raw("SUM(CASE WHEN status = 'confirmed' THEN 1 ELSE 0 END) as confirmed"),
+                DB::raw("SUM(CASE WHEN status = 'completed' THEN 1 ELSE 0 END) as completed"),
+                DB::raw("SUM(CASE WHEN status = 'cancelled' THEN 1 ELSE 0 END) as cancelled")
+            )
+            ->groupBy('user_city', 'user_lat', 'user_lng')
+            ->get();
+        
+        // 4. City trend data for last 6 months
+        $topCities = $citySummary->take(5)->pluck('user_city')->toArray();
+        $cityTrendData = [];
+        $cityTrendLabels = [];
+        
+        for ($i = 5; $i >= 0; $i--) {
+            $month = Carbon::now()->subMonths($i);
+            $cityTrendLabels[] = $month->format('M Y');
+        }
+        
+        $colors = ['#667eea', '#764ba2', '#28a745', '#17a2b8', '#ffc107'];
+        
+        foreach ($topCities as $index => $city) {
+            $monthlyData = [];
+            for ($i = 5; $i >= 0; $i--) {
+                $month = Carbon::now()->subMonths($i);
+                $count = Appointment::where('user_city', $city)
+                    ->whereYear('appointment_date', $month->year)
+                    ->whereMonth('appointment_date', $month->month)
+                    ->count();
+                $monthlyData[] = $count;
+            }
+            
+            $cityTrendData[] = [
+                'label' => $city,
+                'data' => $monthlyData,
+                'borderColor' => $colors[$index % count($colors)],
+                'backgroundColor' => $colors[$index % count($colors)] . '20',
+                'borderWidth' => 2,
+                'fill' => true,
+                'tension' => 0.4
+            ];
+        }
         
         // Get service labels and data for chart
         $serviceLabels = [];
@@ -127,6 +224,16 @@ class ReportController extends Controller
             ->groupBy('users.id', 'users.first_name', 'users.last_name')
             ->get();
         
+        // Pass data for appointment status chart
+        $pendingAppointments = $summary['pending'];
+        $confirmedAppointments = $summary['confirmed'];
+        $completedAppointments = $summary['completed'];
+        $cancelledAppointments = $summary['cancelled'];
+        $totalBookings = $summary['total'];
+        
+        $psaLat = self::PSA_LAT;
+        $psaLng = self::PSA_LNG;
+        
         return view('admin.reports.index', compact(
             'summary',
             'byService',
@@ -142,12 +249,27 @@ class ReportController extends Controller
             'dayLabels',
             'dayData',
             'monthlyTrends',
-            'staffPerformance'
+            'staffPerformance',
+            'citySummary',
+            'uniqueLocations',
+            'topCity',
+            'topCityCount',
+            'completionRate',
+            'bookingLocations',
+            'cityTrendData',
+            'cityTrendLabels',
+            'pendingAppointments',
+            'confirmedAppointments',
+            'completedAppointments',
+            'cancelledAppointments',
+            'totalBookings',
+            'psaLat',
+            'psaLng'
         ));
     }
     
     /**
-     * Export report to CSV
+     * Export report to CSV (Enhanced with location data)
      */
     public function export(Request $request)
     {
@@ -167,7 +289,7 @@ class ReportController extends Controller
             function() use ($appointments) {
                 $handle = fopen('php://output', 'w');
                 
-                // Add CSV headers
+                // Add CSV headers with location fields
                 fputcsv($handle, [
                     'Appointment #',
                     'Date',
@@ -179,6 +301,8 @@ class ReportController extends Controller
                     'Number of Clients',
                     'Clients Names',
                     'Services',
+                    'User Location (City)',
+                    'User Address',
                     'Created At'
                 ]);
                 
@@ -203,7 +327,70 @@ class ReportController extends Controller
                         $appointment->clients->count(),
                         $clientNames,
                         $services,
+                        $appointment->user_city ?? 'N/A',
+                        $appointment->user_address ?? 'N/A',
                         $appointment->created_at,
+                    ]);
+                }
+                
+                fclose($handle);
+            },
+            200,
+            [
+                'Content-Type' => 'text/csv',
+                'Content-Disposition' => 'attachment; filename="' . $filename . '"',
+            ]
+        );
+    }
+    
+    /**
+     * NEW: Export location summary to CSV
+     */
+    public function exportLocationSummary(Request $request)
+    {
+        $startDate = $request->get('start_date', Carbon::now()->startOfMonth()->toDateString());
+        $endDate = $request->get('end_date', Carbon::now()->endOfMonth()->toDateString());
+        
+        $startDateCarbon = Carbon::parse($startDate)->startOfDay();
+        $endDateCarbon = Carbon::parse($endDate)->endOfDay();
+        
+        $citySummary = Appointment::whereBetween('appointment_date', [$startDateCarbon, $endDateCarbon])
+            ->whereNotNull('user_city')
+            ->select(
+                'user_city',
+                DB::raw('COUNT(*) as total_bookings'),
+                DB::raw("SUM(CASE WHEN status = 'pending' THEN 1 ELSE 0 END) as pending"),
+                DB::raw("SUM(CASE WHEN status = 'confirmed' THEN 1 ELSE 0 END) as confirmed"),
+                DB::raw("SUM(CASE WHEN status = 'completed' THEN 1 ELSE 0 END) as completed"),
+                DB::raw("SUM(CASE WHEN status = 'cancelled' THEN 1 ELSE 0 END) as cancelled")
+            )
+            ->groupBy('user_city')
+            ->orderBy('total_bookings', 'desc')
+            ->get();
+        
+        $filename = 'location_summary_' . date('Y-m-d_His') . '.csv';
+        
+        return response()->stream(
+            function() use ($citySummary) {
+                $handle = fopen('php://output', 'w');
+                
+                fputcsv($handle, [
+                    'City',
+                    'Total Bookings',
+                    'Pending',
+                    'Confirmed',
+                    'Completed',
+                    'Cancelled'
+                ]);
+                
+                foreach ($citySummary as $city) {
+                    fputcsv($handle, [
+                        $city->user_city,
+                        $city->total_bookings,
+                        $city->pending ?? 0,
+                        $city->confirmed ?? 0,
+                        $city->completed ?? 0,
+                        $city->cancelled ?? 0
                     ]);
                 }
                 

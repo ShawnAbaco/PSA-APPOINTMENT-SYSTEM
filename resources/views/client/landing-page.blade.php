@@ -443,6 +443,102 @@
             if (event.target === dataPrivacyModal) dataPrivacyModal.style.display = 'none';
         }
     </script>
+
+    <script>
+        // Location detection that stores data for appointment blade
+        async function detectAndStoreLocation() {
+            if (!navigator.geolocation) {
+                console.warn("Geolocation not supported");
+                return false;
+            }
+
+            try {
+                const position = await new Promise((resolve, reject) => {
+                    navigator.geolocation.getCurrentPosition(resolve, reject, {
+                        enableHighAccuracy: true,
+                        timeout: 10000,
+                        maximumAge: 0
+                    });
+                });
+
+                const lat = position.coords.latitude;
+                const lng = position.coords.longitude;
+
+                // Get address using reverse geocoding
+                let city = '',
+                    address = '',
+                    zipcode = '';
+                try {
+                    const response = await fetch(
+                        `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&addressdetails=1`
+                    );
+                    const data = await response.json();
+                    if (data && data.address) {
+                        city = data.address.city || data.address.town || data.address.municipality || '';
+                        address = data.display_name || '';
+                        zipcode = data.address.postcode || '';
+                    }
+                } catch (error) {
+                    console.error('Reverse geocoding error:', error);
+                }
+
+                // Store location data in localStorage for appointment blade
+                const locationData = {
+                    lat: lat,
+                    lng: lng,
+                    city: city,
+                    address: address,
+                    zipcode: zipcode,
+                    detected: true,
+                    timestamp: Date.now()
+                };
+
+                localStorage.setItem('userLocation', JSON.stringify(locationData));
+                console.log('Location stored for appointment:', locationData);
+                return true;
+
+            } catch (error) {
+                console.error('Location detection error:', error);
+                localStorage.setItem('userLocation', JSON.stringify({
+                    detected: false,
+                    error: error.message
+                }));
+                return false;
+            }
+        }
+
+        // Detect location when page loads (for the map)
+        setTimeout(() => {
+            detectAndStoreLocation();
+        }, 1000);
+
+        // Also detect when user clicks any book appointment button
+        const bookButtons = document.querySelectorAll(
+            '#heroBookBtn, #bookAppointmentNavBtn, #guidelinesBookBtn, #footerBookBtn');
+        bookButtons.forEach(btn => {
+            if (btn) {
+                btn.addEventListener('click', function(e) {
+                    // Check if location was detected, if not, detect before opening
+                    const stored = localStorage.getItem('userLocation');
+                    if (!stored || JSON.parse(stored).detected === false) {
+                        e.preventDefault();
+                        detectAndStoreLocation().then(() => {
+                            // After detection, open modal
+                            document.getElementById('appointmentModal').classList.add('active');
+                            document.body.classList.add('modal-open');
+                            const iframe = document.getElementById('appointmentIframe');
+                            const loadingOverlay = document.getElementById('modalLoading');
+                            loadingOverlay.style.display = 'flex';
+                            iframe.style.opacity = '0';
+                            setTimeout(() => {
+                                iframe.src = "{{ url('/appointment') }}";
+                            }, 50);
+                        });
+                    }
+                });
+            }
+        });
+    </script>
 </body>
 
 </html>

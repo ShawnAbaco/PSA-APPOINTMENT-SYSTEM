@@ -54,11 +54,27 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
     Route::put('/appointments/{id}/status', [App\Http\Controllers\Admin\AppointmentController::class, 'updateStatus'])->name('appointments.status');
     Route::delete('/appointments/{id}', [App\Http\Controllers\Admin\AppointmentController::class, 'destroy'])->name('appointments.destroy');
     Route::get('/calendar', [App\Http\Controllers\Admin\AppointmentController::class, 'calendar'])->name('calendar');
+    
 
     // Add to admin routes
-// Route::get('/slots', [App\Http\Controllers\Admin\SettingsController::class, 'manageSlots'])->name('slots.index');
-// Route::post('/slots', [App\Http\Controllers\Admin\SettingsController::class, 'createSlot'])->name('slots.store');
-// Route::put('/slots/{id}', [App\Http\Controllers\Admin\SettingsController::class, 'updateSlot'])->name('slots.update');
+    // Route::get('/slots', [App\Http\Controllers\Admin\SettingsController::class, 'manageSlots'])->name('slots.index');
+    // Route::post('/slots', [App\Http\Controllers\Admin\SettingsController::class, 'createSlot'])->name('slots.store');
+    // Route::put('/slots/{id}', [App\Http\Controllers\Admin\SettingsController::class, 'updateSlot'])->name('slots.update');
+
+    // Add these inside the admin routes group (after the existing routes)
+    Route::get('/appointments/locations', [App\Http\Controllers\Admin\AppointmentController::class, 'getByLocation'])->name('appointments.locations');
+    Route::get('/appointments/city-stats', [App\Http\Controllers\Admin\AppointmentController::class, 'cityStatistics'])->name('appointments.city-stats');
+    Route::get('/reports/export-location', [App\Http\Controllers\Admin\ReportController::class, 'exportLocationSummary'])->name('reports.export-location');
+    // Add this inside the client appointment routes group
+    Route::get('/appointment/location-stats', [App\Http\Controllers\Client\AppointmentController::class, 'getLocationStats'])->name('appointment.location-stats');
+    Route::get('/psa-coordinates', [App\Http\Controllers\Admin\AppointmentController::class, 'getPsaCoordinates'])->name('psa.coordinates');
+    // Add this inside the client appointment routes group
+    Route::get('/psa-coordinates', [App\Http\Controllers\Client\AppointmentController::class, 'getPsaCoordinates'])->name('psa.coordinates');
+
+    // Add this inside the admin routes group
+    Route::post('/settings/test-email', [App\Http\Controllers\Admin\SettingsController::class, 'testEmail'])->name('settings.test-email');
+    // Add this inside admin routes group
+    Route::post('/settings/sync-slots', [App\Http\Controllers\Admin\SettingsController::class, 'syncAllSlots'])->name('settings.sync-slots');
 
 
 // Add this inside the admin routes group

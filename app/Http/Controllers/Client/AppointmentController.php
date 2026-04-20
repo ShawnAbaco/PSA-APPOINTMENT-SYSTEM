@@ -1,4 +1,5 @@
 <?php
+// app/Http/Controllers/Client/AppointmentController.php
 
 namespace App\Http\Controllers\Client;
 
@@ -21,6 +22,10 @@ use Illuminate\Support\Facades\Validator;
 class AppointmentController extends Controller
 {
     protected $mailService;
+    
+    // PSA Misamis Oriental Coordinates
+    const PSA_LAT = 8.4815315;
+    const PSA_LNG = 124.6549067;
 
     public function __construct(MailService $mailService)
     {
@@ -227,6 +232,12 @@ class AppointmentController extends Controller
                 'clients.*.sex' => 'required|in:Male,Female',
                 'clients.*.birthdate' => 'required|date|before:today',
                 'clients.*.service' => 'required|in:reg,correction,ephilid,trn',
+                // ========== LOCATION VALIDATION ==========
+                'user_lat' => 'nullable|numeric|between:-90,90',
+                'user_lng' => 'nullable|numeric|between:-180,180',
+                'user_city' => 'nullable|string|max:100',
+                'user_address' => 'nullable|string',
+                'user_zipcode' => 'nullable|string|max:20',
             ]);
             
             if ($validator->fails()) {
@@ -319,7 +330,7 @@ class AppointmentController extends Controller
                 $appointmentNumber = 'PSA-' . $date . '-' . str_pad($last, 5, '0', STR_PAD_LEFT);
                 $referenceCode = 'REF-' . strtoupper(uniqid());
                 
-                // Create appointment
+                // Create appointment with location data
                 $appointment = new Appointment();
                 $appointment->appointment_number = $appointmentNumber;
                 $appointment->type = $request->appointment_type;
@@ -333,6 +344,34 @@ class AppointmentController extends Controller
                     'user_agent' => $request->userAgent(),
                     'ip_address' => $request->ip()
                 ]);
+                
+                // ========== SAVE LOCATION DATA ==========
+                if ($request->filled('user_lat')) {
+                    $appointment->user_lat = $request->user_lat;
+                }
+                if ($request->filled('user_lng')) {
+                    $appointment->user_lng = $request->user_lng;
+                }
+                if ($request->filled('user_city')) {
+                    $appointment->user_city = $request->user_city;
+                }
+                if ($request->filled('user_address')) {
+                    $appointment->user_address = $request->user_address;
+                }
+                if ($request->filled('user_zipcode')) {
+                    $appointment->user_zipcode = $request->user_zipcode;
+                }
+                
+                if ($request->filled('user_city')) {
+                    \Log::info('Location saved for appointment', [
+                        'appointment_number' => $appointmentNumber,
+                        'city' => $request->user_city,
+                        'lat' => $request->user_lat,
+                        'lng' => $request->user_lng
+                    ]);
+                }
+                // ========== END LOCATION DATA ==========
+                
                 $appointment->save();
                 
                 // Store client data for email
@@ -422,7 +461,8 @@ class AppointmentController extends Controller
                         'number' => $appointment->appointment_number,
                         'reference_code' => $appointment->reference_code,
                         'date' => Carbon::parse($appointment->appointment_date)->format('F d, Y'),
-                        'clients_count' => count($request->clients)
+                        'clients_count' => count($request->clients),
+                        'location_city' => $appointment->user_city ?? null
                     ]
                 ]);
                 
@@ -504,6 +544,49 @@ class AppointmentController extends Controller
                 'message' => 'Failed to check availability'
             ], 500);
         }
+    }
+    
+    // ========== API endpoint to get location statistics ==========
+    public function getLocationStats(Request $request)
+    {
+        try {
+            $startDate = $request->get('start_date', Carbon::now()->startOfMonth());
+            $endDate = $request->get('end_date', Carbon::now()->endOfMonth());
+            
+            $stats = Appointment::whereBetween('appointment_date', [$startDate, $endDate])
+                ->whereNotNull('user_city')
+                ->selectRaw('user_city, COUNT(*) as total')
+                ->selectRaw('SUM(CASE WHEN status = "pending" THEN 1 ELSE 0 END) as pending')
+                ->selectRaw('SUM(CASE WHEN status = "confirmed" THEN 1 ELSE 0 END) as confirmed')
+                ->selectRaw('SUM(CASE WHEN status = "completed" THEN 1 ELSE 0 END) as completed')
+                ->selectRaw('SUM(CASE WHEN status = "cancelled" THEN 1 ELSE 0 END) as cancelled')
+                ->groupBy('user_city')
+                ->orderBy('total', 'desc')
+                ->get();
+            
+            return response()->json([
+                'success' => true,
+                'stats' => $stats
+            ]);
+            
+        } catch (\Exception $e) {
+            Log::error('Error getting location stats: ' . $e->getMessage());
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to get location statistics'
+            ], 500);
+        }
+    }
+    
+    // ========== Get PSA coordinates for map ==========
+    public function getPsaCoordinates()
+    {
+        return response()->json([
+            'success' => true,
+            'lat' => self::PSA_LAT,
+            'lng' => self::PSA_LNG,
+            'address' => 'Capt. Vicente Roa Street, Brgy. 31, Cagayan de Oro City, 9000 Misamis Oriental, Philippines'
+        ]);
     }
     
     private function generateAppointmentNumber()
