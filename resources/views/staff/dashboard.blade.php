@@ -7,7 +7,6 @@
         <div class="welcome-section">
             <div>
                 <h1 class="dashboard-title">Dashboard</h1>
-                <p class="welcome-text">Welcome back, Sarah Johnson!</p>
             </div>
             <div class="date-display">
                 <i class="fas fa-calendar-alt"></i>

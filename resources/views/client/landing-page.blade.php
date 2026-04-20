@@ -15,156 +15,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <link rel="stylesheet" href="{{ asset('css/landing-page.css') }}">
     <style>
-        /* Modal styles for appointment */
-        .appointment-modal-overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0, 0, 0, 0.85);
-            backdrop-filter: blur(5px);
-            z-index: 2000;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            opacity: 0;
-            visibility: hidden;
-            transition: all 0.3s ease;
-        }
-        
-        .appointment-modal-overlay.active {
-            opacity: 1;
-            visibility: visible;
-        }
-        
-        .appointment-modal-container {
-            width: 95%;
-            max-width: 1200px;
-            height: 90vh;
-            background: #f8fafc;
-            border-radius: 24px;
-            overflow: hidden;
-            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
-            display: flex;
-            flex-direction: column;
-            position: relative;
-            animation: modalSlideIn 0.3s ease;
-        }
-        
-        @keyframes modalSlideIn {
-            from {
-                transform: translateY(30px);
-                opacity: 0;
-            }
-            to {
-                transform: translateY(0);
-                opacity: 1;
-            }
-        }
-        
-        .appointment-modal-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 16px 24px;
-            background: white;
-            border-bottom: 1px solid #e2e8f0;
-            z-index: 10;
-        }
-        
-        .appointment-modal-header h3 {
-            font-size: 1.25rem;
-            font-weight: 600;
-            color: #0f172a;
-            margin: 0;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-        
-        .appointment-modal-header h3 i {
-            color: #2c5f8a;
-        }
-        
-        .close-appointment-modal {
-            background: none;
-            border: none;
-            font-size: 28px;
-            cursor: pointer;
-            color: #64748b;
-            transition: all 0.2s;
-            width: 36px;
-            height: 36px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            border-radius: 50%;
-        }
-        
-        .close-appointment-modal:hover {
-            background: #f1f5f9;
-            color: #ef4444;
-        }
-        
-        .appointment-modal-body {
-            flex: 1;
-            padding: 0;
-            background: #f1f5f9;
-        }
-        
-        .appointment-iframe {
-            width: 100%;
-            height: 100%;
-            border: none;
-            background: white;
-        }
-        
-        /* Loading overlay inside modal */
-        .modal-loading {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(255, 255, 255, 0.95);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            z-index: 5;
-            flex-direction: column;
-            gap: 15px;
-        }
-        
-        .modal-loading .spinner {
-            width: 50px;
-            height: 50px;
-            border: 4px solid #e2e8f0;
-            border-top-color: #2c5f8a;
-            border-radius: 50%;
-            animation: spin 0.8s linear infinite;
-        }
-        
-        @keyframes spin {
-            to { transform: rotate(360deg); }
-        }
-        
-        /* Adjust body overflow when modal is open */
-        body.modal-open {
-            overflow: hidden;
-        }
-        
-        /* Responsive */
-        @media (max-width: 768px) {
-            .appointment-modal-container {
-                width: 98%;
-                height: 95vh;
-                border-radius: 16px;
-            }
-            .appointment-modal-header {
-                padding: 12px 16px;
-            }
-        }
+
     </style>
 </head>
 
@@ -183,11 +34,13 @@
                 </div>
             </div>
             <nav class="main-nav">
-                <a href="#home" class="nav-link active">Home</a>
-                <a href="#book-appointment" class="nav-link active" id="bookAppointmentNavBtn">Book Appointment</a>
+                <a href="#home" class="nav-link">Home</a>
                 <a href="#map-live" class="nav-link">Map & Directions</a>
                 <a href="#requirements" class="nav-link">Requirements</a>
                 <a href="#info" class="nav-link">Guidelines</a>
+                <a href="#book-appointment" class="button button-primary" id="bookAppointmentNavBtn">Book
+                    Appointment</a>
+
             </nav>
         </div>
     </header>
@@ -202,7 +55,8 @@
                     <p>Schedule your PhilSys registration, ePhilID printing, or data correction appointment. Secure your
                         Philippine Identification System credentials with ease.</p>
                     <div class="hero-buttons">
-                        <a class="button button-primary" href="javascript:void(0)" id="heroBookBtn">Book an Appointment →</a>
+                        {{-- <a class="button button-primary" href="javascript:void(0)" id="heroBookBtn">Book an Appointment
+                            →</a> --}}
                         <a class="button button-outline" href="#requirements">View Requirements</a>
                     </div>
                     <div class="stats-row">
@@ -316,12 +170,15 @@
                             <li>ePhilID printing and TRN retrieval are free of charge.</li>
                             <li>For lost transaction slip, present any valid government ID for verification.</li>
                         </ul>
-                        <a href="javascript:void(0)" class="button button-primary" id="guidelinesBookBtn" style="margin-top: 16px;">Schedule Your Appointment →</a>
+                        <a href="javascript:void(0)" class="button button-primary" id="guidelinesBookBtn"
+                            style="margin-top: 16px;">Schedule Your Appointment →</a>
                     </div>
                     <div class="info-contact">
                         <h3>PSA Misamis Oriental Support</h3>
-                        <p><strong>Hotline:</strong> 0956 576 6106</p>
-                        <p><strong>Email:</strong> misamisoriental@psa.gov.ph</p>
+                        <p><strong>Hotline:</strong> 0995 9050 653</p>
+                        <p><strong>Email:</strong> psamisamisoriental@yahoo.com.ph</p>
+                        <p><strong>Facebook:</strong> <a href="https://www.facebook.com/PSAMISOR" target="_blank">PSA
+                                Misamis Oriental</a></p>
                         <div class="warning-note" style="margin-top: 20px;">
                             <span>For urgent concerns regarding National ID, call the hotline from Mon-Fri
                                 8AM-5PM.</span>
@@ -440,7 +297,7 @@
         <div class="appointment-modal-container">
             <div class="appointment-modal-header">
                 <h3>
-                    <i class="fas fa-calendar-check"></i> 
+                    <i class="fas fa-calendar-check"></i>
                     National ID Appointment System
                 </h3>
                 <button class="close-appointment-modal" id="closeAppointmentModalBtn">
@@ -452,7 +309,8 @@
                     <div class="spinner"></div>
                     <p>Loading appointment system...</p>
                 </div>
-                <iframe id="appointmentIframe" class="appointment-iframe" src="" title="Book Appointment"></iframe>
+                <iframe id="appointmentIframe" class="appointment-iframe" src=""
+                    title="Book Appointment"></iframe>
             </div>
         </div>
     </div>
@@ -460,11 +318,11 @@
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script src="https://unpkg.com/leaflet-routing-machine@3.2.12/dist/leaflet-routing-machine.js"></script>
     <script src="{{ asset('js/landing-page.js') }}"></script>
-    
+
     <script>
         (function() {
             'use strict';
-            
+
             // Get all book appointment buttons/links
             const bookButtons = [
                 document.getElementById('heroBookBtn'),
@@ -472,35 +330,35 @@
                 document.getElementById('guidelinesBookBtn'),
                 document.getElementById('footerBookBtn')
             ].filter(btn => btn !== null);
-            
+
             const modal = document.getElementById('appointmentModal');
             const iframe = document.getElementById('appointmentIframe');
             const loadingOverlay = document.getElementById('modalLoading');
             const closeModalBtn = document.getElementById('closeAppointmentModalBtn');
-            
+
             // The URL to the appointment blade (client/appointment)
             // Adjust the route as needed. Using the same URL pattern as your original href="/appointment"
             const appointmentUrl = "{{ url('/appointment') }}";
-            
+
             // Function to open modal and load iframe
             function openAppointmentModal() {
                 // Show modal
                 modal.classList.add('active');
                 document.body.classList.add('modal-open');
-                
+
                 // Show loading
                 loadingOverlay.style.display = 'flex';
                 iframe.style.opacity = '0';
-                
+
                 // Set iframe source (clear first to force reload)
                 iframe.src = 'about:blank';
-                
+
                 // Small timeout to ensure iframe reloads properly
                 setTimeout(() => {
                     iframe.src = appointmentUrl;
                 }, 50);
             }
-            
+
             // Close modal function
             function closeAppointmentModal() {
                 modal.classList.remove('active');
@@ -510,20 +368,21 @@
                     iframe.src = 'about:blank';
                 }, 300);
             }
-            
+
             // When iframe loads, hide loading overlay
             iframe.addEventListener('load', function() {
                 loadingOverlay.style.display = 'none';
                 iframe.style.opacity = '1';
             });
-            
+
             // If iframe fails to load (timeout fallback)
             setTimeout(() => {
                 if (loadingOverlay.style.display !== 'none') {
-                    loadingOverlay.innerHTML = '<div class="spinner"></div><p>Taking longer than usual... <br> <small>Check your connection</small></p><button onclick="location.reload()" style="margin-top:15px; padding:8px 16px; background:#2c5f8a; color:white; border:none; border-radius:8px; cursor:pointer;">Retry</button>';
+                    loadingOverlay.innerHTML =
+                        '<div class="spinner"></div><p>Taking longer than usual... <br> <small>Check your connection</small></p><button onclick="location.reload()" style="margin-top:15px; padding:8px 16px; background:#2c5f8a; color:white; border:none; border-radius:8px; cursor:pointer;">Retry</button>';
                 }
             }, 8000);
-            
+
             // Add click handlers to all book buttons
             bookButtons.forEach(btn => {
                 if (btn) {
@@ -533,39 +392,39 @@
                     });
                 }
             });
-            
+
             // Close modal on X button
             if (closeModalBtn) {
                 closeModalBtn.addEventListener('click', closeAppointmentModal);
             }
-            
+
             // Close modal when clicking outside the modal container (on overlay)
             modal.addEventListener('click', function(e) {
                 if (e.target === modal) {
                     closeAppointmentModal();
                 }
             });
-            
+
             // Close modal on ESC key
             document.addEventListener('keydown', function(e) {
                 if (e.key === 'Escape' && modal.classList.contains('active')) {
                     closeAppointmentModal();
                 }
             });
-            
+
             // Handle any hash links that might try to navigate away (keep modal behavior)
             // For existing nav links that are not book appointment, they work normally.
-            
+
             // Also update any dynamically added book buttons if needed (but all are static)
             console.log('Appointment modal initialized. Buttons found:', bookButtons.length);
         })();
-        
+
         // Keep existing modal functions for privacy modals
         function closeModal(modalId) {
             const modal = document.getElementById(modalId);
             if (modal) modal.style.display = 'none';
         }
-        
+
         // Privacy modal triggers (existing)
         document.getElementById('privacyPolicyLink')?.addEventListener('click', function(e) {
             e.preventDefault();
@@ -575,7 +434,7 @@
             e.preventDefault();
             document.getElementById('dataPrivacyModal').style.display = 'flex';
         });
-        
+
         // Close modals when clicking outside
         window.onclick = function(event) {
             const privacyModal = document.getElementById('privacyModal');

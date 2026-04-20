@@ -44,12 +44,6 @@
                     </a>
                 </div>
                 <div class="nav-item">
-                    <a href="{{ route('staff.appointments.create') }}" class="nav-link">
-                        <i class="fas fa-plus-circle"></i>
-                        <span>New Appointment</span>
-                    </a>
-                </div>
-                <div class="nav-item">
                     <a href="{{ route('staff.clients.index') }}" class="nav-link">
                         <i class="fas fa-users"></i>
                         <span>Clients</span>
