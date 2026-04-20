@@ -65,25 +65,111 @@ class SlotController extends Controller
         return view('admin.slots.create', compact('serviceConfigs'));
     }
     
-    public function store(Request $request)
-    {
-        $validated = $request->validate([
-            'date' => 'required|date|unique:appointment_slots,date',
-            'day_type' => 'required|in:working,half_day,holiday,special',
-            'reg_capacity' => 'required|integer|min:0|max:100',
-            'correction_capacity' => 'required|integer|min:0|max:100',
-            'ephilid_capacity' => 'required|integer|min:0|max:100',
-            'trn_capacity' => 'required|integer|min:0|max:100',
-            'notes' => 'nullable|string',
-        ]);
-        
-        $validated['created_by'] = auth()->id();
-        
-        AppointmentSlot::create($validated);
-        
-        return redirect()->route('admin.slots.index')->with('success', 'Slot created successfully.');
+   public function store(Request $request)
+{
+    $validated = $request->validate([
+        'date' => 'required|date|unique:appointment_slots,date',
+        'day_type' => 'required|in:working,half_day,holiday,special',
+        'reg_capacity' => 'required|integer|min:0|max:100',
+        'correction_capacity' => 'required|integer|min:0|max:100',
+        'ephilid_capacity' => 'required|integer|min:0|max:100',
+        'trn_capacity' => 'required|integer|min:0|max:100',
+        'notes' => 'nullable|string',
+    ]);
+    
+    // Check if the date is a working day
+    $date = Carbon::parse($request->date);
+    $dayOfWeek = $date->dayOfWeek == 0 ? 7 : $date->dayOfWeek;
+    
+    $isWorkingDay = WorkingDaysDefault::where('day_of_week', $dayOfWeek)
+        ->where('is_working', true)
+        ->exists();
+    
+    // Special validation: If it's a holiday, skip working day check
+    if ($request->day_type !== 'holiday' && $request->day_type !== 'special') {
+        if (!$isWorkingDay) {
+            return redirect()->back()
+                ->with('error', 'Cannot create regular slots on non-working days. Only "Holiday" or "Special" day types can be used for non-working days.')
+                ->withInput();
+        }
     }
     
+    $validated['created_by'] = auth()->id();
+    $validated['reg_booked'] = 0;
+    $validated['correction_booked'] = 0;
+    $validated['ephilid_booked'] = 0;
+    $validated['trn_booked'] = 0;
+    
+    // Handle different day types
+    if ($request->day_type === 'holiday') {
+        // For holidays: Set all capacities to 0
+        $validated['reg_capacity'] = 0;
+        $validated['correction_capacity'] = 0;
+        $validated['ephilid_capacity'] = 0;
+        $validated['trn_capacity'] = 0;
+        $validated['reg_available'] = 0;
+        $validated['correction_available'] = 0;
+        $validated['ephilid_available'] = 0;
+        $validated['trn_available'] = 0;
+        $validated['total_capacity'] = 0;
+        
+        // Add holiday note if not provided
+        if (empty($validated['notes'])) {
+            $validated['notes'] = 'Public Holiday - No appointments available';
+        }
+    } 
+    elseif ($request->day_type === 'half_day') {
+        // For half day: Calculate 50% capacity
+        $validated['reg_available'] = ceil($validated['reg_capacity'] / 2);
+        $validated['correction_available'] = ceil($validated['correction_capacity'] / 2);
+        $validated['ephilid_available'] = ceil($validated['ephilid_capacity'] / 2);
+        $validated['trn_available'] = ceil($validated['trn_capacity'] / 2);
+        $validated['total_capacity'] = array_sum([
+            $validated['reg_available'],
+            $validated['correction_available'],
+            $validated['ephilid_available'],
+            $validated['trn_available']
+        ]);
+        
+        if (empty($validated['notes'])) {
+            $validated['notes'] = 'Half day - Limited appointments available';
+        }
+    }
+    else {
+        // For working or special days: Full capacity
+        $validated['reg_available'] = $validated['reg_capacity'];
+        $validated['correction_available'] = $validated['correction_capacity'];
+        $validated['ephilid_available'] = $validated['ephilid_capacity'];
+        $validated['trn_available'] = $validated['trn_capacity'];
+        $validated['total_capacity'] = array_sum([
+            $validated['reg_capacity'],
+            $validated['correction_capacity'],
+            $validated['ephilid_capacity'],
+            $validated['trn_capacity']
+        ]);
+    }
+    
+    // Create the slot
+    $slot = AppointmentSlot::create($validated);
+    
+    // Also create an entry in working_days_overrides for holidays
+    if ($request->day_type === 'holiday') {
+        WorkingDaysOverride::updateOrCreate(
+            ['date' => $request->date],
+            [
+                'is_working' => false,
+                'reason' => $validated['notes'] ?? 'Holiday',
+                'created_at' => now(),
+                'updated_at' => now(),
+            ]
+        );
+    }
+    
+    return redirect()->route('admin.slots.index')
+        ->with('success', 'Slot created successfully as ' . ucfirst(str_replace('_', ' ', $request->day_type)) . '.');
+}
+
+
     public function edit($id)
     {
         $slot = AppointmentSlot::findOrFail($id);
