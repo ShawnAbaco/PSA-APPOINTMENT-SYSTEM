@@ -1,714 +1,11 @@
-{{-- resources/views/admin/dashboard.blade.php --}}
 @extends('layouts.admin')
-<style>
-    /* public/css/admin/dashboard.css */
-
-    :root {
-        --psa-primary: #0F3B6F;
-        --psa-accent: #1D4ED8;
-        --psa-gray: #E5E7EB;
-        --psa-gray-light: #F9FAFB;
-        --text-muted: #6B7280;
-        --success: #10B981;
-        --warning: #F59E0B;
-        --info: #3B82F6;
-        --danger: #EF4444;
-        --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
-        --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-        --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
-    }
-
-    .dashboard-container {
-        width: 100%;
-        padding: 0;
-    }
-
-    /* Welcome Section */
-    .welcome-section {
-        display: flex;
-        justify-content: space-between;
-        align-items: flex-end;
-        margin-bottom: 32px;
-        flex-wrap: wrap;
-        gap: 16px;
-    }
-
-    .dashboard-title {
-        font-size: 1.75rem;
-        font-weight: 700;
-        color: var(--text-dark);
-        margin: 0 0 8px 0;
-    }
-
-    .welcome-text {
-        color: var(--text-muted);
-        margin: 0;
-        font-size: 0.95rem;
-    }
-
-    .date-display {
-        background: var(--psa-gray-light);
-        padding: 10px 20px;
-        border-radius: 12px;
-        display: flex;
-        align-items: center;
-        gap: 10px;
-        color: var(--psa-primary);
-        font-weight: 500;
-        font-size: 0.9rem;
-        border: 1px solid var(--psa-gray);
-    }
-
-    .date-display i {
-        font-size: 1rem;
-    }
-
-    /* Stats Grid Layout */
-    .stats-grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-        gap: 24px;
-        margin-bottom: 32px;
-    }
-
-    /* Stat Card */
-    .stat-card {
-        background: white;
-        border-radius: 20px;
-        padding: 20px;
-        box-shadow: var(--shadow-sm);
-        transition: all 0.3s ease;
-        border: 1px solid var(--psa-gray);
-    }
-
-    .stat-card:hover {
-        transform: translateY(-3px);
-        box-shadow: var(--shadow-md);
-    }
-
-    .stat-card-content {
-        display: flex;
-        justify-content: space-between;
-        align-items: flex-start;
-    }
-
-    .stat-info {
-        flex: 1;
-    }
-
-    .stat-label {
-        font-size: 0.875rem;
-        font-weight: 500;
-        color: var(--text-muted);
-        margin: 0 0 8px 0;
-        letter-spacing: 0.3px;
-    }
-
-    .stat-value {
-        font-size: 2.2rem;
-        font-weight: 800;
-        margin: 0 0 8px 0;
-        color: var(--text-dark);
-    }
-
-    .stat-trend {
-        font-size: 0.75rem;
-        margin: 0;
-        display: flex;
-        align-items: center;
-        gap: 4px;
-    }
-
-    .trend-up {
-        color: var(--success);
-    }
-
-    .trend-down {
-        color: var(--danger);
-    }
-
-    .trend-neutral {
-        color: var(--warning);
-    }
-
-    .stat-value.text-warning {
-        color: var(--warning);
-    }
-
-    .stat-value.text-success {
-        color: var(--success);
-    }
-
-    .stat-value.text-info {
-        color: var(--info);
-    }
-
-    /* Stat Icon Circles */
-    .stat-icon-circle {
-        width: 54px;
-        height: 54px;
-        background: rgba(15, 59, 111, 0.1);
-        border-radius: 18px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        transition: all 0.3s ease;
-    }
-
-    .stat-icon-circle i {
-        font-size: 1.6rem;
-        color: var(--psa-primary);
-    }
-
-    .stat-icon-circle.warning-bg {
-        background: rgba(245, 158, 11, 0.1);
-    }
-
-    .stat-icon-circle.warning-bg i {
-        color: var(--warning);
-    }
-
-    .stat-icon-circle.success-bg {
-        background: rgba(16, 185, 129, 0.1);
-    }
-
-    .stat-icon-circle.success-bg i {
-        color: var(--success);
-    }
-
-    .stat-icon-circle.info-bg {
-        background: rgba(59, 130, 246, 0.1);
-    }
-
-    .stat-icon-circle.info-bg i {
-        color: var(--info);
-    }
-
-    .stat-card:hover .stat-icon-circle {
-        transform: scale(1.05);
-    }
-
-    /* Stats Grid for Total Users Card (complex stats) */
-    .stats-complex {
-        display: flex;
-        flex-direction: column;
-        gap: 12px;
-    }
-
-    .stat-row {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        padding: 8px 0;
-        border-bottom: 1px solid var(--psa-gray);
-    }
-
-    .stat-row:last-child {
-        border-bottom: none;
-    }
-
-    .stat-row-label {
-        font-size: 0.85rem;
-        color: var(--text-muted);
-        font-weight: 500;
-    }
-
-    .stat-row-value {
-        font-size: 1.1rem;
-        font-weight: 700;
-        color: var(--text-dark);
-    }
-
-    .stat-row-value.text-primary {
-        color: var(--psa-primary);
-    }
-
-    .stat-row-value.text-success {
-        color: var(--success);
-    }
-
-    /* Charts Row */
-    .charts-row {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
-        gap: 24px;
-        margin-bottom: 32px;
-    }
-
-    .chart-card {
-        background: white;
-        border-radius: 20px;
-        box-shadow: var(--shadow-sm);
-        border: 1px solid var(--psa-gray);
-        overflow: hidden;
-    }
-
-    .chart-header {
-        padding: 20px 24px;
-        border-bottom: 1px solid var(--psa-gray);
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        flex-wrap: wrap;
-        gap: 12px;
-    }
-
-    .chart-title {
-        font-size: 1rem;
-        font-weight: 600;
-        color: var(--text-dark);
-        margin: 0;
-        display: flex;
-        align-items: center;
-        gap: 8px;
-    }
-
-    .chart-title i {
-        color: var(--psa-accent);
-        font-size: 1.1rem;
-    }
-
-    .chart-subtitle {
-        font-size: 0.8rem;
-        color: var(--text-muted);
-    }
-
-    .chart-filter {
-        padding: 6px 12px;
-        border: 1px solid var(--psa-gray);
-        border-radius: 8px;
-        background: white;
-        color: var(--text-dark);
-        font-size: 0.85rem;
-        cursor: pointer;
-        transition: all 0.2s ease;
-    }
-
-    .chart-filter:hover {
-        border-color: var(--psa-accent);
-        background: var(--psa-gray-light);
-    }
-
-    .chart-body {
-        padding: 24px;
-        height: 300px;
-        position: relative;
-    }
-
-    /* Dashboard Grid */
-    .dashboard-grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
-        gap: 24px;
-    }
-
-    /* Schedule Card */
-    .schedule-card {
-        background: white;
-        border-radius: 20px;
-        box-shadow: var(--shadow-sm);
-        border: 1px solid var(--psa-gray);
-        overflow: hidden;
-    }
-
-    .card-header {
-        padding: 18px 24px;
-        border-bottom: 1px solid var(--psa-gray);
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        background: white;
-    }
-
-    .card-title {
-        font-size: 1rem;
-        font-weight: 600;
-        color: var(--text-dark);
-        margin: 0;
-        display: flex;
-        align-items: center;
-        gap: 8px;
-    }
-
-    .card-title i {
-        color: var(--psa-accent);
-    }
-
-    .view-link {
-        color: var(--psa-accent);
-        text-decoration: none;
-        font-size: 0.85rem;
-        font-weight: 500;
-        display: flex;
-        align-items: center;
-        gap: 6px;
-        transition: all 0.3s ease;
-    }
-
-    .view-link:hover {
-        gap: 10px;
-        color: var(--psa-primary);
-    }
-
-    /* Schedule List */
-    .schedule-list {
-        padding: 8px 0;
-        max-height: 400px;
-        overflow-y: auto;
-    }
-
-    .schedule-list::-webkit-scrollbar {
-        width: 6px;
-    }
-
-    .schedule-list::-webkit-scrollbar-track {
-        background: var(--psa-gray);
-        border-radius: 10px;
-    }
-
-    .schedule-list::-webkit-scrollbar-thumb {
-        background: var(--psa-accent);
-        border-radius: 10px;
-    }
-
-    .schedule-item {
-        display: flex;
-        align-items: center;
-        padding: 16px 24px;
-        border-bottom: 1px solid var(--psa-gray);
-        transition: background 0.2s ease;
-    }
-
-    .schedule-item:hover {
-        background: var(--psa-gray-light);
-    }
-
-    .schedule-time {
-        min-width: 100px;
-        font-weight: 600;
-        color: var(--psa-primary);
-        font-size: 0.85rem;
-        display: flex;
-        align-items: center;
-        gap: 8px;
-    }
-
-    .schedule-time i {
-        font-size: 0.8rem;
-    }
-
-    .schedule-info {
-        flex: 1;
-        padding: 0 16px;
-    }
-
-    .schedule-title {
-        font-weight: 500;
-        color: var(--text-dark);
-        margin-bottom: 4px;
-        font-size: 0.9rem;
-    }
-
-    .schedule-subtitle {
-        font-size: 0.75rem;
-        color: var(--text-muted);
-    }
-
-    .empty-schedule {
-        text-align: center;
-        padding: 48px 24px;
-        color: var(--text-muted);
-    }
-
-    .empty-schedule i {
-        font-size: 3rem;
-        margin-bottom: 12px;
-        display: block;
-    }
-
-    /* Status Badges */
-    .status-badge {
-        display: inline-block;
-        padding: 5px 12px;
-        border-radius: 40px;
-        font-size: 0.7rem;
-        font-weight: 600;
-        text-transform: capitalize;
-        white-space: nowrap;
-    }
-
-    .status-pending {
-        background: #fef3c7;
-        color: #92400e;
-    }
-
-    .status-confirmed {
-        background: #d1fae5;
-        color: #065f46;
-    }
-
-    .status-completed {
-        background: #dbeafe;
-        color: #1e40af;
-    }
-
-    .status-cancelled {
-        background: #fee2e2;
-        color: #991b1b;
-    }
-
-    /* Loading States */
-    .loading-state {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
-        padding: 40px;
-        color: var(--text-muted);
-    }
-
-    .loading-spinner {
-        width: 40px;
-        height: 40px;
-        border: 3px solid var(--psa-gray);
-        border-top-color: var(--psa-accent);
-        border-radius: 50%;
-        animation: spin 1s linear infinite;
-        margin-bottom: 12px;
-    }
-
-    @keyframes spin {
-        to {
-            transform: rotate(360deg);
-        }
-    }
-
-    /* Animations */
-    @keyframes fadeInUp {
-        from {
-            opacity: 0;
-            transform: translateY(20px);
-        }
-
-        to {
-            opacity: 1;
-            transform: translateY(0);
-        }
-    }
-
-    .stat-card,
-    .chart-card,
-    .schedule-card {
-        animation: fadeInUp 0.5s ease-out;
-    }
-
-    .stat-card:nth-child(1) {
-        animation-delay: 0.05s;
-    }
-
-    .stat-card:nth-child(2) {
-        animation-delay: 0.1s;
-    }
-
-    .stat-card:nth-child(3) {
-        animation-delay: 0.15s;
-    }
-
-    .stat-card:nth-child(4) {
-        animation-delay: 0.2s;
-    }
-
-    .stat-card:nth-child(5) {
-        animation-delay: 0.25s;
-    }
-
-    /* Responsive Design */
-    @media (max-width: 1280px) {
-        .stats-grid {
-            gap: 20px;
-        }
-    }
-
-    @media (max-width: 1024px) {
-        .charts-row {
-            grid-template-columns: 1fr;
-        }
-
-        .stats-grid {
-            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-        }
-    }
-
-    @media (max-width: 768px) {
-        .dashboard-container {
-            padding: 0;
-        }
-
-        .welcome-section {
-            padding: 20px;
-            margin-bottom: 24px;
-        }
-
-        .stats-grid {
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 16px;
-            margin-bottom: 24px;
-        }
-
-        .stat-value {
-            font-size: 1.6rem;
-        }
-
-        .stat-icon-circle {
-            width: 44px;
-            height: 44px;
-        }
-
-        .stat-icon-circle i {
-            font-size: 1.3rem;
-        }
-
-        .dashboard-grid {
-            grid-template-columns: 1fr;
-            gap: 20px;
-        }
-
-        .chart-body {
-            height: 250px;
-            padding: 16px;
-        }
-
-        .chart-header {
-            padding: 16px 20px;
-        }
-
-        .card-header {
-            padding: 14px 20px;
-        }
-
-        .schedule-time {
-            min-width: 80px;
-            font-size: 0.75rem;
-        }
-
-        .schedule-item {
-            padding: 12px 20px;
-        }
-    }
-
-    @media (max-width: 640px) {
-        .stats-grid {
-            grid-template-columns: 1fr;
-            gap: 14px;
-        }
-
-        .dashboard-title {
-            font-size: 1.3rem;
-        }
-
-        .welcome-section {
-            flex-direction: column;
-            align-items: flex-start;
-            gap: 12px;
-        }
-
-        .date-display {
-            width: 100%;
-            justify-content: center;
-        }
-
-        .card-header {
-            flex-direction: column;
-            align-items: flex-start;
-            gap: 10px;
-        }
-
-        .schedule-item {
-            flex-wrap: wrap;
-            gap: 10px;
-        }
-
-        .schedule-time {
-            width: 100%;
-            min-width: auto;
-        }
-
-        .schedule-info {
-            padding-left: 0;
-            width: 100%;
-        }
-
-        .status-badge {
-            margin-left: auto;
-        }
-
-        .chart-filter {
-            width: 100%;
-        }
-
-        .chart-title {
-            font-size: 0.95rem;
-        }
-    }
-
-    @media (max-width: 480px) {
-        .welcome-section {
-            padding: 16px;
-        }
-
-        .stat-card {
-            padding: 16px;
-        }
-
-        .stat-value {
-            font-size: 1.4rem;
-        }
-
-        .chart-body {
-            height: 200px;
-            padding: 12px;
-        }
-
-        .schedule-item {
-            padding: 12px 16px;
-        }
-
-        .schedule-title {
-            font-size: 0.85rem;
-        }
-    }
-
-    /* Print Styles */
-    @media print {
-        .dashboard-container {
-            background: white;
-            padding: 20px;
-        }
-
-        .stat-card,
-        .chart-card,
-        .schedule-card {
-            break-inside: avoid;
-            box-shadow: none;
-            border: 1px solid #ddd;
-        }
-
-        .chart-filter,
-        .view-link {
-            display: none;
-        }
-
-        .stat-card:hover {
-            transform: none;
-        }
-    }
-</style>
 @section('content')
     <div class="dashboard-container">
         <!-- Welcome Section -->
         <div class="welcome-section">
             <div>
                 <h1 class="dashboard-title">Admin Dashboard</h1>
+                <p class="dashboard-subtitle">Overview of your appointment system</p>
             </div>
             <div class="date-display">
                 <i class="fas fa-calendar-alt"></i>
@@ -716,93 +13,166 @@
             </div>
         </div>
 
-        <!-- All Stats in ONE Row - 8 Cards -->
+        <!-- Row 1: Stats Grid - 4 Cards -->
         <div class="stats-grid">
-            <!-- Total Appointments -->
             <div class="stat-card">
                 <div class="stat-card-content">
                     <div class="stat-info">
                         <h6 class="stat-label">Total Appointments</h6>
-                        <h2 class="stat-value">{{ $totalAppointments ?? 156 }}</h2>
-                        <p class="stat-trend trend-up">
-                            <i class="fas fa-arrow-up"></i> +12%
-                        </p>
+                        <h2 class="stat-value">{{ $totalAppointments }}</h2>
+                        <p class="stat-trend trend-up"><i class="fas fa-chart-line"></i> All time total</p>
                     </div>
-                    <div class="stat-icon-circle">
-                        <i class="fas fa-calendar-check"></i>
-                    </div>
+                    <div class="stat-icon-circle"><i class="fas fa-calendar-check"></i></div>
                 </div>
             </div>
 
-            <!-- Pending Approval -->
             <div class="stat-card">
                 <div class="stat-card-content">
                     <div class="stat-info">
-                        <h6 class="stat-label">Pending Approval</h6>
-                        <h2 class="stat-value text-warning">{{ $pendingAppointments ?? 8 }}</h2>
-                        <p class="stat-trend trend-neutral">
-                            <i class="fas fa-clock"></i> Awaiting
-                        </p>
+                        <h6 class="stat-label">Today's Appointments</h6>
+                        <h2 class="stat-value">{{ $todayAppointments }}</h2>
+                        <p class="stat-trend trend-neutral"><i class="fas fa-calendar-day"></i> Scheduled today</p>
                     </div>
-                    <div class="stat-icon-circle warning-bg">
-                        <i class="fas fa-clock"></i>
-                    </div>
+                    <div class="stat-icon-circle"><i class="fas fa-calendar-day"></i></div>
                 </div>
             </div>
 
-            <!-- Confirmed -->
-            <div class="stat-card">
-                <div class="stat-card-content">
-                    <div class="stat-info">
-                        <h6 class="stat-label">Confirmed</h6>
-                        <h2 class="stat-value text-success">{{ $confirmedAppointments ?? 42 }}</h2>
-                        <p class="stat-trend trend-up">
-                            <i class="fas fa-check"></i> +5%
-                        </p>
-                    </div>
-                    <div class="stat-icon-circle success-bg">
-                        <i class="fas fa-check-circle"></i>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Completed -->
             <div class="stat-card">
                 <div class="stat-card-content">
                     <div class="stat-info">
                         <h6 class="stat-label">Completed</h6>
-                        <h2 class="stat-value text-info">{{ $completedAppointments ?? 98 }}</h2>
-                        <p class="stat-trend trend-up">
-                            <i class="fas fa-chart-line"></i> +23%
-                        </p>
+                        <h2 class="stat-value text-success">{{ $completedAppointments }}</h2>
+                        <p class="stat-trend trend-up"><i class="fas fa-check-double"></i> Successfully done</p>
                     </div>
-                    <div class="stat-icon-circle info-bg">
-                        <i class="fas fa-check-double"></i>
-                    </div>
+                    <div class="stat-icon-circle success-bg"><i class="fas fa-check-double"></i></div>
                 </div>
             </div>
 
-            <!-- Total Users -->
             <div class="stat-card">
                 <div class="stat-card-content">
                     <div class="stat-info">
-                        <h6 class="stat-label">Total Users {{ $totalUsers ?? '' }}</h6>
-                        <h6 class="stat-label">Staff Users {{ $staffUsers ?? '0' }}</h6>
-                        <h6 class="stat-label">Active Staff{{ $activeStaff ?? '' }}</h6>
+                        <h6 class="stat-label">System Users</h6>
+                        <div class="user-stats">
+                            <div class="user-stat-item"><span class="user-stat-label">Admins:</span><span
+                                    class="user-stat-value">{{ $totalAdmins }}</span></div>
+                            <div class="user-stat-item"><span class="user-stat-label">Staff:</span><span
+                                    class="user-stat-value">{{ $totalStaff }}</span></div>
+                            <div class="user-stat-item"><span class="user-stat-label">Active Staff:</span><span
+                                    class="user-stat-value">{{ $activeStaff }}</span></div>
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
 
-        <!-- Charts Row -->
-        <div class="charts-row">
+        <!-- Row 2: Total Appointment Places (Full Width Left) | Calendar (Right) -->
+        <div class="row-2-layout">
+            <!-- Total Appointment Places Card -->
+            <div class="places-card">
+                <div class="card-header">
+                    <h5 class="card-title"><i class="fas fa-map-marker-alt"></i> Total Appointment By Places</h5>
+                    <div class="places-filters">
+                        <select id="placesFilter" class="places-filter">
+                            <option value="all">All Time</option>
+                            <option value="today">Today</option>
+                            <option value="weekly">This Week</option>
+                            <option value="monthly">This Month</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="places-list" id="placesList">
+                    @foreach ($appointmentPlaces as $place)
+                        <div class="place-item">
+                            <div class="place-info"><i class="fas fa-location-dot"></i><span
+                                    class="place-name">{{ $place['name'] }}</span></div>
+                            <div class="place-count"><span class="count-number">{{ $place['count'] }}</span><span
+                                    class="count-label">Appointments</span></div>
+                            <div class="place-progress">
+                                <div class="progress-bar"
+                                    style="width: {{ $place['percentage'] }}%; background: {{ $place['color'] }}"></div>
+                            </div>
+                        </div>
+                    @endforeach
+                </div>
+            </div>
+
+            <!-- Calendar Card -->
+            <div class="calendar-card">
+                <div class="card-header">
+                    <h5 class="card-title"><i class="fas fa-calendar-alt"></i> Calendar Overview</h5>
+                    <div class="calendar-filters">
+                        <select id="calendarMonthFilter" class="calendar-filter">
+                            @for ($m = 1; $m <= 12; $m++)
+                                <option value="{{ $m }}" {{ now()->month == $m ? 'selected' : '' }}>
+                                    {{ date('F', mktime(0, 0, 0, $m, 1)) }}</option>
+                            @endfor
+                        </select>
+                        <select id="calendarYearFilter" class="calendar-filter">
+                            @for ($y = now()->year; $y <= now()->year + 1; $y++)
+                                <option value="{{ $y }}" {{ now()->year == $y ? 'selected' : '' }}>
+                                    {{ $y }}</option>
+                            @endfor
+                        </select>
+                    </div>
+                </div>
+                <div class="calendar-body">
+                    <div class="calendar-weekdays">
+                        <div class="weekday">Sun</div>
+                        <div class="weekday">Mon</div>
+                        <div class="weekday">Tue</div>
+                        <div class="weekday">Wed</div>
+                        <div class="weekday">Thu</div>
+                        <div class="weekday">Fri</div>
+                        <div class="weekday">Sat</div>
+                    </div>
+                    <div class="calendar-days" id="calendarDays"></div>
+                </div>
+                <div class="calendar-legend">
+                    <div class="legend-item"><span class="legend-color available"></span><span>Available (>0 slots)</span>
+                    </div>
+                    <div class="legend-item"><span class="legend-color full"></span><span>Full (0 slots)</span></div>
+                    <div class="legend-item"><span class="legend-color partial"></span><span>Partial (<50%)< /span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Row 3: Summary Overview | Status Distribution | Appointment Trends -->
+        <div class="row-3-layout">
+            <!-- Summary Chart - Spline/Line Chart -->
+            <div class="chart-card">
+                <div class="chart-header">
+                    <h5 class="chart-title"><i class="fas fa-chart-line"></i> Summary Overview</h5>
+                    <select id="summaryFilter" class="chart-filter">
+                        <option value="today">Today</option>
+                        <option value="yesterday">Yesterday</option>
+                        <option value="weekly">This Week</option>
+                        <option value="monthly">This Month</option>
+                        <option value="yearly">This Year</option>
+                    </select>
+                </div>
+                <div class="chart-body"><canvas id="summaryChart"></canvas></div>
+            </div>
+
+            <!-- Status Distribution - Bump Chart -->
+            <div class="chart-card">
+                <div class="chart-header">
+                    <h5 class="chart-title"><i class="fas fa-chart-line"></i> Status Distribution</h5>
+                    <select id="statusPeriodFilter" class="chart-filter">
+                        <option value="today">Today</option>
+                        <option value="yesterday">Yesterday</option>
+                        <option value="weekly">This Week</option>
+                        <option value="monthly">This Month</option>
+                        <option value="yearly">This Year</option>
+                    </select>
+                </div>
+                <div class="chart-body"><canvas id="statusDistributionChart"></canvas></div>
+            </div>
+
             <!-- Appointment Trends Chart -->
             <div class="chart-card">
                 <div class="chart-header">
-                    <h5 class="chart-title">
-                        <i class="fas fa-chart-line"></i>
-                        Appointment Trends
-                    </h5>
+                    <h5 class="chart-title"><i class="fas fa-chart-line"></i> Appointment Trends</h5>
                     <select class="chart-filter" id="trendFilter">
                         <option value="today">Today</option>
                         <option value="yesterday">Yesterday</option>
@@ -811,369 +181,699 @@
                         <option value="yearly">This Year</option>
                     </select>
                 </div>
-                <div class="chart-body">
-                    <canvas id="appointmentTrendsChart"></canvas>
-                </div>
-            </div>
-
-            <!-- Status Distribution Chart -->
-            <div class="chart-card">
-                <div class="chart-header">
-                    <h5 class="chart-title">
-                        <i class="fas fa-chart-pie"></i>
-                        Status Distribution
-                    </h5>
-                    <span class="chart-subtitle">Current appointment statuses</span>
-                </div>
-                <div class="chart-body">
-                    <canvas id="statusDistributionChart"></canvas>
-                </div>
+                <div class="chart-body"><canvas id="appointmentTrendsChart"></canvas></div>
             </div>
         </div>
 
-        <!-- Dashboard Grid - Only Recent Appointments and Staff Directory -->
-        <div class="dashboard-grid">
-            <!-- Recent Appointments Card -->
+        <!-- Row 4: Upcoming Appointments -->
+        <div class="upcoming-section">
             <div class="schedule-card">
                 <div class="card-header">
-                    <h5 class="card-title">
-                        <i class="fas fa-list-alt"></i>
-                        Recent Appointments
-                    </h5>
-                    <a href="#" class="view-link">
-                        View All <i class="fas fa-arrow-right"></i>
-                    </a>
+                    <h5 class="card-title"><i class="fas fa-list-alt"></i> Upcoming Appointments</h5>
+                    <a href="{{ route('admin.appointments.index') }}" class="view-link">View All <i
+                            class="fas fa-arrow-right"></i></a>
                 </div>
                 <div class="schedule-list">
-                    <!-- Sample Recent Appointments Data -->
-                    <div class="schedule-item">
-                        <div class="schedule-time">
-                            <i class="far fa-calendar-alt"></i>
-                            Dec 15, 2024
+                    @forelse($upcomingAppointments as $appointment)
+                        <div class="schedule-item"
+                            onclick="window.location='{{ route('admin.appointments.show', $appointment->id) }}'">
+                            <div class="schedule-time">
+                                <i class="far fa-calendar-alt"></i>
+                                {{ date('M d, Y', strtotime($appointment->appointment_date)) }}
+                                <span
+                                    class="schedule-time-small">{{ date('h:i A', strtotime($appointment->appointment_time ?? '09:00')) }}</span>
+                            </div>
+                            <div class="schedule-info">
+                                <div class="schedule-title">{{ $appointment->appointment_number }}</div>
+                                <div class="schedule-subtitle">{{ $appointment->contact_name }} -
+                                    {{ $appointment->clients->count() }} client(s)</div>
+                            </div>
+                            <span
+                                class="status-badge status-{{ $appointment->status }}">{{ ucfirst($appointment->status) }}</span>
                         </div>
-                        <div class="schedule-info">
-                            <div class="schedule-title">APT-2024-0156</div>
-                            <div class="schedule-subtitle">John Smith - 2 clients</div>
+                    @empty
+                        <div class="empty-state"><i class="fas fa-calendar-times"></i>
+                            <h4>No upcoming appointments</h4>
                         </div>
-                        <span class="status-badge status-confirmed">Confirmed</span>
-                    </div>
-                    <div class="schedule-item">
-                        <div class="schedule-time">
-                            <i class="far fa-calendar-alt"></i>
-                            Dec 14, 2024
-                        </div>
-                        <div class="schedule-info">
-                            <div class="schedule-title">APT-2024-0155</div>
-                            <div class="schedule-subtitle">Emma Wilson - 1 client</div>
-                        </div>
-                        <span class="status-badge status-completed">Completed</span>
-                    </div>
-                    <div class="schedule-item">
-                        <div class="schedule-time">
-                            <i class="far fa-calendar-alt"></i>
-                            Dec 14, 2024
-                        </div>
-                        <div class="schedule-info">
-                            <div class="schedule-title">APT-2024-0154</div>
-                            <div class="schedule-subtitle">Michael Brown - 3 clients</div>
-                        </div>
-                        <span class="status-badge status-pending">Pending</span>
-                    </div>
-                    <div class="schedule-item">
-                        <div class="schedule-time">
-                            <i class="far fa-calendar-alt"></i>
-                            Dec 13, 2024
-                        </div>
-                        <div class="schedule-info">
-                            <div class="schedule-title">APT-2024-0153</div>
-                            <div class="schedule-subtitle">Lisa Davis - 1 client</div>
-                        </div>
-                        <span class="status-badge status-confirmed">Confirmed</span>
-                    </div>
-                    <div class="schedule-item">
-                        <div class="schedule-time">
-                            <i class="far fa-calendar-alt"></i>
-                            Dec 13, 2024
-                        </div>
-                        <div class="schedule-info">
-                            <div class="schedule-title">APT-2024-0152</div>
-                            <div class="schedule-subtitle">David Lee - 2 clients</div>
-                        </div>
-                        <span class="status-badge status-completed">Completed</span>
-                    </div>
+                    @endforelse
                 </div>
             </div>
         </div>
     </div>
 @endsection
 
-@push('scripts')
-    <!-- Include Chart.js -->
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            let appointmentTrendsChart;
-            let statusDistributionChart;
+<script>
+    // Data from PHP
+    const chartData = {
+        today: {
+            labels: @json($todayLabels),
+            data: @json($todayData)
+        },
+        yesterday: {
+            labels: @json($yesterdayLabels),
+            data: @json($yesterdayData)
+        },
+        weekly: {
+            labels: @json($weeklyLabels),
+            data: @json($weeklyData)
+        },
+        monthly: {
+            labels: @json($monthlyLabels),
+            data: @json($monthlyData)
+        },
+        yearly: {
+            labels: @json($yearlyLabels),
+            data: @json($yearlyData)
+        }
+    };
 
-            // Sample data for different time periods including Today and Yesterday
-            const chartData = {
-                today: {
-                    labels: ['12 AM', '2 AM', '4 AM', '6 AM', '8 AM', '10 AM', '12 PM', '2 PM', '4 PM', '6 PM',
-                        '8 PM', '10 PM'
-                    ],
-                    data: [0, 0, 0, 1, 3, 8, 12, 15, 10, 6, 2, 1]
-                },
-                yesterday: {
-                    labels: ['12 AM', '2 AM', '4 AM', '6 AM', '8 AM', '10 AM', '12 PM', '2 PM', '4 PM', '6 PM',
-                        '8 PM', '10 PM'
-                    ],
-                    data: [0, 0, 1, 2, 4, 7, 11, 14, 12, 8, 3, 1]
-                },
-                weekly: {
-                    labels: ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'],
-                    data: [12, 19, 15, 17, 14, 10, 8]
-                },
-                monthly: {
-                    labels: ['Week 1', 'Week 2', 'Week 3', 'Week 4'],
-                    data: [45, 62, 58, 71]
-                },
-                yearly: {
-                    labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov',
-                        'Dec'
-                    ],
-                    data: [65, 72, 85, 78, 92, 88, 95, 102, 98, 105, 112, 118]
-                }
-            };
+    const summaryStatsData = @json($summaryStatsData);
 
-            // Initialize Appointment Trends Chart
-            function initAppointmentTrendsChart(period = 'monthly') {
-                const ctx = document.getElementById('appointmentTrendsChart').getContext('2d');
+    const slotData = @json($calendarSlotData);
+    const statusTimeData = @json($statusTimeData ?? []);
 
-                if (appointmentTrendsChart) {
-                    appointmentTrendsChart.destroy();
-                }
+    let appointmentTrendsChart, statusBumpChart, summaryChart;
 
-                // Get the appropriate label and data based on period
-                let labels = chartData[period].labels;
-                let data = chartData[period].data;
-                let labelText = 'Appointments';
+    // ============================================
+    // SUMMARY CHART - With Filter and Summary
+    // ============================================
 
-                // Customize label based on period
-                if (period === 'today' || period === 'yesterday') {
-                    labelText = period === 'today' ? 'Today\'s Appointments' : 'Yesterday\'s Appointments';
-                } else if (period === 'weekly') {
-                    labelText = 'Weekly Appointments';
-                } else if (period === 'monthly') {
-                    labelText = 'Monthly Appointments';
-                } else if (period === 'yearly') {
-                    labelText = 'Yearly Appointments';
-                }
+    function getSummaryDataForPeriod(period) {
+        const stats = summaryStatsData[period] || summaryStatsData.today;
+        return {
+            labels: ['Total', 'Pending', 'Confirmed', 'Completed', 'Cancelled'],
+            data: [stats.total, stats.pending, stats.confirmed, stats.completed, stats.cancelled]
+        };
+    }
 
-                appointmentTrendsChart = new Chart(ctx, {
-                    type: 'line',
-                    data: {
-                        labels: labels,
-                        datasets: [{
-                            label: labelText,
-                            data: data,
-                            borderColor: '#1D4ED8',
-                            backgroundColor: 'rgba(29, 78, 216, 0.1)',
-                            borderWidth: 3,
-                            tension: 0.4,
-                            fill: true,
-                            pointBackgroundColor: '#1D4ED8',
-                            pointBorderColor: '#fff',
-                            pointBorderWidth: 2,
-                            pointRadius: 4,
-                            pointHoverRadius: 6,
-                            pointHoverBackgroundColor: '#0F3B6F'
-                        }]
+    function updateSummaryChartSummary(data) {
+        const container = document.getElementById('summaryChartSummary');
+        if (!container) return;
+
+        const total = data.data[0];
+        const pending = data.data[1];
+        const confirmed = data.data[2];
+        const completed = data.data[3];
+        const cancelled = data.data[4];
+
+        container.innerHTML = `
+            <div class="chart-summary-grid">
+                <div class="summary-item total"><span class="summary-label">Total:</span><span class="summary-value">${total}</span></div>
+                <div class="summary-item pending"><span class="summary-label">Pending:</span><span class="summary-value">${pending}</span></div>
+                <div class="summary-item confirmed"><span class="summary-label">Confirmed:</span><span class="summary-value">${confirmed}</span></div>
+                <div class="summary-item completed"><span class="summary-label">Completed:</span><span class="summary-value">${completed}</span></div>
+                <div class="summary-item cancelled"><span class="summary-label">Cancelled:</span><span class="summary-value">${cancelled}</span></div>
+            </div>
+        `;
+    }
+
+    function initSummaryChart(period = 'monthly') {
+        const ctx = document.getElementById('summaryChart').getContext('2d');
+        if (summaryChart) summaryChart.destroy();
+
+        const {
+            labels,
+            data
+        } = getSummaryDataForPeriod(period);
+
+        summaryChart = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: labels,
+                datasets: [{
+                    label: 'Count',
+                    data: data,
+                    backgroundColor: ['#0f3b6f', '#f59e0b', '#10b981', '#3b82f6', '#ef4444'],
+                    borderRadius: 8,
+                    barPercentage: 0.7
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        display: false
                     },
-                    options: {
-                        responsive: true,
-                        maintainAspectRatio: false,
-                        plugins: {
-                            legend: {
-                                position: 'top',
-                                labels: {
-                                    usePointStyle: true,
-                                    boxWidth: 10,
-                                    font: {
-                                        size: 12
-                                    }
-                                }
-                            },
-                            tooltip: {
-                                backgroundColor: 'rgba(0, 0, 0, 0.8)',
-                                titleColor: '#fff',
-                                bodyColor: '#fff',
-                                borderColor: '#1D4ED8',
-                                borderWidth: 1,
-                                callbacks: {
-                                    label: function(context) {
-                                        return `${context.dataset.label}: ${context.raw}`;
-                                    }
-                                }
+                    tooltip: {
+                        backgroundColor: 'rgba(0,0,0,0.8)',
+                        callbacks: {
+                            label: function(context) {
+                                return `${context.label}: ${context.raw}`;
                             }
-                        },
-                        scales: {
-                            y: {
-                                beginAtZero: true,
-                                grid: {
-                                    color: 'rgba(0, 0, 0, 0.05)',
-                                    drawBorder: false
-                                },
-                                ticks: {
-                                    stepSize: period === 'today' || period === 'yesterday' ? 5 : 20,
-                                    font: {
-                                        size: 11
-                                    }
-                                },
-                                title: {
-                                    display: true,
-                                    text: 'Number of Appointments',
-                                    font: {
-                                        size: 12,
-                                        weight: 'bold'
-                                    }
-                                }
-                            },
-                            x: {
-                                grid: {
-                                    display: false
-                                },
-                                ticks: {
-                                    font: {
-                                        size: 11
-                                    },
-                                    maxRotation: period === 'today' || period === 'yesterday' ? 45 : 0,
-                                    minRotation: period === 'today' || period === 'yesterday' ? 45 : 0
-                                }
-                            }
-                        },
-                        interaction: {
-                            intersect: false,
-                            mode: 'index'
                         }
                     }
-                });
-            }
-
-            // Initialize Status Distribution Chart
-            function initStatusDistributionChart() {
-                const ctx = document.getElementById('statusDistributionChart').getContext('2d');
-
-                statusDistributionChart = new Chart(ctx, {
-                    type: 'doughnut',
-                    data: {
-                        labels: ['Pending Approval', 'Confirmed', 'Completed', 'Cancelled'],
-                        datasets: [{
-                            data: [8, 42, 98, 12],
-                            backgroundColor: [
-                                '#F59E0B',
-                                '#10B981',
-                                '#3B82F6',
-                                '#EF4444'
-                            ],
-                            borderColor: '#ffffff',
-                            borderWidth: 2,
-                            hoverOffset: 10,
-                            offset: 5
-                        }]
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        grid: {
+                            color: 'rgba(0,0,0,0.05)'
+                        },
+                        title: {
+                            display: true,
+                            text: 'Count'
+                        }
                     },
-                    options: {
-                        responsive: true,
-                        maintainAspectRatio: false,
-                        plugins: {
-                            legend: {
-                                position: 'bottom',
-                                labels: {
-                                    usePointStyle: true,
-                                    padding: 15,
-                                    font: {
-                                        size: 12
-                                    },
-                                    generateLabels: function(chart) {
-                                        const data = chart.data;
-                                        if (data.labels.length && data.datasets.length) {
-                                            return data.labels.map((label, i) => {
-                                                const dataset = data.datasets[0];
-                                                const value = dataset.data[i];
-                                                const total = dataset.data.reduce((a, b) => a +
-                                                    b, 0);
-                                                const percentage = ((value / total) * 100)
-                                                    .toFixed(1);
+                    x: {
+                        grid: {
+                            display: false
+                        },
+                        title: {
+                            display: true,
+                        }
+                    }
+                }
+            }
+        });
 
-                                                return {
-                                                    text: `${label} (${percentage}%)`,
-                                                    fillStyle: dataset.backgroundColor[i],
-                                                    strokeStyle: dataset.borderColor,
-                                                    lineWidth: dataset.borderWidth,
-                                                    hidden: false,
-                                                    index: i
-                                                };
-                                            });
-                                        }
-                                        return [];
-                                    }
-                                }
-                            },
-                            tooltip: {
-                                backgroundColor: 'rgba(0, 0, 0, 0.8)',
-                                titleColor: '#fff',
-                                bodyColor: '#fff',
-                                callbacks: {
-                                    label: function(context) {
-                                        const label = context.label || '';
-                                        const value = context.raw || 0;
-                                        const total = context.dataset.data.reduce((a, b) => a + b, 0);
-                                        const percentage = ((value / total) * 100).toFixed(1);
-                                        return `${label}: ${value} (${percentage}%)`;
-                                    }
-                                }
+        updateSummaryChartSummary({
+            labels,
+            data
+        });
+    }
+
+    // ============================================
+    // STATUS DISTRIBUTION - BUMP CHART
+    // ============================================
+
+    function getStatusCountsForPeriod(period) {
+        const today = new Date();
+        const labels = [];
+        const pendingData = [];
+        const confirmedData = [];
+        const completedData = [];
+        const cancelledData = [];
+
+        if (period === 'today') {
+            const dateKey = today.toISOString().split('T')[0];
+            labels.push('Today');
+            pendingData.push(statusTimeData[dateKey]?.pending || 0);
+            confirmedData.push(statusTimeData[dateKey]?.confirmed || 0);
+            completedData.push(statusTimeData[dateKey]?.completed || 0);
+            cancelledData.push(statusTimeData[dateKey]?.cancelled || 0);
+        } else if (period === 'yesterday') {
+            const yesterday = new Date();
+            yesterday.setDate(today.getDate() - 1);
+            const dateKey = yesterday.toISOString().split('T')[0];
+            labels.push('Yesterday');
+            pendingData.push(statusTimeData[dateKey]?.pending || 0);
+            confirmedData.push(statusTimeData[dateKey]?.confirmed || 0);
+            completedData.push(statusTimeData[dateKey]?.completed || 0);
+            cancelledData.push(statusTimeData[dateKey]?.cancelled || 0);
+        } else if (period === 'weekly') {
+            for (let i = 6; i >= 0; i--) {
+                const date = new Date();
+                date.setDate(today.getDate() - i);
+                const dateKey = date.toISOString().split('T')[0];
+                labels.push(date.toLocaleDateString('en-US', {
+                    weekday: 'short',
+                    month: 'short',
+                    day: 'numeric'
+                }));
+                pendingData.push(statusTimeData[dateKey]?.pending || 0);
+                confirmedData.push(statusTimeData[dateKey]?.confirmed || 0);
+                completedData.push(statusTimeData[dateKey]?.completed || 0);
+                cancelledData.push(statusTimeData[dateKey]?.cancelled || 0);
+            }
+        } else if (period === 'monthly') {
+            const daysInMonth = new Date(today.getFullYear(), today.getMonth() + 1, 0).getDate();
+            for (let i = 1; i <= daysInMonth; i++) {
+                const dateKey =
+                    `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(i).padStart(2, '0')}`;
+                labels.push(`Day ${i}`);
+                pendingData.push(statusTimeData[dateKey]?.pending || 0);
+                confirmedData.push(statusTimeData[dateKey]?.confirmed || 0);
+                completedData.push(statusTimeData[dateKey]?.completed || 0);
+                cancelledData.push(statusTimeData[dateKey]?.cancelled || 0);
+            }
+        } else if (period === 'yearly') {
+            const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+            for (let i = 0; i < 12; i++) {
+                labels.push(months[i]);
+                let pendingSum = 0,
+                    confirmedSum = 0,
+                    completedSum = 0,
+                    cancelledSum = 0;
+                const daysInMonth = new Date(today.getFullYear(), i + 1, 0).getDate();
+                for (let d = 1; d <= daysInMonth; d++) {
+                    const dateKey =
+                        `${today.getFullYear()}-${String(i + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
+                    pendingSum += statusTimeData[dateKey]?.pending || 0;
+                    confirmedSum += statusTimeData[dateKey]?.confirmed || 0;
+                    completedSum += statusTimeData[dateKey]?.completed || 0;
+                    cancelledSum += statusTimeData[dateKey]?.cancelled || 0;
+                }
+                pendingData.push(pendingSum);
+                confirmedData.push(confirmedSum);
+                completedData.push(completedSum);
+                cancelledData.push(cancelledSum);
+            }
+        }
+
+        return {
+            labels,
+            pendingData,
+            confirmedData,
+            completedData,
+            cancelledData
+        };
+    }
+
+    function updateStatusSummary(pendingData, confirmedData, completedData, cancelledData) {
+        const summaryContainer = document.getElementById('statusSummary');
+        if (!summaryContainer) return;
+
+        const totalPending = pendingData.reduce((a, b) => a + b, 0);
+        const totalConfirmed = confirmedData.reduce((a, b) => a + b, 0);
+        const totalCompleted = completedData.reduce((a, b) => a + b, 0);
+        const totalCancelled = cancelledData.reduce((a, b) => a + b, 0);
+        const total = totalPending + totalConfirmed + totalCompleted + totalCancelled;
+
+        summaryContainer.innerHTML = `
+            <div class="status-summary-grid">
+                <div class="status-summary-item pending"><span class="status-dot"></span><span class="status-label">Pending</span><span class="status-total">${totalPending}</span><span class="status-percentage">(${total > 0 ? ((totalPending / total) * 100).toFixed(1) : 0}%)</span></div>
+                <div class="status-summary-item confirmed"><span class="status-dot"></span><span class="status-label">Confirmed</span><span class="status-total">${totalConfirmed}</span><span class="status-percentage">(${total > 0 ? ((totalConfirmed / total) * 100).toFixed(1) : 0}%)</span></div>
+                <div class="status-summary-item completed"><span class="status-dot"></span><span class="status-label">Completed</span><span class="status-total">${totalCompleted}</span><span class="status-percentage">(${total > 0 ? ((totalCompleted / total) * 100).toFixed(1) : 0}%)</span></div>
+                <div class="status-summary-item cancelled"><span class="status-dot"></span><span class="status-label">Cancelled</span><span class="status-total">${totalCancelled}</span><span class="status-percentage">(${total > 0 ? ((totalCancelled / total) * 100).toFixed(1) : 0}%)</span></div>
+            </div>
+        `;
+    }
+
+    function initStatusBumpChart(period = 'weekly') {
+        const ctx = document.getElementById('statusDistributionChart').getContext('2d');
+        if (statusBumpChart) statusBumpChart.destroy();
+
+        const {
+            labels,
+            pendingData,
+            confirmedData,
+            completedData,
+            cancelledData
+        } = getStatusCountsForPeriod(period);
+
+        statusBumpChart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: labels,
+                datasets: [{
+                        label: 'Pending',
+                        data: pendingData,
+                        borderColor: '#f59e0b',
+                        backgroundColor: 'transparent',
+                        borderWidth: 2,
+                        tension: 0.3,
+                        fill: false,
+                        pointBackgroundColor: '#f59e0b',
+                        pointBorderColor: '#fff',
+                        pointBorderWidth: 2,
+                        pointRadius: 4,
+                        pointHoverRadius: 6,
+                        pointStyle: 'circle'
+                    },
+                    {
+                        label: 'Confirmed',
+                        data: confirmedData,
+                        borderColor: '#10b981',
+                        backgroundColor: 'transparent',
+                        borderWidth: 2,
+                        tension: 0.3,
+                        fill: false,
+                        pointBackgroundColor: '#10b981',
+                        pointBorderColor: '#fff',
+                        pointBorderWidth: 2,
+                        pointRadius: 4,
+                        pointHoverRadius: 6,
+                        pointStyle: 'circle'
+                    },
+                    {
+                        label: 'Completed',
+                        data: completedData,
+                        borderColor: '#3b82f6',
+                        backgroundColor: 'transparent',
+                        borderWidth: 2,
+                        tension: 0.3,
+                        fill: false,
+                        pointBackgroundColor: '#3b82f6',
+                        pointBorderColor: '#fff',
+                        pointBorderWidth: 2,
+                        pointRadius: 4,
+                        pointHoverRadius: 6,
+                        pointStyle: 'circle'
+                    },
+                    {
+                        label: 'Cancelled',
+                        data: cancelledData,
+                        borderColor: '#ef4444',
+                        backgroundColor: 'transparent',
+                        borderWidth: 2,
+                        tension: 0.3,
+                        fill: false,
+                        pointBackgroundColor: '#ef4444',
+                        pointBorderColor: '#fff',
+                        pointBorderWidth: 2,
+                        pointRadius: 4,
+                        pointHoverRadius: 6,
+                        pointStyle: 'circle'
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                interaction: {
+                    mode: 'index',
+                    intersect: false
+                },
+                plugins: {
+                    legend: {
+                        position: 'bottom',
+                        labels: {
+                            usePointStyle: true,
+                            padding: 15,
+                            font: {
+                                size: 11
+                            }
+                        }
+                    },
+                    tooltip: {
+                        backgroundColor: 'rgba(0,0,0,0.8)',
+                        titleColor: '#fff',
+                        bodyColor: '#fff',
+                        callbacks: {
+                            label: function(context) {
+                                return `${context.dataset.label}: ${context.raw} appointments`;
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        grid: {
+                            color: 'rgba(0,0,0,0.05)'
+                        },
+                        title: {
+                            display: true,
+                            text: 'Number of Appointments',
+                            font: {
+                                size: 11
                             }
                         },
-                        cutout: '60%',
-                        radius: '70%'
+                        ticks: {
+                            stepSize: 1,
+                            precision: 0
+                        }
+                    },
+                    x: {
+                        grid: {
+                            display: false
+                        },
+                        title: {
+                            display: true,
+                            text: period === 'weekly' ? 'Day' : period === 'monthly' ? 'Day of Month' : 'Month',
+                            font: {
+                                size: 11
+                            }
+                        },
+                        ticks: {
+                            maxRotation: 45,
+                            minRotation: 45,
+                            autoSkip: true,
+                            maxTicksLimit: 10
+                        }
                     }
-                });
+                }
             }
-
-            // Initialize charts
-            initAppointmentTrendsChart('monthly');
-            initStatusDistributionChart();
-
-            // Handle filter change for appointment trends
-            const trendFilter = document.getElementById('trendFilter');
-            if (trendFilter) {
-                trendFilter.addEventListener('change', function(e) {
-                    initAppointmentTrendsChart(e.target.value);
-                });
-            }
-
-            // Animation on scroll for charts
-            const observerOptions = {
-                threshold: 0.1,
-                rootMargin: '0px 0px -50px 0px'
-            };
-
-            const chartObserver = new IntersectionObserver((entries) => {
-                entries.forEach(entry => {
-                    if (entry.isIntersecting) {
-                        entry.target.style.opacity = '1';
-                        entry.target.style.transform = 'translateY(0)';
-                        chartObserver.unobserve(entry.target);
-                    }
-                });
-            }, observerOptions);
-
-            document.querySelectorAll('.chart-card').forEach(card => {
-                card.style.opacity = '0';
-                card.style.transform = 'translateY(20px)';
-                card.style.transition = 'all 0.5s ease-out';
-                chartObserver.observe(card);
-            });
         });
-    </script>
-@endpush
+
+        updateStatusSummary(pendingData, confirmedData, completedData, cancelledData);
+    }
+
+    // ============================================
+    // APPOINTMENT TRENDS CHART - With Summary
+    // ============================================
+
+    function updateTrendChartSummary(data) {
+        const container = document.getElementById('trendChartSummary');
+        if (!container) return;
+
+        const total = data.reduce((a, b) => a + b, 0);
+        const average = (total / data.length).toFixed(1);
+        const max = Math.max(...data);
+        const min = Math.min(...data);
+
+        container.innerHTML = `
+            <div class="chart-summary-grid">
+                <div class="summary-item"><span class="summary-label">Total:</span><span class="summary-value">${total}</span></div>
+                <div class="summary-item"><span class="summary-label">Average:</span><span class="summary-value">${average}</span></div>
+                <div class="summary-item"><span class="summary-label">Highest:</span><span class="summary-value">${max}</span></div>
+                <div class="summary-item"><span class="summary-label">Lowest:</span><span class="summary-value">${min}</span></div>
+            </div>
+        `;
+    }
+
+    function initAppointmentTrendsChart(period = 'monthly') {
+        const ctx = document.getElementById('appointmentTrendsChart').getContext('2d');
+        if (appointmentTrendsChart) appointmentTrendsChart.destroy();
+        const data = chartData[period];
+        let labelText = period === 'today' ? 'Today\'s Appointments' : period === 'yesterday' ?
+            'Yesterday\'s Appointments' : period === 'weekly' ? 'Weekly Appointments' : period === 'monthly' ?
+            'Monthly Appointments' : 'Yearly Appointments';
+
+        appointmentTrendsChart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: data.labels,
+                datasets: [{
+                    label: labelText,
+                    data: data.data,
+                    borderColor: '#0f3b6f',
+                    backgroundColor: 'rgba(15, 59, 111, 0.1)',
+                    borderWidth: 3,
+                    tension: 0.4,
+                    fill: true,
+                    pointBackgroundColor: '#c49a2c',
+                    pointBorderColor: '#fff',
+                    pointBorderWidth: 2,
+                    pointRadius: 4,
+                    pointHoverRadius: 6
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'top',
+                        labels: {
+                            usePointStyle: true
+                        }
+                    },
+                    tooltip: {
+                        backgroundColor: 'rgba(0,0,0,0.8)'
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        grid: {
+                            color: 'rgba(0,0,0,0.05)'
+                        }
+                    },
+                    x: {
+                        grid: {
+                            display: false
+                        }
+                    }
+                }
+            }
+        });
+
+        updateTrendChartSummary(data.data);
+    }
+
+    // ============================================
+    // CALENDAR FUNCTIONS
+    // ============================================
+
+    function getAvailableYears() {
+        const currentYear = new Date().getFullYear();
+        return [currentYear, currentYear + 1];
+    }
+
+    function updateYearFilter() {
+        const yearFilter = document.getElementById('calendarYearFilter');
+        if (!yearFilter) return;
+        const availableYears = getAvailableYears();
+        const currentYear = new Date().getFullYear();
+        yearFilter.innerHTML = '';
+        availableYears.forEach(year => {
+            const option = document.createElement('option');
+            option.value = year;
+            option.textContent = year;
+            if (year === currentYear) option.selected = true;
+            yearFilter.appendChild(option);
+        });
+    }
+
+    function generateCalendar(year, month) {
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        const firstDay = new Date(year, month - 1, 1);
+        const lastDay = new Date(year, month, 0);
+        const daysInMonth = lastDay.getDate();
+        const startingDay = firstDay.getDay();
+        const calendarDays = document.getElementById('calendarDays');
+        calendarDays.innerHTML = '';
+
+        for (let i = 0; i < startingDay; i++) {
+            const emptyDay = document.createElement('div');
+            emptyDay.className = 'calendar-day empty';
+            calendarDays.appendChild(emptyDay);
+        }
+
+        for (let day = 1; day <= daysInMonth; day++) {
+            const currentDate = new Date(year, month - 1, day);
+            currentDate.setHours(0, 0, 0, 0);
+            const dayOfWeek = currentDate.getDay();
+            const dateKey = `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+            const isPastDate = currentDate < today;
+            const isWeekend = (dayOfWeek === 0 || dayOfWeek === 6);
+            const slots = slotData[dateKey] || {
+                total: 20,
+                booked: 0
+            };
+            const remaining = slots.total - slots.booked;
+
+            let statusClass = '';
+            let isDisabled = false;
+
+            if (isPastDate) {
+                isDisabled = true;
+                statusClass = 'disabled past';
+            } else if (isWeekend) {
+                isDisabled = true;
+                statusClass = 'disabled weekend';
+            } else if (remaining <= 0) {
+                isDisabled = true;
+                statusClass = 'full disabled';
+            } else if (remaining < slots.total / 2) {
+                statusClass = 'partial';
+            } else {
+                statusClass = 'available';
+            }
+
+            const dayElement = document.createElement('div');
+            dayElement.className = `calendar-day ${statusClass}`;
+            dayElement.innerHTML =
+                `<span class="day-number">${day}</span>${!isDisabled && !isWeekend && !isPastDate ? `<span class="slot-info">${remaining} Slots</span>` : ''}${isPastDate ? `<span class="slot-info past-label">Closed</span>` : ''}${remaining <= 0 && !isPastDate && !isWeekend ? `<span class="slot-info full-label">Full</span>` : ''}`;
+            calendarDays.appendChild(dayElement);
+        }
+    }
+
+    function initCalendar() {
+        const currentDate = new Date();
+        const currentMonth = currentDate.getMonth() + 1;
+        const currentYear = currentDate.getFullYear();
+        const monthFilter = document.getElementById('calendarMonthFilter');
+        if (monthFilter) {
+            for (let i = 0; i < monthFilter.options.length; i++) {
+                const option = monthFilter.options[i];
+                const monthValue = parseInt(option.value);
+                if (currentYear === currentDate.getFullYear() && monthValue < currentMonth) {
+                    option.disabled = true;
+                    option.style.color = '#ccc';
+                }
+            }
+        }
+        generateCalendar(currentYear, currentMonth);
+    }
+
+    // ============================================
+    // APPOINTMENT PLACES FUNCTIONS
+    // ============================================
+
+    function loadAppointmentPlaces(filter = 'all') {
+        fetch(`/admin/appointment-places?filter=${filter}`)
+            .then(response => response.json())
+            .then(data => {
+                const placesList = document.getElementById('placesList');
+                placesList.innerHTML = '';
+                if (data.length === 0) {
+                    placesList.innerHTML =
+                        '<div class="empty-state"><i class="fas fa-map-marker-alt"></i><h4>No location data</h4></div>';
+                    return;
+                }
+                data.forEach(place => {
+                    placesList.innerHTML +=
+                        `<div class="place-item"><div class="place-info"><i class="fas fa-location-dot"></i><span class="place-name">${place.name}</span></div><div class="place-count"><span class="count-number">${place.count}</span><span class="count-label">appointments</span></div><div class="place-progress"><div class="progress-bar" style="width: ${place.percentage}%; background: ${place.color}"></div></div></div>`;
+                });
+            })
+            .catch(error => console.error('Error loading places:', error));
+    }
+
+    // ============================================
+    // EVENT LISTENERS & INITIALIZATION
+    // ============================================
+
+    document.addEventListener('DOMContentLoaded', function() {
+        initAppointmentTrendsChart('today');
+        initStatusBumpChart('today');
+        initSummaryChart('today');
+        updateYearFilter();
+        initCalendar();
+
+        const monthFilter = document.getElementById('calendarMonthFilter');
+        const yearFilter = document.getElementById('calendarYearFilter');
+        const currentYear = new Date().getFullYear();
+        const currentMonth = new Date().getMonth() + 1;
+
+        if (monthFilter) {
+            monthFilter.addEventListener('change', function() {
+                const selectedYear = parseInt(yearFilter.value);
+                const selectedMonth = parseInt(this.value);
+                if (selectedYear === currentYear && selectedMonth < currentMonth) {
+                    alert('Cannot select past months');
+                    this.value = currentMonth;
+                    return;
+                }
+                generateCalendar(selectedYear, selectedMonth);
+            });
+        }
+
+        if (yearFilter) {
+            yearFilter.addEventListener('change', function() {
+                const selectedYear = parseInt(this.value);
+                const selectedMonth = parseInt(monthFilter.value);
+                if (selectedYear < currentYear) {
+                    alert('Cannot select past years');
+                    this.value = currentYear;
+                    return;
+                }
+                if (selectedYear === currentYear && selectedMonth < currentMonth) {
+                    monthFilter.value = currentMonth;
+                }
+                generateCalendar(selectedYear, selectedMonth);
+            });
+        }
+
+        document.getElementById('summaryFilter')?.addEventListener('change', function(e) {
+            initSummaryChart(e.target.value);
+        });
+
+        document.getElementById('statusPeriodFilter')?.addEventListener('change', function(e) {
+            initStatusBumpChart(e.target.value);
+        });
+
+        document.getElementById('trendFilter')?.addEventListener('change', function(e) {
+            initAppointmentTrendsChart(e.target.value);
+        });
+
+        document.getElementById('placesFilter')?.addEventListener('change', function(e) {
+            loadAppointmentPlaces(e.target.value);
+        });
+    });
+</script>
