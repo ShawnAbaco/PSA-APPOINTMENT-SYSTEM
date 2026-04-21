@@ -39,7 +39,7 @@ class ClientController extends Controller
         }
         
         // Order by latest first
-        $clients = $query->latest()->paginate(20);
+        $clients = $query->latest()->paginate(10);
         
         // Get service counts for statistics
         $serviceCounts = AppointmentClient::selectRaw('service, COUNT(*) as count')
