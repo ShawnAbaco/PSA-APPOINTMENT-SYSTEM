@@ -18,6 +18,7 @@ class DatabaseSeeder extends Seeder
         
          $this->call([
             UserSeeder::class,
+            TimeSlotSeeder::class,           // Add this first
             AppointmentSlotSeeder::class,
             ServicesTableSeeder::class,
             SettingsTableSeeder::class,

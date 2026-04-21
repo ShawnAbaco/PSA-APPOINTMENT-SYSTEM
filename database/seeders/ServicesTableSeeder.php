@@ -24,7 +24,7 @@ class ServicesTableSeeder extends Seeder
             ],
             [
                 'code' => 'updating',
-                'name' => 'Correction/Updating',
+                'name' => 'Updating/Correction',
                 'description' => 'Update or correct personal information in PhilSys',
                 'requirements' => 'Supporting documents depending on the field to update',
                 'estimated_duration_minutes' => 15,
@@ -35,8 +35,8 @@ class ServicesTableSeeder extends Seeder
             ],
             [
                 'code' => 'inquiry',
-                'name' => 'STATUS INQUIRY / RETRIEVAL OF TRN / OTHER CONCERN',
-                'description' => 'Status verification, TRN retrieval, or other concerns',
+                'name' => 'Status Inquiry / Retrieval Of TRN / Other Concern',
+                'description' => 'Status inquiry, TRN retrieval, or other concerns',
                 'requirements' => 'Valid Government-issued ID',
                 'estimated_duration_minutes' => 10,
                 'display_order' => 3,
