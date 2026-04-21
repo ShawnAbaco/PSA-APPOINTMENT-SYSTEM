@@ -70,7 +70,8 @@ class AppointmentController extends Controller
             } elseif ($selectedService) {
                 $servicesToCheck = [$selectedService];
             } else {
-                $servicesToCheck = ['reg', 'correction', 'ephilid', 'trn'];
+                // UPDATED: Use reg, updating, inquiry
+                $servicesToCheck = ['reg', 'updating', 'inquiry'];
             }
             
             $advanceDays = 30;
@@ -156,17 +157,13 @@ class AppointmentController extends Controller
                                 $serviceCapacity = $slot->reg_capacity ?? $defaultCapacity;
                                 $bookedCount = $slot->reg_booked ?? 0;
                                 break;
-                            case 'correction':
-                                $serviceCapacity = $slot->correction_capacity ?? $defaultCapacity;
-                                $bookedCount = $slot->correction_booked ?? 0;
+                            case 'updating':
+                                $serviceCapacity = $slot->updating_capacity ?? $defaultCapacity;
+                                $bookedCount = $slot->updating_booked ?? 0;
                                 break;
-                            case 'ephilid':
-                                $serviceCapacity = $slot->ephilid_capacity ?? $defaultCapacity;
-                                $bookedCount = $slot->ephilid_booked ?? 0;
-                                break;
-                            case 'trn':
-                                $serviceCapacity = $slot->trn_capacity ?? $defaultCapacity;
-                                $bookedCount = $slot->trn_booked ?? 0;
+                            case 'inquiry':
+                                $serviceCapacity = $slot->inquiry_capacity ?? $defaultCapacity;
+                                $bookedCount = $slot->inquiry_booked ?? 0;
                                 break;
                             default:
                                 $serviceCapacity = $defaultCapacity;
@@ -231,7 +228,9 @@ class AppointmentController extends Controller
                 'clients.*.last_name' => 'required|string|max:255',
                 'clients.*.sex' => 'required|in:Male,Female',
                 'clients.*.birthdate' => 'required|date|before:today',
-                'clients.*.service' => 'required|in:reg,correction,ephilid,trn',
+                'clients.*.service' => 'required|in:reg,updating,inquiry',
+                'clients.*.has_trn' => 'nullable|boolean',
+                'clients.*.trn_number' => 'nullable|string|size:29|regex:/^\d+$/',
                 // ========== LOCATION VALIDATION ==========
                 'user_lat' => 'nullable|numeric|between:-90,90',
                 'user_lng' => 'nullable|numeric|between:-180,180',
@@ -270,13 +269,11 @@ class AppointmentController extends Controller
                     $slot->date = $request->appointment_date;
                     $slot->day_type = 'working';
                     $slot->reg_capacity = $serviceConfigs['reg'] ?? 10;
-                    $slot->correction_capacity = $serviceConfigs['correction'] ?? 5;
-                    $slot->ephilid_capacity = $serviceConfigs['ephilid'] ?? 3;
-                    $slot->trn_capacity = $serviceConfigs['trn'] ?? 2;
+                    $slot->updating_capacity = $serviceConfigs['updating'] ?? 5;
+                    $slot->inquiry_capacity = $serviceConfigs['inquiry'] ?? 8;
                     $slot->reg_booked = 0;
-                    $slot->correction_booked = 0;
-                    $slot->ephilid_booked = 0;
-                    $slot->trn_booked = 0;
+                    $slot->updating_booked = 0;
+                    $slot->inquiry_booked = 0;
                     $slot->save();
                 }
                 
@@ -290,17 +287,13 @@ class AppointmentController extends Controller
                             $capacity = $slot->reg_capacity;
                             $booked = $slot->reg_booked;
                             break;
-                        case 'correction':
-                            $capacity = $slot->correction_capacity;
-                            $booked = $slot->correction_booked;
+                        case 'updating':
+                            $capacity = $slot->updating_capacity;
+                            $booked = $slot->updating_booked;
                             break;
-                        case 'ephilid':
-                            $capacity = $slot->ephilid_capacity;
-                            $booked = $slot->ephilid_booked;
-                            break;
-                        case 'trn':
-                            $capacity = $slot->trn_capacity;
-                            $booked = $slot->trn_booked;
+                        case 'inquiry':
+                            $capacity = $slot->inquiry_capacity;
+                            $booked = $slot->inquiry_booked;
                             break;
                     }
                     
@@ -313,9 +306,8 @@ class AppointmentController extends Controller
                         DB::rollback();
                         $serviceNames = [
                             'reg' => 'Registration',
-                            'correction' => 'Correction',
-                            'ephilid' => 'ePhilID',
-                            'trn' => 'TRN Retrieval'
+                            'updating' => 'Correction/Updating',
+                            'inquiry' => 'STATUS INQUIRY / RETRIEVAL OF TRN / OTHER CONCERN'
                         ];
                         return response()->json([
                             'success' => false,
@@ -391,6 +383,13 @@ class AppointmentController extends Controller
                     $client->service = $clientData['service'];
                     $client->requirements_acknowledged = true;
                     $client->acknowledged_at = now();
+                    
+                    // Save TRN data for inquiry service
+                    if ($clientData['service'] === 'inquiry') {
+                        $client->has_trn = $clientData['has_trn'] ?? null;
+                        $client->trn_number = ($clientData['has_trn'] ?? false) ? ($clientData['trn_number'] ?? null) : null;
+                    }
+                    
                     $client->save();
                     
                     $clientsData[] = $clientData;
@@ -400,37 +399,31 @@ class AppointmentController extends Controller
                         case 'reg':
                             $slot->reg_booked += 1;
                             break;
-                        case 'correction':
-                            $slot->correction_booked += 1;
+                        case 'updating':
+                            $slot->updating_booked += 1;
                             break;
-                        case 'ephilid':
-                            $slot->ephilid_booked += 1;
-                            break;
-                        case 'trn':
-                            $slot->trn_booked += 1;
+                        case 'inquiry':
+                            $slot->inquiry_booked += 1;
                             break;
                     }
                 }
                 
                 // Recalculate available counts
                 $slot->reg_available = $slot->reg_capacity - $slot->reg_booked;
-                $slot->correction_available = $slot->correction_capacity - $slot->correction_booked;
-                $slot->ephilid_available = $slot->ephilid_capacity - $slot->ephilid_booked;
-                $slot->trn_available = $slot->trn_capacity - $slot->trn_booked;
+                $slot->updating_available = $slot->updating_capacity - $slot->updating_booked;
+                $slot->inquiry_available = $slot->inquiry_capacity - $slot->inquiry_booked;
                 
                 // Apply half day logic if needed
                 if ($slot->day_type === 'half_day') {
                     $slot->reg_available = ceil($slot->reg_capacity / 2) - $slot->reg_booked;
-                    $slot->correction_available = ceil($slot->correction_capacity / 2) - $slot->correction_booked;
-                    $slot->ephilid_available = ceil($slot->ephilid_capacity / 2) - $slot->ephilid_booked;
-                    $slot->trn_available = ceil($slot->trn_capacity / 2) - $slot->trn_booked;
+                    $slot->updating_available = ceil($slot->updating_capacity / 2) - $slot->updating_booked;
+                    $slot->inquiry_available = ceil($slot->inquiry_capacity / 2) - $slot->inquiry_booked;
                 }
                 
                 // Ensure no negative values
                 $slot->reg_available = max(0, $slot->reg_available);
-                $slot->correction_available = max(0, $slot->correction_available);
-                $slot->ephilid_available = max(0, $slot->ephilid_available);
-                $slot->trn_available = max(0, $slot->trn_available);
+                $slot->updating_available = max(0, $slot->updating_available);
+                $slot->inquiry_available = max(0, $slot->inquiry_available);
                 
                 $slot->save();
                 
@@ -508,17 +501,13 @@ class AppointmentController extends Controller
                         $capacity = $slot->reg_capacity;
                         $bookedCount = $slot->reg_booked;
                         break;
-                    case 'correction':
-                        $capacity = $slot->correction_capacity;
-                        $bookedCount = $slot->correction_booked;
+                    case 'updating':
+                        $capacity = $slot->updating_capacity;
+                        $bookedCount = $slot->updating_booked;
                         break;
-                    case 'ephilid':
-                        $capacity = $slot->ephilid_capacity;
-                        $bookedCount = $slot->ephilid_booked;
-                        break;
-                    case 'trn':
-                        $capacity = $slot->trn_capacity;
-                        $bookedCount = $slot->trn_booked;
+                    case 'inquiry':
+                        $capacity = $slot->inquiry_capacity;
+                        $bookedCount = $slot->inquiry_booked;
                         break;
                 }
                 

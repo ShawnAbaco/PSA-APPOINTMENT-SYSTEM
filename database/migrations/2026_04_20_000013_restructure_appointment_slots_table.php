@@ -23,23 +23,20 @@ return new class extends Migration
             // Total capacity for the day (sum of all service capacities)
             $table->integer('total_capacity')->default(0);
             
-            // Per-service capacities
+            // Per-service capacities - UPDATED: reg, updating, inquiry
             $table->integer('reg_capacity')->default(0);
-            $table->integer('correction_capacity')->default(0);
-            $table->integer('ephilid_capacity')->default(0);
-            $table->integer('trn_capacity')->default(0);
+            $table->integer('updating_capacity')->default(0);
+            $table->integer('inquiry_capacity')->default(0);
             
             // Per-service booked counts
             $table->integer('reg_booked')->default(0);
-            $table->integer('correction_booked')->default(0);
-            $table->integer('ephilid_booked')->default(0);
-            $table->integer('trn_booked')->default(0);
+            $table->integer('updating_booked')->default(0);
+            $table->integer('inquiry_booked')->default(0);
             
             // Per-service available counts
             $table->integer('reg_available')->default(0);
-            $table->integer('correction_available')->default(0);
-            $table->integer('ephilid_available')->default(0);
-            $table->integer('trn_available')->default(0);
+            $table->integer('updating_available')->default(0);
+            $table->integer('inquiry_available')->default(0);
             
             // Notes
             $table->text('notes')->nullable();
@@ -59,11 +56,10 @@ return new class extends Migration
             BEFORE INSERT ON appointment_slots
             FOR EACH ROW
             BEGIN
-                SET NEW.total_capacity = NEW.reg_capacity + NEW.correction_capacity + NEW.ephilid_capacity + NEW.trn_capacity;
+                SET NEW.total_capacity = NEW.reg_capacity + NEW.updating_capacity + NEW.inquiry_capacity;
                 SET NEW.reg_available = NEW.reg_capacity - NEW.reg_booked;
-                SET NEW.correction_available = NEW.correction_capacity - NEW.correction_booked;
-                SET NEW.ephilid_available = NEW.ephilid_capacity - NEW.ephilid_booked;
-                SET NEW.trn_available = NEW.trn_capacity - NEW.trn_booked;
+                SET NEW.updating_available = NEW.updating_capacity - NEW.updating_booked;
+                SET NEW.inquiry_available = NEW.inquiry_capacity - NEW.inquiry_booked;
             END
         ");
         
@@ -72,11 +68,10 @@ return new class extends Migration
             BEFORE UPDATE ON appointment_slots
             FOR EACH ROW
             BEGIN
-                SET NEW.total_capacity = NEW.reg_capacity + NEW.correction_capacity + NEW.ephilid_capacity + NEW.trn_capacity;
+                SET NEW.total_capacity = NEW.reg_capacity + NEW.updating_capacity + NEW.inquiry_capacity;
                 SET NEW.reg_available = NEW.reg_capacity - NEW.reg_booked;
-                SET NEW.correction_available = NEW.correction_capacity - NEW.correction_booked;
-                SET NEW.ephilid_available = NEW.ephilid_capacity - NEW.ephilid_booked;
-                SET NEW.trn_available = NEW.trn_capacity - NEW.trn_booked;
+                SET NEW.updating_available = NEW.updating_capacity - NEW.updating_booked;
+                SET NEW.inquiry_available = NEW.inquiry_capacity - NEW.inquiry_booked;
             END
         ");
     }

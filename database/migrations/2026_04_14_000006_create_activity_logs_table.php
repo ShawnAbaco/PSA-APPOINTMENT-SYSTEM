@@ -1,6 +1,5 @@
 <?php
-// database/migrations/2026_04_14_000006_create_activity_logs_table.php
-
+// database/migrations/2026_04_14_000005_create_activity_logs_table.php
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
@@ -12,9 +11,9 @@ return new class extends Migration
         Schema::create('activity_logs', function (Blueprint $table) {
             $table->id();
             $table->foreignId('user_id')->nullable()->constrained()->onDelete('set null');
-            $table->string('action'); // create, update, delete, cancel, confirm, etc.
-            $table->string('module'); // appointment, client, user, settings
-            $table->unsignedBigInteger('reference_id')->nullable(); // ID of affected record
+            $table->string('action');
+            $table->string('module');
+            $table->unsignedBigInteger('reference_id')->nullable();
             $table->text('description');
             $table->json('old_data')->nullable();
             $table->json('new_data')->nullable();

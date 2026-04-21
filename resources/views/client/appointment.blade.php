@@ -65,12 +65,149 @@
         .hidden {
             display: none !important;
         }
+
+        /* TRN Field Styles */
+        .trn-field-group {
+            background: #f8f9fa;
+            border-radius: 12px;
+            padding: 20px;
+            margin-top: 20px;
+            border-left: 4px solid #2c5f8a;
+        }
+
+        .trn-question {
+            font-weight: 600;
+            margin-bottom: 16px;
+            color: #2c5f8a;
+            font-size: 16px;
+        }
+
+        .trn-checkbox-group {
+            display: flex;
+            gap: 30px;
+            margin-bottom: 20px;
+        }
+
+        .trn-checkbox-group label {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            cursor: pointer;
+            font-size: 15px;
+        }
+
+        .trn-input-group {
+            margin-top: 16px;
+        }
+
+        .trn-input-group label {
+            font-weight: 600;
+            margin-bottom: 8px;
+            display: block;
+        }
+
+        .trn-input-group input {
+            width: 100%;
+            padding: 12px 14px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: all 0.3s ease;
+            font-family: monospace;
+            letter-spacing: 1px;
+        }
+
+        .trn-input-group input:focus {
+            outline: none;
+            border-color: #2c5f8a;
+        }
+
+        .trn-input-group input.trn-valid {
+            border-color: #28a745;
+            background-color: #f0fff4;
+        }
+
+        .trn-input-group input.trn-invalid {
+            border-color: #dc3545;
+            background-color: #fff5f5;
+        }
+
+        .trn-char-counter {
+            font-size: 12px;
+            margin-top: 5px;
+            display: block;
+        }
+
+        .trn-char-counter.valid {
+            color: #28a745;
+        }
+
+        .trn-char-counter.invalid {
+            color: #dc3545;
+        }
+
+        .qr-scan-area {
+            margin-top: 16px;
+            padding: 16px;
+            background: white;
+            border-radius: 8px;
+            border: 1px dashed #2c5f8a;
+            text-align: center;
+        }
+
+        .qr-scan-btn {
+            background: #2c5f8a;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            margin-top: 10px;
+        }
+
+        .qr-reader-container {
+            margin-top: 15px;
+            position: relative;
+        }
+
+        #qr-reader {
+            width: 100%;
+            max-width: 300px;
+            margin: 0 auto;
+        }
+
+        /* Calendar service badge styles */
+        .service-badge {
+            display: inline-block;
+            font-size: 0.65rem;
+            font-weight: bold;
+            padding: 2px 5px;
+            margin: 1px;
+            border-radius: 4px;
+        }
+
+        .service-badge.available {
+            background: #28a745;
+            color: white;
+        }
+
+        .service-badge.full {
+            background: #dc3545;
+            color: white;
+        }
+
+        .slot-indicators {
+            display: flex;
+            justify-content: center;
+            gap: 5px;
+            flex-wrap: wrap;
+            margin-top: 4px;
+        }
     </style>
 </head>
 
 <body>
-    <!-- REMOVED LOCATION PERMISSION MODAL - No longer needed -->
-
     <!-- PRIVACY NOTICE MODAL -->
     <div class="privacy-overlay" id="privacyModal">
         <div class="privacy-modal">
@@ -230,29 +367,6 @@
             margin-bottom: 6px;
         }
 
-        .slot-indicators {
-            display: flex;
-            justify-content: center;
-            gap: 4px;
-            flex-wrap: wrap;
-            margin-top: 4px;
-        }
-
-        .slot-dot {
-            width: 8px;
-            height: 8px;
-            border-radius: 50%;
-            background: #ccc;
-        }
-
-        .slot-dot.available {
-            background: #4caf50;
-        }
-
-        .slot-dot.full {
-            background: #f44336;
-        }
-
         .slot-count {
             font-size: 0.7rem;
             font-weight: 600;
@@ -271,25 +385,6 @@
             color: white;
         }
 
-        .service-badge {
-            display: inline-block;
-            font-size: 0.65rem;
-            padding: 2px 4px;
-            margin: 1px;
-            border-radius: 4px;
-            background: rgba(0, 0, 0, 0.05);
-        }
-
-        .service-badge.available {
-            background: #c8e6c9;
-            color: #2e7d32;
-        }
-
-        .service-badge.full {
-            background: #ffcdd2;
-            color: #c62828;
-        }
-
         @media (max-width: 768px) {
             .calendar-day {
                 padding: 6px 3px;
@@ -301,7 +396,7 @@
 
             .service-badge {
                 font-size: 0.55rem;
-                padding: 1px 2px;
+                padding: 1px 3px;
             }
 
             .slot-count {
@@ -357,8 +452,11 @@
                     <select id="singleServiceSelect">
                         <option value="">-- Select Service --</option>
                         @foreach ($services as $service)
-                            <option value="{{ $service->code }}">{{ $service->name }}</option>
+                            @if($service->code !== 'ephilid' && $service->code !== 'trn')
+                                <option value="{{ $service->code }}">{{ $service->name }}</option>
+                            @endif
                         @endforeach
+                        <option value="status_inquiry">Status Inquiry / Retrieval Of TRN / Other Concern</option>
                     </select>
                     <div id="singleServiceDesc" style="margin-top: 16px; color: var(--gray-500);">
                         <p><i class="fas fa-info-circle"></i> Select a service to view details.</p>
@@ -579,6 +677,7 @@
     <input type="hidden" id="userAddress" value="">
     <input type="hidden" id="userZipcode" value="">
 
+    <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
     <script>
         (function() {
             'use strict';
@@ -589,6 +688,9 @@
             let selectedDate = null;
             let availableDatesData = [];
 
+            // TRN related variables (stored per client for multiple appointments)
+            let clientTrnData = {}; // { clientId: { hasTrn: bool, trnNumber: string, isValid: bool } }
+
             // Location variables - will be populated from localStorage
             let userLocation = {
                 lat: null,
@@ -598,25 +700,42 @@
                 zipcode: null
             };
 
+            // QR Scanner instance
+            let html5QrCode = null;
+            let currentQrClientId = null;
+
+            // TRN validation - exactly 29 digits
+            const TRN_LENGTH = 29;
+
+            function isValidTrn(trnValue) {
+                if (!trnValue) return false;
+                // Remove any spaces or special characters for validation
+                const cleanTrn = trnValue.replace(/\s/g, '');
+                // Check if exactly 29 digits
+                return /^\d{29}$/.test(cleanTrn);
+            }
+
+            function formatTrnDisplay(trnValue) {
+                // Just return the value as is, validation will check length
+                return trnValue;
+            }
+
             const serviceOptions = {
                 'reg': 'National ID Registration',
                 'correction': 'Correction/Updating',
-                'ephilid': 'ePhilID Issuance',
-                'trn': 'TRN Retrieval'
+                'status_inquiry': 'Status Inquiry / Retrieval Of TRN / Other Concern'
             };
 
             const requirementsContent = {
                 'reg': `<h4><i class="fas fa-id-card"></i> National ID Registration</h4><p><strong>PRIMARY DOCUMENTS:</strong></p><ul><li>PSA Birth Certificate + 1 government-issued ID (Passport, UMID, Driver's License)</li></ul><p><strong>SECONDARY DOCUMENTS:</strong></p><ul><li>PSA/LCRO Birth Certificate</li><li>Voter's ID, Postal ID, PhilHealth ID</li><li>Employee ID, School ID, Barangay Certificate</li></ul><p><em>⚠️ Bring original documents.</em></p>`,
                 'correction': `<h4><i class="fas fa-pen"></i> Correction/Updating</h4><p><strong>Required Documents by Field:</strong></p><ul><li><strong>First/Last Name:</strong> Birth Certificate, Marriage Certificate</li><li><strong>Sex/DOB:</strong> Birth Certificate</li><li><strong>Address:</strong> Barangay Certificate + Billing</li></ul><p><em>⚠️ Bring ORIGINAL copies.</em></p>`,
-                'ephilid': `<h4><i class="fas fa-print"></i> ePhilID Printing</h4><p><strong>Requirements:</strong></p><ul><li>Transaction slip or reference number</li></ul><p><strong>Representative:</strong> Authorization letter + IDs</p><p><strong>Minor:</strong> Birth Certificate + Guardian ID</p>`,
-                'trn': `<h4><i class="fas fa-search"></i> TRN Retrieval</h4><p><strong>Provide:</strong></p><ul><li>First, Middle, Last Name</li><li>Date of Birth</li><li>Sex</li></ul><p><em>🔒 Confidential per RA 10173.</em></p>`
+                'status_inquiry': `<h4><i class="fas fa-question-circle"></i> Status Inquiry / Retrieval Of TRN / Other Concern</h4><p><strong>REQUIREMENTS:</strong></p><ul><li>Valid Government-issued ID</li><li>Any previous transaction slip (if available)</li><li>For TRN Retrieval: Provide full name, date of birth, and sex for verification</li><li><strong>TRN must be exactly 29 digits</strong></li></ul><p><em>⚠️ Please bring any reference documents you may have for faster processing.</em></p>`
             };
 
             const identityReminders = {
                 'reg': 'The person named below must be the one registering for the National ID.',
                 'correction': 'The person named below must be the one requesting the correction/update.',
-                'ephilid': 'The person named below must be the one claiming the ePhilID.',
-                'trn': 'The person named below must be the one requesting TRN retrieval.'
+                'status_inquiry': 'The person named below must be the one requesting status inquiry, TRN retrieval, or other concerns.'
             };
 
             let clients = [{
@@ -671,27 +790,10 @@
                             document.getElementById('userAddress').value = userLocation.address;
                             document.getElementById('userZipcode').value = userLocation.zipcode;
 
-                            // Update banner
-                            const banner = document.getElementById('locationBanner');
-                            const cityElem = document.getElementById('locationCity');
-                            const addressElem = document.getElementById('locationAddress');
-
-                            if (cityElem) cityElem.textContent = userLocation.city || 'Location detected';
-                            if (addressElem) addressElem.textContent = userLocation.address ||
-                                'Location from landing page';
-                            if (banner) banner.style.display = 'flex';
-
                             console.log('Location loaded from landing page:', userLocation);
                             return true;
                         } else {
                             console.log('Location not detected on landing page');
-                            const banner = document.getElementById('locationBanner');
-                            const cityElem = document.getElementById('locationCity');
-                            const addressElem = document.getElementById('locationAddress');
-
-                            if (cityElem) cityElem.textContent = 'Location not available';
-                            if (addressElem) addressElem.textContent = 'Please allow location on the main page';
-                            if (banner) banner.style.display = 'flex';
                             return false;
                         }
                     } catch (e) {
@@ -700,13 +802,6 @@
                     }
                 } else {
                     console.log('No location data found in localStorage');
-                    const banner = document.getElementById('locationBanner');
-                    const cityElem = document.getElementById('locationCity');
-                    const addressElem = document.getElementById('locationAddress');
-
-                    if (cityElem) cityElem.textContent = 'Location not available';
-                    if (addressElem) addressElem.textContent = 'Please allow location on the main page';
-                    if (banner) banner.style.display = 'flex';
                     return false;
                 }
             }
@@ -829,11 +924,12 @@
 
                 const selectedServices = [...new Set(clients.map(c => c.service))];
 
+                // UPDATED: Service initials for calendar display
+                // R = REGISTRATION, U = UPDATING (Correction), S = STATUS INQUIRY
                 const serviceShort = {
                     'reg': 'R',
-                    'correction': 'C',
-                    'ephilid': 'E',
-                    'trn': 'T'
+                    'correction': 'U',
+                    'status_inquiry': 'S'
                 };
 
                 for (let d = 1; d <= daysInMonth; d++) {
@@ -858,8 +954,9 @@
                             for (const service of selectedServices) {
                                 const slots = dateData.service_availability[service] || 0;
                                 const badgeClass = slots > 0 ? 'available' : 'full';
+                                const shortCode = serviceShort[service] || service.charAt(0).toUpperCase();
                                 indicatorsHtml +=
-                                    `<span class="service-badge ${badgeClass}">${serviceShort[service]}${slots}</span>`;
+                                    `<span class="service-badge ${badgeClass}">${shortCode}${slots}</span>`;
                             }
                             indicatorsHtml += '</div>';
                         } else {
@@ -885,6 +982,226 @@
                 renderCalendar();
             };
 
+            // ==================== TRN FUNCTIONS ====================
+            
+            function validateAndStyleTrnInput(clientId) {
+                const trnInput = document.getElementById(`trnNumber_${clientId}`);
+                const charCounter = document.getElementById(`trnCharCounter_${clientId}`);
+                
+                if (!trnInput) return false;
+                
+                const trnValue = trnInput.value;
+                const cleanValue = trnValue.replace(/\s/g, '');
+                const isValid = isValidTrn(cleanValue);
+                const currentLength = cleanValue.length;
+                
+                if (isValid) {
+                    trnInput.classList.remove('trn-invalid');
+                    trnInput.classList.add('trn-valid');
+                    if (charCounter) {
+                        charCounter.classList.remove('invalid');
+                        charCounter.classList.add('valid');
+                        charCounter.innerHTML = `<i class="fas fa-check-circle"></i> ${currentLength}/${TRN_LENGTH} digits - Valid TRN`;
+                    }
+                    // Store the clean 29-digit value
+                    clientTrnData[clientId].trnNumber = cleanValue;
+                    clientTrnData[clientId].isValid = true;
+                    return true;
+                } else {
+                    trnInput.classList.remove('trn-valid');
+                    trnInput.classList.add('trn-invalid');
+                    if (charCounter) {
+                        charCounter.classList.remove('valid');
+                        charCounter.classList.add('invalid');
+                        if (currentLength > 0 && currentLength < TRN_LENGTH) {
+                            charCounter.innerHTML = `<i class="fas fa-exclamation-triangle"></i> ${currentLength}/${TRN_LENGTH} digits - TRN must be exactly 29 digits`;
+                        } else if (currentLength > TRN_LENGTH) {
+                            charCounter.innerHTML = `<i class="fas fa-exclamation-triangle"></i> ${currentLength}/${TRN_LENGTH} digits - Too many digits (max ${TRN_LENGTH})`;
+                        } else {
+                            charCounter.innerHTML = `<i class="fas fa-info-circle"></i> TRN must be exactly 29 digits (0-9 only)`;
+                        }
+                    }
+                    clientTrnData[clientId].trnNumber = trnValue;
+                    clientTrnData[clientId].isValid = false;
+                    return false;
+                }
+            }
+            
+            function createTrnHtml(clientId, hasTrnValue, trnNumberValue) {
+                const isValid = trnNumberValue && isValidTrn(trnNumberValue);
+                const validClass = isValid ? 'trn-valid' : '';
+                const currentLength = trnNumberValue ? trnNumberValue.replace(/\s/g, '').length : 0;
+                
+                return `
+                    <div class="trn-field-group" data-client-id="${clientId}">
+                        <div class="trn-question">
+                            <i class="fas fa-question-circle"></i> DO YOU HAVE A TRN (TRANSACTION REFERENCE NUMBER)?
+                        </div>
+                        <div class="trn-checkbox-group">
+                            <label>
+                                <input type="radio" name="hasTrn_${clientId}" value="yes" ${hasTrnValue === true ? 'checked' : ''}> YES
+                            </label>
+                            <label>
+                                <input type="radio" name="hasTrn_${clientId}" value="no" ${hasTrnValue === false ? 'checked' : ''}> NO
+                            </label>
+                        </div>
+                        <div id="trnInputArea_${clientId}" style="display: ${hasTrnValue === true ? 'block' : 'none'};">
+                            <div class="trn-input-group">
+                                <label>TRN NUMBER (29 DIGITS) <span style="color: var(--danger);">*</span></label>
+                                <input type="text" id="trnNumber_${clientId}" placeholder="Enter 29-digit TRN number" class="trn-input ${validClass}" value="${trnNumberValue || ''}" maxlength="29" inputmode="numeric">
+                                <span id="trnCharCounter_${clientId}" class="trn-char-counter ${isValid ? 'valid' : (currentLength > 0 ? 'invalid' : '')}">
+                                    ${currentLength > 0 ? (isValid ? `<i class="fas fa-check-circle"></i> ${currentLength}/29 digits - Valid TRN` : `<i class="fas fa-exclamation-triangle"></i> ${currentLength}/29 digits - TRN must be exactly 29 digits`) : `<i class="fas fa-info-circle"></i> TRN must be exactly 29 digits (0-9 only)`}
+                                </span>
+                            </div>
+                            <div class="qr-scan-area">
+                                <p><i class="fas fa-qrcode"></i> OR SCAN QR CODE</p>
+                                <button type="button" class="qr-scan-btn" data-client-id="${clientId}">
+                                    <i class="fas fa-camera"></i> SCAN QR CODE
+                                </button>
+                                <div id="qr-reader_${clientId}" class="qr-reader-container" style="display: none;"></div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }
+            
+            function attachTrnEvents(clientId) {
+                const radioYes = document.querySelector(`input[name="hasTrn_${clientId}"][value="yes"]`);
+                const radioNo = document.querySelector(`input[name="hasTrn_${clientId}"][value="no"]`);
+                const trnInputArea = document.getElementById(`trnInputArea_${clientId}`);
+                const trnNumberInput = document.getElementById(`trnNumber_${clientId}`);
+                const scanBtn = document.querySelector(`.qr-scan-btn[data-client-id="${clientId}"]`);
+                
+                if (!clientTrnData[clientId]) {
+                    clientTrnData[clientId] = { hasTrn: null, trnNumber: '', isValid: false };
+                }
+                
+                if (radioYes) {
+                    radioYes.addEventListener('change', function() {
+                        if (this.checked) {
+                            clientTrnData[clientId].hasTrn = true;
+                            if (trnInputArea) trnInputArea.style.display = 'block';
+                            // Re-validate after showing
+                            setTimeout(() => validateAndStyleTrnInput(clientId), 10);
+                        }
+                    });
+                }
+                
+                if (radioNo) {
+                    radioNo.addEventListener('change', function() {
+                        if (this.checked) {
+                            clientTrnData[clientId].hasTrn = false;
+                            clientTrnData[clientId].trnNumber = '';
+                            clientTrnData[clientId].isValid = false;
+                            if (trnInputArea) trnInputArea.style.display = 'none';
+                            if (trnNumberInput) trnNumberInput.value = '';
+                            stopQrScanner(clientId);
+                        }
+                    });
+                }
+                
+                if (trnNumberInput) {
+                    trnNumberInput.addEventListener('input', function(e) {
+                        // Allow only digits
+                        this.value = this.value.replace(/[^0-9]/g, '');
+                        if (this.value.length > TRN_LENGTH) {
+                            this.value = this.value.slice(0, TRN_LENGTH);
+                        }
+                        clientTrnData[clientId].trnNumber = this.value;
+                        validateAndStyleTrnInput(clientId);
+                    });
+                }
+                
+                if (scanBtn) {
+                    scanBtn.addEventListener('click', () => startQrScanner(clientId));
+                }
+            }
+            
+            async function startQrScanner(clientId) {
+                const qrReaderDiv = document.getElementById(`qr-reader_${clientId}`);
+                if (!qrReaderDiv) return;
+                
+                // Stop existing scanner for this client
+                await stopQrScanner(clientId);
+                
+                qrReaderDiv.style.display = 'block';
+                currentQrClientId = clientId;
+                
+                html5QrCode = new Html5Qrcode(`qr-reader_${clientId}`);
+                
+                try {
+                    await html5QrCode.start(
+                        { facingMode: "environment" },
+                        {
+                            fps: 10,
+                            qrbox: { width: 250, height: 250 }
+                        },
+                        (decodedText, decodedResult) => {
+                            console.log(`QR Code scanned for client ${clientId}: ${decodedText}`);
+                            const trnInput = document.getElementById(`trnNumber_${clientId}`);
+                            if (trnInput) {
+                                // Extract only digits from scanned QR code
+                                const digitsOnly = decodedText.replace(/[^0-9]/g, '');
+                                const finalTrn = digitsOnly.slice(0, TRN_LENGTH);
+                                trnInput.value = finalTrn;
+                                clientTrnData[clientId].trnNumber = finalTrn;
+                                validateAndStyleTrnInput(clientId);
+                            }
+                            stopQrScanner(clientId);
+                            qrReaderDiv.style.display = 'none';
+                            const isValid = clientTrnData[clientId].isValid;
+                            if (isValid) {
+                                alert('QR Code scanned successfully! Valid 29-digit TRN has been entered.');
+                            } else {
+                                alert('QR Code scanned. Please ensure the TRN is exactly 29 digits.');
+                            }
+                        },
+                        (errorMessage) => {
+                            console.log(`QR Scan error: ${errorMessage}`);
+                        }
+                    );
+                } catch (err) {
+                    console.error(`Failed to start QR scanner: ${err}`);
+                    alert('Could not access camera. Please make sure you have granted camera permissions.');
+                    qrReaderDiv.style.display = 'none';
+                }
+            }
+            
+            async function stopQrScanner(clientId) {
+                if (html5QrCode && html5QrCode.isScanning) {
+                    try {
+                        await html5QrCode.stop();
+                        html5QrCode.clear();
+                    } catch (err) {
+                        console.error(`Failed to stop QR scanner: ${err}`);
+                    }
+                }
+                if (currentQrClientId === clientId) {
+                    html5QrCode = null;
+                    currentQrClientId = null;
+                }
+            }
+            
+            function shouldShowTrnForClient(client) {
+                const service = appointmentType === 'single' ? singleService : client.service;
+                return service === 'status_inquiry';
+            }
+            
+            function validateTrnForClient(client) {
+                if (!shouldShowTrnForClient(client)) return true;
+                
+                const trnData = clientTrnData[client.id];
+                if (!trnData || trnData.hasTrn === null) {
+                    return false;
+                }
+                if (trnData.hasTrn === true) {
+                    if (!trnData.trnNumber || !trnData.isValid) {
+                        return false;
+                    }
+                }
+                return true;
+            }
+
             function renderClients() {
                 const container = document.getElementById('clientsList');
                 const isMultiple = appointmentType === 'multiple';
@@ -909,6 +1226,8 @@
                 clients.forEach((c, i) => {
                     const svc = isMultiple ? c.service : singleService;
                     const reminder = identityReminders[svc] || 'Please ensure the information is accurate.';
+                    const showTrn = shouldShowTrnForClient(c);
+                    const trnData = clientTrnData[c.id] || { hasTrn: null, trnNumber: '', isValid: false };
 
                     const card = document.createElement('div');
                     card.className = 'client-card';
@@ -966,7 +1285,8 @@
                             <input type="date" class="client-birthdate" data-id="${c.id}" value="${c.birthdate}">
                         </div>
                     </div>
-                    ${isMultiple ? `<div class="form-col" style="margin-top: 12px;"><label>Service <span style="color: var(--danger);">*</span></label><select class="client-service" data-id="${c.id}"><option value="reg" ${c.service==='reg'?'selected':''}>National ID Registration</option><option value="correction" ${c.service==='correction'?'selected':''}>Correction/Updating</option><option value="ephilid" ${c.service==='ephilid'?'selected':''}>ePhilID Issuance</option><option value="trn" ${c.service==='trn'?'selected':''}>TRN Retrieval</option></select></div>` : ''}
+                    ${isMultiple ? `<div class="form-col" style="margin-top: 12px;"><label>Service <span style="color: var(--danger);">*</span></label><select class="client-service" data-id="${c.id}"><option value="reg" ${c.service==='reg'?'selected':''}>National ID Registration</option><option value="correction" ${c.service==='correction'?'selected':''}>Updating/Correction</option><option value="status_inquiry" ${c.service==='status_inquiry'?'selected':''}>Status Inquiry / Retrieval Of TRN / Other Concern</option></select></div>` : ''}
+                    ${showTrn ? createTrnHtml(c.id, trnData.hasTrn, trnData.trnNumber) : ''}
                     <div class="req-ack-row ${c.reqAcknowledged ? 'acknowledged' : ''}">
                         <input type="checkbox" class="req-ack" data-id="${c.id}" ${c.reqAcknowledged ? 'checked' : ''}>
                         <label>I have read and understood the requirements for <strong>${getServiceName(svc)}</strong>. I will bring all necessary documents.</label>
@@ -1010,6 +1330,14 @@
                     if (c) {
                         c.service = ev.target.value;
                         c.reqAcknowledged = false;
+                        // Clear TRN data when service changes
+                        if (c.service !== 'status_inquiry') {
+                            delete clientTrnData[c.id];
+                        } else {
+                            if (!clientTrnData[c.id]) {
+                                clientTrnData[c.id] = { hasTrn: null, trnNumber: '', isValid: false };
+                            }
+                        }
                         renderClients();
                         updateReqSummary();
                     }
@@ -1033,10 +1361,18 @@
                 document.querySelectorAll('.btn-remove-client').forEach(b => b.addEventListener('click', (ev) => {
                     const id = ev.target.closest('.btn-remove-client').dataset.id;
                     clients = clients.filter(c => c.id != id);
+                    delete clientTrnData[id];
                     renderClients();
                     updateReqSummary();
                     document.getElementById('clientCount').textContent = clients.length;
                 }));
+                
+                // Attach TRN events for each client
+                clients.forEach(client => {
+                    if (shouldShowTrnForClient(client)) {
+                        attachTrnEvents(client.id);
+                    }
+                });
             }
 
             function setActiveStep(s) {
@@ -1064,6 +1400,29 @@
                 console.log('Location data being sent:', locationData);
                 debugLocationData();
 
+                const clientsData = clients.map(c => {
+                    const clientInfo = {
+                        first_name: c.firstName,
+                        middle_name: c.middleName || null,
+                        last_name: c.lastName,
+                        suffix: c.suffix || null,
+                        sex: c.sex,
+                        birthdate: c.birthdate,
+                        service: appointmentType === 'single' ? singleService : c.service
+                    };
+                    
+                    // Add TRN data if applicable
+                    if (shouldShowTrnForClient(c)) {
+                        const trnData = clientTrnData[c.id];
+                        if (trnData) {
+                            clientInfo.has_trn = trnData.hasTrn;
+                            clientInfo.trn_number = trnData.hasTrn && trnData.isValid ? trnData.trnNumber : null;
+                        }
+                    }
+                    
+                    return clientInfo;
+                });
+
                 const formData = {
                     appointment_type: appointmentType,
                     appointment_date: selectedDate,
@@ -1075,15 +1434,7 @@
                     user_city: locationData.user_city,
                     user_address: locationData.user_address,
                     user_zipcode: locationData.user_zipcode,
-                    clients: clients.map(c => ({
-                        first_name: c.firstName,
-                        middle_name: c.middleName || null,
-                        last_name: c.lastName,
-                        suffix: c.suffix || null,
-                        sex: c.sex,
-                        birthdate: c.birthdate,
-                        service: appointmentType === 'single' ? singleService : c.service
-                    }))
+                    clients: clientsData
                 };
 
                 if (!formData.contact_name) {
@@ -1153,6 +1504,7 @@
                 document.getElementById('singleServiceSection').style.display = 'block';
                 if (clients.length > 1) clients = [clients[0]];
                 clients.forEach(c => c.service = singleService);
+                clientTrnData = {};
                 renderClients();
             };
 
@@ -1167,12 +1519,20 @@
             document.getElementById('singleServiceSelect').onchange = function() {
                 singleService = this.value;
                 singleServiceText = serviceOptions[this.value] || '';
-                document.getElementById('singleServiceDesc').innerHTML = this.value ?
-                    `<p style="color: var(--gray-700);"><i class="fas fa-check-circle" style="color: var(--success);"></i> ${singleServiceText} selected. Click 'View Requirements' for details.</p>` :
-                    '<p style="color: var(--gray-500);"><i class="fas fa-info-circle"></i> Select a service.</p>';
-                document.getElementById('showReqBtnSingle').style.display = this.value ? 'block' : 'none';
+                const descDiv = document.getElementById('singleServiceDesc');
+                const reqBtn = document.getElementById('showReqBtnSingle');
+                
+                if (this.value) {
+                    descDiv.innerHTML = `<p style="color: var(--gray-700);"><i class="fas fa-check-circle" style="color: var(--success);"></i> ${singleServiceText} selected. Click 'View Requirements' for details.</p>`;
+                    reqBtn.style.display = 'block';
+                } else {
+                    descDiv.innerHTML = '<p style="color: var(--gray-500);"><i class="fas fa-info-circle"></i> Select a service.</p>';
+                    reqBtn.style.display = 'none';
+                }
+                
                 if (appointmentType === 'single') {
                     clients.forEach(c => c.service = singleService);
+                    clientTrnData = {};
                     renderClients();
                 }
             };
@@ -1189,8 +1549,9 @@
                     alert('Maximum 10 persons.');
                     return;
                 }
+                const newId = nextClientId++;
                 clients.push({
-                    id: nextClientId++,
+                    id: newId,
                     firstName: '',
                     middleName: '',
                     lastName: '',
@@ -1234,6 +1595,12 @@
                     }
                     if (appointmentType === 'multiple' && !c.service) {
                         alert('Please select service for all clients');
+                        return;
+                    }
+                    // Validate TRN for clients with status_inquiry service
+                    if (!validateTrnForClient(c)) {
+                        const clientName = getFullName(c) || `Person ${clients.indexOf(c) + 1}`;
+                        alert(`${clientName}: Please indicate whether you have a TRN. If YES, please enter the exact 29-digit TRN number or scan the QR code.`);
                         return;
                     }
                 }
@@ -1379,8 +1746,6 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"
         integrity="sha512-GsLlZN/3F2ErC5ifS5QtgpiJtWd43JWSuIgh7mbzZ8zBps+dvLusV+eNQATqgA/HdeKFVgA5v3S/cIrLF7QnIg=="
         crossorigin="anonymous" referrerpolicy="no-referrer"></script>
-    <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
-
 </body>
 
 </html>

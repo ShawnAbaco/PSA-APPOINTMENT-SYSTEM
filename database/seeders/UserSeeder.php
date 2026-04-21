@@ -110,6 +110,40 @@ class UserSeeder extends Seeder
             'updated_at' => now(),
         ]);
 
+        // Staff User 3 - Inquiry Officer (NEW - for handling STATUS INQUIRY / RETRIEVAL OF TRN)
+        DB::table('users')->insert([
+            'employee_id' => 'PSA-STAFF-003',
+            'username' => 'carlos.reyes',
+            'first_name' => 'Carlos',
+            'middle_name' => 'Mendoza',
+            'last_name' => 'Reyes',
+            'suffix' => null,
+            'email' => 'carlos.reyes@psa.gov.ph',
+            'password' => Hash::make('staff123'),
+            'contact_number' => '09171234571',
+            'alternate_contact' => null,
+            'role' => 'staff',
+            'is_active' => true,
+            'position' => 'Inquiry Officer',
+            'department' => 'PhilSys Registry Office',
+            'profile_photo' => null,
+            'permissions' => json_encode([
+                'view_appointments',
+                'create_appointments',
+                'update_appointments',
+                'verify_trn',
+                'process_inquiries'
+            ]),
+            'email_verified_at' => now(),
+            'last_login_at' => null,
+            'last_login_ip' => null,
+            'created_by' => 1,
+            'updated_by' => 1,
+            'remember_token' => Str::random(10),
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
+
         // Regular User
         DB::table('users')->insert([
             'employee_id' => null,
@@ -141,5 +175,8 @@ class UserSeeder extends Seeder
             'created_at' => now(),
             'updated_at' => now(),
         ]);
+        
+        $this->command->info('Users seeded successfully!');
+        $this->command->warn('Default passwords: admin123 for admin, staff123 for staff, user123 for regular users');
     }
 }
