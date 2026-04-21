@@ -7,6 +7,7 @@ use App\Models\Setting;
 use App\Models\AppointmentSlot;
 use App\Models\ServiceSlotsConfig;
 use App\Models\WorkingDaysDefault;
+use App\Models\TimeSlot;
 use App\Services\MailService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
@@ -47,6 +48,8 @@ class SettingsController extends Controller
             'email_from_address' => 'noreply@psa.gov.ph',
             'email_from_name' => 'PSA Appointment System',
             'enable_per_service_limits' => true,
+            'enable_time_slots' => true,
+            'time_slots_default_capacity' => 4,
         ];
         
         // Override with database values
@@ -57,6 +60,7 @@ class SettingsController extends Controller
             // Map database keys to simple keys for view
             $simpleKey = str_replace('appointment.', '', $key);
             $simpleKey = str_replace('notification.', '', $simpleKey);
+            $simpleKey = str_replace('time_slots.', '', $simpleKey);
             
             // Handle different types
             if ($setting->type === 'password') {
@@ -89,11 +93,12 @@ class SettingsController extends Controller
             'email_from_address' => 'nullable|email',
             'email_from_name' => 'nullable|string',
             'enable_per_service_limits' => 'nullable|in:true,false',
-            // Service capacities
+            'enable_time_slots' => 'nullable|in:true,false',
+            'time_slots_default_capacity' => 'nullable|integer|min:1|max:50',
+            // Service capacities (UPDATED: reg, updating, inquiry)
             'reg_capacity' => 'nullable|integer|min:0|max:100',
-            'correction_capacity' => 'nullable|integer|min:0|max:100',
-            'ephilid_capacity' => 'nullable|integer|min:0|max:100',
-            'trn_capacity' => 'nullable|integer|min:0|max:100',
+            'updating_capacity' => 'nullable|integer|min:0|max:100',
+            'inquiry_capacity' => 'nullable|integer|min:0|max:100',
         ]);
         
         // Map form field names to database keys and types
@@ -102,6 +107,8 @@ class SettingsController extends Controller
             'cancellation_hours' => ['key' => 'appointment.cancellation_hours', 'type' => 'number', 'group' => 'appointment'],
             'enable_email' => ['key' => 'notification.enable_email', 'type' => 'boolean', 'group' => 'notification'],
             'enable_per_service_limits' => ['key' => 'enable_per_service_limits', 'type' => 'boolean', 'group' => 'appointment'],
+            'enable_time_slots' => ['key' => 'time_slots.enabled', 'type' => 'boolean', 'group' => 'appointment'],
+            'time_slots_default_capacity' => ['key' => 'time_slots.default_capacity', 'type' => 'number', 'group' => 'appointment'],
             'email_host' => ['key' => 'email_host', 'type' => 'text', 'group' => 'email'],
             'email_port' => ['key' => 'email_port', 'type' => 'number', 'group' => 'email'],
             'email_encryption' => ['key' => 'email_encryption', 'type' => 'text', 'group' => 'email'],
@@ -171,21 +178,20 @@ class SettingsController extends Controller
                 ]
             );
         }
-        // ========== END WORKING DAYS UPDATE ==========
         
-        // Update service capacities in service_slots_config table
+        // Update service capacities in service_slots_config table (UPDATED)
         $serviceCapacities = [
             'reg' => $request->reg_capacity,
-            'correction' => $request->correction_capacity,
-            'ephilid' => $request->ephilid_capacity,
-            'trn' => $request->trn_capacity,
+            'updating' => $request->updating_capacity,
+            'inquiry' => $request->inquiry_capacity,
         ];
         
         foreach ($serviceCapacities as $code => $capacity) {
             if ($capacity !== null) {
-                ServiceSlotsConfig::where('service_code', $code)->update([
-                    'default_capacity' => $capacity
-                ]);
+                ServiceSlotsConfig::updateOrCreate(
+                    ['service_code' => $code],
+                    ['default_capacity' => $capacity]
+                );
             }
         }
         
@@ -207,9 +213,8 @@ class SettingsController extends Controller
             $updatedCount = AppointmentSlot::where('day_type', 'working')
                 ->update([
                     'reg_capacity' => $serviceConfigs['reg'] ?? 10,
-                    'correction_capacity' => $serviceConfigs['correction'] ?? 5,
-                    'ephilid_capacity' => $serviceConfigs['ephilid'] ?? 3,
-                    'trn_capacity' => $serviceConfigs['trn'] ?? 2,
+                    'updating_capacity' => $serviceConfigs['updating'] ?? 5,
+                    'inquiry_capacity' => $serviceConfigs['inquiry'] ?? 8,
                 ]);
             
             return response()->json([
@@ -274,4 +279,52 @@ class SettingsController extends Controller
             ], 500);
         }
     }
+
+    public function storeTimeSlot(Request $request)
+{
+    $validated = $request->validate([
+        'start_time' => 'required|date_format:H:i',
+        'end_time' => 'required|date_format:H:i|after:start_time',
+        'slot_label' => 'nullable|string|max:255',
+        'capacity_per_slot' => 'required|integer|min:1|max:50',
+    ]);
+    
+    $displayOrder = TimeSlot::max('display_order') + 1;
+    
+    $timeSlot = TimeSlot::create([
+        'start_time' => $validated['start_time'] . ':00',
+        'end_time' => $validated['end_time'] . ':00',
+        'slot_label' => $validated['slot_label'] ?? date('g:i A', strtotime($validated['start_time'])) . ' - ' . date('g:i A', strtotime($validated['end_time'])),
+        'capacity_per_slot' => $validated['capacity_per_slot'],
+        'display_order' => $displayOrder,
+        'is_active' => true,
+    ]);
+    
+    return response()->json(['success' => true, 'time_slot' => $timeSlot]);
+}
+
+public function updateTimeSlot(Request $request, $id)
+{
+    $timeSlot = TimeSlot::findOrFail($id);
+    
+    $validated = $request->validate([
+        'start_time' => 'required|date_format:H:i:s',
+        'end_time' => 'required|date_format:H:i:s',
+        'slot_label' => 'nullable|string|max:255',
+        'capacity_per_slot' => 'required|integer|min:1|max:50',
+        'is_active' => 'required|boolean',
+    ]);
+    
+    $timeSlot->update($validated);
+    
+    return response()->json(['success' => true]);
+}
+
+public function destroyTimeSlot($id)
+{
+    $timeSlot = TimeSlot::findOrFail($id);
+    $timeSlot->delete();
+    
+    return response()->json(['success' => true]);
+}
 }

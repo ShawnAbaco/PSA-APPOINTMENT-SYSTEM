@@ -204,6 +204,84 @@
             flex-wrap: wrap;
             margin-top: 4px;
         }
+
+        /* Time Slot Styles */
+        .time-slots-container {
+            margin-top: 20px;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 12px;
+            border: 1px solid #e0e0e0;
+        }
+
+        .time-slots-title {
+            font-weight: 600;
+            margin-bottom: 15px;
+            color: #2c5f8a;
+            font-size: 16px;
+        }
+
+        .time-slots-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+            gap: 12px;
+        }
+
+        .time-slot-card {
+            background: white;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            padding: 12px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .time-slot-card:hover:not(.disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            border-color: #2c5f8a;
+        }
+
+        .time-slot-card.selected {
+            border-color: #28a745;
+            background: #e8f5e9;
+        }
+
+        .time-slot-card.disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            background: #f5f5f5;
+        }
+
+        .time-slot-time {
+            font-weight: bold;
+            font-size: 14px;
+            margin-bottom: 5px;
+        }
+
+        .time-slot-availability {
+            font-size: 12px;
+            color: #666;
+        }
+
+        .time-slot-availability.available {
+            color: #28a745;
+        }
+
+        .time-slot-availability.limited {
+            color: #ff9800;
+        }
+
+        .time-slot-availability.full {
+            color: #dc3545;
+        }
+
+        .time-slots-loading {
+            text-align: center;
+            padding: 20px;
+            color: #666;
+        }
     </style>
 </head>
 
@@ -402,6 +480,10 @@
             .slot-count {
                 font-size: 0.6rem;
             }
+
+            .time-slots-grid {
+                grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+            }
         }
     </style>
 
@@ -503,7 +585,7 @@
 
             <!-- STEP 3: SCHEDULE -->
             <div id="sectionSchedule" class="hidden">
-                <div class="section-title">Select Appointment Date</div>
+                <div class="section-title">Select Appointment Date & Time</div>
 
                 <div class="slot-info" id="slotInfo">
                     <i class="fas fa-calendar-check" style="color: var(--primary);"></i>
@@ -535,6 +617,16 @@
                     <span>Selected Date:</span>
                     <span id="selectedDateText" style="font-weight: 600; color: var(--gray-900);">No date
                         selected</span>
+                </div>
+
+                <!-- Time Slots Container -->
+                <div id="timeSlotsContainer" class="time-slots-container" style="display: none;">
+                    <div class="time-slots-title">
+                        <i class="fas fa-clock"></i> Select Preferred Time Slot
+                    </div>
+                    <div id="timeSlotsGrid" class="time-slots-grid">
+                        <div class="time-slots-loading">Please select a date first</div>
+                    </div>
                 </div>
 
                 <button class="btn-next" id="nextToContact">Next: Contact Info <i
@@ -603,7 +695,7 @@
                             <button class="edit-link" data-edit="schedule" style="color: var(--secondary);"><i
                                     class="fas fa-pen"></i> Edit</button>
                         </div>
-                        <div><span id="reviewDate" style="font-weight: 600;">-</span></div>
+                        <div><span id="reviewDateTime" style="font-weight: 600;">-</span></div>
                     </div>
 
                     <div class="review-section">
@@ -635,8 +727,8 @@
                             id="sumType">-</span></div>
                     <div class="summary-row"><span class="summary-label">Clients</span><span class="summary-value"
                             id="sumClients">-</span></div>
-                    <div class="summary-row"><span class="summary-label">Date</span><span class="summary-value"
-                            id="sumDate">-</span></div>
+                    <div class="summary-row"><span class="summary-label">Date & Time</span><span class="summary-value"
+                            id="sumDateTime">-</span></div>
                     <div class="summary-row"><span class="summary-label">Contact</span><span class="summary-value"
                             id="sumContact">-</span></div>
                 </div>
@@ -686,7 +778,10 @@
             let singleService = 'reg';
             let singleServiceText = 'National ID Registration';
             let selectedDate = null;
+            let selectedTimeSlot = null;
+            let selectedTimeSlotLabel = null;
             let availableDatesData = [];
+            let availableTimeSlots = [];
 
             // TRN related variables (stored per client for multiple appointments)
             let clientTrnData = {}; // { clientId: { hasTrn: bool, trnNumber: string, isValid: bool } }
@@ -709,15 +804,8 @@
 
             function isValidTrn(trnValue) {
                 if (!trnValue) return false;
-                // Remove any spaces or special characters for validation
                 const cleanTrn = trnValue.replace(/\s/g, '');
-                // Check if exactly 29 digits
                 return /^\d{29}$/.test(cleanTrn);
-            }
-
-            function formatTrnDisplay(trnValue) {
-                // Just return the value as is, validation will check length
-                return trnValue;
             }
 
             const serviceOptions = {
@@ -783,7 +871,6 @@
                             userLocation.address = locationData.address || '';
                             userLocation.zipcode = locationData.zipcode || '';
 
-                            // Update hidden fields
                             document.getElementById('userLat').value = userLocation.lat;
                             document.getElementById('userLng').value = userLocation.lng;
                             document.getElementById('userCity').value = userLocation.city;
@@ -792,18 +879,12 @@
 
                             console.log('Location loaded from landing page:', userLocation);
                             return true;
-                        } else {
-                            console.log('Location not detected on landing page');
-                            return false;
                         }
                     } catch (e) {
                         console.error('Error parsing location data:', e);
-                        return false;
                     }
-                } else {
-                    console.log('No location data found in localStorage');
-                    return false;
                 }
+                return false;
             }
 
             function debugLocationData() {
@@ -813,8 +894,6 @@
                 console.log('userCity:', document.getElementById('userCity').value);
                 console.log('userAddress:', document.getElementById('userAddress').value);
                 console.log('userZipcode:', document.getElementById('userZipcode').value);
-                console.log('userLocation object:', userLocation);
-                console.log('===========================');
             }
 
             function showLoading() {
@@ -833,6 +912,12 @@
                     month: 'long',
                     day: 'numeric'
                 });
+            }
+
+            function formatDisplayDateTime(date, timeSlotLabel) {
+                if (!date) return 'No date selected';
+                if (!timeSlotLabel) return formatDisplayDate(date);
+                return `${formatDisplayDate(date)} at ${timeSlotLabel}`;
             }
 
             function getServiceName(c) {
@@ -892,7 +977,6 @@
                         availableDatesData = data.dates;
                         renderCalendar();
                     } else {
-                        console.error('API returned error:', data.message);
                         document.getElementById('calendarDays').innerHTML = '<div class="error">' + (data.message ||
                             'Failed to load available dates') + '</div>';
                     }
@@ -901,6 +985,92 @@
                     document.getElementById('calendarDays').innerHTML =
                         '<div class="error">Failed to load available dates. Please try again later.</div>';
                 }
+            }
+
+            async function loadTimeSlots(date) {
+                const timeSlotsGrid = document.getElementById('timeSlotsGrid');
+                const timeSlotsContainer = document.getElementById('timeSlotsContainer');
+                
+                if (!date) {
+                    timeSlotsContainer.style.display = 'none';
+                    return;
+                }
+                
+                timeSlotsContainer.style.display = 'block';
+                timeSlotsGrid.innerHTML = '<div class="time-slots-loading"><i class="fas fa-spinner fa-spin"></i> Loading available time slots...</div>';
+                
+                try {
+                    const selectedServices = appointmentType === 'multiple' 
+                        ? [...new Set(clients.map(c => c.service))]
+                        : [singleService];
+                    
+                    const url = `{{ route('client.appointment.available-time-slots') }}?date=${date}&services=${selectedServices.join(',')}&client_count=${appointmentType === 'multiple' ? clients.length : 1}`;
+                    
+                    const response = await fetch(url);
+                    const data = await response.json();
+                    
+                    if (data.success && data.time_slots && data.time_slots.length > 0) {
+                        availableTimeSlots = data.time_slots;
+                        renderTimeSlots(availableTimeSlots);
+                    } else {
+                        timeSlotsGrid.innerHTML = '<div class="time-slots-loading"><i class="fas fa-info-circle"></i> No available time slots for this date.</div>';
+                    }
+                } catch (error) {
+                    console.error('Error loading time slots:', error);
+                    timeSlotsGrid.innerHTML = '<div class="time-slots-loading"><i class="fas fa-exclamation-triangle"></i> Failed to load time slots.</div>';
+                }
+            }
+            
+            function renderTimeSlots(timeSlots) {
+                const timeSlotsGrid = document.getElementById('timeSlotsGrid');
+                
+                if (!timeSlots || timeSlots.length === 0) {
+                    timeSlotsGrid.innerHTML = '<div class="time-slots-loading"><i class="fas fa-info-circle"></i> No available time slots for this date.</div>';
+                    return;
+                }
+                
+                let html = '';
+                timeSlots.forEach(slot => {
+                    const isAvailable = slot.is_available;
+                    const isSelected = selectedTimeSlot === slot.id;
+                    const availableText = slot.available_slots > 0 ? `${slot.available_slots} slots available` : 'Fully booked';
+                    const availabilityClass = slot.available_slots > 3 ? 'available' : (slot.available_slots > 0 ? 'limited' : 'full');
+                    
+                    html += `
+                        <div class="time-slot-card ${isAvailable ? '' : 'disabled'} ${isSelected ? 'selected' : ''}" 
+                             data-slot-id="${slot.id}" 
+                             data-slot-label="${slot.slot_label}"
+                             data-available="${isAvailable}">
+                            <div class="time-slot-time">${slot.slot_label}</div>
+                            <div class="time-slot-availability ${availabilityClass}">
+                                ${isAvailable ? availableText : 'Not Available'}
+                            </div>
+                        </div>
+                    `;
+                });
+                
+                timeSlotsGrid.innerHTML = html;
+                
+                // Add click event listeners to time slot cards
+                document.querySelectorAll('.time-slot-card').forEach(card => {
+                    card.addEventListener('click', () => {
+                        const isAvailable = card.dataset.available === 'true';
+                        if (!isAvailable) return;
+                        
+                        const slotId = parseInt(card.dataset.slotId);
+                        const slotLabel = card.dataset.slotLabel;
+                        
+                        // Remove selected class from all
+                        document.querySelectorAll('.time-slot-card').forEach(c => c.classList.remove('selected'));
+                        // Add selected class to clicked card
+                        card.classList.add('selected');
+                        
+                        selectedTimeSlot = slotId;
+                        selectedTimeSlotLabel = slotLabel;
+                        
+                        console.log('Time slot selected:', { id: selectedTimeSlot, label: selectedTimeSlotLabel });
+                    });
+                });
             }
 
             function renderCalendar() {
@@ -924,8 +1094,6 @@
 
                 const selectedServices = [...new Set(clients.map(c => c.service))];
 
-                // UPDATED: Service initials for calendar display
-                // R = REGISTRATION, U = UPDATING (Correction), S = STATUS INQUIRY
                 const serviceShort = {
                     'reg': 'R',
                     'correction': 'U',
@@ -966,7 +1134,7 @@
                     }
 
                     html +=
-                        `<div class="${cls}" data-date="${dateKey}" onclick="selectDate('${dateKey}', ${dateData ? (dateData.available_slots || 0) : 0})">`;
+                        `<div class="${cls}" data-date="${dateKey}" onclick="window.selectDate('${dateKey}')">`;
                     html += `<div class="day-number">${d}</div>`;
                     html += indicatorsHtml;
                     html += `</div>`;
@@ -975,11 +1143,16 @@
                 document.getElementById('calendarDays').innerHTML = html;
             }
 
-            window.selectDate = function(dateKey, slots) {
+            window.selectDate = function(dateKey) {
                 selectedDate = dateKey;
+                selectedTimeSlot = null;
+                selectedTimeSlotLabel = null;
+                
                 document.getElementById('selectedDateText').textContent = formatDisplayDate(dateKey);
-                document.getElementById('slotInfoText').innerHTML = `✓ ${slots} slots available for this date.`;
+                document.getElementById('slotInfoText').innerHTML = `✓ Date selected. Please choose a time slot.`;
+                
                 renderCalendar();
+                loadTimeSlots(dateKey);
             };
 
             // ==================== TRN FUNCTIONS ====================
@@ -1003,7 +1176,6 @@
                         charCounter.classList.add('valid');
                         charCounter.innerHTML = `<i class="fas fa-check-circle"></i> ${currentLength}/${TRN_LENGTH} digits - Valid TRN`;
                     }
-                    // Store the clean 29-digit value
                     clientTrnData[clientId].trnNumber = cleanValue;
                     clientTrnData[clientId].isValid = true;
                     return true;
@@ -1081,7 +1253,6 @@
                         if (this.checked) {
                             clientTrnData[clientId].hasTrn = true;
                             if (trnInputArea) trnInputArea.style.display = 'block';
-                            // Re-validate after showing
                             setTimeout(() => validateAndStyleTrnInput(clientId), 10);
                         }
                     });
@@ -1102,7 +1273,6 @@
                 
                 if (trnNumberInput) {
                     trnNumberInput.addEventListener('input', function(e) {
-                        // Allow only digits
                         this.value = this.value.replace(/[^0-9]/g, '');
                         if (this.value.length > TRN_LENGTH) {
                             this.value = this.value.slice(0, TRN_LENGTH);
@@ -1121,7 +1291,6 @@
                 const qrReaderDiv = document.getElementById(`qr-reader_${clientId}`);
                 if (!qrReaderDiv) return;
                 
-                // Stop existing scanner for this client
                 await stopQrScanner(clientId);
                 
                 qrReaderDiv.style.display = 'block';
@@ -1132,15 +1301,10 @@
                 try {
                     await html5QrCode.start(
                         { facingMode: "environment" },
-                        {
-                            fps: 10,
-                            qrbox: { width: 250, height: 250 }
-                        },
-                        (decodedText, decodedResult) => {
-                            console.log(`QR Code scanned for client ${clientId}: ${decodedText}`);
+                        { fps: 10, qrbox: { width: 250, height: 250 } },
+                        (decodedText) => {
                             const trnInput = document.getElementById(`trnNumber_${clientId}`);
                             if (trnInput) {
-                                // Extract only digits from scanned QR code
                                 const digitsOnly = decodedText.replace(/[^0-9]/g, '');
                                 const finalTrn = digitsOnly.slice(0, TRN_LENGTH);
                                 trnInput.value = finalTrn;
@@ -1149,12 +1313,7 @@
                             }
                             stopQrScanner(clientId);
                             qrReaderDiv.style.display = 'none';
-                            const isValid = clientTrnData[clientId].isValid;
-                            if (isValid) {
-                                alert('QR Code scanned successfully! Valid 29-digit TRN has been entered.');
-                            } else {
-                                alert('QR Code scanned. Please ensure the TRN is exactly 29 digits.');
-                            }
+                            alert(clientTrnData[clientId].isValid ? 'QR Code scanned successfully!' : 'QR Code scanned. Please ensure TRN is exactly 29 digits.');
                         },
                         (errorMessage) => {
                             console.log(`QR Scan error: ${errorMessage}`);
@@ -1162,7 +1321,7 @@
                     );
                 } catch (err) {
                     console.error(`Failed to start QR scanner: ${err}`);
-                    alert('Could not access camera. Please make sure you have granted camera permissions.');
+                    alert('Could not access camera. Please grant camera permissions.');
                     qrReaderDiv.style.display = 'none';
                 }
             }
@@ -1330,7 +1489,6 @@
                     if (c) {
                         c.service = ev.target.value;
                         c.reqAcknowledged = false;
-                        // Clear TRN data when service changes
                         if (c.service !== 'status_inquiry') {
                             delete clientTrnData[c.id];
                         } else {
@@ -1367,7 +1525,6 @@
                     document.getElementById('clientCount').textContent = clients.length;
                 }));
                 
-                // Attach TRN events for each client
                 clients.forEach(client => {
                     if (shouldShowTrnForClient(client)) {
                         attachTrnEvents(client.id);
@@ -1384,10 +1541,9 @@
                 s.classList.remove('hidden');
             }
 
-            // ==================== SUBMIT HANDLER WITH LOCATION DATA ====================
+            // ==================== SUBMIT HANDLER ====================
 
             document.getElementById('submitRequestBtn').onclick = async () => {
-                // Get location data from hidden fields (populated from landing page)
                 const locationData = {
                     user_lat: document.getElementById('userLat').value || null,
                     user_lng: document.getElementById('userLng').value || null,
@@ -1395,10 +1551,6 @@
                     user_address: document.getElementById('userAddress').value || null,
                     user_zipcode: document.getElementById('userZipcode').value || null
                 };
-
-                console.log('=== SUBMITTING APPOINTMENT WITH LOCATION ===');
-                console.log('Location data being sent:', locationData);
-                debugLocationData();
 
                 const clientsData = clients.map(c => {
                     const clientInfo = {
@@ -1411,7 +1563,6 @@
                         service: appointmentType === 'single' ? singleService : c.service
                     };
                     
-                    // Add TRN data if applicable
                     if (shouldShowTrnForClient(c)) {
                         const trnData = clientTrnData[c.id];
                         if (trnData) {
@@ -1426,6 +1577,7 @@
                 const formData = {
                     appointment_type: appointmentType,
                     appointment_date: selectedDate,
+                    appointment_time_slot_id: selectedTimeSlot,
                     contact_name: document.getElementById('contactName').value,
                     contact_email: document.getElementById('contactEmail').value || null,
                     contact_mobile: document.getElementById('contactMobile').value,
@@ -1447,6 +1599,10 @@
                 }
                 if (!formData.appointment_date) {
                     alert('Please select an appointment date');
+                    return;
+                }
+                if (!formData.appointment_time_slot_id) {
+                    alert('Please select a preferred time slot');
                     return;
                 }
 
@@ -1474,7 +1630,7 @@
                         document.getElementById('successDetails').innerHTML = `
                         <p><strong>Appointment Number:</strong> ${result.appointment.number}</p>
                         <p><strong>Reference Code:</strong> ${result.appointment.reference_code}</p>
-                        <p><strong>Date:</strong> ${result.appointment.date}</p>
+                        <p><strong>Date & Time:</strong> ${result.appointment.date} at ${result.appointment.time || 'Selected time slot'}</p>
                         <p><strong>Clients:</strong> ${result.appointment.clients_count} person(s)</p>
                         ${locationMessage}
                         <hr>
@@ -1597,7 +1753,6 @@
                         alert('Please select service for all clients');
                         return;
                     }
-                    // Validate TRN for clients with status_inquiry service
                     if (!validateTrnForClient(c)) {
                         const clientName = getFullName(c) || `Person ${clients.indexOf(c) + 1}`;
                         alert(`${clientName}: Please indicate whether you have a TRN. If YES, please enter the exact 29-digit TRN number or scan the QR code.`);
@@ -1641,6 +1796,10 @@
                     alert('Please select an appointment date.');
                     return;
                 }
+                if (!selectedTimeSlot) {
+                    alert('Please select a preferred time slot.');
+                    return;
+                }
                 showSection(sections.contact);
                 setActiveStep(4);
             };
@@ -1657,16 +1816,14 @@
                     alert('Contact name and mobile number are required.');
                     return;
                 }
-                document.getElementById('reviewType').textContent = appointmentType === 'single' ? 'Single' :
-                    'Family / Group';
+                document.getElementById('reviewType').textContent = appointmentType === 'single' ? 'Single' : 'Family / Group';
                 document.getElementById('reviewClientCount').textContent = clients.length;
                 document.getElementById('reviewClientsList').innerHTML = clients.map((c, i) =>
                     `<div class="client-summary-item"><strong>${i+1}. ${getFullName(c)}</strong> - ${getServiceName(appointmentType==='single'?singleService:c.service)}</div>`
                 ).join('');
-                document.getElementById('reviewDate').textContent = formatDisplayDate(selectedDate);
+                document.getElementById('reviewDateTime').textContent = formatDisplayDateTime(selectedDate, selectedTimeSlotLabel);
                 document.getElementById('reviewContactName').textContent = name;
-                document.getElementById('reviewContactEmail').textContent = document.getElementById('contactEmail')
-                    .value || 'Not provided';
+                document.getElementById('reviewContactEmail').textContent = document.getElementById('contactEmail').value || 'Not provided';
                 document.getElementById('reviewContactMobile').textContent = mob;
                 showSection(sections.review);
                 setActiveStep(5);
@@ -1678,12 +1835,10 @@
             };
 
             document.getElementById('nextToConfirm').onclick = () => {
-                document.getElementById('sumType').textContent = appointmentType === 'single' ? 'Single' :
-                    'Multiple';
+                document.getElementById('sumType').textContent = appointmentType === 'single' ? 'Single' : 'Multiple';
                 document.getElementById('sumClients').textContent = clients.length + ' person(s)';
-                document.getElementById('sumDate').textContent = formatDisplayDate(selectedDate);
-                document.getElementById('sumContact').textContent = document.getElementById('contactName').value +
-                    ' / ' + document.getElementById('contactMobile').value;
+                document.getElementById('sumDateTime').textContent = formatDisplayDateTime(selectedDate, selectedTimeSlotLabel);
+                document.getElementById('sumContact').textContent = document.getElementById('contactName').value + ' / ' + document.getElementById('contactMobile').value;
                 showSection(sections.confirm);
                 setActiveStep(6);
             };
@@ -1736,10 +1891,7 @@
                 }
             });
 
-            // Load location from landing page on initialization
             loadLocationFromLandingPage();
-
-            // Add debug function to console
             window.debugLocation = debugLocationData;
         })();
     </script>

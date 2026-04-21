@@ -123,10 +123,105 @@
     </div>
 </div>
 
-
+<!-- Bulk Generate Modal -->
+<div class="modal fade" id="bulkGenerateModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <form method="POST" action="{{ route('admin.slots.bulk-generate') }}" id="bulkGenerateForm">
+                @csrf
+                <div class="modal-header">
+                    <h5 class="modal-title">Bulk Generate Slots</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Start Date</label>
+                            <input type="date" name="start_date" id="startDate" class="form-control" required>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">End Date</label>
+                            <input type="date" name="end_date" id="endDate" class="form-control" required>
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-12 mb-3">
+                            <label class="form-label">Time Slot</label>
+                            <select name="time_slot_id" class="form-control" required>
+                                <option value="">Select Time Slot</option>
+                                @foreach($timeSlots ?? [] as $timeSlot)
+                                    <option value="{{ $timeSlot->id }}">{{ $timeSlot->slot_label }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-4 mb-3">
+                            <label class="form-label">Registration (R) Capacity</label>
+                            <input type="number" name="reg_capacity" class="form-control" value="10" min="0" max="100" required>
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <label class="form-label">Updating (U) Capacity</label>
+                            <input type="number" name="updating_capacity" class="form-control" value="5" min="0" max="100" required>
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <label class="form-label">Inquiry (S) Capacity</label>
+                            <input type="number" name="inquiry_capacity" class="form-control" value="8" min="0" max="100" required>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label">Days to Include</label>
+                        <div class="d-flex flex-wrap gap-3">
+                            <div class="form-check">
+                                <input type="checkbox" name="days[]" value="1" id="dayMon" class="form-check-input" checked>
+                                <label class="form-check-label" for="dayMon">Monday</label>
+                            </div>
+                            <div class="form-check">
+                                <input type="checkbox" name="days[]" value="2" id="dayTue" class="form-check-input" checked>
+                                <label class="form-check-label" for="dayTue">Tuesday</label>
+                            </div>
+                            <div class="form-check">
+                                <input type="checkbox" name="days[]" value="3" id="dayWed" class="form-check-input" checked>
+                                <label class="form-check-label" for="dayWed">Wednesday</label>
+                            </div>
+                            <div class="form-check">
+                                <input type="checkbox" name="days[]" value="4" id="dayThu" class="form-check-input" checked>
+                                <label class="form-check-label" for="dayThu">Thursday</label>
+                            </div>
+                            <div class="form-check">
+                                <input type="checkbox" name="days[]" value="5" id="dayFri" class="form-check-input" checked>
+                                <label class="form-check-label" for="dayFri">Friday</label>
+                            </div>
+                            <div class="form-check">
+                                <input type="checkbox" name="days[]" value="6" id="daySat" class="form-check-input">
+                                <label class="form-check-label" for="daySat">Saturday</label>
+                            </div>
+                            <div class="form-check">
+                                <input type="checkbox" name="days[]" value="7" id="daySun" class="form-check-input">
+                                <label class="form-check-label" for="daySun">Sunday</label>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="mt-2">
+                        <button type="button" id="selectAllDays" class="btn btn-sm btn-outline-secondary me-2">Select All</button>
+                        <button type="button" id="selectWeekdays" class="btn btn-sm btn-outline-secondary me-2">Weekdays</button>
+                        <button type="button" id="selectWeekends" class="btn btn-sm btn-outline-secondary">Weekends</button>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Generate Slots</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
 
 <style>
-    
 .calendar-day.non-working {
     background: #f5f5f5;
     opacity: 0.6;
@@ -394,14 +489,15 @@ function renderCalendar() {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
     
-    const serviceShort = { 'reg': 'R', 'correction': 'C', 'ephilid': 'E', 'trn': 'T' };
+    // Service short codes for display - UPDATED
+    const serviceShort = { 'reg': 'R', 'updating': 'U', 'inquiry': 'S' };
+    const services = ['reg', 'updating', 'inquiry'];
     
-    // Get working days from meta tag (should be: 1,2,3,4,5,6 for Mon-Sat, Sunday=7 is excluded)
-    let workingDays = [1, 2, 3, 4, 5]; // Default: Mon-Fri
+    // Get working days from meta tag
+    let workingDays = [1, 2, 3, 4, 5];
     const workingDaysMeta = document.querySelector('meta[name="working-days"]');
     if (workingDaysMeta) {
         workingDays = workingDaysMeta.getAttribute('content').split(',').map(Number);
-        console.log('Working days:', workingDays); // Debug: should show [1,2,3,4,5,6] if Saturday is working
     }
     
     let html = '';
@@ -419,66 +515,85 @@ function renderCalendar() {
         const isPast = date < today;
         const isToday = formatDate(date) === formatDate(new Date());
         
-        // Convert JavaScript day (0=Sunday, 1=Monday) to your database format (1=Monday, 7=Sunday)
-        let dayOfWeek = date.getDay(); // 0-6
-        if (dayOfWeek === 0) {
-            dayOfWeek = 7; // Sunday becomes 7
-        }
-        // Saturday is 6, stays as 6
+        // Convert JavaScript day to database format (1=Monday, 7=Sunday)
+        let dayOfWeek = date.getDay();
+        if (dayOfWeek === 0) dayOfWeek = 7;
         
         const isWorkingDay = workingDays.includes(dayOfWeek);
         
         let dayClass = 'calendar-day';
         if (isPast) dayClass += ' past';
         if (isToday) dayClass += ' today';
-        
-        // Special styling for non-working days (like Sunday when is_working=0)
-        if (!isWorkingDay) {
-            dayClass += ' non-working';
-        }
+        if (!isWorkingDay) dayClass += ' non-working';
         
         let content = '';
         
-        // Handle non-working days (Sunday)
+        // Handle non-working days
         if (!isWorkingDay) {
             content = '<div class="non-working-label">🔒 Non-working day</div>';
         } 
         // Handle days with slots configured
-        else if (slot) {
-            if (slot.day_type === 'holiday') {
+        else if (slot && typeof slot === 'object' && Object.keys(slot).length > 0) {
+            // Get the first slot for this date (or aggregate)
+            const firstSlot = Object.values(slot)[0];
+            
+            if (firstSlot.day_type === 'holiday') {
                 dayClass += ' holiday';
                 content = '<div class="badge-icon holiday">🎄 Holiday</div>';
-            } else if (slot.day_type === 'half_day') {
+            } else if (firstSlot.day_type === 'half_day') {
                 dayClass += ' half-day';
                 content = '<div class="badge-icon half-day">🌙 Half Day</div>';
-            } else if (slot.day_type === 'special') {
+            } else if (firstSlot.day_type === 'special') {
                 dayClass += ' special';
                 content = '<div class="badge-icon special">⭐ Special</div>';
             }
             
+            // Aggregate available slots across all time slots for this date
+            let totalRegAvailable = 0;
+            let totalUpdatingAvailable = 0;
+            let totalInquiryAvailable = 0;
+            let totalRegCapacity = 0;
+            let totalUpdatingCapacity = 0;
+            let totalInquiryCapacity = 0;
+            
+            for (const [timeSlotId, timeSlotData] of Object.entries(slot)) {
+                totalRegAvailable += timeSlotData.reg_available || 0;
+                totalUpdatingAvailable += timeSlotData.updating_available || 0;
+                totalInquiryAvailable += timeSlotData.inquiry_available || 0;
+                totalRegCapacity += timeSlotData.reg_capacity || 0;
+                totalUpdatingCapacity += timeSlotData.updating_capacity || 0;
+                totalInquiryCapacity += timeSlotData.inquiry_capacity || 0;
+            }
+            
             let badgesHtml = '<div class="service-badges">';
-            const services = ['reg', 'correction', 'ephilid', 'trn'];
-            for (const svc of services) {
-                const available = slot[`${svc}_available`] || 0;
-                const capacity = slot[`${svc}_capacity`] || 0;
-                if (capacity > 0) {
-                    const statusClass = available > 0 ? 'available' : 'full';
-                    badgesHtml += `<span class="service-badge ${statusClass}">${serviceShort[svc]}${available}</span>`;
-                }
+            if (totalRegCapacity > 0) {
+                const statusClass = totalRegAvailable > 0 ? 'available' : 'full';
+                badgesHtml += `<span class="service-badge ${statusClass}">R${totalRegAvailable}</span>`;
+            }
+            if (totalUpdatingCapacity > 0) {
+                const statusClass = totalUpdatingAvailable > 0 ? 'available' : 'full';
+                badgesHtml += `<span class="service-badge ${statusClass}">U${totalUpdatingAvailable}</span>`;
+            }
+            if (totalInquiryCapacity > 0) {
+                const statusClass = totalInquiryAvailable > 0 ? 'available' : 'full';
+                badgesHtml += `<span class="service-badge ${statusClass}">S${totalInquiryAvailable}</span>`;
             }
             badgesHtml += '</div>';
             content += badgesHtml;
             
-            if (slot.day_type === 'working') {
-                const totalCap = (slot.reg_capacity||0) + (slot.correction_capacity||0) + (slot.ephilid_capacity||0) + (slot.trn_capacity||0);
-                const totalBooked = (slot.reg_booked||0) + (slot.correction_booked||0) + (slot.ephilid_booked||0) + (slot.trn_booked||0);
-                const percent = totalCap > 0 ? (totalBooked / totalCap) * 100 : 0;
+            // Progress bar for total capacity
+            if (firstSlot.day_type === 'working') {
+                const totalCapacity = totalRegCapacity + totalUpdatingCapacity + totalInquiryCapacity;
+                const totalBooked = (totalRegCapacity - totalRegAvailable) + 
+                                   (totalUpdatingCapacity - totalUpdatingAvailable) + 
+                                   (totalInquiryCapacity - totalInquiryAvailable);
+                const percent = totalCapacity > 0 ? (totalBooked / totalCapacity) * 100 : 0;
                 const barColor = percent >= 80 ? 'danger' : (percent >= 50 ? 'warning' : 'success');
                 content += `<div class="progress"><div class="progress-bar bg-${barColor}" style="width: ${percent}%"></div></div>`;
             }
             
-            if (slot.notes) {
-                content += `<div class="slot-notes" title="${slot.notes}">📝 ${slot.notes.substring(0, 20)}${slot.notes.length > 20 ? '...' : ''}</div>`;
+            if (firstSlot.notes) {
+                content += `<div class="slot-notes" title="${firstSlot.notes}">📝 ${firstSlot.notes.substring(0, 20)}${firstSlot.notes.length > 20 ? '...' : ''}</div>`;
             }
         } 
         // Handle working days without slots configured
@@ -486,14 +601,13 @@ function renderCalendar() {
             content = '<div class="not-configured">⚙️ Not configured</div>';
         }
         
-        // Render the day (always as div, no clickable links)
         html += `<div class="${dayClass}"><div class="day-number">${d}</div>${content}</div>`;
     }
     
     document.getElementById('calendarDays').innerHTML = html;
 }
 
-// Day selection helpers
+// Day selection helpers for bulk generate modal
 document.getElementById('selectAllDays')?.addEventListener('click', () => {
     document.querySelectorAll('#bulkGenerateForm input[name="days[]"]').forEach(cb => cb.checked = true);
 });
@@ -540,6 +654,7 @@ document.getElementById('todayBtn')?.addEventListener('click', () => {
     loadSlots();
 });
 
+// Initialize
 loadSlots();
 </script>
 @endpush

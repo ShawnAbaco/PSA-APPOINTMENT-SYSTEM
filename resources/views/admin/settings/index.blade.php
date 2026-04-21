@@ -46,49 +46,151 @@
                         <small class="text-muted">Enable separate slot limits for each service type</small>
                     </div>
                 </div>
+                
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label">Enable Time Slots</label>
+                        <select name="enable_time_slots" class="form-control">
+                            <option value="true" {{ ($settings['enable_time_slots'] ?? true) == true ? 'selected' : '' }}>Yes</option>
+                            <option value="false" {{ ($settings['enable_time_slots'] ?? true) == false ? 'selected' : '' }}>No</option>
+                        </select>
+                        <small class="text-muted">Allow clients to select specific time slots for appointments</small>
+                    </div>
+                    
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label">Default Time Slot Capacity</label>
+                        <input type="number" name="time_slots_default_capacity" class="form-control" value="{{ $settings['time_slots_default_capacity'] ?? 4 }}" min="1" max="50">
+                        <small class="text-muted">Default number of appointments per time slot</small>
+                    </div>
+                </div>
             </div>
         </div>
         
-        <!-- Service Capacity Settings -->
+        <!-- Time Slots Configuration -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="mb-0">Time Slots Configuration</h5>
+            </div>
+            <div class="card-body">
+                <div class="alert alert-info mb-3">
+                    <i class="fas fa-info-circle"></i> Configure available time slots for appointments. Each time slot is 1 hour.
+                </div>
+                
+                <div id="timeSlotsContainer">
+                    @php
+                        $timeSlots = App\Models\TimeSlot::orderBy('display_order')->get();
+                    @endphp
+                    
+                    @if($timeSlots->count() > 0)
+                        <table class="table table-bordered">
+                            <thead>
+                                <tr>
+                                    <th>Start Time</th>
+                                    <th>End Time</th>
+                                    <th>Label</th>
+                                    <th>Default Capacity</th>
+                                    <th>Active</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach($timeSlots as $slot)
+                                    <tr>
+                                        <td>{{ date('g:i A', strtotime($slot->start_time)) }}</td>
+                                        <td>{{ date('g:i A', strtotime($slot->end_time)) }}</td>
+                                        <td>{{ $slot->slot_label }}</td>
+                                        <td>{{ $slot->capacity_per_slot }}</td>
+                                        <td>
+                                            <span class="badge bg-{{ $slot->is_active ? 'success' : 'danger' }}">
+                                                {{ $slot->is_active ? 'Active' : 'Inactive' }}
+                                            </span>
+                                        </td>
+                                        <td>
+                                            <button type="button" class="btn btn-sm btn-primary edit-time-slot" 
+                                                    data-id="{{ $slot->id }}"
+                                                    data-start_time="{{ $slot->start_time }}"
+                                                    data-end_time="{{ $slot->end_time }}"
+                                                    data-slot_label="{{ $slot->slot_label }}"
+                                                    data-capacity="{{ $slot->capacity_per_slot }}"
+                                                    data-active="{{ $slot->is_active }}">
+                                                <i class="fas fa-edit"></i> Edit
+                                            </button>
+                                            <button type="button" class="btn btn-sm btn-danger delete-time-slot" 
+                                                    data-id="{{ $slot->id }}">
+                                                <i class="fas fa-trash"></i> Delete
+                                            </button>
+                                        </td>
+                                    </tr>
+                                @endforeach
+                            </tbody>
+                        </table>
+                    @else
+                        <p class="text-muted">No time slots configured. Add time slots below.</p>
+                    @endif
+                    
+                    <hr>
+                    <h6>Add New Time Slot</h6>
+                    <div class="row">
+                        <div class="col-md-2">
+                            <label>Start Time</label>
+                            <input type="time" id="new_start_time" class="form-control">
+                        </div>
+                        <div class="col-md-2">
+                            <label>End Time</label>
+                            <input type="time" id="new_end_time" class="form-control">
+                        </div>
+                        <div class="col-md-3">
+                            <label>Label (optional)</label>
+                            <input type="text" id="new_slot_label" class="form-control" placeholder="e.g., 9:00 AM - 10:00 AM">
+                        </div>
+                        <div class="col-md-2">
+                            <label>Capacity</label>
+                            <input type="number" id="new_capacity" class="form-control" value="4" min="1">
+                        </div>
+                        <div class="col-md-3">
+                            <label>&nbsp;</label>
+                            <button type="button" id="addTimeSlotBtn" class="btn btn-success form-control">
+                                <i class="fas fa-plus"></i> Add Time Slot
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Service Capacity Settings (UPDATED) -->
         <div class="card mb-4">
             <div class="card-header">
                 <h5 class="mb-0">Service Slot Capacities</h5>
             </div>
             <div class="card-body">
                 <div class="alert alert-info mb-3">
-                    <i class="fas fa-info-circle"></i> Set default capacity limits for each service type. These will apply to all working days.
+                    <i class="fas fa-info-circle"></i> Set default capacity limits for each service type per time slot.
                 </div>
                 
                 <div class="row">
                     @php
                         $regCapacity = $serviceConfigs->where('service_code', 'reg')->first()->default_capacity ?? 10;
-                        $correctionCapacity = $serviceConfigs->where('service_code', 'correction')->first()->default_capacity ?? 5;
-                        $ephilidCapacity = $serviceConfigs->where('service_code', 'ephilid')->first()->default_capacity ?? 3;
-                        $trnCapacity = $serviceConfigs->where('service_code', 'trn')->first()->default_capacity ?? 2;
+                        $updatingCapacity = $serviceConfigs->where('service_code', 'updating')->first()->default_capacity ?? 5;
+                        $inquiryCapacity = $serviceConfigs->where('service_code', 'inquiry')->first()->default_capacity ?? 8;
                     @endphp
                     
-                    <div class="col-md-3 mb-3">
-                        <label class="form-label">National ID Registration</label>
+                    <div class="col-md-4 mb-3">
+                        <label class="form-label">National ID Registration (R)</label>
                         <input type="number" name="reg_capacity" class="form-control" value="{{ $regCapacity }}" min="0" max="100">
-                        <small class="text-muted">Slots per day for Registration</small>
+                        <small class="text-muted">Slots per time slot for Registration</small>
                     </div>
                     
-                    <div class="col-md-3 mb-3">
-                        <label class="form-label">Correction/Updating</label>
-                        <input type="number" name="correction_capacity" class="form-control" value="{{ $correctionCapacity }}" min="0" max="100">
-                        <small class="text-muted">Slots per day for Correction</small>
+                    <div class="col-md-4 mb-3">
+                        <label class="form-label">Correction/Updating (U)</label>
+                        <input type="number" name="updating_capacity" class="form-control" value="{{ $updatingCapacity }}" min="0" max="100">
+                        <small class="text-muted">Slots per time slot for Correction/Updating</small>
                     </div>
                     
-                    <div class="col-md-3 mb-3">
-                        <label class="form-label">ePhilID Issuance</label>
-                        <input type="number" name="ephilid_capacity" class="form-control" value="{{ $ephilidCapacity }}" min="0" max="100">
-                        <small class="text-muted">Slots per day for ePhilID</small>
-                    </div>
-                    
-                    <div class="col-md-3 mb-3">
-                        <label class="form-label">TRN Retrieval</label>
-                        <input type="number" name="trn_capacity" class="form-control" value="{{ $trnCapacity }}" min="0" max="100">
-                        <small class="text-muted">Slots per day for TRN Retrieval</small>
+                    <div class="col-md-4 mb-3">
+                        <label class="form-label">Status Inquiry / TRN Retrieval (S)</label>
+                        <input type="number" name="inquiry_capacity" class="form-control" value="{{ $inquiryCapacity }}" min="0" max="100">
+                        <small class="text-muted">Slots per time slot for Status Inquiry / TRN Retrieval</small>
                     </div>
                 </div>
                 
@@ -352,6 +454,104 @@ $(document).ready(function() {
         updateToggleVisibility();
     }
     
+    $('#addTimeSlotBtn').click(function() {
+    const startTime = $('#new_start_time').val();
+    const endTime = $('#new_end_time').val();
+    const slotLabel = $('#new_slot_label').val();
+    const capacity = $('#new_capacity').val();
+    
+    if (!startTime || !endTime) {
+        alert('Please enter start time and end time');
+        return;
+    }
+    
+    $.ajax({
+        url: '/admin/time-slots/store',
+        method: 'POST',
+        data: {
+            _token: '{{ csrf_token() }}',
+            start_time: startTime,
+            end_time: endTime,
+            slot_label: slotLabel,
+            capacity_per_slot: capacity
+        },
+        success: function(response) {
+            if (response.success) {
+                location.reload();
+            } else {
+                alert(response.message || 'Error adding time slot');
+            }
+        },
+        error: function(xhr) {
+            alert('Error: ' + (xhr.responseJSON?.message || 'Failed to add time slot'));
+        }
+    });
+});
+    
+    $('.edit-time-slot').click(function() {
+    const id = $(this).data('id');
+    const startTime = $(this).data('start_time');
+    const endTime = $(this).data('end_time');
+    const slotLabel = $(this).data('slot_label');
+    const capacity = $(this).data('capacity');
+    const isActive = $(this).data('active');
+    
+    const newStartTime = prompt('Enter start time (HH:MM:SS):', startTime);
+    if (newStartTime === null) return;
+    const newEndTime = prompt('Enter end time (HH:MM:SS):', endTime);
+    if (newEndTime === null) return;
+    const newSlotLabel = prompt('Enter slot label (optional):', slotLabel);
+    const newCapacity = prompt('Enter capacity per slot:', capacity);
+    if (newCapacity === null) return;
+    const newIsActive = confirm('Is this time slot active? Click OK for Yes, Cancel for No');
+    
+    $.ajax({
+        url: '/admin/time-slots/' + id,
+        method: 'PUT',
+        data: {
+            _token: '{{ csrf_token() }}',
+            start_time: newStartTime,
+            end_time: newEndTime,
+            slot_label: newSlotLabel,
+            capacity_per_slot: newCapacity,
+            is_active: newIsActive ? 1 : 0
+        },
+        success: function(response) {
+            if (response.success) {
+                location.reload();
+            } else {
+                alert(response.message || 'Error updating time slot');
+            }
+        },
+        error: function(xhr) {
+            alert('Error: ' + (xhr.responseJSON?.message || 'Failed to update time slot'));
+        }
+    });
+});
+    
+   $('.delete-time-slot').click(function() {
+    const id = $(this).data('id');
+    if (confirm('Are you sure you want to delete this time slot? This may affect existing appointments.')) {
+        $.ajax({
+            url: '/admin/time-slots/' + id,
+            method: 'DELETE',
+            data: {
+                _token: '{{ csrf_token() }}'
+            },
+            success: function(response) {
+                if (response.success) {
+                    location.reload();
+                } else {
+                    alert(response.message || 'Error deleting time slot');
+                }
+            },
+            error: function(xhr) {
+                alert('Error: ' + (xhr.responseJSON?.message || 'Failed to delete time slot'));
+            }
+        });
+    }
+});
+    
     // Test email functionality
     $('#testEmailBtn').click(function() {
         const testEmail = prompt('Enter email address to send test email:', '{{ Auth::user()->email }}');
@@ -369,9 +569,9 @@ $(document).ready(function() {
             },
             success: function(response) {
                 if (response.success) {
-                    showToast('Success', response.message, 'success');
+                    alert('Success: ' + response.message);
                 } else {
-                    showToast('Error', response.message, 'error');
+                    alert('Error: ' + response.message);
                 }
             },
             error: function(xhr) {
@@ -379,7 +579,7 @@ $(document).ready(function() {
                 if (xhr.responseJSON && xhr.responseJSON.message) {
                     errorMsg = xhr.responseJSON.message;
                 }
-                showToast('Error', errorMsg, 'error');
+                alert('Error: ' + errorMsg);
             },
             complete: function() {
                 $('#testEmailBtn').html(originalText).prop('disabled', false);
@@ -402,14 +602,14 @@ function confirmSync() {
         .then(response => response.json())
         .then(data => {
             hideLoading();
-            showToast(data.success ? 'Success' : 'Error', data.message, data.success ? 'success' : 'error');
+            alert(data.message);
             if (data.success) {
                 setTimeout(() => location.reload(), 2000);
             }
         })
         .catch(error => {
             hideLoading();
-            showToast('Error', 'Failed to sync slots', 'error');
+            alert('Error: Failed to sync slots');
         });
     }
 }
@@ -420,10 +620,6 @@ function showLoading() {
 
 function hideLoading() {
     $('#loadingOverlay').hide();
-}
-
-function showToast(title, message, type) {
-    alert(message);
 }
 </script>
 
