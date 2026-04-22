@@ -1,7 +1,7 @@
 // public/js/landing-page.js
 
-const psaLat = 8.4815315;
-const psaLng = 124.6549067;
+const psaLat = 8.482432;
+const psaLng = 124.655153;
 
 let map;
 let routingControl = null;
