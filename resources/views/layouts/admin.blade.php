@@ -14,6 +14,7 @@
     <link rel="stylesheet" href="{{ asset('css/admin/dashboard.css') }}">
     <link rel="stylesheet" href="{{ asset('css/admin/appointments/appointments.css') }}">
     <link rel="stylesheet" href="{{ asset('css/admin/appointments/calendar.css') }}">
+    <link rel="stylesheet" href="{{ asset('css/admin/users/user.css') }}">
 
 </head>
 

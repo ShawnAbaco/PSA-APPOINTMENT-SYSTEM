@@ -33,6 +33,8 @@ class User extends Authenticatable
         'alternate_contact',
         'role',
         'is_active',
+        'account_status',        // ADDED: pending, approved, rejected
+        'rejection_reason',      // ADDED: reason for rejection
         'position',
         'department',
         'profile_photo',
@@ -41,6 +43,10 @@ class User extends Authenticatable
         'last_login_ip',
         'created_by',
         'updated_by',
+        'approved_by',           // ADDED: who approved this user
+        'approved_at',           // ADDED: when approved
+        'rejected_by',           // ADDED: who rejected this user
+        'rejected_at',           // ADDED: when rejected
         'two_factor_secret',
         'two_factor_recovery_codes',
         'two_factor_confirmed_at',
@@ -68,6 +74,8 @@ class User extends Authenticatable
         return [
             'email_verified_at' => 'datetime',
             'last_login_at' => 'datetime',
+            'approved_at' => 'datetime',      // ADDED
+            'rejected_at' => 'datetime',      // ADDED
             'two_factor_confirmed_at' => 'datetime',
             'password' => 'hashed',
             'is_active' => 'boolean',
@@ -82,6 +90,9 @@ class User extends Authenticatable
     public function getFullNameAttribute(): string
     {
         $name = "{$this->first_name} {$this->last_name}";
+        if ($this->middle_name) {
+            $name = "{$this->first_name} {$this->middle_name} {$this->last_name}";
+        }
         if ($this->suffix) {
             $name .= " {$this->suffix}";
         }
@@ -110,6 +121,30 @@ class User extends Authenticatable
     public function isUser(): bool
     {
         return $this->role === 'user';
+    }
+
+    /**
+     * Check if account is pending approval.
+     */
+    public function isPending(): bool
+    {
+        return $this->account_status === 'pending';
+    }
+
+    /**
+     * Check if account is approved.
+     */
+    public function isApproved(): bool
+    {
+        return $this->account_status === 'approved';
+    }
+
+    /**
+     * Check if account is rejected.
+     */
+    public function isRejected(): bool
+    {
+        return $this->account_status === 'rejected';
     }
 
     /**
@@ -161,6 +196,22 @@ class User extends Authenticatable
     }
 
     /**
+     * Get the user who approved this user.
+     */
+    public function approver()
+    {
+        return $this->belongsTo(User::class, 'approved_by');
+    }
+
+    /**
+     * Get the user who rejected this user.
+     */
+    public function rejector()
+    {
+        return $this->belongsTo(User::class, 'rejected_by');
+    }
+
+    /**
      * Scope for active users only.
      */
     public function scopeActive($query)
@@ -174,5 +225,21 @@ class User extends Authenticatable
     public function scopeRole($query, $role)
     {
         return $query->where('role', $role);
+    }
+
+    /**
+     * Scope for pending accounts.
+     */
+    public function scopePending($query)
+    {
+        return $query->where('account_status', 'pending');
+    }
+
+    /**
+     * Scope for approved accounts.
+     */
+    public function scopeApproved($query)
+    {
+        return $query->where('account_status', 'approved');
     }
 }

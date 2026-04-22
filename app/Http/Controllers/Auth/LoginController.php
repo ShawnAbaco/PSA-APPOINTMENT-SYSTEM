@@ -1,4 +1,5 @@
 <?php
+// app/Http/Controllers/Auth/LoginController.php
 
 namespace App\Http\Controllers\Auth;
 
@@ -33,6 +34,18 @@ class LoginController extends Controller
         
         if (Auth::attempt([$field => $request->username, 'password' => $request->password], $request->remember)) {
             $user = Auth::user();
+            
+            // Check if account is approved
+            if ($user->account_status === 'pending') {
+                Auth::logout();
+                return back()->withErrors(['username' => 'Your account is pending approval. Please wait for admin approval.']);
+            }
+            
+            if ($user->account_status === 'rejected') {
+                Auth::logout();
+                $reason = $user->rejection_reason ? ' Reason: ' . $user->rejection_reason : '';
+                return back()->withErrors(['username' => 'Your account has been rejected.' . $reason]);
+            }
             
             if (!$user->is_active) {
                 Auth::logout();

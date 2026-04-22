@@ -1,20 +1,22 @@
-{{-- resources/views/layouts/staff.blade.php --}}
 <!DOCTYPE html>
 <html lang="en">
 
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Staff Panel - PSA Appointment System</title>
+    <title>Staff - PSA Appointment System</title>
+    <link rel="icon" type="image/png" sizes="32x32" href="{{ asset('images/psa.png') }}">
 
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <link rel="stylesheet" href="https://unpkg.com/leaflet-routing-machine@3.2.12/dist/leaflet-routing-machine.css" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="{{ asset('css/staff/staff-sidebar.css') }}">
     <link rel="stylesheet" href="{{ asset('css/staff/dashboard.css') }}">
-    <link rel="stylesheet" href="{{ asset('css/staff/appointments.css') }}">
-
+    <link rel="stylesheet" href="{{ asset('css/staff/staff-stbar.css') }}">
+    <link rel="stylesheet" href="{{ asset('css/staff/appointments/appointments.css') }}">
+    <link rel="stylesheet" href="{{ asset('css/staff/appointments/show.css') }}">
+    <link rel="stylesheet" href="{{ asset('css/staff/clients/client.css') }}">
+    <link rel="stylesheet" href="{{ asset('css/staff/clients/show.css') }}">
     @stack('styles')
 </head>
 
@@ -23,10 +25,10 @@
         <!-- Sidebar -->
         <div class="staff-sidebar">
             <div class="sidebar-header">
-                <h4>
-                    <i class="fas fa-id-card"></i>
-                    <span>PSA Staff</span>
-                </h4>
+                <div class="logo-container">
+                    <img src="{{ asset('images/psa.png') }}" alt="PSA Logo" class="sidebar-logo">
+                    <h4>Philippine Statistics Authority</h4>
+                </div>
             </div>
             <nav class="sidebar-nav">
                 <div class="nav-item">
@@ -44,7 +46,8 @@
                     </a>
                 </div>
                 <div class="nav-item">
-                    <a href="{{ route('staff.clients.index') }}" class="nav-link">
+                    <a href="{{ route('staff.clients.index') }}"
+                        class="nav-link {{ request()->routeIs('staff.clients.*') ? 'active' : '' }}">
                         <i class="fas fa-users"></i>
                         <span>Clients</span>
                     </a>
@@ -130,44 +133,6 @@
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 
     <script>
-        // Toast Notification System
-        function showToast(title, message, type = 'success') {
-            const toastContainer = document.getElementById('toastContainer');
-            const toast = document.createElement('div');
-            toast.className = `toast-notification toast-${type}`;
-
-            let icon = '';
-            switch (type) {
-                case 'success':
-                    icon = 'fa-check-circle';
-                    break;
-                case 'error':
-                    icon = 'fa-times-circle';
-                    break;
-                case 'warning':
-                    icon = 'fa-exclamation-triangle';
-                    break;
-                default:
-                    icon = 'fa-info-circle';
-            }
-
-            toast.innerHTML = `
-                <div class="toast-icon"><i class="fas ${icon}"></i></div>
-                <div class="toast-content">
-                    <div class="toast-title">${title}</div>
-                    <div class="toast-message">${message}</div>
-                </div>
-                <button class="toast-close" onclick="this.parentElement.remove()">&times;</button>
-            `;
-
-            toastContainer.appendChild(toast);
-
-            setTimeout(() => {
-                if (toast.parentElement) toast.remove();
-            }, 5000);
-        }
-
-        // Notification System
         class NotificationManager {
             constructor() {
                 this.notifications = [{
@@ -276,7 +241,7 @@
                 const badge = document.getElementById('notificationCount');
                 if (badge) {
                     badge.textContent = this.unreadCount;
-                    badge.style.display = this.unreadCount > 0 ? 'inline-block' : 'none';
+                    badge.style.display = this.unreadCount > 0 ? 'flex' : 'none';
                 }
             }
 
