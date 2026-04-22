@@ -78,6 +78,7 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
     Route::post('/settings/test-email', [App\Http\Controllers\Admin\SettingsController::class, 'testEmail'])->name('settings.test-email');
     // Add this inside admin routes group
     Route::post('/settings/sync-slots', [App\Http\Controllers\Admin\SettingsController::class, 'syncAllSlots'])->name('settings.sync-slots');
+        Route::post('/settings/clear-cache', [App\Http\Controllers\Admin\SettingsController::class, 'clearCache'])->name('settings.clear-cache');
 
 
 // Add this inside the admin routes group
@@ -97,6 +98,8 @@ Route::prefix('slots')->name('slots.')->group(function () {
     Route::put('/{id}/toggle-holiday', [App\Http\Controllers\Admin\SlotController::class, 'toggleHoliday'])->name('toggle-holiday');
     Route::get('/details/{date}', [App\Http\Controllers\Admin\SlotController::class, 'getSlotDetails'])->name('details');
     Route::get('/json', [App\Http\Controllers\Admin\SlotController::class, 'getSlotsJson'])->name('json');});
+    Route::post('/capacity-rules', [App\Http\Controllers\Admin\SlotController::class, 'saveCapacityRules'])->name('capacity-rules');
+
 
 
     // Add inside the admin routes group

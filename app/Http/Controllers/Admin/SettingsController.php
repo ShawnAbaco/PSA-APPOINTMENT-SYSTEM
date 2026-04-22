@@ -100,8 +100,10 @@ class SettingsController extends Controller
         
         // Get time slots for the view
         $timeSlots = TimeSlot::orderBy('display_order')->get();
+            $capacityRules = SlotCapacityRule::all()->groupBy('time_slot_id');
+
         
-        return view('admin.settings.index', compact('settings', 'serviceConfigs', 'timeSlots'));
+        return view('admin.settings.index', compact('settings', 'serviceConfigs', 'timeSlots', 'capacityRules'));
     }
     
     public function update(Request $request)
@@ -467,4 +469,18 @@ class SettingsController extends Controller
         
         return response()->json(['success' => true]);
     }
+    /**
+ * Clear application cache
+ */
+public function clearCache(Request $request)
+{
+    try {
+        Cache::flush();
+        return response()->json(['success' => true, 'message' => 'Cache cleared successfully.']);
+    } catch (\Exception $e) {
+        return response()->json(['success' => false, 'message' => $e->getMessage()], 500);
+    }
+}
+
+
 }

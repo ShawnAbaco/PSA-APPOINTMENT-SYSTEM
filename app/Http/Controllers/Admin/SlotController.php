@@ -66,8 +66,10 @@ class SlotController extends Controller
         
         // Get time slots for bulk generate modal
         $timeSlots = TimeSlot::where('is_active', true)->orderBy('display_order')->get();
+        $capacityRules = SlotCapacityRule::all()->groupBy('time_slot_id');
+
         
-        return view('admin.slots.index', compact('slots', 'totalSlots', 'totalHolidays', 'totalSpecialDays', 'totalHalfDays', 'totalBooked', 'currentMonth', 'currentYear', 'workingDays', 'timeSlots'));
+        return view('admin.slots.index', compact('slots', 'totalSlots', 'totalHolidays', 'totalSpecialDays', 'totalHalfDays', 'totalBooked', 'currentMonth', 'currentYear', 'workingDays', 'timeSlots', 'capacityRules'));
     }
     
     public function create()
@@ -509,4 +511,35 @@ class SlotController extends Controller
             'slots' => $slotDetails
         ]);
     }
+    /**
+ * Save default capacity rules for all time slots
+ */
+public function saveCapacityRules(Request $request)
+{
+    try {
+        $capacities = $request->input('capacities', []);
+        
+        foreach ($capacities as $timeSlotId => $dayTypes) {
+            foreach ($dayTypes as $dayType => $services) {
+                SlotCapacityRule::updateOrCreate(
+                    [
+                        'time_slot_id' => $timeSlotId,
+                        'day_type' => $dayType,
+                    ],
+                    [
+                        'reg_capacity' => $services['reg'] ?? 0,
+                        'updating_capacity' => $services['updating'] ?? 0,
+                        'inquiry_capacity' => $services['inquiry'] ?? 0,
+                    ]
+                );
+            }
+        }
+        
+        return response()->json(['success' => true, 'message' => 'Capacity rules saved successfully.']);
+    } catch (\Exception $e) {
+        Log::error('Error saving capacity rules: ' . $e->getMessage());
+        return response()->json(['success' => false, 'message' => $e->getMessage()], 500);
+    }
+}
+
 }
