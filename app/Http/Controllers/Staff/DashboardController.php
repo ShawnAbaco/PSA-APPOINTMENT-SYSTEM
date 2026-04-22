@@ -4,6 +4,8 @@ namespace App\Http\Controllers\Staff;
 
 use App\Http\Controllers\Controller;
 use App\Models\Appointment;
+use App\Models\AppointmentClient;
+use App\Models\TimeSlot;
 use App\Models\User;
 use Carbon\Carbon;
 
@@ -18,17 +20,32 @@ class DashboardController extends Controller
         $completedAppointments = Appointment::where('status', 'completed')->count();
         $cancelledAppointments = Appointment::where('status', 'cancelled')->count();
         $totalAppointments = Appointment::count();
-        $recentAppointments = Appointment::with('clients')->latest()->take(10)->get();
+        $recentAppointments = Appointment::with('clients', 'timeSlot')
+            ->latest()
+            ->take(10)
+            ->get();
 
-        // Daily Chart Data (hourly breakdown for today)
+        // Daily Chart Data (by time slot for today)
         $dailyChartLabels = [];
         $dailyChartData = [];
-        for ($hour = 8; $hour <= 20; $hour++) {
-            $dailyChartLabels[] = date('gA', mktime($hour, 0, 0));
+        
+        // Get all active time slots ordered by display_order
+        $timeSlots = TimeSlot::where('is_active', true)
+            ->orderBy('display_order')
+            ->get();
+        
+        foreach ($timeSlots as $slot) {
+            $dailyChartLabels[] = $slot->label ?? date('g:i A', strtotime($slot->start_time));
             $count = Appointment::whereDate('appointment_date', Carbon::today())
-                ->whereRaw('HOUR(appointment_time) = ?', [$hour])
+                ->where('time_slot_id', $slot->id)
                 ->count();
             $dailyChartData[] = $count;
+        }
+        
+        // If no time slots configured, use default hours
+        if ($timeSlots->isEmpty()) {
+            $dailyChartLabels = ['9AM', '10AM', '11AM', '12PM', '1PM', '2PM', '3PM', '4PM', '5PM'];
+            $dailyChartData = array_fill(0, count($dailyChartLabels), 0);
         }
 
         // Weekly Chart Data (last 7 days)
@@ -36,7 +53,7 @@ class DashboardController extends Controller
         $weeklyChartData = [];
         for ($i = 6; $i >= 0; $i--) {
             $date = Carbon::now()->subDays($i);
-            $weeklyChartLabels[] = $date->format('D');
+            $weeklyChartLabels[] = $date->format('D, M j');
             $count = Appointment::whereDate('appointment_date', $date)->count();
             $weeklyChartData[] = $count;
         }
@@ -62,6 +79,19 @@ class DashboardController extends Controller
             $yearlyChartData[] = $count;
         }
 
+        // Service distribution data (for additional chart if needed)
+        $serviceDistribution = AppointmentClient::selectRaw('service, COUNT(*) as count')
+            ->groupBy('service')
+            ->get()
+            ->mapWithKeys(function($item) {
+                $serviceNames = [
+                    'reg' => 'Registration',
+                    'updating' => 'Correction/Updating',
+                    'inquiry' => 'Status Inquiry'
+                ];
+                return [$serviceNames[$item->service] ?? $item->service => $item->count];
+            });
+
         return view('staff.dashboard', compact(
             'todayAppointments',
             'pendingAppointments',
@@ -77,7 +107,8 @@ class DashboardController extends Controller
             'monthlyChartLabels',
             'monthlyChartData',
             'yearlyChartLabels',
-            'yearlyChartData'
+            'yearlyChartData',
+            'serviceDistribution'
         ));
     }
 }

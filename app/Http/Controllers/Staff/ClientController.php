@@ -7,6 +7,7 @@ use App\Models\AppointmentClient;
 use App\Models\Appointment;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 
 class ClientController extends Controller
 {
@@ -15,7 +16,7 @@ class ClientController extends Controller
      */
     public function index(Request $request)
     {
-        $query = AppointmentClient::with('appointment');
+        $query = AppointmentClient::with('appointment.timeSlot');
         
         // Search functionality
         if ($request->filled('search')) {
@@ -24,11 +25,12 @@ class ClientController extends Controller
                 $q->where('first_name', 'like', "%{$search}%")
                   ->orWhere('last_name', 'like', "%{$search}%")
                   ->orWhere('middle_name', 'like', "%{$search}%")
-                  ->orWhere('psa_reference_number', 'like', "%{$search}%");
+                  ->orWhere('psa_reference_number', 'like', "%{$search}%")
+                  ->orWhere('trn_number', 'like', "%{$search}%");
             });
         }
         
-        // Filter by service
+        // Filter by service (UPDATED: reg, updating, inquiry)
         if ($request->filled('service')) {
             $query->where('service', $request->service);
         }
@@ -38,10 +40,15 @@ class ClientController extends Controller
             $query->where('sex', $request->sex);
         }
         
+        // Filter by verification status
+        if ($request->filled('verified')) {
+            $query->where('is_verified', $request->verified === 'true');
+        }
+        
         // Order by latest first
         $clients = $query->latest()->paginate(10);
         
-        // Get service counts for statistics
+        // Get service counts for statistics (UPDATED service codes)
         $serviceCounts = AppointmentClient::selectRaw('service, COUNT(*) as count')
             ->groupBy('service')
             ->pluck('count', 'service');
@@ -49,11 +56,11 @@ class ClientController extends Controller
         $totalClients = AppointmentClient::count();
         $verifiedClients = AppointmentClient::where('is_verified', true)->count();
         
+        // Updated service mapping
         $services = [
             'reg' => 'National ID Registration',
-            'correction' => 'Correction/Updating',
-            'ephilid' => 'ePhilID Issuance',
-            'trn' => 'TRN Retrieval'
+            'updating' => 'Correction/Updating',
+            'inquiry' => 'Status Inquiry / TRN Retrieval'
         ];
         
         return view('staff.clients.index', compact(
@@ -70,22 +77,21 @@ class ClientController extends Controller
      */
     public function show($id)
     {
-        $client = AppointmentClient::with('appointment')->findOrFail($id);
+        $client = AppointmentClient::with('appointment.timeSlot')->findOrFail($id);
         
         // Get client's appointment history (all appointments for this person)
-        $clientHistory = AppointmentClient::with('appointment')
+        $clientHistory = AppointmentClient::with('appointment.timeSlot')
             ->where('first_name', $client->first_name)
             ->where('last_name', $client->last_name)
             ->where('birthdate', $client->birthdate)
             ->orderBy('created_at', 'desc')
             ->get();
         
-        // Get service name mapping
+        // Updated service name mapping
         $services = [
             'reg' => 'National ID Registration',
-            'correction' => 'Correction/Updating of Demographic Information',
-            'ephilid' => 'Issuance of National ID Paper Form (ePhilID)',
-            'trn' => 'Retrieval of TRN / Other Concern'
+            'updating' => 'Correction/Updating',
+            'inquiry' => 'Status Inquiry / TRN Retrieval'
         ];
         
         return view('staff.clients.show', compact('client', 'clientHistory', 'services'));
@@ -101,8 +107,9 @@ class ClientController extends Controller
         $clients = AppointmentClient::where('first_name', 'like', "%{$search}%")
             ->orWhere('last_name', 'like', "%{$search}%")
             ->orWhere('psa_reference_number', 'like', "%{$search}%")
+            ->orWhere('trn_number', 'like', "%{$search}%")
             ->limit(10)
-            ->get(['id', 'first_name', 'middle_name', 'last_name', 'suffix', 'psa_reference_number']);
+            ->get(['id', 'first_name', 'middle_name', 'last_name', 'suffix', 'psa_reference_number', 'trn_number']);
         
         return response()->json($clients);
     }
@@ -121,9 +128,29 @@ class ClientController extends Controller
             'suffix' => 'nullable|string|max:50',
             'sex' => 'required|in:Male,Female',
             'birthdate' => 'required|date',
-            'service' => 'required|in:reg,correction,ephilid,trn',
+            'service' => 'required|in:reg,updating,inquiry',
             'psa_reference_number' => 'nullable|string|max:255',
+            'has_trn' => 'nullable|boolean',
+            'trn_number' => 'nullable|string|size:29|regex:/^\d+$/',
         ]);
+        
+        // Validate TRN if provided and service is inquiry
+        if ($validated['service'] === 'inquiry' && !empty($validated['trn_number'])) {
+            if (!preg_match('/^\d{29}$/', $validated['trn_number'])) {
+                return redirect()->back()
+                    ->with('error', 'TRN number must be exactly 29 digits.')
+                    ->withInput();
+            }
+            $validated['has_trn'] = true;
+        } elseif ($validated['service'] === 'inquiry') {
+            $validated['has_trn'] = $request->has('has_trn') ? true : false;
+            if (!$validated['has_trn']) {
+                $validated['trn_number'] = null;
+            }
+        } else {
+            $validated['has_trn'] = null;
+            $validated['trn_number'] = null;
+        }
         
         $client->update($validated);
         
@@ -142,18 +169,20 @@ class ClientController extends Controller
             'verified_at' => now(),
         ]);
         
-        // Log activity
-        $client->appointment?->update([
-            'status' => 'confirmed',
-            'confirmed_at' => now(),
-            'processed_by' => Auth::id(),
-        ]);
+        // Update appointment status if pending
+        if ($client->appointment && $client->appointment->status === 'pending') {
+            $client->appointment->update([
+                'status' => 'confirmed',
+                'confirmed_at' => now(),
+                'processed_by' => Auth::id(),
+            ]);
+        }
         
         return redirect()->back()->with('success', 'Client verified successfully.');
     }
     
     /**
-     * Update PSA reference number (TRN).
+     * Update PSA reference number.
      */
     public function updateReferenceNumber(Request $request, $id)
     {
@@ -173,73 +202,88 @@ class ClientController extends Controller
     }
     
     /**
+     * Update TRN number for inquiry clients.
+     */
+    public function updateTrnNumber(Request $request, $id)
+    {
+        $request->validate([
+            'trn_number' => 'required|string|size:29|regex:/^\d+$/',
+        ]);
+        
+        $client = AppointmentClient::findOrFail($id);
+        
+        if ($client->service !== 'inquiry') {
+            return response()->json([
+                'success' => false,
+                'message' => 'TRN numbers can only be added for inquiry service clients.'
+            ], 400);
+        }
+        
+        $client->update([
+            'has_trn' => true,
+            'trn_number' => $request->trn_number,
+        ]);
+        
+        return response()->json([
+            'success' => true,
+            'message' => 'TRN number updated successfully.'
+        ]);
+    }
+    
+    /**
      * Export clients to CSV.
      */
     public function export(Request $request)
     {
-        $clients = AppointmentClient::with('appointment')->get();
+        $clients = AppointmentClient::with('appointment.timeSlot')->get();
         
         $filename = 'clients_export_' . date('Y-m-d_His') . '.csv';
-        $handle = fopen('php://output', 'w');
-        
-        // Add CSV headers
-        fputcsv($handle, [
-            'ID', 'First Name', 'Middle Name', 'Last Name', 'Suffix', 
-            'Sex', 'Birthdate', 'Service', 'PSA Reference Number', 
-            'Is Verified', 'Verified At', 'Appointment Number', 
-            'Appointment Date', 'Created At'
-        ]);
-        
-        // Add data rows
-        foreach ($clients as $client) {
-            fputcsv($handle, [
-                $client->id,
-                $client->first_name,
-                $client->middle_name,
-                $client->last_name,
-                $client->suffix,
-                $client->sex,
-                $client->birthdate,
-                $client->service_name,
-                $client->psa_reference_number,
-                $client->is_verified ? 'Yes' : 'No',
-                $client->verified_at,
-                $client->appointment?->appointment_number,
-                $client->appointment?->appointment_date,
-                $client->created_at,
-            ]);
-        }
-        
-        fclose($handle);
         
         return response()->stream(
             function() use ($clients) {
                 $handle = fopen('php://output', 'w');
+                
+                // Add CSV headers (UPDATED)
                 fputcsv($handle, [
-                    'ID', 'First Name', 'Middle Name', 'Last Name', 'Suffix', 
-                    'Sex', 'Birthdate', 'Service', 'PSA Reference Number', 
-                    'Is Verified', 'Verified At', 'Appointment Number', 
-                    'Appointment Date', 'Created At'
+                    'ID', 'Client Number', 'First Name', 'Middle Name', 'Last Name', 'Suffix', 
+                    'Sex', 'Birthdate', 'Service', 'Has TRN', 'TRN Number', 'PSA Reference Number', 
+                    'Is Verified', 'Verified At', 'Appointment Number', 'Appointment Date', 
+                    'Appointment Time', 'Appointment Status', 'Created At'
                 ]);
                 
+                // Service name mapping
+                $serviceNames = [
+                    'reg' => 'National ID Registration',
+                    'updating' => 'Correction/Updating',
+                    'inquiry' => 'Status Inquiry / TRN Retrieval'
+                ];
+                
                 foreach ($clients as $client) {
+                    $timeSlotLabel = $client->appointment?->timeSlot?->label ?? 'N/A';
+                    
                     fputcsv($handle, [
                         $client->id,
+                        $client->client_number,
                         $client->first_name,
                         $client->middle_name,
                         $client->last_name,
                         $client->suffix,
                         $client->sex,
                         $client->birthdate,
-                        $client->service_name,
+                        $serviceNames[$client->service] ?? $client->service,
+                        $client->has_trn ? 'Yes' : 'No',
+                        $client->trn_number,
                         $client->psa_reference_number,
                         $client->is_verified ? 'Yes' : 'No',
                         $client->verified_at,
                         $client->appointment?->appointment_number,
                         $client->appointment?->appointment_date,
+                        $timeSlotLabel,
+                        $client->appointment?->status,
                         $client->created_at,
                     ]);
                 }
+                
                 fclose($handle);
             },
             200,
@@ -259,25 +303,30 @@ class ClientController extends Controller
         $verifiedClients = AppointmentClient::where('is_verified', true)->count();
         $unverifiedClients = $totalClients - $verifiedClients;
         
+        // Clients with TRN (for inquiry service)
+        $clientsWithTrn = AppointmentClient::where('has_trn', true)->count();
+        
+        // Clients by service (UPDATED)
         $clientsByService = AppointmentClient::selectRaw('service, COUNT(*) as count')
             ->groupBy('service')
             ->get()
             ->map(function($item) {
                 $services = [
                     'reg' => 'Registration',
-                    'correction' => 'Correction',
-                    'ephilid' => 'ePhilID',
-                    'trn' => 'TRN Retrieval'
+                    'updating' => 'Correction/Updating',
+                    'inquiry' => 'Status Inquiry'
                 ];
                 $item->service_name = $services[$item->service] ?? $item->service;
                 return $item;
             });
         
+        // Clients by sex
         $clientsBySex = AppointmentClient::selectRaw('sex, COUNT(*) as count')
             ->groupBy('sex')
             ->get();
         
-        $recentClients = AppointmentClient::with('appointment')
+        // Recent clients
+        $recentClients = AppointmentClient::with('appointment.timeSlot')
             ->latest()
             ->take(10)
             ->get();
@@ -286,6 +335,7 @@ class ClientController extends Controller
             'total_clients' => $totalClients,
             'verified_clients' => $verifiedClients,
             'unverified_clients' => $unverifiedClients,
+            'clients_with_trn' => $clientsWithTrn,
             'by_service' => $clientsByService,
             'by_sex' => $clientsBySex,
             'recent_clients' => $recentClients,
@@ -293,7 +343,7 @@ class ClientController extends Controller
     }
     
     /**
-     * Delete a client record (soft delete or permanent).
+     * Delete a client record.
      */
     public function destroy($id)
     {
@@ -316,30 +366,65 @@ class ClientController extends Controller
      */
     public function getClientDetails($id)
     {
-        $client = AppointmentClient::with('appointment')->findOrFail($id);
+        $client = AppointmentClient::with('appointment.timeSlot')->findOrFail($id);
+        
+        $services = [
+            'reg' => 'National ID Registration',
+            'updating' => 'Correction/Updating',
+            'inquiry' => 'Status Inquiry / TRN Retrieval'
+        ];
         
         return response()->json([
             'id' => $client->id,
+            'client_number' => $client->client_number,
             'first_name' => $client->first_name,
             'middle_name' => $client->middle_name,
             'last_name' => $client->last_name,
             'suffix' => $client->suffix,
             'full_name' => $client->full_name,
             'sex' => $client->sex,
-            'birthdate' => $client->birthdate->format('Y-m-d'),
-            'birthdate_formatted' => $client->birthdate->format('F d, Y'),
+            'birthdate' => $client->birthdate ? $client->birthdate->format('Y-m-d') : null,
+            'birthdate_formatted' => $client->birthdate ? $client->birthdate->format('F d, Y') : null,
             'service' => $client->service,
-            'service_name' => $client->service_name,
+            'service_name' => $services[$client->service] ?? $client->service,
+            'has_trn' => $client->has_trn,
+            'trn_number' => $client->trn_number,
             'psa_reference_number' => $client->psa_reference_number,
             'is_verified' => $client->is_verified,
             'verified_at' => $client->verified_at ? $client->verified_at->format('F d, Y h:i A') : null,
+            'requirements_acknowledged' => $client->requirements_acknowledged,
+            'acknowledged_at' => $client->acknowledged_at ? $client->acknowledged_at->format('F d, Y h:i A') : null,
             'appointment' => $client->appointment ? [
                 'id' => $client->appointment->id,
                 'number' => $client->appointment->appointment_number,
-                'date' => $client->appointment->appointment_date->format('F d, Y'),
+                'date' => $client->appointment->appointment_date ? $client->appointment->appointment_date->format('F d, Y') : null,
+                'time' => $client->appointment->timeSlot?->label ?? 'N/A',
                 'status' => $client->appointment->status,
             ] : null,
-            'created_at' => $client->created_at->format('F d, Y h:i A'),
+            'created_at' => $client->created_at ? $client->created_at->format('F d, Y h:i A') : null,
+        ]);
+    }
+    
+    /**
+     * Bulk verify clients.
+     */
+    public function bulkVerify(Request $request)
+    {
+        $request->validate([
+            'client_ids' => 'required|array',
+            'client_ids.*' => 'exists:appointment_clients,id',
+        ]);
+        
+        $count = AppointmentClient::whereIn('id', $request->client_ids)
+            ->where('is_verified', false)
+            ->update([
+                'is_verified' => true,
+                'verified_at' => now(),
+            ]);
+        
+        return response()->json([
+            'success' => true,
+            'message' => "{$count} client(s) verified successfully."
         ]);
     }
 }

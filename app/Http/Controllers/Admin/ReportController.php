@@ -7,6 +7,11 @@ use App\Http\Controllers\Controller;
 use App\Models\Appointment;
 use App\Models\AppointmentClient;
 use App\Models\User;
+use App\Models\TimeSlot;
+use App\Models\SlotCapacityRule;
+use App\Models\SlotCapacityOverride;
+use App\Models\WorkingDaysDefault;
+use App\Models\WorkingDaysOverride;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -40,7 +45,7 @@ class ReportController extends Controller
             'no_show' => $appointments->where('status', 'no_show')->count(),
         ];
         
-        // Get appointments by service
+        // Get appointments by service (from appointment_clients)
         $byService = AppointmentClient::whereBetween('created_at', [$startDateCarbon, $endDateCarbon])
             ->select('service', DB::raw('COUNT(*) as count'))
             ->groupBy('service')
@@ -53,13 +58,14 @@ class ReportController extends Controller
             ->orderBy(DB::raw('FIELD(day, "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday")'))
             ->get();
         
-        // Get appointments by hour (for time analysis)
-        $byHour = Appointment::whereBetween('appointment_date', [$startDateCarbon, $endDateCarbon])
-            ->select(DB::raw('HOUR(appointment_time) as hour'), DB::raw('COUNT(*) as count'))
-            ->whereNotNull('appointment_time')
-            ->groupBy('hour')
-            ->orderBy('hour')
-            ->get();
+        // Get appointments by time slot (using time_slot_id)
+        $byTimeSlot = Appointment::whereBetween('appointment_date', [$startDateCarbon, $endDateCarbon])
+            ->with('timeSlot')
+            ->get()
+            ->groupBy('timeSlot.slot_label')
+            ->map(function($items) {
+                return $items->count();
+            });
         
         // Get top clients (most appointments)
         $topClients = AppointmentClient::select(
@@ -73,7 +79,7 @@ class ReportController extends Controller
             ->limit(10)
             ->get();
         
-        // ========== NEW: LOCATION-BASED ANALYTICS ==========
+        // ========== LOCATION-BASED ANALYTICS ==========
         
         // 1. City Summary with status breakdown
         $citySummary = Appointment::whereBetween('appointment_date', [$startDateCarbon, $endDateCarbon])
@@ -109,8 +115,8 @@ class ReportController extends Controller
         
         // 2. Statistics cards for locations
         $uniqueLocations = $citySummary->count();
-        $topCity = $citySummary->first()->user_city ?? 'N/A';
-        $topCityCount = $citySummary->first()->total_bookings ?? 0;
+        $topCity = $citySummary->isNotEmpty() ? $citySummary->first()->user_city : 'N/A';
+        $topCityCount = $citySummary->isNotEmpty() ? $citySummary->first()->total_bookings : 0;
         $completionRate = $summary['total'] > 0 ? round(($summary['completed'] / $summary['total']) * 100, 1) : 0;
         
         // 3. Location data for map
@@ -165,20 +171,13 @@ class ReportController extends Controller
             ];
         }
         
-        // Get service labels and data for chart
+        // Get service labels and data for chart (updated service codes)
         $serviceLabels = [];
         $serviceData = [];
-        $serviceColors = [
-            'reg' => '#28a745',
-            'correction' => '#ffc107',
-            'ephilid' => '#17a2b8',
-            'trn' => '#6c757d'
-        ];
         $serviceNames = [
-            'reg' => 'Registration',
-            'correction' => 'Correction',
-            'ephilid' => 'ePhilID',
-            'trn' => 'TRN Retrieval'
+            'reg' => 'National ID Registration',
+            'updating' => 'Correction/Updating',
+            'inquiry' => 'Status Inquiry / TRN Retrieval'
         ];
         
         foreach ($byService as $service) {
@@ -238,14 +237,12 @@ class ReportController extends Controller
             'summary',
             'byService',
             'byDay',
-            'byHour',
+            'byTimeSlot',
             'topClients',
             'startDate',
             'endDate',
             'serviceLabels',
             'serviceData',
-            'serviceColors',
-            'serviceNames',
             'dayLabels',
             'dayData',
             'monthlyTrends',
@@ -279,7 +276,7 @@ class ReportController extends Controller
         $startDateCarbon = Carbon::parse($startDate)->startOfDay();
         $endDateCarbon = Carbon::parse($endDate)->endOfDay();
         
-        $appointments = Appointment::with('clients')
+        $appointments = Appointment::with('clients', 'timeSlot')
             ->whereBetween('appointment_date', [$startDateCarbon, $endDateCarbon])
             ->get();
         
@@ -289,10 +286,11 @@ class ReportController extends Controller
             function() use ($appointments) {
                 $handle = fopen('php://output', 'w');
                 
-                // Add CSV headers with location fields
+                // Add CSV headers with location fields and time slot
                 fputcsv($handle, [
                     'Appointment #',
                     'Date',
+                    'Time Slot',
                     'Contact Person',
                     'Contact Mobile',
                     'Contact Email',
@@ -309,16 +307,24 @@ class ReportController extends Controller
                 // Add data rows
                 foreach ($appointments as $appointment) {
                     $clientNames = $appointment->clients->map(function($client) {
-                        return $client->full_name;
+                        return $client->first_name . ' ' . $client->last_name;
                     })->implode(', ');
                     
                     $services = $appointment->clients->map(function($client) {
-                        return $client->service_name;
+                        $serviceNames = [
+                            'reg' => 'Registration',
+                            'updating' => 'Correction/Updating',
+                            'inquiry' => 'Status Inquiry'
+                        ];
+                        return $serviceNames[$client->service] ?? $client->service;
                     })->unique()->implode(', ');
+                    
+                    $timeSlotLabel = $appointment->timeSlot ? $appointment->timeSlot->label : 'N/A';
                     
                     fputcsv($handle, [
                         $appointment->appointment_number,
                         $appointment->appointment_date,
+                        $timeSlotLabel,
                         $appointment->contact_name,
                         $appointment->contact_mobile,
                         $appointment->contact_email,

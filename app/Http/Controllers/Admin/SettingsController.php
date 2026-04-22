@@ -5,8 +5,10 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\Setting;
 use App\Models\AppointmentSlot;
-use App\Models\ServiceSlotsConfig;
+use App\Models\SlotCapacityRule;
+use App\Models\SlotCapacityOverride;
 use App\Models\WorkingDaysDefault;
+use App\Models\WorkingDaysOverride;
 use App\Models\TimeSlot;
 use App\Services\MailService;
 use Illuminate\Http\Request;
@@ -21,8 +23,30 @@ class SettingsController extends Controller
         // Get all settings from database
         $allSettings = Setting::all();
         
-        // Get service configurations
-        $serviceConfigs = ServiceSlotsConfig::all();
+        // Get service configurations (for default capacities)
+        $serviceConfigs = collect();
+        try {
+            $serviceConfigs = DB::table('slot_capacity_rules')
+                ->select('service_code', DB::raw('AVG(reg_capacity) as default_capacity'))
+                ->where('day_type', 'weekday')
+                ->groupBy('service_code')
+                ->get();
+            
+            // If no rules exist, create default structure
+            if ($serviceConfigs->isEmpty()) {
+                $serviceConfigs = collect([
+                    (object)['service_code' => 'reg', 'default_capacity' => 10],
+                    (object)['service_code' => 'updating', 'default_capacity' => 5],
+                    (object)['service_code' => 'inquiry', 'default_capacity' => 8],
+                ]);
+            }
+        } catch (\Exception $e) {
+            $serviceConfigs = collect([
+                (object)['service_code' => 'reg', 'default_capacity' => 10],
+                (object)['service_code' => 'updating', 'default_capacity' => 5],
+                (object)['service_code' => 'inquiry', 'default_capacity' => 8],
+            ]);
+        }
         
         // Get working days from working_days_defaults table
         $workingDaysDefaults = WorkingDaysDefault::all()->pluck('is_working', 'day_of_week')->toArray();
@@ -74,7 +98,10 @@ class SettingsController extends Controller
             }
         }
         
-        return view('admin.settings.index', compact('settings', 'serviceConfigs'));
+        // Get time slots for the view
+        $timeSlots = TimeSlot::orderBy('display_order')->get();
+        
+        return view('admin.settings.index', compact('settings', 'serviceConfigs', 'timeSlots'));
     }
     
     public function update(Request $request)
@@ -95,7 +122,7 @@ class SettingsController extends Controller
             'enable_per_service_limits' => 'nullable|in:true,false',
             'enable_time_slots' => 'nullable|in:true,false',
             'time_slots_default_capacity' => 'nullable|integer|min:1|max:50',
-            // Service capacities (UPDATED: reg, updating, inquiry)
+            // Service capacities for slot_capacity_rules
             'reg_capacity' => 'nullable|integer|min:0|max:100',
             'updating_capacity' => 'nullable|integer|min:0|max:100',
             'inquiry_capacity' => 'nullable|integer|min:0|max:100',
@@ -179,18 +206,53 @@ class SettingsController extends Controller
             );
         }
         
-        // Update service capacities in service_slots_config table (UPDATED)
+        // ========== UPDATE SERVICE CAPACITIES IN slot_capacity_rules TABLE ==========
+        // This updates the DEFAULT capacity rules for all time slots
+        $dayTypes = ['weekday', 'saturday', 'sunday', 'holiday'];
+        $timeSlots = TimeSlot::where('is_active', true)->get();
+        
         $serviceCapacities = [
-            'reg' => $request->reg_capacity,
-            'updating' => $request->updating_capacity,
-            'inquiry' => $request->inquiry_capacity,
+            'reg' => $request->reg_capacity ?? 10,
+            'updating' => $request->updating_capacity ?? 5,
+            'inquiry' => $request->inquiry_capacity ?? 8,
         ];
         
-        foreach ($serviceCapacities as $code => $capacity) {
-            if ($capacity !== null) {
-                ServiceSlotsConfig::updateOrCreate(
-                    ['service_code' => $code],
-                    ['default_capacity' => $capacity]
+        foreach ($timeSlots as $timeSlot) {
+            foreach ($dayTypes as $dayType) {
+                // Determine capacity based on day type
+                switch ($dayType) {
+                    case 'weekday':
+                        $regCapacity = $serviceCapacities['reg'];
+                        $updatingCapacity = $serviceCapacities['updating'];
+                        $inquiryCapacity = $serviceCapacities['inquiry'];
+                        break;
+                    case 'saturday':
+                        $regCapacity = max(1, floor($serviceCapacities['reg'] / 2));
+                        $updatingCapacity = max(1, floor($serviceCapacities['updating'] / 2));
+                        $inquiryCapacity = max(1, floor($serviceCapacities['inquiry'] / 2));
+                        break;
+                    case 'sunday':
+                    case 'holiday':
+                        $regCapacity = 0;
+                        $updatingCapacity = 0;
+                        $inquiryCapacity = 0;
+                        break;
+                    default:
+                        $regCapacity = $serviceCapacities['reg'];
+                        $updatingCapacity = $serviceCapacities['updating'];
+                        $inquiryCapacity = $serviceCapacities['inquiry'];
+                }
+                
+                SlotCapacityRule::updateOrCreate(
+                    [
+                        'time_slot_id' => $timeSlot->id,
+                        'day_type' => $dayType,
+                    ],
+                    [
+                        'reg_capacity' => $regCapacity,
+                        'updating_capacity' => $updatingCapacity,
+                        'inquiry_capacity' => $inquiryCapacity,
+                    ]
                 );
             }
         }
@@ -203,25 +265,54 @@ class SettingsController extends Controller
     
     /**
      * Sync all working slots with current service capacities
+     * This updates slot_capacity_overrides for existing slots that are NOT manually overridden
      */
     public function syncAllSlots(Request $request)
     {
         try {
-            // Get current service capacities
-            $serviceConfigs = ServiceSlotsConfig::all()->pluck('default_capacity', 'service_code')->toArray();
+            DB::beginTransaction();
             
-            $updatedCount = AppointmentSlot::where('day_type', 'working')
-                ->update([
-                    'reg_capacity' => $serviceConfigs['reg'] ?? 10,
-                    'updating_capacity' => $serviceConfigs['updating'] ?? 5,
-                    'inquiry_capacity' => $serviceConfigs['inquiry'] ?? 8,
-                ]);
+            // Get current service capacities from rules (weekday defaults)
+            $defaultRules = SlotCapacityRule::where('day_type', 'weekday')
+                ->select('time_slot_id', 'reg_capacity', 'updating_capacity', 'inquiry_capacity')
+                ->get()
+                ->keyBy('time_slot_id');
+            
+            // Get all working slots (not holiday, not special, not manually overridden)
+            $slotsToSync = AppointmentSlot::where('day_type', 'working')
+                ->whereDoesntHave('override') // Only sync slots without manual overrides
+                ->get();
+            
+            $updatedCount = 0;
+            
+            foreach ($slotsToSync as $slot) {
+                $defaultRule = $defaultRules->get($slot->time_slot_id);
+                if ($defaultRule) {
+                    SlotCapacityOverride::updateOrCreate(
+                        [
+                            'date' => $slot->date,
+                            'time_slot_id' => $slot->time_slot_id,
+                        ],
+                        [
+                            'reg_capacity' => $defaultRule->reg_capacity,
+                            'updating_capacity' => $defaultRule->updating_capacity,
+                            'inquiry_capacity' => $defaultRule->inquiry_capacity,
+                            'reason' => 'Auto-synced from default rules',
+                        ]
+                    );
+                    $updatedCount++;
+                }
+            }
+            
+            DB::commit();
             
             return response()->json([
                 'success' => true,
                 'message' => "Successfully synced {$updatedCount} working slots with current service capacities."
             ]);
         } catch (\Exception $e) {
+            DB::rollback();
+            \Log::error('Sync slots error: ' . $e->getMessage());
             return response()->json([
                 'success' => false,
                 'message' => 'Error syncing slots: ' . $e->getMessage()
@@ -281,50 +372,99 @@ class SettingsController extends Controller
     }
 
     public function storeTimeSlot(Request $request)
-{
-    $validated = $request->validate([
-        'start_time' => 'required|date_format:H:i',
-        'end_time' => 'required|date_format:H:i|after:start_time',
-        'slot_label' => 'nullable|string|max:255',
-        'capacity_per_slot' => 'required|integer|min:1|max:50',
-    ]);
-    
-    $displayOrder = TimeSlot::max('display_order') + 1;
-    
-    $timeSlot = TimeSlot::create([
-        'start_time' => $validated['start_time'] . ':00',
-        'end_time' => $validated['end_time'] . ':00',
-        'slot_label' => $validated['slot_label'] ?? date('g:i A', strtotime($validated['start_time'])) . ' - ' . date('g:i A', strtotime($validated['end_time'])),
-        'capacity_per_slot' => $validated['capacity_per_slot'],
-        'display_order' => $displayOrder,
-        'is_active' => true,
-    ]);
-    
-    return response()->json(['success' => true, 'time_slot' => $timeSlot]);
-}
+    {
+        $validated = $request->validate([
+            'start_time' => 'required|date_format:H:i',
+            'end_time' => 'required|date_format:H:i|after:start_time',
+            'slot_label' => 'nullable|string|max:255',
+            'capacity_per_slot' => 'required|integer|min:1|max:50',
+        ]);
+        
+        $displayOrder = TimeSlot::max('display_order') + 1;
+        
+        $timeSlot = TimeSlot::create([
+            'start_time' => $validated['start_time'] . ':00',
+            'end_time' => $validated['end_time'] . ':00',
+            'label' => $validated['slot_label'] ?? date('g:i A', strtotime($validated['start_time'])) . ' - ' . date('g:i A', strtotime($validated['end_time'])),
+            'display_order' => $displayOrder,
+            'is_active' => true,
+        ]);
+        
+        // Create default capacity rules for this new time slot
+        $dayTypes = ['weekday', 'saturday', 'sunday', 'holiday'];
+        foreach ($dayTypes as $dayType) {
+            switch ($dayType) {
+                case 'weekday':
+                    $regCapacity = 10;
+                    $updatingCapacity = 5;
+                    $inquiryCapacity = 8;
+                    break;
+                case 'saturday':
+                    $regCapacity = 5;
+                    $updatingCapacity = 3;
+                    $inquiryCapacity = 4;
+                    break;
+                default:
+                    $regCapacity = 0;
+                    $updatingCapacity = 0;
+                    $inquiryCapacity = 0;
+            }
+            
+            SlotCapacityRule::create([
+                'time_slot_id' => $timeSlot->id,
+                'day_type' => $dayType,
+                'reg_capacity' => $regCapacity,
+                'updating_capacity' => $updatingCapacity,
+                'inquiry_capacity' => $inquiryCapacity,
+            ]);
+        }
+        
+        return response()->json(['success' => true, 'time_slot' => $timeSlot]);
+    }
 
-public function updateTimeSlot(Request $request, $id)
-{
-    $timeSlot = TimeSlot::findOrFail($id);
-    
-    $validated = $request->validate([
-        'start_time' => 'required|date_format:H:i:s',
-        'end_time' => 'required|date_format:H:i:s',
-        'slot_label' => 'nullable|string|max:255',
-        'capacity_per_slot' => 'required|integer|min:1|max:50',
-        'is_active' => 'required|boolean',
-    ]);
-    
-    $timeSlot->update($validated);
-    
-    return response()->json(['success' => true]);
-}
+    public function updateTimeSlot(Request $request, $id)
+    {
+        $timeSlot = TimeSlot::findOrFail($id);
+        
+        $validated = $request->validate([
+            'start_time' => 'required|date_format:H:i:s',
+            'end_time' => 'required|date_format:H:i:s',
+            'slot_label' => 'nullable|string|max:255',
+            'capacity_per_slot' => 'required|integer|min:1|max:50',
+            'is_active' => 'required|boolean',
+        ]);
+        
+        $timeSlot->update([
+            'start_time' => $validated['start_time'],
+            'end_time' => $validated['end_time'],
+            'label' => $validated['slot_label'],
+            'is_active' => $validated['is_active'],
+        ]);
+        
+        return response()->json(['success' => true]);
+    }
 
-public function destroyTimeSlot($id)
-{
-    $timeSlot = TimeSlot::findOrFail($id);
-    $timeSlot->delete();
-    
-    return response()->json(['success' => true]);
-}
+    public function destroyTimeSlot($id)
+    {
+        $timeSlot = TimeSlot::findOrFail($id);
+        
+        // Check if there are appointments using this time slot
+        $hasAppointments = \App\Models\Appointment::where('time_slot_id', $id)->exists();
+        
+        if ($hasAppointments) {
+            return response()->json([
+                'success' => false, 
+                'message' => 'Cannot delete time slot with existing appointments.'
+            ], 400);
+        }
+        
+        // Delete associated capacity rules
+        SlotCapacityRule::where('time_slot_id', $id)->delete();
+        SlotCapacityOverride::where('time_slot_id', $id)->delete();
+        
+        // Delete the time slot
+        $timeSlot->delete();
+        
+        return response()->json(['success' => true]);
+    }
 }
