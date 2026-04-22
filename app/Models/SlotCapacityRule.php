@@ -1,30 +1,31 @@
 <?php
-// app/Models/TimeSlotCapacitySetting.php
+// app/Models/SlotCapacityRule.php
 
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class TimeSlotCapacitySetting extends Model
+class SlotCapacityRule extends Model
 {
     use HasFactory;
 
-    protected $table = 'time_slot_capacity_settings';
+    protected $table = 'slot_capacity_rules';
 
     protected $fillable = [
         'time_slot_id',
         'day_type',
-        'capacity'
+        'reg_capacity',
+        'updating_capacity',
+        'inquiry_capacity',
     ];
 
     protected $casts = [
-        'capacity' => 'integer',
+        'reg_capacity' => 'integer',
+        'updating_capacity' => 'integer',
+        'inquiry_capacity' => 'integer',
     ];
 
-    /**
-     * Get the time slot that owns this capacity setting
-     */
     public function timeSlot()
     {
         return $this->belongsTo(TimeSlot::class);

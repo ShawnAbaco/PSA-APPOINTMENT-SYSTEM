@@ -1,34 +1,35 @@
 <?php
-// app/Models/AppointmentSlot.php
+// app/Models/SlotCapacityOverride.php
 
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class AppointmentSlot extends Model
+class SlotCapacityOverride extends Model
 {
     use HasFactory;
+
+    protected $table = 'slot_capacity_overrides';
 
     protected $fillable = [
         'date',
         'time_slot_id',
-        'day_type',
-        'notes',
-        'created_by',
+        'reg_capacity',
+        'updating_capacity',
+        'inquiry_capacity',
+        'reason',
     ];
 
     protected $casts = [
         'date' => 'date',
+        'reg_capacity' => 'integer',
+        'updating_capacity' => 'integer',
+        'inquiry_capacity' => 'integer',
     ];
 
     public function timeSlot()
     {
         return $this->belongsTo(TimeSlot::class);
-    }
-
-    public function creator()
-    {
-        return $this->belongsTo(User::class, 'created_by');
     }
 }

@@ -13,43 +13,44 @@
     <link rel="stylesheet" href="{{ asset('css/appointment.css') }}">
     <style>
         /* Enhanced Time Slot Styles */
-.time-slot-card {
-    background: white;
-    border: 2px solid #e0e0e0;
-    border-radius: 10px;
-    padding: 12px;
-    text-align: center;
-    cursor: pointer;
-    transition: all 0.2s ease;
-    position: relative;
-}
+        .time-slot-card {
+            background: white;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            padding: 12px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            position: relative;
+        }
 
-.time-slot-card .slot-indicators {
-    display: flex;
-    justify-content: center;
-    gap: 6px;
-    flex-wrap: wrap;
-    margin: 8px 0 4px;
-}
+        .time-slot-card .slot-indicators {
+            display: flex;
+            justify-content: center;
+            gap: 6px;
+            flex-wrap: wrap;
+            margin: 8px 0 4px;
+        }
 
-.time-slot-card .service-badge {
-    display: inline-block;
-    font-size: 0.7rem;
-    font-weight: bold;
-    padding: 3px 6px;
-    border-radius: 4px;
-    min-width: 32px;
-}
+        .time-slot-card .service-badge {
+            display: inline-block;
+            font-size: 0.7rem;
+            font-weight: bold;
+            padding: 3px 6px;
+            border-radius: 4px;
+            min-width: 32px;
+        }
 
-.time-slot-card .service-badge.available {
-    background: #28a745;
-    color: white;
-}
+        .time-slot-card .service-badge.available {
+            background: #28a745;
+            color: white;
+        }
 
-.time-slot-card .service-badge.full {
-    background: #dc3545;
-    color: white;
-}
+        .time-slot-card .service-badge.full {
+            background: #dc3545;
+            color: white;
+        }
+
         /* Location banner styles */
         .location-banner {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
@@ -572,11 +573,8 @@
                     <select id="singleServiceSelect">
                         <option value="">-- Select Service --</option>
                         @foreach ($services as $service)
-                            @if($service->code !== 'ephilid' && $service->code !== 'trn')
-                                <option value="{{ $service->code }}">{{ $service->name }}</option>
-                            @endif
+                            <option value="{{ $service->code }}">{{ $service->name }}</option>
                         @endforeach
-                        <option value="status_inquiry">Status Inquiry / Retrieval Of TRN / Other Concern</option>
                     </select>
                     <div id="singleServiceDesc" style="margin-top: 16px; color: var(--gray-500);">
                         <p><i class="fas fa-info-circle"></i> Select a service to view details.</p>
@@ -821,10 +819,10 @@
         let availableDatesData = [];
         let availableTimeSlots = [];
 
-        // TRN related variables (stored per client for multiple appointments)
-        let clientTrnData = {}; // { clientId: { hasTrn: bool, trnNumber: string, isValid: bool } }
+        // TRN related variables
+        let clientTrnData = {};
 
-        // Location variables - will be populated from localStorage
+        // Location variables
         let userLocation = {
             lat: null,
             lng: null,
@@ -848,20 +846,20 @@
 
         const serviceOptions = {
             'reg': 'National ID Registration',
-            'correction': 'Correction/Updating',
-            'status_inquiry': 'Status Inquiry / Retrieval Of TRN / Other Concern'
+            'updating': 'Correction/Updating',
+            'inquiry': 'Status Inquiry / Retrieval Of TRN / Other Concern'
         };
 
         const requirementsContent = {
             'reg': `<h4><i class="fas fa-id-card"></i> National ID Registration</h4><p><strong>PRIMARY DOCUMENTS:</strong></p><ul><li>PSA Birth Certificate + 1 government-issued ID (Passport, UMID, Driver's License)</li></ul><p><strong>SECONDARY DOCUMENTS:</strong></p><ul><li>PSA/LCRO Birth Certificate</li><li>Voter's ID, Postal ID, PhilHealth ID</li><li>Employee ID, School ID, Barangay Certificate</li></ul><p><em>⚠️ Bring original documents.</em></p>`,
-            'correction': `<h4><i class="fas fa-pen"></i> Correction/Updating</h4><p><strong>Required Documents by Field:</strong></p><ul><li><strong>First/Last Name:</strong> Birth Certificate, Marriage Certificate</li><li><strong>Sex/DOB:</strong> Birth Certificate</li><li><strong>Address:</strong> Barangay Certificate + Billing</li></ul><p><em>⚠️ Bring ORIGINAL copies.</em></p>`,
-            'status_inquiry': `<h4><i class="fas fa-question-circle"></i> Status Inquiry / Retrieval Of TRN / Other Concern</h4><p><strong>REQUIREMENTS:</strong></p><ul><li>Valid Government-issued ID</li><li>Any previous transaction slip (if available)</li><li>For TRN Retrieval: Provide full name, date of birth, and sex for verification</li><li><strong>TRN must be exactly 29 digits</strong></li></ul><p><em>⚠️ Please bring any reference documents you may have for faster processing.</em></p>`
+            'updating': `<h4><i class="fas fa-pen"></i> Correction/Updating</h4><p><strong>Required Documents by Field:</strong></p><ul><li><strong>First/Last Name:</strong> Birth Certificate, Marriage Certificate</li><li><strong>Sex/DOB:</strong> Birth Certificate</li><li><strong>Address:</strong> Barangay Certificate + Billing</li></ul><p><em>⚠️ Bring ORIGINAL copies.</em></p>`,
+            'inquiry': `<h4><i class="fas fa-question-circle"></i> Status Inquiry / Retrieval Of TRN / Other Concern</h4><p><strong>REQUIREMENTS:</strong></p><ul><li>Valid Government-issued ID</li><li>Any previous transaction slip (if available)</li><li>For TRN Retrieval: Provide full name, date of birth, and sex for verification</li><li><strong>TRN must be exactly 29 digits</strong></li></ul><p><em>⚠️ Please bring any reference documents you may have for faster processing.</em></p>`
         };
 
         const identityReminders = {
             'reg': 'The person named below must be the one registering for the National ID.',
-            'correction': 'The person named below must be the one requesting the correction/update.',
-            'status_inquiry': 'The person named below must be the one requesting status inquiry, TRN retrieval, or other concerns.'
+            'updating': 'The person named below must be the one requesting the correction/update.',
+            'inquiry': 'The person named below must be the one requesting status inquiry, TRN retrieval, or other concerns.'
         };
 
         let clients = [{
@@ -895,7 +893,7 @@
             confirm: document.getElementById('sectionConfirm')
         };
 
-        // ==================== LOAD LOCATION FROM LANDING PAGE ====================
+        // ==================== LOAD LOCATION ====================
 
         function loadLocationFromLandingPage() {
             const stored = localStorage.getItem('userLocation');
@@ -925,15 +923,6 @@
             return false;
         }
 
-        function debugLocationData() {
-            console.log('=== LOCATION DATA DEBUG ===');
-            console.log('userLat:', document.getElementById('userLat').value);
-            console.log('userLng:', document.getElementById('userLng').value);
-            console.log('userCity:', document.getElementById('userCity').value);
-            console.log('userAddress:', document.getElementById('userAddress').value);
-            console.log('userZipcode:', document.getElementById('userZipcode').value);
-        }
-
         function showLoading() {
             document.getElementById('loadingOverlay').style.display = 'flex';
         }
@@ -958,8 +947,8 @@
             return `${formatDisplayDate(date)} at ${timeSlotLabel}`;
         }
 
-        function getServiceName(c) {
-            return serviceOptions[c] || c;
+        function getServiceName(code) {
+            return serviceOptions[code] || code;
         }
 
         function getFullName(c) {
@@ -1076,15 +1065,15 @@
             // Get service short codes for display
             const serviceShort = {
                 'reg': 'R',
-                'correction': 'U',
-                'status_inquiry': 'S'
+                'updating': 'U',
+                'inquiry': 'S'
             };
             
             // Get service display names for tooltips
             const serviceNames = {
                 'reg': 'Registration',
-                'correction': 'Correction/Updating', 
-                'status_inquiry': 'Status Inquiry'
+                'updating': 'Correction/Updating', 
+                'inquiry': 'Status Inquiry'
             };
             
             // Get current services being booked
@@ -1196,12 +1185,14 @@
             const today = new Date();
             today.setHours(0, 0, 0, 0);
 
-            const selectedServices = [...new Set(clients.map(c => c.service))];
+            const selectedServices = appointmentType === 'multiple' 
+                ? [...new Set(clients.map(c => c.service))]
+                : [singleService];
 
             const serviceShort = {
                 'reg': 'R',
-                'correction': 'U',
-                'status_inquiry': 'S'
+                'updating': 'U',
+                'inquiry': 'S'
             };
 
             for (let d = 1; d <= daysInMonth; d++) {
@@ -1447,7 +1438,7 @@
         
         function shouldShowTrnForClient(client) {
             const service = appointmentType === 'single' ? singleService : client.service;
-            return service === 'status_inquiry';
+            return service === 'inquiry';
         }
         
         function validateTrnForClient(client) {
@@ -1492,6 +1483,11 @@
                 const showTrn = shouldShowTrnForClient(c);
                 const trnData = clientTrnData[c.id] || { hasTrn: null, trnNumber: '', isValid: false };
 
+                // IMPORTANT: For multiple appointment, ensure service has a default value
+                if (isMultiple && !c.service) {
+                    c.service = 'reg';
+                }
+
                 const card = document.createElement('div');
                 card.className = 'client-card';
                 card.innerHTML = `
@@ -1509,17 +1505,17 @@
                 <div class="form-row">
                     <div class="form-col">
                         <label>First Name <span style="color: var(--danger);">*</span></label>
-                        <input class="client-firstname" data-id="${c.id}" value="${c.firstName || ''}" placeholder="First Name">
+                        <input class="client-firstname" data-id="${c.id}" value="${escapeHtml(c.firstName) || ''}" placeholder="First Name">
                     </div>
                     <div class="form-col">
                         <label>Middle Name</label>
-                        <input class="client-middlename" data-id="${c.id}" value="${c.middleName || ''}" placeholder="Middle Name">
+                        <input class="client-middlename" data-id="${c.id}" value="${escapeHtml(c.middleName) || ''}" placeholder="Middle Name">
                     </div>
                 </div>
                 <div class="form-row">
                     <div class="form-col">
                         <label>Last Name <span style="color: var(--danger);">*</span></label>
-                        <input class="client-lastname" data-id="${c.id}" value="${c.lastName || ''}" placeholder="Last Name">
+                        <input class="client-lastname" data-id="${c.id}" value="${escapeHtml(c.lastName) || ''}" placeholder="Last Name">
                     </div>
                     <div class="form-col">
                         <label>Suffix</label>
@@ -1545,10 +1541,17 @@
                     </div>
                     <div class="form-col">
                         <label>Birthdate <span style="color: var(--danger);">*</span></label>
-                        <input type="date" class="client-birthdate" data-id="${c.id}" value="${c.birthdate}">
+                        <input type="date" class="client-birthdate" data-id="${c.id}" value="${c.birthdate || ''}">
                     </div>
                 </div>
-                ${isMultiple ? `<div class="form-col" style="margin-top: 12px;"><label>Service <span style="color: var(--danger);">*</span></label><select class="client-service" data-id="${c.id}"><option value="reg" ${c.service==='reg'?'selected':''}>National ID Registration</option><option value="correction" ${c.service==='correction'?'selected':''}>Updating/Correction</option><option value="status_inquiry" ${c.service==='status_inquiry'?'selected':''}>Status Inquiry / Retrieval Of TRN / Other Concern</option></select></div>` : ''}
+                ${isMultiple ? `<div class="form-col" style="margin-top: 12px;">
+                    <label>Service <span style="color: var(--danger);">*</span></label>
+                    <select class="client-service" data-id="${c.id}">
+                        <option value="reg" ${c.service==='reg' ? 'selected' : ''}>National ID Registration</option>
+                        <option value="updating" ${c.service==='updating' ? 'selected' : ''}>Updating/Correction</option>
+                        <option value="inquiry" ${c.service==='inquiry' ? 'selected' : ''}>Status Inquiry / Retrieval Of TRN / Other Concern</option>
+                    </select>
+                </div>` : ''}
                 ${showTrn ? createTrnHtml(c.id, trnData.hasTrn, trnData.trnNumber) : ''}
                 <div class="req-ack-row ${c.reqAcknowledged ? 'acknowledged' : ''}">
                     <input type="checkbox" class="req-ack" data-id="${c.id}" ${c.reqAcknowledged ? 'checked' : ''}>
@@ -1561,6 +1564,17 @@
             attachClientEvents();
             document.getElementById('clientCount').textContent = clients.length;
             updateReqSummary();
+        }
+
+        // Helper function to escape HTML
+        function escapeHtml(str) {
+            if (!str) return '';
+            return str.replace(/[&<>]/g, function(m) {
+                if (m === '&') return '&amp;';
+                if (m === '<') return '&lt;';
+                if (m === '>') return '&gt;';
+                return m;
+            });
         }
 
         function attachClientEvents() {
@@ -1593,7 +1607,7 @@
                 if (c) {
                     c.service = ev.target.value;
                     c.reqAcknowledged = false;
-                    if (c.service !== 'status_inquiry') {
+                    if (c.service !== 'inquiry') {
                         delete clientTrnData[c.id];
                     } else {
                         if (!clientTrnData[c.id]) {
@@ -1923,10 +1937,10 @@
             document.getElementById('reviewType').textContent = appointmentType === 'single' ? 'Single' : 'Family / Group';
             document.getElementById('reviewClientCount').textContent = clients.length;
             document.getElementById('reviewClientsList').innerHTML = clients.map((c, i) =>
-                `<div class="client-summary-item"><strong>${i+1}. ${getFullName(c)}</strong> - ${getServiceName(appointmentType==='single'?singleService:c.service)}</div>`
+                `<div class="client-summary-item"><strong>${i+1}. ${escapeHtml(getFullName(c))}</strong> - ${getServiceName(appointmentType==='single'?singleService:c.service)}</div>`
             ).join('');
             document.getElementById('reviewDateTime').textContent = formatDisplayDateTime(selectedDate, selectedTimeSlotLabel);
-            document.getElementById('reviewContactName').textContent = name;
+            document.getElementById('reviewContactName').textContent = escapeHtml(name);
             document.getElementById('reviewContactEmail').textContent = document.getElementById('contactEmail').value || 'Not provided';
             document.getElementById('reviewContactMobile').textContent = mob;
             showSection(sections.review);
@@ -1996,7 +2010,6 @@
         });
 
         loadLocationFromLandingPage();
-        window.debugLocation = debugLocationData;
     })();
 </script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"

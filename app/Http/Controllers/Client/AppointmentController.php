@@ -6,12 +6,13 @@ namespace App\Http\Controllers\Client;
 use App\Http\Controllers\Controller;
 use App\Models\Appointment;
 use App\Models\AppointmentClient;
-use App\Models\AppointmentSlot;
 use App\Models\Service;
 use App\Models\Setting;
+use App\Models\TimeSlot;
+use App\Models\SlotCapacityRule;
+use App\Models\SlotCapacityOverride;
 use App\Models\WorkingDaysDefault;
 use App\Models\WorkingDaysOverride;
-use App\Models\ServiceSlotsConfig;
 use Carbon\Carbon;
 use App\Services\MailService;
 use Illuminate\Http\Request;
@@ -37,23 +38,128 @@ class AppointmentController extends Controller
         try {
             $services = Service::where('is_active', true)->orderBy('display_order')->get();
             
-            // Get service capacities from config table
-            $serviceConfigs = [];
-            try {
-                $serviceConfigs = ServiceSlotsConfig::all()->pluck('default_capacity', 'service_code')->toArray();
-            } catch (\Exception $e) {
-                Log::warning('ServiceSlotsConfig table not ready: ' . $e->getMessage());
-            }
-            
-            return view('client.appointment', compact('services', 'serviceConfigs'));
+            return view('client.appointment', compact('services'));
         } catch (\Exception $e) {
             Log::error('Error loading appointment page: ' . $e->getMessage());
             $services = collect();
-            $serviceConfigs = [];
-            return view('client.appointment', compact('services', 'serviceConfigs'));
+            return view('client.appointment', compact('services'));
         }
     }
     
+    /**
+     * Get day type for a specific date
+     * Returns: 'weekday', 'saturday', 'sunday', 'holiday'
+     */
+    private function getDayType($date)
+    {
+        try {
+            // Check override first
+            $override = WorkingDaysOverride::where('date', $date)->first();
+            if ($override) {
+                return $override->is_working ? 'weekday' : 'holiday';
+            }
+            
+            // Check default
+            $dayOfWeek = $date->dayOfWeek; // Carbon: 0=Sunday, 1=Monday, etc.
+            $default = WorkingDaysDefault::where('day_of_week', $dayOfWeek)->first();
+            
+            if (!$default || !$default->is_working) {
+                // Saturday (6) or Sunday (0) are non-working by default
+                if ($dayOfWeek == 6) return 'saturday';
+                if ($dayOfWeek == 0) return 'sunday';
+                return 'holiday';
+            }
+            
+            return 'weekday';
+        } catch (\Exception $e) {
+            Log::warning('Error getting day type: ' . $e->getMessage());
+            // Default to weekday if error
+            return 'weekday';
+        }
+    }
+    
+    /**
+     * Get capacity for a specific date, time slot, and service
+     */
+    private function getCapacity($date, $timeSlotId, $service)
+    {
+        try {
+            // Check for override first
+            $override = SlotCapacityOverride::where('date', $date)
+                ->where('time_slot_id', $timeSlotId)
+                ->first();
+            
+            if ($override) {
+                switch ($service) {
+                    case 'reg': return $override->reg_capacity ?? 0;
+                    case 'updating': return $override->updating_capacity ?? 0;
+                    case 'inquiry': return $override->inquiry_capacity ?? 0;
+                    default: return 0;
+                }
+            }
+            
+            // Get day type for this date
+            $dayType = $this->getDayType(Carbon::parse($date));
+            
+            // Get from rules
+            $rule = SlotCapacityRule::where('time_slot_id', $timeSlotId)
+                ->where('day_type', $dayType)
+                ->first();
+            
+            if ($rule) {
+                switch ($service) {
+                    case 'reg': return $rule->reg_capacity;
+                    case 'updating': return $rule->updating_capacity;
+                    case 'inquiry': return $rule->inquiry_capacity;
+                    default: return 0;
+                }
+            }
+            
+            // If no rules found, return default capacity from settings
+            $defaultCapacity = Setting::where('key', 'appointment.default_capacity_per_slot')->first();
+            $defaultValue = $defaultCapacity ? (int)$defaultCapacity->value : 4;
+            
+            // Return default based on service type
+            switch ($service) {
+                case 'reg': return $defaultValue;
+                case 'updating': return max(1, floor($defaultValue / 2));
+                case 'inquiry': return max(1, floor($defaultValue * 0.8));
+                default: return 0;
+            }
+        } catch (\Exception $e) {
+            Log::warning('Error getting capacity: ' . $e->getMessage());
+            // Return default capacity of 4 if error
+            return 4;
+        }
+    }
+    
+    /**
+     * Get booked count for a specific date, time slot, and service
+     */
+    private function getBookedCount($date, $timeSlotId, $service)
+    {
+        try {
+            return AppointmentClient::whereHas('appointment', function($query) use ($date, $timeSlotId) {
+                $query->where('appointment_date', $date)
+                    ->where('time_slot_id', $timeSlotId)
+                    ->where('status', '!=', 'cancelled');
+            })->where('service', $service)->count();
+        } catch (\Exception $e) {
+            Log::warning('Error getting booked count: ' . $e->getMessage());
+            return 0;
+        }
+    }
+    
+    /**
+     * Get available slots for a specific date, time slot, and service
+     */
+    private function getAvailableSlots($date, $timeSlotId, $service)
+    {
+        $capacity = $this->getCapacity($date, $timeSlotId, $service);
+        $booked = $this->getBookedCount($date, $timeSlotId, $service);
+        return max(0, $capacity - $booked);
+    }
+
     public function getAvailableDates(Request $request)
     {
         try {
@@ -83,6 +189,9 @@ class AppointmentController extends Controller
             $dates = [];
             $daysInMonth = Carbon::create($year, $month)->daysInMonth;
             
+            // Get all active time slots
+            $timeSlots = TimeSlot::where('is_active', true)->get();
+            
             for ($day = 1; $day <= $daysInMonth; $day++) {
                 $date = Carbon::create($year, $month, $day);
                 $dateKey = $date->format('Y-m-d');
@@ -97,11 +206,14 @@ class AppointmentController extends Controller
                     continue;
                 }
                 
-                // Get ALL slots for this date
-                $slots = AppointmentSlot::where('date', $dateKey)->get();
+                // Check if date is working day
+                $dayType = $this->getDayType($date);
+                if ($dayType === 'holiday') {
+                    continue;
+                }
                 
-                if ($slots->isEmpty()) {
-                    continue; // No slots configured for this date
+                if ($timeSlots->isEmpty()) {
+                    continue;
                 }
                 
                 $hasAvailableSlot = false;
@@ -110,18 +222,9 @@ class AppointmentController extends Controller
                 foreach ($servicesToCheck as $service) {
                     $totalAvailable = 0;
                     
-                    foreach ($slots as $slot) {
-                        switch ($service) {
-                            case 'reg':
-                                $totalAvailable += $slot->reg_available;
-                                break;
-                            case 'updating':
-                                $totalAvailable += $slot->updating_available;
-                                break;
-                            case 'inquiry':
-                                $totalAvailable += $slot->inquiry_available;
-                                break;
-                        }
+                    foreach ($timeSlots as $timeSlot) {
+                        $available = $this->getAvailableSlots($dateKey, $timeSlot->id, $service);
+                        $totalAvailable += $available;
                     }
                     
                     $serviceAvailability[$service] = $totalAvailable;
@@ -131,7 +234,7 @@ class AppointmentController extends Controller
                     }
                 }
                 
-                // Only include dates that have at least one available slot for the requested service
+                // Only include dates that have at least one available slot
                 if ($hasAvailableSlot) {
                     $dates[] = [
                         'date' => $dateKey,
@@ -152,6 +255,8 @@ class AppointmentController extends Controller
             
         } catch (\Exception $e) {
             Log::error('getAvailableDates error: ' . $e->getMessage());
+            Log::error($e->getTraceAsString());
+            
             return response()->json([
                 'success' => false,
                 'message' => $e->getMessage(),
@@ -169,37 +274,23 @@ class AppointmentController extends Controller
             
             $servicesToCheck = !empty($servicesParam) ? explode(',', $servicesParam) : ['reg', 'updating', 'inquiry'];
             
-            // Get all slots for this date
-            $slots = AppointmentSlot::where('date', $date)
-                ->with('timeSlot')
+            // Get all active time slots
+            $timeSlots = TimeSlot::where('is_active', true)
+                ->orderBy('display_order')
                 ->get();
             
             $availableTimeSlots = [];
             
-            foreach ($slots as $slot) {
+            foreach ($timeSlots as $timeSlot) {
                 $availableForServices = [];
                 $hasAnyAvailability = false;
                 $minAvailable = PHP_INT_MAX;
                 
                 foreach ($servicesToCheck as $service) {
-                    switch ($service) {
-                        case 'reg':
-                            $available = $slot->reg_available;
-                            break;
-                        case 'updating':
-                            $available = $slot->updating_available;
-                            break;
-                        case 'inquiry':
-                            $available = $slot->inquiry_available;
-                            break;
-                        default:
-                            $available = 0;
-                    }
-                    
+                    $available = $this->getAvailableSlots($date, $timeSlot->id, $service);
                     $availableForServices[$service] = $available;
                     $minAvailable = min($minAvailable, $available);
                     
-                    // Check if THIS service has ANY availability (not necessarily enough for all clients)
                     if ($available > 0) {
                         $hasAnyAvailability = true;
                     }
@@ -208,11 +299,11 @@ class AppointmentController extends Controller
                 // Show the time slot if ANY service has availability
                 if ($hasAnyAvailability) {
                     $availableTimeSlots[] = [
-                        'id' => $slot->time_slot_id,
-                        'time_slot_id' => $slot->time_slot_id,
-                        'slot_label' => $slot->timeSlot->slot_label,
-                        'start_time' => $slot->timeSlot->start_time,
-                        'end_time' => $slot->timeSlot->end_time,
+                        'id' => $timeSlot->id,
+                        'time_slot_id' => $timeSlot->id,
+                        'slot_label' => $timeSlot->label ?? $this->formatTimeRange($timeSlot->start_time, $timeSlot->end_time),
+                        'start_time' => $timeSlot->start_time,
+                        'end_time' => $timeSlot->end_time,
                         'is_available' => true,
                         'available_slots' => $minAvailable,
                         'service_availability' => $availableForServices,
@@ -233,6 +324,17 @@ class AppointmentController extends Controller
                 'message' => $e->getMessage(),
                 'time_slots' => []
             ], 500);
+        }
+    }
+    
+    private function formatTimeRange($startTime, $endTime)
+    {
+        try {
+            $start = Carbon::parse($startTime);
+            $end = Carbon::parse($endTime);
+            return $start->format('g:i A') . ' - ' . $end->format('g:i A');
+        } catch (\Exception $e) {
+            return $startTime . ' - ' . $endTime;
         }
     }
     
@@ -284,79 +386,36 @@ class AppointmentController extends Controller
             DB::beginTransaction();
             
             try {
-                // Get the specific time slot for this appointment
-                $timeSlot = \App\Models\TimeSlot::find($request->appointment_time_slot_id);
+                $timeSlot = TimeSlot::find($request->appointment_time_slot_id);
                 if (!$timeSlot) {
                     throw new \Exception('Invalid time slot selected');
                 }
                 
-                // Get or create slot for this date and time slot
-                $slot = AppointmentSlot::firstOrNew([
-                    'date' => $request->appointment_date,
-                    'time_slot_id' => $request->appointment_time_slot_id
-                ]);
-                
-                if (!$slot->exists) {
-                    // Initialize slot with default capacities
-                    $serviceConfigs = \App\Models\ServiceSlotsConfig::all()->pluck('default_capacity', 'service_code')->toArray();
-                    $slot->date = $request->appointment_date;
-                    $slot->time_slot_id = $request->appointment_time_slot_id;
-                    $slot->day_type = 'working';
-                    $slot->reg_capacity = $serviceConfigs['reg'] ?? 10;
-                    $slot->updating_capacity = $serviceConfigs['updating'] ?? 5;
-                    $slot->inquiry_capacity = $serviceConfigs['inquiry'] ?? 8;
-                    $slot->reg_booked = 0;
-                    $slot->updating_booked = 0;
-                    $slot->inquiry_booked = 0;
-                    $slot->save();
-                }
-                
-                // Check availability for each service
+                // Check availability for each service BEFORE booking
                 foreach ($clientsByService as $service => $count) {
-                    $capacity = 0;
-                    $booked = 0;
+                    $available = $this->getAvailableSlots($request->appointment_date, $request->appointment_time_slot_id, $service);
                     
-                    switch ($service) {
-                        case 'reg':
-                            $capacity = $slot->reg_capacity;
-                            $booked = $slot->reg_booked;
-                            break;
-                        case 'updating':
-                            $capacity = $slot->updating_capacity;
-                            $booked = $slot->updating_booked;
-                            break;
-                        case 'inquiry':
-                            $capacity = $slot->inquiry_capacity;
-                            $booked = $slot->inquiry_booked;
-                            break;
-                    }
-                    
-                    // Apply half day logic
-                    if ($slot->day_type === 'half_day') {
-                        $capacity = ceil($capacity / 2);
-                    }
-                    
-                    if (($booked + $count) > $capacity) {
+                    if ($available < $count) {
                         DB::rollback();
                         $serviceNames = [
                             'reg' => 'Registration',
                             'updating' => 'Correction/Updating',
-                            'inquiry' => 'STATUS INQUIRY / RETRIEVAL OF TRN / OTHER CONCERN'
+                            'inquiry' => 'Status Inquiry'
                         ];
                         return response()->json([
                             'success' => false,
-                            'message' => "Not enough slots for {$serviceNames[$service]}. Only {$capacity} slots available."
+                            'message' => "Not enough slots for {$serviceNames[$service]}. Only {$available} slots available. You need {$count} slots."
                         ], 422);
                     }
                 }
                 
-                // Generate appointment number
+                // Generate appointment number and reference code
                 $date = Carbon::now()->format('Ymd');
                 $last = Appointment::whereDate('created_at', Carbon::today())->count() + 1;
                 $appointmentNumber = 'PSA-' . $date . '-' . str_pad($last, 5, '0', STR_PAD_LEFT);
                 $referenceCode = 'REF-' . strtoupper(uniqid());
                 
-                // Create appointment with location data
+                // Create appointment
                 $appointment = new Appointment();
                 $appointment->appointment_number = $appointmentNumber;
                 $appointment->type = $request->appointment_type;
@@ -391,13 +450,12 @@ class AppointmentController extends Controller
                 
                 $appointment->save();
                 
-                // Store client data for email
+                // Store clients
                 $clientsData = [];
                 
-                // Create clients and update slot counts
                 foreach ($request->clients as $clientData) {
                     $client = new AppointmentClient();
-                    $client->client_number = AppointmentClient::generateClientNumber();
+                    $client->client_number = $this->generateClientNumber();
                     $client->appointment_id = $appointment->id;
                     $client->first_name = $clientData['first_name'];
                     $client->middle_name = $clientData['middle_name'] ?? null;
@@ -416,41 +474,8 @@ class AppointmentController extends Controller
                     }
                     
                     $client->save();
-                    
                     $clientsData[] = $clientData;
-                    
-                    // Update slot booked count
-                    switch ($clientData['service']) {
-                        case 'reg':
-                            $slot->reg_booked += 1;
-                            break;
-                        case 'updating':
-                            $slot->updating_booked += 1;
-                            break;
-                        case 'inquiry':
-                            $slot->inquiry_booked += 1;
-                            break;
-                    }
                 }
-                
-                // Recalculate available counts
-                $slot->reg_available = $slot->reg_capacity - $slot->reg_booked;
-                $slot->updating_available = $slot->updating_capacity - $slot->updating_booked;
-                $slot->inquiry_available = $slot->inquiry_capacity - $slot->inquiry_booked;
-                
-                // Apply half day logic if needed
-                if ($slot->day_type === 'half_day') {
-                    $slot->reg_available = ceil($slot->reg_capacity / 2) - $slot->reg_booked;
-                    $slot->updating_available = ceil($slot->updating_capacity / 2) - $slot->updating_booked;
-                    $slot->inquiry_available = ceil($slot->inquiry_capacity / 2) - $slot->inquiry_booked;
-                }
-                
-                // Ensure no negative values
-                $slot->reg_available = max(0, $slot->reg_available);
-                $slot->updating_available = max(0, $slot->updating_available);
-                $slot->inquiry_available = max(0, $slot->inquiry_available);
-                
-                $slot->save();
                 
                 DB::commit();
                 
@@ -479,7 +504,7 @@ class AppointmentController extends Controller
                         'number' => $appointment->appointment_number,
                         'reference_code' => $appointment->reference_code,
                         'date' => Carbon::parse($appointment->appointment_date)->format('F d, Y'),
-                        'time' => $timeSlot->slot_label,
+                        'time' => $timeSlot->label ?? $this->formatTimeRange($timeSlot->start_time, $timeSlot->end_time),
                         'clients_count' => count($request->clients),
                         'location_city' => $appointment->user_city ?? null
                     ]
@@ -488,6 +513,7 @@ class AppointmentController extends Controller
             } catch (\Exception $e) {
                 DB::rollback();
                 \Log::error('Transaction failed: ' . $e->getMessage());
+                \Log::error($e->getTraceAsString());
                 
                 return response()->json([
                     'success' => false,
@@ -497,6 +523,7 @@ class AppointmentController extends Controller
             
         } catch (\Exception $e) {
             \Log::error('Store method error: ' . $e->getMessage());
+            \Log::error($e->getTraceAsString());
             
             return response()->json([
                 'success' => false,
@@ -505,60 +532,16 @@ class AppointmentController extends Controller
         }
     }
     
-    public function checkAvailability(Request $request)
+    private function generateClientNumber()
     {
-        try {
-            $date = $request->get('date');
-            $clientCount = $request->get('client_count', 1);
-            $service = $request->get('service', 'reg');
-            
-            $slot = AppointmentSlot::where('date', $date)->first();
-            
-            // Get service capacity
-            $serviceConfig = \App\Models\ServiceSlotsConfig::where('service_code', $service)->first();
-            $defaultCapacity = $serviceConfig ? $serviceConfig->default_capacity : 10;
-            
-            $capacity = $defaultCapacity;
-            $bookedCount = 0;
-            
-            if ($slot) {
-                switch ($service) {
-                    case 'reg':
-                        $capacity = $slot->reg_capacity;
-                        $bookedCount = $slot->reg_booked;
-                        break;
-                    case 'updating':
-                        $capacity = $slot->updating_capacity;
-                        $bookedCount = $slot->updating_booked;
-                        break;
-                    case 'inquiry':
-                        $capacity = $slot->inquiry_capacity;
-                        $bookedCount = $slot->inquiry_booked;
-                        break;
-                }
-                
-                if ($slot->day_type === 'half_day') {
-                    $capacity = ceil($capacity / 2);
-                }
-            }
-            
-            $availableSlots = $capacity - $bookedCount;
-            
-            return response()->json([
-                'success' => true,
-                'available' => $availableSlots >= $clientCount,
-                'slots_left' => max(0, $availableSlots),
-                'capacity' => $capacity,
-                'booked' => $bookedCount
-            ]);
-            
-        } catch (\Exception $e) {
-            Log::error('Error checking availability: ' . $e->getMessage());
-            return response()->json([
-                'success' => false,
-                'message' => 'Failed to check availability'
-            ], 500);
-        }
+        $year = date('Y');
+        $month = date('m');
+        
+        $last = AppointmentClient::whereYear('created_at', $year)
+            ->whereMonth('created_at', $month)
+            ->count() + 1;
+        
+        return 'CLN-' . $year . $month . '-' . str_pad($last, 5, '0', STR_PAD_LEFT);
     }
     
     // ========== API endpoint to get location statistics ==========
@@ -602,17 +585,5 @@ class AppointmentController extends Controller
             'lng' => self::PSA_LNG,
             'address' => 'Capt. Vicente Roa Street, Brgy. 31, Cagayan de Oro City, 9000 Misamis Oriental, Philippines'
         ]);
-    }
-    
-    private function generateAppointmentNumber()
-    {
-        $date = Carbon::now()->format('Ymd');
-        $last = Appointment::whereDate('created_at', Carbon::today())->count() + 1;
-        return 'PSA-' . $date . '-' . str_pad($last, 5, '0', STR_PAD_LEFT);
-    }
-    
-    private function generateReferenceCode()
-    {
-        return 'REF-' . strtoupper(uniqid());
     }
 }

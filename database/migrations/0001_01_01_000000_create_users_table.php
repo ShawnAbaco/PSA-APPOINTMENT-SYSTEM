@@ -8,6 +8,11 @@ return new class extends Migration
 {
     public function up(): void
     {
+       /*
+        |--------------------------------------------------------------------------
+        | USERS
+        |--------------------------------------------------------------------------
+        */
         Schema::create('users', function (Blueprint $table) {
             $table->id();
             $table->string('employee_id')->nullable()->unique();
@@ -31,17 +36,13 @@ return new class extends Migration
             $table->string('last_login_ip')->nullable();
             $table->foreignId('created_by')->nullable()->constrained('users');
             $table->foreignId('updated_by')->nullable()->constrained('users');
-            $table->string('two_factor_secret')->nullable();
-            $table->string('two_factor_recovery_codes')->nullable();
-            $table->timestamp('two_factor_confirmed_at')->nullable();
             $table->rememberToken();
             $table->timestamps();
             $table->softDeletes();
-            
+
             $table->index(['role', 'is_active']);
-            $table->index('employee_id');
-            $table->index('username');
         });
+
 
         Schema::create('password_reset_tokens', function (Blueprint $table) {
             $table->string('email')->primary();
