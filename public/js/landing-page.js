@@ -9,6 +9,9 @@ let userMarker = null;
 let psaMarker = null;
 let userLatLng = null;
 
+// Variable to track if Ctrl key is pressed
+let ctrlPressed = false;
+
 const psaIconCustom = L.divIcon({
     html: '<div class="custom-psa-marker"><img src="/images/psa.png" alt="PSA Logo"></div>',
     iconSize: [55, 55],
@@ -110,6 +113,78 @@ function initMap() {
         weight: 1.5,
         dashArray: '8, 6'
     }).addTo(map);
+
+    // ============================================
+    // CTRL + SCROLL ZOOM IMPLEMENTATION
+    // ============================================
+    
+    // Disable default scroll wheel zoom initially
+    map.scrollWheelZoom.disable();
+    
+    // Listen for keydown events on the window
+    window.addEventListener('keydown', function(e) {
+        if (e.key === 'Control' || e.keyCode === 17) {
+            ctrlPressed = true;
+            // Enable zoom when Ctrl is pressed
+            if (!map.scrollWheelZoom.enabled()) {
+                map.scrollWheelZoom.enable();
+            }
+        }
+    });
+    
+    // Listen for keyup events on the window
+    window.addEventListener('keyup', function(e) {
+        if (e.key === 'Control' || e.keyCode === 17) {
+            ctrlPressed = false;
+            // Disable zoom when Ctrl is released
+            if (map.scrollWheelZoom.enabled()) {
+                map.scrollWheelZoom.disable();
+            }
+        }
+    });
+    
+    // Handle window blur (when user clicks outside, release Ctrl state)
+    window.addEventListener('blur', function() {
+        ctrlPressed = false;
+        if (map.scrollWheelZoom.enabled()) {
+            map.scrollWheelZoom.disable();
+        }
+    });
+    
+    // Prevent default scroll behavior on map container to avoid page scrolling
+    const mapContainer = document.getElementById('liveMap');
+    if (mapContainer) {
+        mapContainer.addEventListener('wheel', function(e) {
+            if (!e.ctrlKey) {
+                e.preventDefault();
+                return false;
+            }
+        }, { passive: false });
+    }
+    
+    // Add a custom control to show Ctrl+Zoom hint
+    const CtrlZoomControl = L.Control.extend({
+        options: {
+            position: 'bottomright'
+        },
+        
+        onAdd: function(map) {
+            const container = L.DomUtil.create('div', 'ctrl-zoom-control');
+            container.innerHTML = `
+                <div style="background: rgba(0,0,0,0.75); backdrop-filter: blur(4px); color: white; padding: 8px 14px; border-radius: 30px; font-size: 12px; font-family: monospace; display: flex; align-items: center; gap: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.2); pointer-events: none;">
+                    <kbd style="background: #333; border-radius: 4px; padding: 2px 8px; font-weight: bold; color: #ffd700; font-size: 11px;">Ctrl</kbd>
+                    <span style="font-size: 12px;">+</span>
+                    <i class="fas fa-mouse-pointer" style="font-size: 12px;"></i>
+                    <span>Scroll to zoom map</span>
+                </div>
+            `;
+            return container;
+        }
+    });
+    
+    map.addControl(new CtrlZoomControl());
+    
+    console.log('Map initialized with Ctrl+Scroll zoom - Zoom only works when holding Ctrl key');
 }
 
 function autoDetectAndRoute() {

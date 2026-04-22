@@ -59,11 +59,11 @@
                             →</a> --}}
                         <a class="button button-outline" href="#requirements">View Requirements</a>
                     </div>
-                    <div class="stats-row">
+                    {{-- <div class="stats-row">
                         <div class="stat"><strong>15M+</strong> Registered</div>
                         <div class="stat"><strong>1,500+</strong> Centers Nationwide</div>
                         <div class="stat"><strong>Fast</strong> ePhilID printing</div>
-                    </div>
+                    </div> --}}
                 </div>
                 <div class="hero-image">
                     <div class="floating-card">
@@ -175,7 +175,7 @@
                     </div>
                     <div class="info-contact">
                         <h3>PSA Misamis Oriental Support</h3>
-                        <p><strong>Hotline:</strong> 0995 9050 653</p>
+                        <p><strong>Hotline:</strong> 0956 576 6106</p>
                         <p><strong>Email:</strong> psamisamisoriental@yahoo.com.ph</p>
                         <p><strong>Facebook:</strong> <a href="https://www.facebook.com/PSAMISOR" target="_blank">PSA
                                 Misamis Oriental</a></p>
@@ -296,10 +296,8 @@
     <div id="appointmentModal" class="appointment-modal-overlay">
         <div class="appointment-modal-container">
             <div class="appointment-modal-header">
-                <h3>
-                    <i class="fas fa-calendar-check"></i>
-                    National ID Appointment System
-                </h3>
+                <h3><img src="{{ asset('images/psa.png') }}" alt="PSA" style="height: 40px;"> National ID
+                    Appointment System</h3>
                 <button class="close-appointment-modal" id="closeAppointmentModalBtn">
                     <i class="fas fa-times"></i>
                 </button>
