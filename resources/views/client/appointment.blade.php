@@ -12,32 +12,765 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <link rel="stylesheet" href="{{ asset('css/appointment.css') }}">
     <style>
-        .guide-step {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            padding: 15px 20px;
-            border-radius: 12px;
-            margin-bottom: 25px;
-            text-align: center;
-        }
-        .guide-step h3 {
-            margin: 0 0 5px 0;
-            font-size: 1.2rem;
-        }
-        .guide-step p {
-            margin: 0;
-            font-size: 0.85rem;
-            opacity: 0.9;
-        }
-        .guide-step .step-number {
-            display: inline-block;
-            width: 30px;
-            height: 30px;
-            background: rgba(255,255,255,0.3);
-            border-radius: 50%;
-            line-height: 30px;
-            margin-right: 10px;
-        }
+        /* ========== MOBILE RESPONSIVE STYLES ========== */
+:root {
+    --primary: #2c5f8a;
+    --secondary: #6c757d;
+    --success: #28a745;
+    --danger: #dc3545;
+    --warning: #ffc107;
+    --gray-50: #f8f9fa;
+    --gray-200: #e9ecef;
+    --gray-500: #6c757d;
+    --gray-700: #495057;
+    --gray-900: #212529;
+    --radius: 8px;
+}
+
+/* Base responsive adjustments */
+* {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    padding: 0;
+    background: #f0f2f5;
+}
+
+/* Appointment Card */
+.appointment-card {
+    max-width: 1200px;
+    margin: 20px auto;
+    background: white;
+    border-radius: 16px;
+    box-shadow: 0 10px 40px rgba(0,0,0,0.1);
+    overflow: hidden;
+}
+
+/* Card Header */
+.card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 15px 20px;
+    background: linear-gradient(135deg, #2c5f8a 0%, #1a3d5c 100%);
+    color: white;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.logos {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.header-title img {
+    height: 50px;
+    width: auto;
+}
+
+/* Stepper - Mobile First */
+.stepper {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    padding: 15px;
+    background: #f8f9fa;
+    border-bottom: 1px solid #e0e0e0;
+}
+
+.step {
+    flex: 1;
+    min-width: 60px;
+    text-align: center;
+    padding: 8px 5px;
+    background: white;
+    border-radius: 30px;
+    font-size: 12px;
+    font-weight: 500;
+    color: #666;
+    border: 1px solid #ddd;
+    cursor: pointer;
+    transition: all 0.3s;
+}
+
+.step.active {
+    background: var(--primary);
+    color: white;
+    border-color: var(--primary);
+}
+
+.step-num {
+    display: inline-block;
+    width: 22px;
+    height: 22px;
+    line-height: 22px;
+    text-align: center;
+    background: rgba(0,0,0,0.1);
+    border-radius: 50%;
+    margin-right: 5px;
+    font-size: 11px;
+}
+
+.step.active .step-num {
+    background: rgba(255,255,255,0.3);
+}
+
+/* Content Body */
+.content-body {
+    padding: 20px;
+}
+
+/* Section Title */
+.section-title {
+    font-size: 20px;
+    font-weight: 600;
+    margin-bottom: 20px;
+    color: var(--gray-900);
+    border-left: 4px solid var(--primary);
+    padding-left: 15px;
+}
+
+/* Form Rows - Mobile Responsive */
+.form-row {
+    display: flex;
+    gap: 15px;
+    margin-bottom: 15px;
+    flex-wrap: wrap;
+}
+
+.form-col {
+    flex: 1;
+    min-width: 150px;
+}
+
+.form-col label {
+    display: block;
+    margin-bottom: 5px;
+    font-weight: 500;
+    font-size: 13px;
+    color: var(--gray-700);
+}
+
+.form-col input, 
+.form-col select {
+    width: 100%;
+    padding: 10px 12px;
+    border: 1px solid var(--gray-200);
+    border-radius: var(--radius);
+    font-size: 14px;
+    transition: border-color 0.3s;
+}
+
+.form-col input:focus,
+.form-col select:focus {
+    outline: none;
+    border-color: var(--primary);
+}
+
+/* Client Card */
+.client-card {
+    background: white;
+    border: 1px solid var(--gray-200);
+    border-radius: 12px;
+    padding: 15px;
+    margin-bottom: 20px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+}
+
+.client-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-bottom: 15px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid var(--gray-200);
+}
+
+.client-title {
+    font-weight: 600;
+    font-size: 16px;
+    color: var(--primary);
+}
+
+/* Buttons */
+.btn-next, .btn-add-client, .btn-requirements {
+    padding: 12px 24px;
+    border: none;
+    border-radius: 40px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.btn-next {
+    background: var(--primary);
+    color: white;
+    margin-top: 20px;
+}
+
+.btn-next:hover {
+    background: #1a3d5c;
+    transform: translateY(-2px);
+}
+
+.back-btn {
+    background: var(--gray-500);
+    margin-right: 10px;
+}
+
+.btn-add-client {
+    background: #28a745;
+    color: white;
+    width: 100%;
+    justify-content: center;
+    margin-top: 10px;
+}
+
+.btn-requirements {
+    background: var(--gray-200);
+    color: var(--gray-700);
+    padding: 8px 16px;
+    font-size: 12px;
+}
+
+/* Calendar - Mobile Responsive */
+.calendar-container {
+    background: white;
+    border-radius: 12px;
+    padding: 15px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    overflow-x: auto;
+}
+
+.calendar-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.calendar-month-year {
+    font-size: 16px;
+    font-weight: 600;
+}
+
+.calendar-nav {
+    display: flex;
+    gap: 10px;
+}
+
+.calendar-nav-btn {
+    background: var(--gray-200);
+    border: none;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.calendar-weekdays {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    text-align: center;
+    font-weight: 600;
+    font-size: 12px;
+    margin-bottom: 10px;
+    color: var(--gray-500);
+}
+
+.calendar-days {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 4px;
+}
+
+.calendar-day {
+    background: var(--gray-50);
+    border-radius: 8px;
+    padding: 8px 4px;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.2s;
+    position: relative;
+    min-height: 55px;
+}
+
+.calendar-day.available {
+    background: #e8f5e9;
+}
+
+.calendar-day.available:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+}
+
+.calendar-day.disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+    background: var(--gray-200);
+}
+
+.calendar-day.selected {
+    border: 2px solid var(--primary);
+    background: #e3f2fd;
+}
+
+.day-number {
+    font-size: 14px;
+    font-weight: 700;
+    margin-bottom: 4px;
+}
+
+.slot-count {
+    font-size: 10px;
+    font-weight: 600;
+    padding: 2px 4px;
+    border-radius: 10px;
+    display: inline-block;
+}
+
+.slot-count.available {
+    background: #4caf50;
+    color: white;
+}
+
+.slot-count.full {
+    background: #f44336;
+    color: white;
+}
+
+/* Service Badges */
+.service-badge {
+    display: inline-block;
+    font-size: 9px;
+    font-weight: bold;
+    padding: 2px 4px;
+    margin: 1px;
+    border-radius: 4px;
+}
+
+.service-badge.available {
+    background: #28a745;
+    color: white;
+}
+
+.service-badge.full {
+    background: #dc3545;
+    color: white;
+}
+
+.slot-indicators {
+    display: flex;
+    justify-content: center;
+    gap: 3px;
+    flex-wrap: wrap;
+    margin-top: 4px;
+}
+
+/* Time Slots - Mobile Responsive */
+.time-slots-container {
+    margin-top: 20px;
+    padding: 15px;
+    background: var(--gray-50);
+    border-radius: 12px;
+}
+
+.time-slots-title {
+    font-weight: 600;
+    margin-bottom: 15px;
+    color: var(--primary);
+    font-size: 14px;
+}
+
+.time-slots-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+    gap: 10px;
+}
+
+.time-slot-card {
+    background: white;
+    border: 2px solid var(--gray-200);
+    border-radius: 10px;
+    padding: 10px;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.time-slot-card.selected {
+    border-color: #28a745;
+    background: #e8f5e9;
+}
+
+.time-slot-card.disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.time-slot-time {
+    font-weight: bold;
+    font-size: 13px;
+    margin-bottom: 4px;
+}
+
+.time-slot-availability {
+    font-size: 10px;
+}
+
+.time-slot-availability.available {
+    color: #28a745;
+}
+
+.time-slot-availability.full {
+    color: #dc3545;
+}
+
+/* Review Section */
+.review-container {
+    background: var(--gray-50);
+    border-radius: 12px;
+    padding: 15px;
+}
+
+.review-section {
+    margin-bottom: 20px;
+    padding-bottom: 15px;
+    border-bottom: 1px solid var(--gray-200);
+}
+
+.review-section:last-child {
+    border-bottom: none;
+    margin-bottom: 0;
+    padding-bottom: 0;
+}
+
+.review-section-title {
+    font-weight: 600;
+    color: var(--primary);
+}
+
+.edit-link {
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 12px;
+}
+
+/* Summary Box */
+.summary-box {
+    background: var(--gray-50);
+    border-radius: 12px;
+    padding: 15px;
+    margin-bottom: 20px;
+}
+
+.summary-row {
+    display: flex;
+    justify-content: space-between;
+    padding: 8px 0;
+    border-bottom: 1px solid var(--gray-200);
+}
+
+.summary-row:last-child {
+    border-bottom: none;
+}
+
+.summary-label {
+    font-weight: 600;
+    color: var(--gray-700);
+}
+
+.summary-value {
+    color: var(--gray-900);
+}
+
+/* Modal Responsive */
+.modal-content {
+    width: 90%;
+    max-width: 500px;
+    margin: 50px auto;
+    background: white;
+    border-radius: 12px;
+    max-height: 80vh;
+    overflow-y: auto;
+}
+
+/* Footer */
+.footer-note {
+    display: flex;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 10px;
+    padding: 15px 20px;
+    background: var(--gray-50);
+    font-size: 11px;
+    color: var(--gray-500);
+    text-align: center;
+}
+
+/* Mobile Breakpoints */
+@media (max-width: 768px) {
+    /* Card header */
+    .card-header {
+        flex-direction: column;
+        text-align: center;
+    }
+    
+    /* Stepper */
+    .stepper {
+        overflow-x: auto;
+        flex-wrap: nowrap;
+        -webkit-overflow-scrolling: touch;
+    }
+    
+    .step {
+        flex: 0 0 auto;
+        min-width: 70px;
+        font-size: 10px;
+    }
+    
+    .step-num {
+        width: 20px;
+        height: 20px;
+        line-height: 20px;
+        font-size: 10px;
+    }
+    
+    /* Content body */
+    .content-body {
+        padding: 15px;
+    }
+    
+    /* Section title */
+    .section-title {
+        font-size: 18px;
+    }
+    
+    /* Form rows */
+    .form-row {
+        flex-direction: column;
+        gap: 12px;
+    }
+    
+    .form-col {
+        min-width: 100%;
+    }
+    
+    /* Calendar */
+    .calendar-container {
+        padding: 10px;
+    }
+    
+    .calendar-day {
+        padding: 6px 2px;
+        min-height: 50px;
+    }
+    
+    .day-number {
+        font-size: 12px;
+    }
+    
+    .slot-count {
+        font-size: 9px;
+        padding: 1px 3px;
+    }
+    
+    .service-badge {
+        font-size: 8px;
+        padding: 1px 3px;
+    }
+    
+    /* Time slots */
+    .time-slots-grid {
+        grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+    }
+    
+    .time-slot-card {
+        padding: 8px;
+    }
+    
+    .time-slot-time {
+        font-size: 11px;
+    }
+    
+    /* Buttons */
+    .btn-next, .btn-add-client {
+        width: 100%;
+        justify-content: center;
+    }
+    
+    .back-btn {
+        margin-right: 0;
+        margin-bottom: 10px;
+    }
+    
+    .button-group {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+    }
+    
+    /* Client header */
+    .client-header {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+    
+    /* Modal */
+    .modal-content {
+        width: 95%;
+        margin: 20px auto;
+    }
+    
+    /* Guide steps */
+    .guide-step h3 {
+        font-size: 1rem;
+    }
+    
+    .guide-step p {
+        font-size: 0.75rem;
+    }
+    
+     
+    
+    .qr-scan-area {
+        padding: 12px;
+    }
+    
+    .qr-scan-btn {
+        width: 100%;
+    }
+    
+    /* TRN Field */
+    .trn-field-group {
+        padding: 15px;
+    }
+    
+    /* Footer */
+    .footer-note {
+        flex-direction: column;
+        text-align: center;
+        gap: 5px;
+    }
+}
+
+@media (max-width: 480px) {
+    /* Extra small devices */
+    .appointment-card {
+        margin: 10px;
+        border-radius: 12px;
+    }
+    
+    .content-body {
+        padding: 12px;
+    }
+    
+    .calendar-weekdays {
+        font-size: 10px;
+    }
+    
+    .calendar-day {
+        padding: 4px 2px;
+        min-height: 45px;
+    }
+    
+    .day-number {
+        font-size: 11px;
+    }
+    
+    .time-slots-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .time-slot-card {
+        padding: 10px;
+    }
+    
+    .review-container {
+        padding: 12px;
+    }
+    
+    .summary-row {
+        flex-direction: column;
+        gap: 5px;
+    }
+    
+    .summary-label {
+        font-weight: 700;
+    }
+    
+    .modal-header h3 {
+        font-size: 16px;
+    }
+    
+    #successDetails {
+        font-size: 13px;
+    }
+    
+    #successDetails p {
+        margin: 8px 0;
+    }
+    
+    #successDetails ul {
+        padding-left: 20px;
+    }
+}
+
+/* Landscape mode on mobile */
+@media (max-width: 768px) and (orientation: landscape) {
+    .stepper {
+        flex-wrap: wrap;
+    }
+    
+    .step {
+        flex: 1;
+        min-width: auto;
+    }
+    
+    .calendar-days {
+        gap: 2px;
+    }
+    
+    .calendar-day {
+        min-height: 40px;
+    }
+}
+
+/* Touch improvements for mobile */
+@media (hover: none) and (pointer: coarse) {
+    .btn-next, 
+    .btn-add-client, 
+    .calendar-day,
+    .time-slot-card,
+    .step {
+        cursor: pointer;
+        -webkit-tap-highlight-color: transparent;
+    }
+    
+    .btn-next:active,
+    .btn-add-client:active {
+        transform: scale(0.98);
+    }
+    
+    .calendar-day:active {
+        transform: scale(0.95);
+    }
+}
     </style>
 </head>
 
