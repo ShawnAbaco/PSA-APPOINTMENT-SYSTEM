@@ -481,6 +481,47 @@ public function clearCache(Request $request)
         return response()->json(['success' => false, 'message' => $e->getMessage()], 500);
     }
 }
-
+/**
+ * Save default capacity rules for time slots
+ */
+public function saveCapacityRules(Request $request)
+{
+    try {
+        DB::beginTransaction();
+        
+        $capacities = $request->input('capacities', []);
+        
+        foreach ($capacities as $timeSlotId => $dayTypes) {
+            foreach ($dayTypes as $dayType => $services) {
+                SlotCapacityRule::updateOrCreate(
+                    [
+                        'time_slot_id' => $timeSlotId,
+                        'day_type' => $dayType,
+                    ],
+                    [
+                        'reg_capacity' => $services['reg'] ?? 0,
+                        'updating_capacity' => $services['updating'] ?? 0,
+                        'inquiry_capacity' => $services['inquiry'] ?? 0,
+                    ]
+                );
+            }
+        }
+        
+        DB::commit();
+        
+        return response()->json([
+            'success' => true,
+            'message' => 'Capacity rules saved successfully!'
+        ]);
+    } catch (\Exception $e) {
+        DB::rollBack();
+        \Log::error('Save capacity rules error: ' . $e->getMessage());
+        
+        return response()->json([
+            'success' => false,
+            'message' => 'Error saving capacity rules: ' . $e->getMessage()
+        ], 500);
+    }
+}
 
 }
