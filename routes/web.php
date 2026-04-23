@@ -58,7 +58,9 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
     Route::get('/location-map-data', [App\Http\Controllers\Admin\DashboardController::class, 'getLocationMapDataAjax']);
     Route::get('/summary-stats', [App\Http\Controllers\Admin\DashboardController::class, 'getSummaryStats']);
     
+    Route::get('/appointments/{id}/modal', [App\Http\Controllers\Admin\AppointmentController::class, 'showModal'])->name('admin.appointments.modal');
 
+    Route::get('/appointments/{id}/json', [App\Http\Controllers\Admin\AppointmentController::class, 'getJson'])->name('admin.appointments.json');
     // Add to admin routes
     // Route::get('/slots', [App\Http\Controllers\Admin\SettingsController::class, 'manageSlots'])->name('slots.index');
     // Route::post('/slots', [App\Http\Controllers\Admin\SettingsController::class, 'createSlot'])->name('slots.store');
@@ -71,20 +73,12 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
     // Add this inside the client appointment routes group
     Route::get('/appointment/location-stats', [App\Http\Controllers\Client\AppointmentController::class, 'getLocationStats'])->name('appointment.location-stats');
     Route::get('/psa-coordinates', [App\Http\Controllers\Admin\AppointmentController::class, 'getPsaCoordinates'])->name('psa.coordinates');
-    // Add this inside the client appointment routes group
-    Route::get('/psa-coordinates', [App\Http\Controllers\Client\AppointmentController::class, 'getPsaCoordinates'])->name('psa.coordinates');
 
     // Add this inside the admin routes group
     Route::post('/settings/test-email', [App\Http\Controllers\Admin\SettingsController::class, 'testEmail'])->name('settings.test-email');
     // Add this inside admin routes group
     Route::post('/settings/sync-slots', [App\Http\Controllers\Admin\SettingsController::class, 'syncAllSlots'])->name('settings.sync-slots');
-        Route::post('/settings/clear-cache', [App\Http\Controllers\Admin\SettingsController::class, 'clearCache'])->name('settings.clear-cache');
-
-
-// Add this inside the admin routes group
-Route::post('/settings/test-email', [App\Http\Controllers\Admin\SettingsController::class, 'testEmail'])->name('settings.test-email');
-// Add this inside admin routes group
-Route::post('/settings/sync-slots', [App\Http\Controllers\Admin\SettingsController::class, 'syncAllSlots'])->name('settings.sync-slots');
+    Route::post('/settings/clear-cache', [App\Http\Controllers\Admin\SettingsController::class, 'clearCache'])->name('settings.clear-cache');
 
 // Slot Management (Appointment Slots)
 Route::prefix('slots')->name('slots.')->group(function () {

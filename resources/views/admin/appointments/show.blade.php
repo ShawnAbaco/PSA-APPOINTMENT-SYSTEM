@@ -1,70 +1,95 @@
-@extends('layouts.admin')
+<!-- resources/views/admin/appointments/show.blade.php -->
+<div class="appt-modal-details">
+    <div class="appt-details-section">
+        <div class="appt-details-section-title">
+            <i class="fas fa-info-circle"></i>
+            Appointment Information
+        </div>
+        <div class="appt-details-grid">
+            <div class="appt-details-item">
+                <label>Appointment #:</label>
+                <span class="appt-details-value">{{ $appointment->appointment_number }}</span>
+            </div>
+            <div class="appt-details-item">
+                <label>Date:</label>
+                <span class="appt-details-value">{{ date('F d, Y', strtotime($appointment->appointment_date)) }}</span>
+            </div>
+            <div class="appt-details-item">
+                <label>Time:</label>
+                <span
+                    class="appt-details-value">{{ date('h:i A', strtotime($appointment->appointment_time ?? '09:00')) }}</span>
+            </div>
+            <div class="appt-details-item">
+                <label>Type:</label>
+                <span class="appt-details-value">{{ ucfirst($appointment->type) }}</span>
+            </div>
+            <div class="appt-details-item">
+                <label>Status:</label>
+                <span class="appt-status-badge appt-status-{{ $appointment->status }}">
+                    {{ ucfirst($appointment->status) }}
+                </span>
+            </div>
+            <div class="appt-details-item">
+                <label>Reference Code:</label>
+                <code class="appt-reference-code">{{ $appointment->reference_code ?? 'N/A' }}</code>
+            </div>
+        </div>
+    </div>
 
-@section('content')
-<div class="container-fluid">
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <h1 class="h3">Appointment Details</h1>
-        <a href="{{ route('admin.appointments.index') }}" class="btn btn-secondary">Back</a>
-    </div>
-    
-    <div class="row">
-        <div class="col-md-6">
-            <div class="card mb-4">
-                <div class="card-header">
-                    <h5>Appointment Information</h5>
-                </div>
-                <div class="card-body">
-                    <table class="table">
-                        <tr><th>Appointment #:</th><td>{{ $appointment->appointment_number }}</td></tr>
-                        <tr><th>Date:</th><td>{{ date('F d, Y', strtotime($appointment->appointment_date)) }}</td></tr>
-                        <tr><th>Type:</th><td>{{ ucfirst($appointment->type) }}</td></tr>
-                        <tr><th>Status:</th><td><span class="badge bg-{{ $appointment->status === 'confirmed' ? 'success' : 'warning' }}">{{ ucfirst($appointment->status) }}</span></td></tr>
-                        <tr><th>Reference Code:</th><td><code>{{ $appointment->reference_code }}</code></td></tr>
-                    </table>
-                </div>
-            </div>
+    <div class="appt-details-section">
+        <div class="appt-details-section-title">
+            <i class="fas fa-user"></i>
+            Contact Information
         </div>
-        
-        <div class="col-md-6">
-            <div class="card mb-4">
-                <div class="card-header">
-                    <h5>Contact Information</h5>
-                </div>
-                <div class="card-body">
-                    <table class="table">
-                        <tr><th>Name:</th><td>{{ $appointment->contact_name }}</td></tr>
-                        <tr><th>Email:</th><td>{{ $appointment->contact_email ?? 'N/A' }}</td></tr>
-                        <tr><th>Mobile:</th><td>{{ $appointment->contact_mobile }}</td></tr>
-                    </table>
-                </div>
+        <div class="appt-details-grid">
+            <div class="appt-details-item">
+                <label>Name:</label>
+                <span class="appt-details-value"><strong>{{ $appointment->contact_name }}</strong></span>
+            </div>
+            <div class="appt-details-item">
+                <label>Email:</label>
+                <span class="appt-details-value">{{ $appointment->contact_email ?? 'N/A' }}</span>
+            </div>
+            <div class="appt-details-item">
+                <label>Mobile:</label>
+                <span
+                    class="appt-details-value">{{ $appointment->contact_mobile ?? ($appointment->contact_phone ?? 'N/A') }}</span>
             </div>
         </div>
     </div>
-    
-    <div class="card">
-        <div class="card-header">
-            <h5>Clients Information</h5>
+
+    <div class="appt-details-section">
+        <div class="appt-details-section-title">
+            <i class="fas fa-users"></i>
+            Clients Information
+            <span class="appt-client-count-badge">{{ $appointment->clients->count() }} client(s)</span>
         </div>
-        <div class="card-body">
-            <div class="table-responsive">
-                <table class="table table-bordered">
-                    <thead>
-                        <tr><th>#</th><th>Full Name</th><th>Sex</th><th>Birthdate</th><th>Service</th></tr>
-                    </thead>
-                    <tbody>
-                        @foreach($appointment->clients as $index => $client)
+        <div class="appt-table-wrapper">
+            <table class="appt-table appt-table-mini">
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>Full Name</th>
+                        <th>Sex</th>
+                        <th>Birthdate</th>
+                        <th>Service</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach ($appointment->clients as $index => $client)
                         <tr>
                             <td>{{ $index + 1 }}</td>
-                            <td>{{ $client->first_name }} {{ $client->middle_name }} {{ $client->last_name }} {{ $client->suffix }}</td>
-                            <td>{{ $client->sex }}</td>
-                            <td>{{ date('M d, Y', strtotime($client->birthdate)) }}</td>
-                            <td>{{ $client->service_name }}</td>
+                            <td>
+                                <strong>{{ $client->first_name }} {{ $client->middle_name }} {{ $client->last_name }}
+                                    {{ $client->suffix }}</strong>
+                            </td>
+                            <td>{{ $client->sex ?? 'N/A' }}</td>
+                            <td>{{ $client->birthdate ? date('M d, Y', strtotime($client->birthdate)) : 'N/A' }}</td>
+                            <td>{{ $client->service_name ?? 'N/A' }}</td>
                         </tr>
-                        @endforeach
-                    </tbody>
-                </table>
-            </div>
+                    @endforeach
+                </tbody>
+            </table>
         </div>
     </div>
 </div>
-@endsection
