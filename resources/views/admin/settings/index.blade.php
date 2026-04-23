@@ -1,6 +1,5 @@
 @extends('layouts.admin')
 
-
 <style>
     /* ============================================
        SETTINGS PAGE PURE CSS STYLES
@@ -143,6 +142,12 @@
         background: linear-gradient(135deg, #fed7aa 0%, #ffedd5 100%);
         color: #92400e;
         border-left: 4px solid #f59e0b;
+    }
+    
+    .alert-success {
+        background: linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%);
+        color: #065f46;
+        border-left: 4px solid #10b981;
     }
     
     /* Form Groups */
@@ -697,7 +702,7 @@
             </div>
         </div>
         
-        <!-- Default Capacity Rules -->
+        <!-- Default Capacity Rules - SIMPLIFIED to Working/Non-Working -->
         <div class="settings-card">
             <div class="card-header">
                 <h5><i class="fas fa-sliders-h"></i> Default Capacity Rules</h5>
@@ -705,7 +710,7 @@
             <div class="card-body">
                 <div class="alert-modern alert-warning">
                     <i class="fas fa-info-circle"></i>
-                    <span>These are the default capacity rules for each day type. When you create a new slot without an override, these values will be used. <strong>Changes here will NOT affect existing slots that have manual overrides.</strong></span>
+                    <span>These are the default capacity rules for working and non-working days. When you create a new slot without an override, these values will be used. <strong>Changes here will NOT affect existing slots that have manual overrides.</strong></span>
                 </div>
                 
                 <div class="table-responsive">
@@ -714,6 +719,7 @@
                             <tr>
                                 <th style="width: 200px">Time Slot</th>
                                 <th style="width: 120px">Day Type</th>
+                                <th>Reason</th>
                                 <th>Registration (R)</th>
                                 <th>Updating (U)</th>
                                 <th>Inquiry (S)</th>
@@ -722,18 +728,16 @@
                         <tbody id="capacityRulesTableBody">
                             @foreach($timeSlots as $timeSlot)
                                 @php
-                                    $dayTypes = ['weekday', 'saturday', 'sunday', 'holiday'];
-                                    $dayTypeNames = ['weekday' => 'Weekday', 'saturday' => 'Saturday', 'sunday' => 'Sunday', 'holiday' => 'Holiday'];
-                                    $dayTypeColors = ['weekday' => 'primary', 'saturday' => 'warning', 'sunday' => 'secondary', 'holiday' => 'danger'];
+                                    $dayTypes = ['working', 'non_working'];
+                                    $dayTypeNames = ['working' => 'Working Day', 'non_working' => 'Non-Working Day'];
+                                    $dayTypeColors = ['working' => 'success', 'non_working' => 'danger'];
                                 @endphp
                                 @foreach($dayTypes as $dayType)
                                     @php
-                                        $rule = $capacityRules[$timeSlot->id][$dayType] ?? null;
+                                        $rule = $capacityRules[$timeSlot->id]->firstWhere('day_type', $dayType) ?? null;
                                         $defaultValues = [
-                                            'weekday' => ['reg' => 10, 'updating' => 5, 'inquiry' => 8],
-                                            'saturday' => ['reg' => 5, 'updating' => 3, 'inquiry' => 4],
-                                            'sunday' => ['reg' => 0, 'updating' => 0, 'inquiry' => 0],
-                                            'holiday' => ['reg' => 0, 'updating' => 0, 'inquiry' => 0],
+                                            'working' => ['reg' => 4, 'updating' => 4, 'inquiry' => 4],
+                                            'non_working' => ['reg' => 0, 'updating' => 0, 'inquiry' => 0],
                                         ];
                                     @endphp
                                     <tr>
@@ -747,6 +751,9 @@
                                             <span class="badge badge-{{ $dayTypeColors[$dayType] }}">
                                                 {{ $dayTypeNames[$dayType] }}
                                             </span>
+                                        </td>
+                                        <td>
+                                            <small class="text-muted">{{ $rule->reason ?? ($dayType === 'working' ? 'Regular working day' : 'Non-working day') }}</small>
                                         </td>
                                         <td>
                                             <input type="number" name="capacities[{{ $timeSlot->id }}][{{ $dayType }}][reg]" 
@@ -773,6 +780,11 @@
                     </table>
                 </div>
                 
+                <div class="alert-modern alert-info" style="margin-top: 15px;">
+                    <i class="fas fa-info-circle"></i>
+                    <span><strong>Note:</strong> Working days are Tuesday to Friday. Non-working days include Monday, Saturday, and Sunday (or any day marked as non-working in Working Days Configuration).</span>
+                </div>
+                
                 <div style="display: flex; gap: 10px; margin-top: 20px;">
                     <button type="button" id="saveCapacityRulesBtn" class="btn btn-primary">
                         <i class="fas fa-save"></i> Save Default Capacity Rules
@@ -791,7 +803,7 @@
             </div>
             <div class="card-body">
                 @php
-                    $workingDays = isset($settings['working_days']) ? explode(',', $settings['working_days']) : ['1','2','3','4','5'];
+                    $workingDays = isset($settings['working_days']) ? explode(',', $settings['working_days']) : ['2','3','4','5'];
                     $dayNames = ['1' => 'Monday', '2' => 'Tuesday', '3' => 'Wednesday', '4' => 'Thursday', '5' => 'Friday', '6' => 'Saturday', '7' => 'Sunday'];
                 @endphp
                 
@@ -1136,24 +1148,22 @@ $(document).ready(function() {
         });
     });
     
-    // Reset Capacity Rules
+    // Reset Capacity Rules - SIMPLIFIED for working/non_working
     $('#resetCapacityRulesBtn').click(function() {
         if (confirm('Reset all capacity rules to default values? This cannot be undone.')) {
             $('.capacity-input').each(function() {
                 const name = $(this).attr('name');
-                if (name.includes('weekday')) {
-                    if (name.includes('reg')) $(this).val(10);
-                    else if (name.includes('updating')) $(this).val(5);
-                    else if (name.includes('inquiry')) $(this).val(8);
-                } else if (name.includes('saturday')) {
-                    if (name.includes('reg')) $(this).val(5);
-                    else if (name.includes('updating')) $(this).val(3);
+                if (name.includes('working')) {
+                    // Working days: 4 for all services
+                    if (name.includes('reg')) $(this).val(4);
+                    else if (name.includes('updating')) $(this).val(4);
                     else if (name.includes('inquiry')) $(this).val(4);
-                } else {
+                } else if (name.includes('non_working')) {
+                    // Non-working days: 0 for all services
                     $(this).val(0);
                 }
             });
-            showToast('Reset Complete', 'Values reset to defaults. Click "Save Default Capacity Rules" to apply.', 'success');
+            showToast('Reset Complete', 'Values reset to defaults (Working days: 4 each, Non-working days: 0). Click "Save Default Capacity Rules" to apply.', 'success');
         }
     });
     
@@ -1220,6 +1230,12 @@ $(document).ready(function() {
         showToast('Saving Settings...', 'Please wait while we save your configuration', 'info');
     });
 });
+
+// Toast notification function
+function showToast(title, message, type) {
+    // Simple alert fallback
+    alert(title + ': ' + message);
+}
 </script>
 @endpush
 @endsection

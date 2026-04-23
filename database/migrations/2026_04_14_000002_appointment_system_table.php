@@ -43,15 +43,20 @@ return new class extends Migration
         |--------------------------------------------------------------------------
         | DEFAULT CAPACITY RULES (BY DAY TYPE)
         |--------------------------------------------------------------------------
+        | Simplified to just 'working' and 'non_working'
+        | Use 'reason' field to specify why it's non-working (e.g., 'Holiday', 'Sunday', 'Saturday')
         */
         Schema::create('slot_capacity_rules', function (Blueprint $table) {
             $table->id();
             $table->foreignId('time_slot_id')->constrained()->cascadeOnDelete();
-            $table->enum('day_type', ['weekday', 'saturday', 'sunday', 'holiday']);
+            $table->enum('day_type', ['working', 'non_working', 'holiday'])->default('working');
+            
+            // Reason for non_working (e.g., 'Holiday', 'Sunday', 'Saturday', 'Special Event')
+            $table->string('reason')->nullable();
 
-            $table->integer('reg_capacity')->default(0);
-            $table->integer('updating_capacity')->default(0);
-            $table->integer('inquiry_capacity')->default(0);
+            $table->integer('reg_capacity')->default(4);        // Registration: 4 slots default
+            $table->integer('updating_capacity')->default(4);   // Updating: 4 slots default
+            $table->integer('inquiry_capacity')->default(4);    // Inquiry: 4 slots default
 
             $table->timestamps();
 
@@ -62,17 +67,23 @@ return new class extends Migration
         |--------------------------------------------------------------------------
         | PER-DAY OVERRIDES (MANUAL CONTROL)
         |--------------------------------------------------------------------------
+        | This allows you to override capacity for specific dates
+        | Example: Increase capacity to 8 for a special Saturday event
+        | Or reduce to 2 for a holiday with limited staff
         */
         Schema::create('slot_capacity_overrides', function (Blueprint $table) {
             $table->id();
             $table->date('date');
             $table->foreignId('time_slot_id')->constrained()->cascadeOnDelete();
+            $table->enum('day_type', ['working', 'non_working', 'holiday'])->default('working');
+
+            // Reason for non_working (e.g., 'Holiday', 'Sunday', 'Saturday', 'Special Event')
+            $table->string('reason')->nullable();
 
             $table->integer('reg_capacity')->nullable();
             $table->integer('updating_capacity')->nullable();
             $table->integer('inquiry_capacity')->nullable();
 
-            $table->text('reason')->nullable();
             $table->timestamps();
 
             $table->unique(['date', 'time_slot_id']);
@@ -82,19 +93,24 @@ return new class extends Migration
         |--------------------------------------------------------------------------
         | WORKING DAYS
         |--------------------------------------------------------------------------
+        | Using ENUM for better readability and type safety
+        | day_name: monday, tuesday, wednesday, thursday, friday, saturday, sunday
         */
         Schema::create('working_days_defaults', function (Blueprint $table) {
             $table->id();
-            $table->integer('day_of_week'); // 0-6
-            $table->boolean('is_working')->default(true);
+            $table->enum('day_name', [
+                'monday', 'tuesday', 'wednesday', 'thursday', 
+                'friday', 'saturday', 'sunday'
+            ])->unique();
+            $table->enum('day_type', ['working', 'non_working',])->default('working');
             $table->timestamps();
         });
 
         Schema::create('working_days_overrides', function (Blueprint $table) {
             $table->id();
             $table->date('date')->unique();
-            $table->boolean('is_working')->default(true);
-            $table->string('reason')->nullable();
+            $table->enum('day_type', ['non_working','holiday']);
+            $table->string('reason')->nullable(); // e.g., 'Holiday', 'Special Event', 'Half Day'
             $table->timestamps();
         });
 
@@ -107,7 +123,7 @@ return new class extends Migration
             $table->id();
             $table->date('date');
             $table->foreignId('time_slot_id')->constrained()->cascadeOnDelete();
-            $table->enum('day_type', ['working', 'half_day', 'holiday', 'special'])->default('working');
+            $table->enum('day_type', ['working', 'non_working'])->default('working');
 
             $table->text('notes')->nullable();
             $table->foreignId('created_by')->nullable()->constrained('users');

@@ -28,42 +28,46 @@ class SettingsController extends Controller
         try {
             $serviceConfigs = DB::table('slot_capacity_rules')
                 ->select('service_code', DB::raw('AVG(reg_capacity) as default_capacity'))
-                ->where('day_type', 'weekday')
+                ->where('day_type', 'working')
                 ->groupBy('service_code')
                 ->get();
             
-            // If no rules exist, create default structure
+            // If no rules exist, create default structure - UPDATED to 4
             if ($serviceConfigs->isEmpty()) {
                 $serviceConfigs = collect([
-                    (object)['service_code' => 'reg', 'default_capacity' => 10],
-                    (object)['service_code' => 'updating', 'default_capacity' => 5],
-                    (object)['service_code' => 'inquiry', 'default_capacity' => 8],
+                    (object)['service_code' => 'reg', 'default_capacity' => 4],
+                    (object)['service_code' => 'updating', 'default_capacity' => 4],
+                    (object)['service_code' => 'inquiry', 'default_capacity' => 4],
                 ]);
             }
         } catch (\Exception $e) {
             $serviceConfigs = collect([
-                (object)['service_code' => 'reg', 'default_capacity' => 10],
-                (object)['service_code' => 'updating', 'default_capacity' => 5],
-                (object)['service_code' => 'inquiry', 'default_capacity' => 8],
+                (object)['service_code' => 'reg', 'default_capacity' => 4],
+                (object)['service_code' => 'updating', 'default_capacity' => 4],
+                (object)['service_code' => 'inquiry', 'default_capacity' => 4],
             ]);
         }
         
-        // Get working days from working_days_defaults table
-        $workingDaysDefaults = WorkingDaysDefault::all()->pluck('is_working', 'day_of_week')->toArray();
+        // Get working days from working_days_defaults table (using new enum structure)
+        $workingDaysDefaults = WorkingDaysDefault::all();
         $workingDaysList = [];
-        foreach ($workingDaysDefaults as $day => $isWorking) {
-            if ($isWorking) {
-                $workingDaysList[] = $day;
+        foreach ($workingDaysDefaults as $day) {
+            if ($day->day_type === 'working') {
+                // Convert day name to number for backward compatibility
+                $dayNumber = $this->getDayNumber($day->day_name);
+                if ($dayNumber) {
+                    $workingDaysList[] = $dayNumber;
+                }
             }
         }
         $workingDaysValue = implode(',', $workingDaysList);
         
-        // Initialize settings array with defaults
+        // Initialize settings array with defaults - UPDATED to Tuesday-Friday only
         $settings = [
             'advance_booking_days' => 30,
             'cancellation_hours' => 24,
             'enable_email' => true,
-            'working_days' => $workingDaysValue ?: '1,2,3,4,5',
+            'working_days' => $workingDaysValue ?: '2,3,4,5', // Tuesday to Friday only
             'email_host' => 'smtp.gmail.com',
             'email_port' => 587,
             'email_encryption' => 'tls',
@@ -100,10 +104,43 @@ class SettingsController extends Controller
         
         // Get time slots for the view
         $timeSlots = TimeSlot::orderBy('display_order')->get();
-            $capacityRules = SlotCapacityRule::all()->groupBy('time_slot_id');
-
+        $capacityRules = SlotCapacityRule::all()->groupBy('time_slot_id');
         
         return view('admin.settings.index', compact('settings', 'serviceConfigs', 'timeSlots', 'capacityRules'));
+    }
+    
+    /**
+     * Convert day name to day number (1=Monday, 7=Sunday)
+     */
+    private function getDayNumber($dayName)
+    {
+        $days = [
+            'monday' => 1,
+            'tuesday' => 2,
+            'wednesday' => 3,
+            'thursday' => 4,
+            'friday' => 5,
+            'saturday' => 6,
+            'sunday' => 7,
+        ];
+        return $days[strtolower($dayName)] ?? null;
+    }
+    
+    /**
+     * Convert day number to day name
+     */
+    private function getDayName($dayNumber)
+    {
+        $days = [
+            1 => 'monday',
+            2 => 'tuesday',
+            3 => 'wednesday',
+            4 => 'thursday',
+            5 => 'friday',
+            6 => 'saturday',
+            7 => 'sunday',
+        ];
+        return $days[$dayNumber] ?? null;
     }
     
     public function update(Request $request)
@@ -182,17 +219,21 @@ class SettingsController extends Controller
         if ($request->has('working_days')) {
             $workingDaysArray = $request->working_days;
             
-            // Update each day's is_working status
+            // Update each day's working status
             for ($day = 1; $day <= 7; $day++) {
-                $isWorking = in_array($day, $workingDaysArray) ? 1 : 0;
+                $isWorking = in_array($day, $workingDaysArray);
+                $dayName = $this->getDayName($day);
                 
-                WorkingDaysDefault::updateOrCreate(
-                    ['day_of_week' => $day],
-                    [
-                        'is_working' => $isWorking,
-                        'updated_at' => now(),
-                    ]
-                );
+                if ($dayName) {
+                    WorkingDaysDefault::updateOrCreate(
+                        ['day_name' => $dayName],
+                        [
+                            'day_type' => $isWorking ? 'working' : 'non_working',
+                            'reason' => $isWorking ? null : ($dayName === 'sunday' ? 'Weekend' : ($dayName === 'saturday' ? 'Weekend' : 'Regular holiday')),
+                            'updated_at' => now(),
+                        ]
+                    );
+                }
             }
             
             // Also save to settings table for backward compatibility
@@ -210,53 +251,43 @@ class SettingsController extends Controller
         
         // ========== UPDATE SERVICE CAPACITIES IN slot_capacity_rules TABLE ==========
         // This updates the DEFAULT capacity rules for all time slots
-        $dayTypes = ['weekday', 'saturday', 'sunday', 'holiday'];
         $timeSlots = TimeSlot::where('is_active', true)->get();
         
+        // Default values changed to 4 for all services on working days
         $serviceCapacities = [
-            'reg' => $request->reg_capacity ?? 10,
-            'updating' => $request->updating_capacity ?? 5,
-            'inquiry' => $request->inquiry_capacity ?? 8,
+            'reg' => $request->reg_capacity ?? 4,
+            'updating' => $request->updating_capacity ?? 4,
+            'inquiry' => $request->inquiry_capacity ?? 4,
         ];
         
         foreach ($timeSlots as $timeSlot) {
-            foreach ($dayTypes as $dayType) {
-                // Determine capacity based on day type
-                switch ($dayType) {
-                    case 'weekday':
-                        $regCapacity = $serviceCapacities['reg'];
-                        $updatingCapacity = $serviceCapacities['updating'];
-                        $inquiryCapacity = $serviceCapacities['inquiry'];
-                        break;
-                    case 'saturday':
-                        $regCapacity = max(1, floor($serviceCapacities['reg'] / 2));
-                        $updatingCapacity = max(1, floor($serviceCapacities['updating'] / 2));
-                        $inquiryCapacity = max(1, floor($serviceCapacities['inquiry'] / 2));
-                        break;
-                    case 'sunday':
-                    case 'holiday':
-                        $regCapacity = 0;
-                        $updatingCapacity = 0;
-                        $inquiryCapacity = 0;
-                        break;
-                    default:
-                        $regCapacity = $serviceCapacities['reg'];
-                        $updatingCapacity = $serviceCapacities['updating'];
-                        $inquiryCapacity = $serviceCapacities['inquiry'];
-                }
-                
-                SlotCapacityRule::updateOrCreate(
-                    [
-                        'time_slot_id' => $timeSlot->id,
-                        'day_type' => $dayType,
-                    ],
-                    [
-                        'reg_capacity' => $regCapacity,
-                        'updating_capacity' => $updatingCapacity,
-                        'inquiry_capacity' => $inquiryCapacity,
-                    ]
-                );
-            }
+            // Update WORKING day rule
+            SlotCapacityRule::updateOrCreate(
+                [
+                    'time_slot_id' => $timeSlot->id,
+                    'day_type' => 'working',
+                ],
+                [
+                    'reason' => null,
+                    'reg_capacity' => $serviceCapacities['reg'],
+                    'updating_capacity' => $serviceCapacities['updating'],
+                    'inquiry_capacity' => $serviceCapacities['inquiry'],
+                ]
+            );
+            
+            // Update NON_WORKING day rule (always 0 capacity)
+            SlotCapacityRule::updateOrCreate(
+                [
+                    'time_slot_id' => $timeSlot->id,
+                    'day_type' => 'non_working',
+                ],
+                [
+                    'reason' => 'Regular non-working day',
+                    'reg_capacity' => 0,
+                    'updating_capacity' => 0,
+                    'inquiry_capacity' => 0,
+                ]
+            );
         }
         
         // Clear cache
@@ -274,13 +305,13 @@ class SettingsController extends Controller
         try {
             DB::beginTransaction();
             
-            // Get current service capacities from rules (weekday defaults)
-            $defaultRules = SlotCapacityRule::where('day_type', 'weekday')
+            // Get current service capacities from rules (working day defaults)
+            $defaultRules = SlotCapacityRule::where('day_type', 'working')
                 ->select('time_slot_id', 'reg_capacity', 'updating_capacity', 'inquiry_capacity')
                 ->get()
                 ->keyBy('time_slot_id');
             
-            // Get all working slots (not holiday, not special, not manually overridden)
+            // Get all working slots (not manually overridden)
             $slotsToSync = AppointmentSlot::where('day_type', 'working')
                 ->whereDoesntHave('override') // Only sync slots without manual overrides
                 ->get();
@@ -393,33 +424,25 @@ class SettingsController extends Controller
         ]);
         
         // Create default capacity rules for this new time slot
-        $dayTypes = ['weekday', 'saturday', 'sunday', 'holiday'];
-        foreach ($dayTypes as $dayType) {
-            switch ($dayType) {
-                case 'weekday':
-                    $regCapacity = 10;
-                    $updatingCapacity = 5;
-                    $inquiryCapacity = 8;
-                    break;
-                case 'saturday':
-                    $regCapacity = 5;
-                    $updatingCapacity = 3;
-                    $inquiryCapacity = 4;
-                    break;
-                default:
-                    $regCapacity = 0;
-                    $updatingCapacity = 0;
-                    $inquiryCapacity = 0;
-            }
-            
-            SlotCapacityRule::create([
-                'time_slot_id' => $timeSlot->id,
-                'day_type' => $dayType,
-                'reg_capacity' => $regCapacity,
-                'updating_capacity' => $updatingCapacity,
-                'inquiry_capacity' => $inquiryCapacity,
-            ]);
-        }
+        // Working day rule (4 slots per service)
+        SlotCapacityRule::create([
+            'time_slot_id' => $timeSlot->id,
+            'day_type' => 'working',
+            'reason' => null,
+            'reg_capacity' => 4,
+            'updating_capacity' => 4,
+            'inquiry_capacity' => 4,
+        ]);
+        
+        // Non-working day rule (0 slots)
+        SlotCapacityRule::create([
+            'time_slot_id' => $timeSlot->id,
+            'day_type' => 'non_working',
+            'reason' => 'Regular non-working day',
+            'reg_capacity' => 0,
+            'updating_capacity' => 0,
+            'inquiry_capacity' => 0,
+        ]);
         
         return response()->json(['success' => true, 'time_slot' => $timeSlot]);
     }
@@ -469,59 +492,60 @@ class SettingsController extends Controller
         
         return response()->json(['success' => true]);
     }
+    
     /**
- * Clear application cache
- */
-public function clearCache(Request $request)
-{
-    try {
-        Cache::flush();
-        return response()->json(['success' => true, 'message' => 'Cache cleared successfully.']);
-    } catch (\Exception $e) {
-        return response()->json(['success' => false, 'message' => $e->getMessage()], 500);
-    }
-}
-/**
- * Save default capacity rules for time slots
- */
-public function saveCapacityRules(Request $request)
-{
-    try {
-        DB::beginTransaction();
-        
-        $capacities = $request->input('capacities', []);
-        
-        foreach ($capacities as $timeSlotId => $dayTypes) {
-            foreach ($dayTypes as $dayType => $services) {
-                SlotCapacityRule::updateOrCreate(
-                    [
-                        'time_slot_id' => $timeSlotId,
-                        'day_type' => $dayType,
-                    ],
-                    [
-                        'reg_capacity' => $services['reg'] ?? 0,
-                        'updating_capacity' => $services['updating'] ?? 0,
-                        'inquiry_capacity' => $services['inquiry'] ?? 0,
-                    ]
-                );
-            }
+     * Clear application cache
+     */
+    public function clearCache(Request $request)
+    {
+        try {
+            Cache::flush();
+            return response()->json(['success' => true, 'message' => 'Cache cleared successfully.']);
+        } catch (\Exception $e) {
+            return response()->json(['success' => false, 'message' => $e->getMessage()], 500);
         }
-        
-        DB::commit();
-        
-        return response()->json([
-            'success' => true,
-            'message' => 'Capacity rules saved successfully!'
-        ]);
-    } catch (\Exception $e) {
-        DB::rollBack();
-        \Log::error('Save capacity rules error: ' . $e->getMessage());
-        
-        return response()->json([
-            'success' => false,
-            'message' => 'Error saving capacity rules: ' . $e->getMessage()
-        ], 500);
     }
-}
-
+    
+    /**
+     * Save default capacity rules for time slots
+     */
+    public function saveCapacityRules(Request $request)
+    {
+        try {
+            DB::beginTransaction();
+            
+            $capacities = $request->input('capacities', []);
+            
+            foreach ($capacities as $timeSlotId => $dayTypes) {
+                foreach ($dayTypes as $dayType => $services) {
+                    SlotCapacityRule::updateOrCreate(
+                        [
+                            'time_slot_id' => $timeSlotId,
+                            'day_type' => $dayType,
+                        ],
+                        [
+                            'reg_capacity' => $services['reg'] ?? 0,
+                            'updating_capacity' => $services['updating'] ?? 0,
+                            'inquiry_capacity' => $services['inquiry'] ?? 0,
+                        ]
+                    );
+                }
+            }
+            
+            DB::commit();
+            
+            return response()->json([
+                'success' => true,
+                'message' => 'Capacity rules saved successfully!'
+            ]);
+        } catch (\Exception $e) {
+            DB::rollBack();
+            \Log::error('Save capacity rules error: ' . $e->getMessage());
+            
+            return response()->json([
+                'success' => false,
+                'message' => 'Error saving capacity rules: ' . $e->getMessage()
+            ], 500);
+        }
+    }
 }

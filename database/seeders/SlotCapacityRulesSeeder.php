@@ -14,52 +14,38 @@ class SlotCapacityRulesSeeder extends Seeder
     {
         $timeSlots = TimeSlot::where('is_active', true)->get();
         
-        $dayTypes = ['weekday', 'saturday', 'sunday', 'holiday'];
-        
         foreach ($timeSlots as $timeSlot) {
-            foreach ($dayTypes as $dayType) {
-                // Set different capacities based on day type
-                switch ($dayType) {
-                    case 'weekday':
-                        $regCapacity = 10;
-                        $updatingCapacity = 5;
-                        $inquiryCapacity = 8;
-                        break;
-                    case 'saturday':
-                        $regCapacity = 5;
-                        $updatingCapacity = 3;
-                        $inquiryCapacity = 4;
-                        break;
-                    case 'sunday':
-                        $regCapacity = 0;
-                        $updatingCapacity = 0;
-                        $inquiryCapacity = 0;
-                        break;
-                    case 'holiday':
-                        $regCapacity = 0;
-                        $updatingCapacity = 0;
-                        $inquiryCapacity = 0;
-                        break;
-                    default:
-                        $regCapacity = 4;
-                        $updatingCapacity = 2;
-                        $inquiryCapacity = 3;
-                }
-                
-                SlotCapacityRule::updateOrCreate(
-                    [
-                        'time_slot_id' => $timeSlot->id,
-                        'day_type' => $dayType,
-                    ],
-                    [
-                        'reg_capacity' => $regCapacity,
-                        'updating_capacity' => $updatingCapacity,
-                        'inquiry_capacity' => $inquiryCapacity,
-                    ]
-                );
-            }
+            // Create WORKING day rule (Tuesday to Friday)
+            SlotCapacityRule::updateOrCreate(
+                [
+                    'time_slot_id' => $timeSlot->id,
+                    'day_type' => 'working',
+                ],
+                [
+                    'reason' => null, // No reason needed for working days
+                    'reg_capacity' => 4,
+                    'updating_capacity' => 4,
+                    'inquiry_capacity' => 4,
+                ]
+            );
+            
+            // Create NON_WORKING day rule (Monday, Saturday, Sunday, Holidays)
+            SlotCapacityRule::updateOrCreate(
+                [
+                    'time_slot_id' => $timeSlot->id,
+                    'day_type' => 'non_working',
+                ],
+                [
+                    'reason' => 'Regular non-working day', // Default reason
+                    'reg_capacity' => 0,
+                    'updating_capacity' => 0,
+                    'inquiry_capacity' => 0,
+                ]
+            );
         }
         
         $this->command->info('Slot capacity rules seeded successfully!');
+        $this->command->info('Working days: 4 slots per service');
+        $this->command->info('Non-working days: 0 slots per service');
     }
 }
