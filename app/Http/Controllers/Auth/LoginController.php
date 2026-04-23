@@ -18,6 +18,9 @@ class LoginController extends Controller
             } elseif ($user->role === 'staff') {
                 return redirect()->route('staff.dashboard');
             }
+             elseif ($user->role === 'staff') {
+                return redirect()->route('staff.dashboard');
+            }
         }
         
         return view('auth.login');
@@ -61,6 +64,8 @@ class LoginController extends Controller
                 return redirect()->route('admin.dashboard');
             } elseif ($user->role === 'staff') {
                 return redirect()->route('staff.dashboard');
+            } elseif ($user->role === 'operator') {
+                return redirect()->route('operator.dashboard');
             }
             
             return redirect('/');

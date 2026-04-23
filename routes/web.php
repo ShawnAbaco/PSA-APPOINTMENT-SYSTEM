@@ -151,6 +151,34 @@ Route::middleware(['auth', 'staff'])->prefix('staff')->name('staff.')->group(fun
 });
 
 
+// Operator routes
+Route::middleware(['auth', 'operator'])->prefix('operator')->name('operator.')->group(function () {
+    // Dashboard
+    Route::get('/dashboard', [App\Http\Controllers\Operator\ODashboardController::class, 'index'])->name('dashboard');
+    
+    // Appointments
+    Route::get('/appointments', [App\Http\Controllers\Operator\OAppointmentController::class, 'index'])->name('appointments.index');
+    Route::get('/appointments/create', [App\Http\Controllers\Operator\OAppointmentController::class, 'create'])->name('appointments.create');
+    Route::post('/appointments', [App\Http\Controllers\Operator\OAppointmentController::class, 'store'])->name('appointments.store');
+    Route::get('/appointments/{id}', [App\Http\Controllers\Operator\OAppointmentController::class, 'show'])->name('appointments.show');
+    Route::put('/appointments/{id}/confirm', [App\Http\Controllers\Operator\OAppointmentController::class, 'confirm'])->name('appointments.confirm');
+    Route::put('/appointments/{id}/cancel', [App\Http\Controllers\Operator\OAppointmentController::class, 'cancel'])->name('appointments.cancel');
+    Route::put('/appointments/{id}/complete', [App\Http\Controllers\Operator\OAppointmentController::class, 'complete'])->name('appointments.complete');
+    
+ 
+     // Client routes
+    Route::get('/clients', [App\Http\Controllers\Operator\OClientController::class, 'index'])->name('clients.index');
+    Route::get('/clients/{id}', [App\Http\Controllers\Operator\ODashboardController::class, 'show'])->name('clients.show');
+    Route::get('/clients/{id}/details', [App\Http\Controllers\Operator\OClientController::class, 'getClientDetails'])->name('clients.details');
+    Route::put('/clients/{id}', [App\Http\Controllers\Operator\OClientController::class, 'update'])->name('clients.update');
+    Route::put('/clients/{id}/verify', [App\Http\Controllers\Operator\OClientController::class, 'verify'])->name('clients.verify');
+    Route::put('/clients/{id}/reference', [App\Http\Controllers\Operator\OClientController::class, 'updateReferenceNumber'])->name('clients.reference');
+    Route::delete('/clients/{id}', [App\Http\Controllers\Operator\OClientController::class, 'destroy'])->name('clients.destroy');
+    Route::get('/clients/export/csv', [App\Http\Controllers\Operator\OClientController::class, 'export'])->name('clients.export');
+    Route::get('/clients/search/ajax', [App\Http\Controllers\Operator\OClientController::class, 'search'])->name('clients.search');
+    Route::get('/clients/statistics/data', [App\Http\Controllers\Operator\OClientController::class, 'statistics'])->name('clients.statistics');
+});
+
 // Client appointment routes
 Route::prefix('client')->name('client.')->group(function () {
     Route::get('/appointment', [App\Http\Controllers\Client\AppointmentController::class, 'index'])->name('appointment');

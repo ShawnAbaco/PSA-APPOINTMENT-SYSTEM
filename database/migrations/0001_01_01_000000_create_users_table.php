@@ -25,7 +25,7 @@ return new class extends Migration
             $table->string('suffix')->nullable();
             $table->string('contact_number')->nullable();
             $table->string('alternate_contact')->nullable();
-            $table->enum('role', ['admin', 'staff', 'user'])->default('user');
+            $table->enum('role', ['admin', 'staff', 'operator', 'user'])->default('user');
             $table->boolean('is_active')->default(true);
             $table->string('position')->nullable();
             $table->string('department')->nullable();

@@ -101,10 +101,10 @@ class UserSeeder extends Seeder
             'last_name' => 'Santos',
             'suffix' => null,
             'email' => 'maria.santos@psa.gov.ph',
-            'password' => Hash::make('staff123'),
+            'password' => Hash::make('operator123'),
             'contact_number' => '09171234569',
             'alternate_contact' => null,
-            'role' => 'staff',
+            'role' => 'operator',
             'is_active' => true,
             'account_status' => 'approved', // Pre-approved for demo
             'rejection_reason' => null,
@@ -115,6 +115,9 @@ class UserSeeder extends Seeder
                 'view_appointments',
                 'create_appointments',
                 'update_appointments',
+                'cancel_appointments',
+                'confirm_appointments',
+                'view_reports'
             ]),
             'email_verified_at' => now(),
             'last_login_at' => null,

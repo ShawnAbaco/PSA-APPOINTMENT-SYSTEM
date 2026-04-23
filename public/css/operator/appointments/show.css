@@ -1,0 +1,455 @@
+.container-fluid {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 28px 32px;
+    background: var(--bg-gradient);
+    min-height: 100vh;
+}
+
+/* Headers */
+.h3 {
+    font-size: 28px;
+    font-weight: 600;
+    color: var(--gray-800);
+    margin: 0;
+    letter-spacing: -0.3px;
+    background: linear-gradient(135deg, var(--gray-800) 0%, var(--gray-600) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+/* Buttons - Faded Gradients */
+.btn {
+    padding: 10px 24px;
+    border-radius: var(--border-radius-sm);
+    font-size: 14px;
+    font-weight: 500;
+    transition: var(--transition);
+    border: none;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.btn-secondary {
+    background: var(--secondary-gradient);
+    color: white;
+}
+
+.btn-secondary:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow);
+    filter: brightness(1.02);
+}
+
+.btn-success {
+    background: var(--success-gradient);
+    color: white;
+}
+
+.btn-success:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow);
+    filter: brightness(1.02);
+}
+
+.btn-info {
+    background: var(--info-gradient);
+    color: white;
+}
+
+.btn-info:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow);
+    filter: brightness(1.02);
+}
+
+.btn-danger {
+    background: var(--danger-gradient);
+    color: white;
+}
+
+.btn-danger:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow);
+    filter: brightness(1.02);
+}
+
+/* Cards - Soft & Faded */
+.card {
+    background: white;
+    border: none;
+    border-radius: var(--border-radius);
+    box-shadow: var(--shadow);
+    transition: var(--transition);
+    overflow: hidden;
+}
+
+.card:hover {
+    box-shadow: var(--shadow-lg);
+    transform: translateY(-2px);
+}
+
+.card-header {
+    background: linear-gradient(135deg, var(--gray-50) 0%, white 100%);
+    border-bottom: 1px solid var(--gray-200);
+    padding: 18px 24px;
+}
+
+.card-header h5 {
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--gray-800);
+    margin: 0;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.card-header h5::before {
+    content: '';
+    width: 3px;
+    height: 18px;
+    background: var(--primary-gradient);
+    border-radius: 3px;
+}
+
+.card-body {
+    padding: 24px;
+}
+
+/* Card Body Text Styling */
+.card-body p {
+    margin-bottom: 12px;
+    padding: 8px 0;
+    border-bottom: 1px solid var(--gray-100);
+    display: flex;
+    align-items: baseline;
+    flex-wrap: wrap;
+}
+
+.card-body p:last-child {
+    border-bottom: none;
+}
+
+.card-body strong {
+    color: var(--gray-700);
+    font-weight: 600;
+    min-width: 130px;
+    display: inline-block;
+}
+
+/* Status Badge - Faded Gradients */
+.status-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 5px 14px;
+    border-radius: 30px;
+    font-size: 12px;
+    font-weight: 500;
+}
+
+.status-pending {
+    background: linear-gradient(135deg, rgba(224, 184, 150, 0.12) 0%, rgba(224, 184, 150, 0.18) 100%);
+    color: #f09b46;
+}
+
+.status-confirmed {
+    background: linear-gradient(135deg, rgba(139, 201, 165, 0.12) 0%, rgba(139, 201, 165, 0.18) 100%);
+    color: #39ff88;
+}
+
+.status-completed {
+    background: linear-gradient(135deg, rgba(176, 170, 204, 0.12) 0%, rgba(176, 170, 204, 0.18) 100%);
+    color: #9f93dd;
+}
+
+.status-cancelled {
+    background: linear-gradient(135deg, rgba(217, 166, 166, 0.12) 0%, rgba(217, 166, 166, 0.18) 100%);
+    color: #ff5e5e;
+}
+
+/* Code Styling */
+code {
+    background: var(--gray-100);
+    padding: 4px 8px;
+    border-radius: 6px;
+    font-size: 12px;
+    color: var(--primary);
+    font-family: 'SF Mono', 'Monaco', monospace;
+}
+
+/* Table - Modern & Clean */
+.table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.table-bordered {
+    border: 1px solid var(--gray-200);
+    border-radius: var(--border-radius-sm);
+    overflow: hidden;
+}
+
+.table thead {
+    background: linear-gradient(135deg, var(--gray-50) 0%, #f8f9fb 100%);
+}
+
+.table th {
+    padding: 14px 16px;
+    text-align: left;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--gray-600);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    border-bottom: 1px solid var(--gray-200);
+}
+
+.table td {
+    padding: 14px 16px;
+    font-size: 13px;
+    color: var(--gray-700);
+    border-bottom: 1px solid var(--gray-100);
+}
+
+.table tbody tr {
+    transition: var(--transition);
+}
+
+.table tbody tr:hover {
+    background: linear-gradient(90deg, var(--gray-50) 0%, white 100%);
+}
+
+/* Row Layout */
+.row {
+    display: flex;
+    flex-wrap: wrap;
+    margin: -12px;
+}
+
+.col-md-6 {
+    flex: 0 0 50%;
+    max-width: 50%;
+    padding: 12px;
+    box-sizing: border-box;
+}
+
+/* Margin & Padding Utilities */
+.mb-4 {
+    margin-bottom: 24px;
+}
+
+.mb-4:last-child {
+    margin-bottom: 0;
+}
+
+/* Flex Utilities */
+.d-flex {
+    display: flex;
+}
+
+.justify-content-between {
+    justify-content: space-between;
+}
+
+.align-items-center {
+    align-items: center;
+}
+
+.gap-2 {
+    gap: 8px;
+}
+
+.gap-3 {
+    gap: 12px;
+}
+
+/* Button Group */
+.btn-group {
+    display: flex;
+    gap: 10px;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .container-fluid {
+        padding: 16px;
+    }
+    
+    .h3 {
+        font-size: 24px;
+        margin-bottom: 16px;
+    }
+    
+    .d-flex {
+        flex-direction: column;
+        gap: 16px;
+    }
+    
+    .d-flex.justify-content-between {
+        flex-direction: column;
+        align-items: stretch;
+    }
+    
+    .d-flex.justify-content-between > div {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+    }
+    
+    .btn {
+        width: 100%;
+        justify-content: center;
+    }
+    
+    .col-md-6 {
+        flex: 0 0 100%;
+        max-width: 100%;
+    }
+    
+    .card-body p strong {
+        min-width: 100%;
+        margin-bottom: 4px;
+    }
+    
+    .table {
+        font-size: 12px;
+    }
+    
+    .table th,
+    .table td {
+        padding: 10px 12px;
+    }
+}
+
+@media (max-width: 640px) {
+    .card-header {
+        padding: 14px 18px;
+    }
+    
+    .card-body {
+        padding: 18px;
+    }
+    
+    .table-responsive {
+        overflow-x: auto;
+    }
+    
+    .table {
+        min-width: 600px;
+    }
+}
+
+/* Loading & Modal States */
+.loading {
+    opacity: 0.6;
+    pointer-events: none;
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+}
+
+::-webkit-scrollbar-track {
+    background: var(--gray-100);
+    border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb {
+    background: var(--gray-400);
+    border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: var(--gray-500);
+}
+
+/* Print Styles */
+@media print {
+    .container-fluid {
+        background: white;
+        padding: 0;
+    }
+    
+    .btn,
+    .d-flex.justify-content-between > div {
+        display: none;
+    }
+    
+    .card {
+        box-shadow: none;
+        border: 1px solid #ddd;
+    }
+    
+    .card:hover {
+        transform: none;
+    }
+}
+
+/* Animation for Buttons */
+@keyframes gentlePulse {
+    0%, 100% {
+        transform: scale(1);
+    }
+    50% {
+        transform: scale(1.02);
+    }
+}
+
+.btn-success:active,
+.btn-info:active,
+.btn-danger:active {
+    animation: gentlePulse 0.2s ease;
+}
+
+/* Faded Gradient Background for Cards */
+.card {
+    position: relative;
+    overflow: hidden;
+}
+
+.card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: var(--primary-gradient);
+    opacity: 0;
+    transition: var(--transition);
+}
+
+.card:hover::before {
+    opacity: 1;
+}
+
+/* Status Badge Icons (if using Font Awesome) */
+.status-badge::before {
+    font-family: 'Font Awesome 6 Free';
+    font-weight: 900;
+    margin-right: 6px;
+    font-size: 11px;
+}
+
+.status-pending::before {
+    content: '\f017';
+}
+
+.status-confirmed::before {
+    content: '\f00c';
+}
+
+.status-completed::before {
+    content: '\f058';
+}
+
+.status-cancelled::before {
+    content: '\f057';
+}
