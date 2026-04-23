@@ -10,11 +10,16 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="{{ asset('css/admin/dashboard.css') }}">
+    {{-- appointment css link --}}
     <link rel="stylesheet" href="{{ asset('css/admin/appointments/appointments.css') }}">
     <link rel="stylesheet" href="{{ asset('css/admin/appointments/calendar.css') }}">
+
+    {{-- users css link --}}
     <link rel="stylesheet" href="{{ asset('css/admin/users/user.css') }}">
-    
-  
+
+    {{-- slots css link --}}
+    <link rel="stylesheet" href="{{ asset('css/admin/slots/slot.css') }}">
+
 
 
     <style>
@@ -1139,8 +1144,7 @@
                 padding: 0 16px;
             }
         }
-
-        </style>
+    </style>
 </head>
 
 <body>
@@ -1182,7 +1186,7 @@
                         <span>Users Management</span>
                     </a>
                 </div>
-                 <div class="nav-item">
+                <div class="nav-item">
                     <a href="{{ route('admin.slots.index') }}"
                         class="nav-link {{ request()->routeIs('admin.slots.*') ? 'active' : '' }}">
                         <i class="fas fa-calendar-week"></i>
@@ -1196,7 +1200,7 @@
                         <span>Reports</span>
                     </a>
                 </div>
-               
+
                 <div class="nav-item">
                     <a href="{{ route('admin.settings.index') }}"
                         class="nav-link {{ request()->routeIs('admin.settings.*') ? 'active' : '' }}">
