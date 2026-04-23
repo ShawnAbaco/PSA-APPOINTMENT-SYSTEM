@@ -69,7 +69,7 @@
         }
 
         /* ---------- MAIN CONTAINER ---------- */
-        .staff-container {
+        .admin-container {
             display: flex;
             min-height: 100vh;
             position: relative;
@@ -78,7 +78,7 @@
         /* ============================================
            SIDEBAR STYLES - PROFESSIONAL DARK THEME WITH ANIMATIONS
            ============================================ */
-        .staff-sidebar {
+        .admin-sidebar {
             width: var(--sidebar-width);
             background: var(--sidebar-bg);
             color: var(--sidebar-text);
@@ -96,16 +96,16 @@
         }
 
         /* Sidebar Scrollbar */
-        .staff-sidebar::-webkit-scrollbar {
+        .admin-sidebar::-webkit-scrollbar {
             width: 5px;
         }
 
-        .staff-sidebar::-webkit-scrollbar-track {
+        .admin-sidebar::-webkit-scrollbar-track {
             background: rgba(255, 255, 255, 0.1);
             border-radius: 10px;
         }
 
-        .staff-sidebar::-webkit-scrollbar-thumb {
+        .admin-sidebar::-webkit-scrollbar-thumb {
             background: rgba(255, 255, 255, 0.3);
             border-radius: 10px;
         }
@@ -336,7 +336,7 @@
         /* ============================================
            MAIN CONTENT AREA
            ============================================ */
-        .staff-main {
+        .admin-main {
             flex: 1;
             margin-left: var(--sidebar-width);
             min-height: 100vh;
@@ -349,7 +349,7 @@
         /* ============================================
            TOPBAR STYLES - PROFESSIONAL LIGHT THEME WITH ANIMATIONS
            ============================================ */
-        .staff-topbar {
+        .admin-topbar {
             height: var(--topbar-height);
             background: var(--topbar-bg);
             backdrop-filter: blur(10px);
@@ -366,7 +366,7 @@
             transition: all 0.3s ease;
         }
 
-        .staff-topbar:hover {
+        .admin-topbar:hover {
             box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
         }
 
@@ -665,7 +665,7 @@
         /* ============================================
            CONTENT AREA STYLES
            ============================================ */
-        .staff-content {
+        .admin-content {
             padding: 32px;
             flex: 1;
             animation: fadeInUp 0.5s ease;
@@ -1056,7 +1056,7 @@
                 --sidebar-width: 260px;
             }
 
-            .staff-content {
+            .admin-content {
                 padding: 24px;
             }
 
@@ -1067,24 +1067,24 @@
         }
 
         @media (max-width: 768px) {
-            .staff-sidebar {
+            .admin-sidebar {
                 transform: translateX(-100%);
                 width: 260px;
             }
 
-            .staff-sidebar.open {
+            .admin-sidebar.open {
                 transform: translateX(0);
             }
 
-            .staff-main {
+            .admin-main {
                 margin-left: 0;
             }
 
-            .staff-topbar {
+            .admin-topbar {
                 padding: 0 20px;
             }
 
-            .staff-content {
+            .admin-content {
                 padding: 20px;
             }
 
@@ -1115,7 +1115,7 @@
                 font-size: 0.85rem;
             }
 
-            .staff-topbar {
+            .admin-topbar {
                 padding: 0 16px;
             }
         }
