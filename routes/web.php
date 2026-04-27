@@ -59,50 +59,40 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
     Route::get('/summary-stats', [App\Http\Controllers\Admin\DashboardController::class, 'getSummaryStats']);
     
     Route::get('/appointments/{id}/modal', [App\Http\Controllers\Admin\AppointmentController::class, 'showModal'])->name('admin.appointments.modal');
-
     Route::get('/appointments/{id}/json', [App\Http\Controllers\Admin\AppointmentController::class, 'getJson'])->name('admin.appointments.json');
-    // Add to admin routes
-    // Route::get('/slots', [App\Http\Controllers\Admin\SettingsController::class, 'manageSlots'])->name('slots.index');
-    // Route::post('/slots', [App\Http\Controllers\Admin\SettingsController::class, 'createSlot'])->name('slots.store');
-    // Route::put('/slots/{id}', [App\Http\Controllers\Admin\SettingsController::class, 'updateSlot'])->name('slots.update');
-
-    // Add these inside the admin routes group (after the existing routes)
+    
     Route::get('/appointments/locations', [App\Http\Controllers\Admin\AppointmentController::class, 'getByLocation'])->name('appointments.locations');
     Route::get('/appointments/city-stats', [App\Http\Controllers\Admin\AppointmentController::class, 'cityStatistics'])->name('appointments.city-stats');
     Route::get('/reports/export-location', [App\Http\Controllers\Admin\ReportController::class, 'exportLocationSummary'])->name('reports.export-location');
-    // Add this inside the client appointment routes group
     Route::get('/appointment/location-stats', [App\Http\Controllers\Client\AppointmentController::class, 'getLocationStats'])->name('appointment.location-stats');
     Route::get('/psa-coordinates', [App\Http\Controllers\Admin\AppointmentController::class, 'getPsaCoordinates'])->name('psa.coordinates');
 
-    // Add this inside the admin routes group
+    // Settings routes
     Route::post('/settings/test-email', [App\Http\Controllers\Admin\SettingsController::class, 'testEmail'])->name('settings.test-email');
-    // Add this inside admin routes group
     Route::post('/settings/sync-slots', [App\Http\Controllers\Admin\SettingsController::class, 'syncAllSlots'])->name('settings.sync-slots');
     Route::post('/settings/clear-cache', [App\Http\Controllers\Admin\SettingsController::class, 'clearCache'])->name('settings.clear-cache');
 
-// Slot Management (Appointment Slots)
-Route::prefix('slots')->name('slots.')->group(function () {
-    Route::get('/', [App\Http\Controllers\Admin\SlotController::class, 'index'])->name('index');
-    Route::get('/create', [App\Http\Controllers\Admin\SlotController::class, 'create'])->name('create');
-    Route::post('/', [App\Http\Controllers\Admin\SlotController::class, 'store'])->name('store');
-    Route::get('/{id}/edit', [App\Http\Controllers\Admin\SlotController::class, 'edit'])->name('edit');
-    Route::put('/{id}', [App\Http\Controllers\Admin\SlotController::class, 'update'])->name('update');
-    Route::delete('/{id}', [App\Http\Controllers\Admin\SlotController::class, 'destroy'])->name('destroy');
-    Route::post('/bulk-generate', [App\Http\Controllers\Admin\SlotController::class, 'bulkGenerate'])->name('bulk-generate');
-    Route::put('/{id}/toggle-holiday', [App\Http\Controllers\Admin\SlotController::class, 'toggleHoliday'])->name('toggle-holiday');
-    Route::get('/details/{date}', [App\Http\Controllers\Admin\SlotController::class, 'getSlotDetails'])->name('details');
-    Route::get('/json', [App\Http\Controllers\Admin\SlotController::class, 'getSlotsJson'])->name('json');});
-    Route::post('/capacity-rules', [App\Http\Controllers\Admin\SlotController::class, 'saveCapacityRules'])->name('slots.capacity-rules');
+    // Slot Management (Appointment Slots)
+    Route::prefix('slots')->name('slots.')->group(function () {
+        Route::get('/', [App\Http\Controllers\Admin\SlotController::class, 'index'])->name('index');
+        Route::get('/create', [App\Http\Controllers\Admin\SlotController::class, 'create'])->name('create');
+        Route::post('/', [App\Http\Controllers\Admin\SlotController::class, 'store'])->name('store');
+        Route::get('/{id}/edit', [App\Http\Controllers\Admin\SlotController::class, 'edit'])->name('edit');
+        Route::put('/{id}', [App\Http\Controllers\Admin\SlotController::class, 'update'])->name('update');
+        Route::delete('/{id}', [App\Http\Controllers\Admin\SlotController::class, 'destroy'])->name('destroy');
+        Route::post('/bulk-generate', [App\Http\Controllers\Admin\SlotController::class, 'bulkGenerate'])->name('bulk-generate');
+        Route::put('/{id}/toggle-holiday', [App\Http\Controllers\Admin\SlotController::class, 'toggleHoliday'])->name('toggle-holiday');
+        Route::get('/details/{date}', [App\Http\Controllers\Admin\SlotController::class, 'getSlotDetails'])->name('details');
+        Route::get('/json', [App\Http\Controllers\Admin\SlotController::class, 'getSlotsJson'])->name('json');
+        Route::post('/capacity-rules', [App\Http\Controllers\Admin\SlotController::class, 'saveCapacityRules'])->name('capacity-rules');
+    });
 
-
-
-    // Add inside the admin routes group
-Route::prefix('time-slots')->name('time-slots.')->group(function () {
-    Route::post('/store', [App\Http\Controllers\Admin\SettingsController::class, 'storeTimeSlot'])->name('store');
-    Route::put('/{id}', [App\Http\Controllers\Admin\SettingsController::class, 'updateTimeSlot'])->name('update');
-    Route::delete('/{id}', [App\Http\Controllers\Admin\SettingsController::class, 'destroyTimeSlot'])->name('destroy');
-});
-
+    // Time Slots routes (for the settings page)
+    Route::prefix('time-slots')->name('time-slots.')->group(function () {
+        Route::post('/store', [App\Http\Controllers\Admin\SettingsController::class, 'storeTimeSlot'])->name('store');
+        Route::put('/{id}', [App\Http\Controllers\Admin\SettingsController::class, 'updateTimeSlot'])->name('update');
+        Route::delete('/{id}', [App\Http\Controllers\Admin\SettingsController::class, 'destroyTimeSlot'])->name('destroy');
+    });
     
     // Users
     Route::get('/users', [App\Http\Controllers\Admin\UserController::class, 'index'])->name('users.index');
@@ -117,7 +107,7 @@ Route::prefix('time-slots')->name('time-slots.')->group(function () {
     Route::get('/reports', [App\Http\Controllers\Admin\ReportController::class, 'index'])->name('reports.index');
     Route::get('/reports/export', [App\Http\Controllers\Admin\ReportController::class, 'export'])->name('reports.export');
     
-    // Settings
+    // Settings index and update
     Route::get('/settings', [App\Http\Controllers\Admin\SettingsController::class, 'index'])->name('settings.index');
     Route::post('/settings', [App\Http\Controllers\Admin\SettingsController::class, 'update'])->name('settings.update');
 });
@@ -132,7 +122,7 @@ Route::middleware(['auth', 'staff'])->prefix('staff')->name('staff.')->group(fun
     Route::get('/appointments/create', [App\Http\Controllers\Staff\AppointmentController::class, 'create'])->name('appointments.create');
     Route::post('/appointments', [App\Http\Controllers\Staff\AppointmentController::class, 'store'])->name('appointments.store');
     Route::get('/appointments/{id}', [App\Http\Controllers\Staff\AppointmentController::class, 'show'])->name('appointments.show');
-    Route::get('/appointments/{id}/edit', [App\Http\Controllers\Staff\AppointmentController::class, 'edit'])->name('appointments.edit'); // ADD THIS LINE
+    Route::get('/appointments/{id}/edit', [App\Http\Controllers\Staff\AppointmentController::class, 'edit'])->name('appointments.edit');
     Route::put('/appointments/{id}', [App\Http\Controllers\Staff\AppointmentController::class, 'update'])->name('appointments.update');
     Route::put('/appointments/{id}/confirm', [App\Http\Controllers\Staff\AppointmentController::class, 'confirm'])->name('appointments.confirm');
     Route::put('/appointments/{id}/cancel', [App\Http\Controllers\Staff\AppointmentController::class, 'cancel'])->name('appointments.cancel');
@@ -166,8 +156,7 @@ Route::middleware(['auth', 'operator'])->prefix('operator')->name('operator.')->
     Route::put('/appointments/{id}/cancel', [App\Http\Controllers\Operator\OAppointmentController::class, 'cancel'])->name('appointments.cancel');
     Route::put('/appointments/{id}/complete', [App\Http\Controllers\Operator\OAppointmentController::class, 'complete'])->name('appointments.complete');
     
- 
-     // Client routes
+    // Client routes
     Route::get('/clients', [App\Http\Controllers\Operator\OClientController::class, 'index'])->name('clients.index');
     Route::get('/clients/{id}', [App\Http\Controllers\Operator\ODashboardController::class, 'show'])->name('clients.show');
     Route::get('/clients/{id}/details', [App\Http\Controllers\Operator\OClientController::class, 'getClientDetails'])->name('clients.details');
@@ -185,6 +174,6 @@ Route::prefix('client')->name('client.')->group(function () {
     Route::get('/appointment', [App\Http\Controllers\Client\AppointmentController::class, 'index'])->name('appointment');
     Route::post('/appointment/store', [App\Http\Controllers\Client\AppointmentController::class, 'store'])->name('appointment.store');
     Route::get('/appointment/available-dates', [App\Http\Controllers\Client\AppointmentController::class, 'getAvailableDates'])->name('appointment.available-dates');
-    Route::get('/appointment/available-time-slots', [App\Http\Controllers\Client\AppointmentController::class, 'getAvailableTimeSlots'])->name('appointment.available-time-slots'); // Add this line
+    Route::get('/appointment/available-time-slots', [App\Http\Controllers\Client\AppointmentController::class, 'getAvailableTimeSlots'])->name('appointment.available-time-slots');
     Route::get('/appointment/check-availability', [App\Http\Controllers\Client\AppointmentController::class, 'checkAvailability'])->name('appointment.check-availability');
 });

@@ -354,38 +354,38 @@ class SettingsController extends Controller
     }
     
     /**
- * Test email configuration using .env settings
- */
-public function testEmail(Request $request)
-{
-    $request->validate([
-        'email' => 'required|email'
-    ]);
-    
-    try {
-        $mailService = new \App\Services\MailService();
-        $result = $mailService->sendTestEmail($request->email);
+     * Test email configuration using .env settings
+     */
+    public function testEmail(Request $request)
+    {
+        $request->validate([
+            'email' => 'required|email'
+        ]);
         
-        if ($result) {
-            return response()->json([
-                'success' => true,
-                'message' => 'Test email sent successfully to ' . $request->email
-            ]);
-        } else {
+        try {
+            $mailService = new \App\Services\MailService();
+            $result = $mailService->sendTestEmail($request->email);
+            
+            if ($result) {
+                return response()->json([
+                    'success' => true,
+                    'message' => 'Test email sent successfully to ' . $request->email
+                ]);
+            } else {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Failed to send test email. Check your .env SMTP settings and logs.'
+                ], 500);
+            }
+            
+        } catch (\Exception $e) {
+            \Log::error('Test email failed: ' . $e->getMessage());
             return response()->json([
                 'success' => false,
-                'message' => 'Failed to send test email. Check your .env SMTP settings and logs.'
+                'message' => 'Error: ' . $e->getMessage()
             ], 500);
         }
-        
-    } catch (\Exception $e) {
-        \Log::error('Test email failed: ' . $e->getMessage());
-        return response()->json([
-            'success' => false,
-            'message' => 'Error: ' . $e->getMessage()
-        ], 500);
     }
-}
 
     public function storeTimeSlot(Request $request)
     {
@@ -429,27 +429,42 @@ public function testEmail(Request $request)
         return response()->json(['success' => true, 'time_slot' => $timeSlot]);
     }
 
-    public function updateTimeSlot(Request $request, $id)
-    {
-        $timeSlot = TimeSlot::findOrFail($id);
-        
-        $validated = $request->validate([
-            'start_time' => 'required|date_format:H:i:s',
-            'end_time' => 'required|date_format:H:i:s',
-            'slot_label' => 'nullable|string|max:255',
-            'capacity_per_slot' => 'required|integer|min:1|max:50',
-            'is_active' => 'required|boolean',
-        ]);
-        
-        $timeSlot->update([
-            'start_time' => $validated['start_time'],
-            'end_time' => $validated['end_time'],
-            'label' => $validated['slot_label'],
-            'is_active' => $validated['is_active'],
-        ]);
-        
-        return response()->json(['success' => true]);
+    /**
+     * Update Time Slot - Removed capacity_per_slot and is_active
+     */
+    /**
+ * Update Time Slot - Fixed time format validation
+ */
+public function updateTimeSlot(Request $request, $id)
+{
+    $timeSlot = TimeSlot::findOrFail($id);
+    
+    // Convert time values from H:i:s to H:i format if needed
+    $startTime = $request->start_time;
+    $endTime = $request->end_time;
+    
+    // Remove seconds if present (convert from H:i:s to H:i)
+    if (strlen($startTime) > 5) {
+        $startTime = substr($startTime, 0, 5);
     }
+    if (strlen($endTime) > 5) {
+        $endTime = substr($endTime, 0, 5);
+    }
+    
+    $validated = $request->validate([
+        'start_time' => 'required|date_format:H:i',
+        'end_time' => 'required|date_format:H:i|after:start_time',
+        'slot_label' => 'nullable|string|max:255',
+    ]);
+    
+    $timeSlot->update([
+        'start_time' => $validated['start_time'] . ':00',
+        'end_time' => $validated['end_time'] . ':00',
+        'label' => $validated['slot_label'] ?? date('g:i A', strtotime($validated['start_time'])) . ' - ' . date('g:i A', strtotime($validated['end_time'])),
+    ]);
+    
+    return response()->json(['success' => true, 'message' => 'Time slot updated successfully']);
+}
 
     public function destroyTimeSlot($id)
     {
@@ -496,22 +511,20 @@ public function testEmail(Request $request)
         try {
             DB::beginTransaction();
             
-            $capacities = $request->input('capacities', []);
+            $capacities = $request->input('slot_capacities', []);
             
-            foreach ($capacities as $timeSlotId => $dayTypes) {
-                foreach ($dayTypes as $dayType => $services) {
-                    SlotCapacityRule::updateOrCreate(
-                        [
-                            'time_slot_id' => $timeSlotId,
-                            'day_type' => $dayType,
-                        ],
-                        [
-                            'reg_capacity' => $services['reg'] ?? 0,
-                            'updating_capacity' => $services['updating'] ?? 0,
-                            'inquiry_capacity' => $services['inquiry'] ?? 0,
-                        ]
-                    );
-                }
+            foreach ($capacities as $timeSlotId => $services) {
+                SlotCapacityRule::updateOrCreate(
+                    [
+                        'time_slot_id' => $timeSlotId,
+                        'day_type' => 'working',
+                    ],
+                    [
+                        'reg_capacity' => $services['reg'] ?? 0,
+                        'updating_capacity' => $services['updating'] ?? 0,
+                        'inquiry_capacity' => $services['inquiry'] ?? 0,
+                    ]
+                );
             }
             
             DB::commit();
