@@ -6,8 +6,8 @@
         <!-- Header Section -->
         <div class="appt-welcome-section">
             <div>
-                <h1 class="appt-title">Appointments</h1>
-                <p class="appt-subtitle">Manage and monitor all client appointments</p>
+                <h1 class="appt-title">Confirmed Appointments</h1>
+                <p class="appt-subtitle">View and manage all confirmed client appointments</p>
             </div>
             <div class="appt-date-display">
                 <i class="fas fa-calendar-alt"></i>
@@ -21,16 +21,6 @@
                 <i class="fas fa-search"></i>
                 <input type="text" id="searchAppointment" placeholder="Search by number or client..."
                     class="appt-filter-input">
-            </div>
-            <div class="appt-filter-group">
-                <i class="fas fa-filter"></i>
-                <select id="statusFilter" class="appt-filter-select">
-                    <option value="">All Status</option>
-                    <option value="pending">Pending</option>
-                    <option value="confirmed">Confirmed</option>
-                    <option value="completed">Completed</option>
-                    <option value="cancelled">Cancelled</option>
-                </select>
             </div>
             <div class="appt-filter-group">
                 <i class="fas fa-calendar"></i>
@@ -56,14 +46,11 @@
         <div class="appt-bulk-actions-bar" id="bulkActionsBar" style="display: none;">
             <div class="appt-bulk-actions-content">
                 <div class="appt-bulk-buttons">
-                    <button class="appt-btn-bulk" id="bulkConfirmBtn">
-                        <i class="fas fa-check-circle"></i>Confirm
+                    <button class="appt-btn-bulk" id="bulkCompleteBtn">
+                        <i class="fas fa-check-double"></i>Mark Complete
                     </button>
                     <button class="appt-btn-bulk" id="bulkCancelBtn">
                         <i class="fas fa-times-circle"></i>Cancel
-                    </button>
-                    <button class="appt-btn-bulk appt-btn-bulk-danger" id="bulkDeleteBtn">
-                        <i class="fas fa-trash-alt"></i>Delete
                     </button>
                 </div>
                 <span class="appt-bulk-count" id="bulkCount">0 items selected</span>
@@ -81,7 +68,7 @@
                         <input type="checkbox" id="selectAllCheckbox" class="appt-select-all-checkbox">
                         <label for="selectAllCheckbox" class="appt-select-all-label">Select All</label>
                     </div>
-                    <h5 class="appt-card-title"><i class="fas fa-calendar-alt"></i> All Appointments</h5>
+                    <h5 class="appt-card-title"><i class="fas fa-check-circle"></i> Confirmed Appointments</h5>
                     <span class="appt-record-count" id="recordCount">{{ $appointments->total() }} records</span>
                 </div>
                 <div class="appt-table-actions">
@@ -109,7 +96,6 @@
                                 <th>Date & Time</th>
                                 <th>Contact Person</th>
                                 <th>Clients</th>
-                                <th>Status</th>
                                 <th>Actions</th>
                             </tr>
                         </thead>
@@ -128,13 +114,13 @@
                                             <span
                                                 class="appt-date">{{ date('M d, Y', strtotime($appointment->appointment_date)) }}</span>
                                             <span
-                                                class="appt-time">{{ date('h:i A', strtotime($appointment->appointment_time ?? '09:00')) }}</span>
+                                                class="appt-time">{{ $appointment->timeSlot->label ?? date('h:i A', strtotime($appointment->appointment_time ?? '09:00')) }}</span>
                                         </div>
                                     </td>
                                     <td>
                                         <div class="appt-contact-info">
                                             <div class="appt-contact-name">{{ $appointment->contact_name }}</div>
-                                            <div class="appt-contact-phone">{{ $appointment->contact_phone ?? '—' }}</div>
+                                            <div class="appt-contact-phone">{{ $appointment->contact_mobile ?? '—' }}</div>
                                         </div>
                                     </td>
                                     <td>
@@ -144,49 +130,28 @@
                                         </div>
                                     </td>
                                     <td>
-                                        <span class="appt-status {{ $appointment->status }}">
-                                            <i
-                                                class="fas {{ $appointment->status == 'confirmed' ? 'fa-check-circle' : ($appointment->status == 'pending' ? 'fa-clock' : ($appointment->status == 'completed' ? 'fa-check-double' : 'fa-times-circle')) }}"></i>
-                                            {{ ucfirst($appointment->status) }}
-                                        </span>
-                                    </td>
-                                    <td>
                                         <div class="appt-action-buttons">
                                             <button class="appt-btn-action appt-btn-view"
                                                 onclick="openViewModal({{ $appointment->id }})" title="View Details">
                                                 <i class="fas fa-eye"></i>
                                             </button>
-                                            <div class="appt-dropdown">
-                                                <button class="appt-btn-action appt-dropdown-toggle"
-                                                    onclick="toggleDropdown(this)">
-                                                    <i class="fas fa-ellipsis-v"></i>
-                                                </button>
-                                                <div class="appt-dropdown-menu">
-                                                    <button class="appt-dropdown-item appt-dropdown-edit"
-                                                        onclick="openEditModal({{ $appointment->id }})">
-                                                        <i class="fas fa-edit"></i> Edit
-                                                    </button>
-                                                    @if (in_array($appointment->status, ['pending', 'confirmed']))
-                                                        <button class="appt-dropdown-item appt-dropdown-cancel"
-                                                            onclick="openCancelModal({{ $appointment->id }})">
-                                                            <i class="fas fa-times-circle"></i> Cancel
-                                                        </button>
-                                                    @endif
-                                                    <button class="appt-dropdown-item appt-dropdown-delete"
-                                                        onclick="openDeleteModal({{ $appointment->id }})">
-                                                        <i class="fas fa-trash-alt"></i> Delete
-                                                    </button>
-                                                </div>
-                                            </div>
+                                            <button class="appt-btn-action appt-btn-complete"
+                                                onclick="openCompleteModal({{ $appointment->id }})" title="Mark Complete">
+                                                <i class="fas fa-check-double"></i>
+                                            </button>
+                                            <button class="appt-btn-action appt-btn-cancel"
+                                                onclick="openCancelModal({{ $appointment->id }})" title="Cancel">
+                                                <i class="fas fa-times-circle"></i>
+                                            </button>
                                         </div>
                                     </td>
                                 </tr>
                             @empty
                                 <tr>
-                                    <td colspan="7" class="appt-empty-state">
+                                    <td colspan="6" class="appt-empty-state">
                                         <i class="fas fa-calendar-times"></i>
-                                        <h4>No appointments found</h4>
-                                        <p>No appointments match your current filters</p>
+                                        <h4>No confirmed appointments found</h4>
+                                        <p>No confirmed appointments match your current filters</p>
                                     </td>
                                 </tr>
                             @endforelse
@@ -197,7 +162,7 @@
                 <div class="appt-pagination-wrapper">
                     <div class="appt-pagination-info">
                         Showing {{ $appointments->firstItem() ?? 0 }} to {{ $appointments->lastItem() ?? 0 }} of
-                        {{ $appointments->total() }} appointments
+                        {{ $appointments->total() }} confirmed appointments
                     </div>
                     <div class="appt-simple-pagination">
                         @if ($appointments->onFirstPage())
@@ -225,43 +190,6 @@
                         @endif
                     </div>
                 </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Quick Add Modal -->
-    <div id="quickAddModal" class="appt-modal">
-        <div class="appt-modal-overlay" onclick="closeModal('quickAddModal')"></div>
-        <div class="appt-modal-container appt-modal-md">
-            <div class="appt-modal-header">
-                <h3>Quick Add Appointment</h3>
-                <button class="appt-modal-close" onclick="closeModal('quickAddModal')">&times;</button>
-            </div>
-            <div class="appt-modal-body">
-                <form id="quickAddForm">
-                    @csrf
-                    <div class="appt-form-group">
-                        <label>Contact Name *</label>
-                        <input type="text" name="contact_name" class="appt-form-control" required>
-                    </div>
-                    <div class="appt-form-group">
-                        <label>Contact Mobile *</label>
-                        <input type="text" name="contact_mobile" class="appt-form-control" required>
-                    </div>
-                    <div class="appt-form-group">
-                        <label>Appointment Date *</label>
-                        <input type="date" name="appointment_date" class="appt-form-control" required>
-                    </div>
-                    <div class="appt-form-group">
-                        <label>Appointment Time</label>
-                        <input type="time" name="appointment_time" class="appt-form-control">
-                    </div>
-                    <div class="appt-modal-actions">
-                        <button type="button" class="appt-btn-secondary"
-                            onclick="closeModal('quickAddModal')">Cancel</button>
-                        <button type="submit" class="appt-btn-primary">Create Appointment</button>
-                    </div>
-                </form>
             </div>
         </div>
     </div>
@@ -294,6 +222,26 @@
         </div>
     </div>
 
+    <!-- Complete Modal -->
+    <div id="completeModal" class="appt-modal">
+        <div class="appt-modal-overlay" onclick="closeModal('completeModal')"></div>
+        <div class="appt-modal-container appt-modal-sm">
+            <div class="appt-modal-header appt-modal-header-success">
+                <h3>Complete Appointment</h3>
+                <button class="appt-modal-close" onclick="closeModal('completeModal')">&times;</button>
+            </div>
+            <div class="appt-modal-body">
+                <p>Mark this appointment as completed?</p>
+                <p class="appt-text-muted">This will change the appointment status to "Completed".</p>
+                <input type="hidden" id="completeAppointmentId">
+                <div class="appt-modal-actions">
+                    <button class="appt-btn-secondary" onclick="closeModal('completeModal')">Cancel</button>
+                    <button class="appt-btn-success" onclick="confirmComplete()">Yes, Mark Complete</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Cancel Modal -->
     <div id="cancelModal" class="appt-modal">
         <div class="appt-modal-overlay" onclick="closeModal('cancelModal')"></div>
@@ -305,30 +253,14 @@
             <div class="appt-modal-body">
                 <p>Are you sure you want to cancel this appointment?</p>
                 <p class="appt-text-muted">This action cannot be undone.</p>
+                <div class="appt-form-group">
+                    <label>Cancellation Reason (Optional)</label>
+                    <textarea id="cancellationReason" class="appt-form-control" rows="3" placeholder="Enter reason for cancellation..."></textarea>
+                </div>
                 <input type="hidden" id="cancelAppointmentId">
                 <div class="appt-modal-actions">
                     <button class="appt-btn-secondary" onclick="closeModal('cancelModal')">No, Go Back</button>
-                    <button class="appt-btn-danger" onclick="confirmCancel()">Yes, Cancel</button>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Delete Modal -->
-    <div id="deleteModal" class="appt-modal">
-        <div class="appt-modal-overlay" onclick="closeModal('deleteModal')"></div>
-        <div class="appt-modal-container appt-modal-sm">
-            <div class="appt-modal-header appt-modal-header-danger">
-                <h3>Delete Appointment</h3>
-                <button class="appt-modal-close" onclick="closeModal('deleteModal')">&times;</button>
-            </div>
-            <div class="appt-modal-body">
-                <p>Are you sure you want to delete this appointment?</p>
-                <p class="appt-text-muted">This action is permanent and cannot be undone.</p>
-                <input type="hidden" id="deleteAppointmentId">
-                <div class="appt-modal-actions">
-                    <button class="appt-btn-secondary" onclick="closeModal('deleteModal')">Cancel</button>
-                    <button class="appt-btn-danger" onclick="confirmDelete()">Delete Permanently</button>
+                    <button class="appt-btn-warning" onclick="confirmCancel()">Yes, Cancel</button>
                 </div>
             </div>
         </div>
@@ -354,7 +286,6 @@
             clearTimeout(filterTimeout);
             filterTimeout = setTimeout(() => {
                 const searchTerm = document.getElementById('searchAppointment')?.value.toLowerCase() || '';
-                const statusFilter = document.getElementById('statusFilter')?.value || '';
                 const dateFilter = document.getElementById('dateFilter')?.value || '';
                 const weekFilter = document.getElementById('weekFilter')?.value || '';
 
@@ -366,7 +297,6 @@
                         .toLowerCase() || '';
                     const contactName = row.querySelector('.appt-contact-name')?.textContent
                     .toLowerCase() || '';
-                    const rowStatus = row.getAttribute('data-status') || '';
                     const rowDate = row.getAttribute('data-date') || '';
 
                     let matchesWeek = true;
@@ -406,10 +336,9 @@
 
                     const matchesSearch = !searchTerm || appointmentNumber.includes(searchTerm) ||
                         contactName.includes(searchTerm);
-                    const matchesStatus = !statusFilter || rowStatus === statusFilter;
                     const matchesDate = !dateFilter || rowDate === dateFilter;
 
-                    const shouldShow = matchesSearch && matchesStatus && matchesDate && matchesWeek;
+                    const shouldShow = matchesSearch && matchesDate && matchesWeek;
                     row.style.display = shouldShow ? '' : 'none';
                     if (shouldShow) visibleCount++;
                 });
@@ -419,8 +348,7 @@
                     recordCountSpan.textContent = visibleCount + ' record' + (visibleCount !== 1 ? 's' : '');
                 }
 
-                updateStats();
-                showNotification(`Showing ${visibleCount} appointments`);
+                showNotification(`Showing ${visibleCount} confirmed appointments`);
             }, 300);
         }
 
@@ -485,12 +413,12 @@
         }
 
         // Bulk actions
-        async function bulkConfirm() {
+        async function bulkComplete() {
             if (selectedAppointments.size === 0) return;
-            if (confirm(`Confirm ${selectedAppointments.size} appointment(s)?`)) {
+            if (confirm(`Mark ${selectedAppointments.size} appointment(s) as completed?`)) {
                 showNotification(`Processing ${selectedAppointments.size} appointment(s)...`);
                 const promises = Array.from(selectedAppointments).map(id =>
-                    fetch(`/operator/appointments/${id}/confirm`, {
+                    fetch(`/operator/appointments/${id}/complete`, {
                         method: 'PUT',
                         headers: {
                             'Content-Type': 'application/json',
@@ -500,7 +428,7 @@
                     })
                 );
                 await Promise.all(promises);
-                showNotification(`${selectedAppointments.size} appointment(s) confirmed!`);
+                showNotification(`${selectedAppointments.size} appointment(s) marked as completed!`);
                 setTimeout(() => location.reload(), 1500);
             }
         }
@@ -525,31 +453,11 @@
             }
         }
 
-        async function bulkDelete() {
-            if (selectedAppointments.size === 0) return;
-            if (confirm(
-                `⚠️ WARNING: Delete ${selectedAppointments.size} appointment(s)? This action cannot be undone!`)) {
-                showNotification(`Deleting ${selectedAppointments.size} appointment(s)...`);
-                const promises = Array.from(selectedAppointments).map(id =>
-                    fetch(`/operator/appointments/${id}`, {
-                        method: 'DELETE',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'X-CSRF-TOKEN': csrfToken
-                        }
-                    })
-                );
-                await Promise.all(promises);
-                showNotification(`${selectedAppointments.size} appointment(s) deleted!`);
-                setTimeout(() => location.reload(), 1500);
-            }
-        }
-
         // Export to CSV
         function exportToCSV() {
             const rows = document.querySelectorAll('.appt-table-row');
             const csvData = [
-                ['Appointment #', 'Date', 'Time', 'Contact Name', 'Contact Phone', 'Status', 'Clients']
+                ['Appointment #', 'Date', 'Time', 'Contact Name', 'Contact Phone', 'Clients']
             ];
 
             rows.forEach(row => {
@@ -559,10 +467,9 @@
                     const time = row.querySelector('.appt-time')?.textContent || '';
                     const contactName = row.querySelector('.appt-contact-name')?.textContent || '';
                     const contactPhone = row.querySelector('.appt-contact-phone')?.textContent || '';
-                    const status = row.querySelector('.appt-status')?.textContent.trim() || '';
                     const clients = row.querySelector('.appt-client-count span')?.textContent || '';
 
-                    csvData.push([appointmentNumber, date, time, contactName, contactPhone, status, clients]);
+                    csvData.push([appointmentNumber, date, time, contactName, contactPhone, clients]);
                 }
             });
 
@@ -573,7 +480,7 @@
             const url = URL.createObjectURL(blob);
             const a = document.createElement('a');
             a.href = url;
-            a.download = `appointments_${new Date().toISOString().split('T')[0]}.csv`;
+            a.download = `confirmed_appointments_${new Date().toISOString().split('T')[0]}.csv`;
             a.click();
             URL.revokeObjectURL(url);
             showNotification('Exported to CSV successfully!');
@@ -585,7 +492,7 @@
             const tableContent = document.querySelector('.appt-table-responsive').cloneNode(true);
             printWindow.document.write(`
             <html>
-            <head><title>Appointments Report</title>
+            <head><title>Confirmed Appointments Report</title>
             <style>
                 body { font-family: Arial, sans-serif; padding: 20px; }
                 table { width: 100%; border-collapse: collapse; }
@@ -594,7 +501,7 @@
             </style>
             </head>
             <body>
-                <h2>Appointments Report</h2>
+                <h2>Confirmed Appointments Report</h2>
                 <p>Generated: ${new Date().toLocaleString()}</p>
                 ${tableContent.outerHTML}
             </body>
@@ -624,39 +531,13 @@
             }, 3000);
         }
 
-        // Quick add form
-        document.getElementById('quickAddForm')?.addEventListener('submit', async function(e) {
-            e.preventDefault();
-            const formData = new FormData(this);
-            formData.append('_token', csrfToken);
-
-            try {
-                const response = await fetch('/operator/appointments', {
-                    method: 'POST',
-                    body: formData
-                });
-
-                if (response.ok) {
-                    closeModal('quickAddModal');
-                    showNotification('Appointment created successfully!');
-                    setTimeout(() => location.reload(), 1500);
-                } else {
-                    showNotification('Failed to create appointment', 'error');
-                }
-            } catch (error) {
-                showNotification('An error occurred', 'error');
-            }
-        });
-
         // Event listeners
         document.getElementById('searchAppointment')?.addEventListener('keyup', () => filterTable());
-        document.getElementById('statusFilter')?.addEventListener('change', () => filterTable());
         document.getElementById('dateFilter')?.addEventListener('change', () => filterTable());
         document.getElementById('weekFilter')?.addEventListener('change', () => filterTable());
 
         document.getElementById('resetFilters')?.addEventListener('click', () => {
             document.getElementById('searchAppointment').value = '';
-            document.getElementById('statusFilter').value = '';
             document.getElementById('dateFilter').value = '';
             document.getElementById('weekFilter').value = '';
             filterTable();
@@ -666,9 +547,8 @@
         document.getElementById('exportBtn')?.addEventListener('click', () => exportToCSV());
         document.getElementById('printBtn')?.addEventListener('click', () => printTable());
 
-        document.getElementById('bulkConfirmBtn')?.addEventListener('click', () => bulkConfirm());
+        document.getElementById('bulkCompleteBtn')?.addEventListener('click', () => bulkComplete());
         document.getElementById('bulkCancelBtn')?.addEventListener('click', () => bulkCancel());
-        document.getElementById('bulkDeleteBtn')?.addEventListener('click', () => bulkDelete());
         document.getElementById('clearSelectionBtn')?.addEventListener('click', () => {
             selectedAppointments.clear();
             document.querySelectorAll('.appt-checkbox').forEach(cb => cb.checked = false);
@@ -683,27 +563,6 @@
         document.querySelectorAll('.appt-checkbox').forEach(checkbox => {
             checkbox.addEventListener('change', function() {
                 toggleAppointmentSelection(this, this.value);
-            });
-        });
-
-        // Dropdown functionality
-        function toggleDropdown(btn) {
-            event.stopPropagation();
-            const dropdown = btn.closest('.appt-dropdown');
-            const menu = dropdown.querySelector('.appt-dropdown-menu');
-
-            document.querySelectorAll('.appt-dropdown-menu.show').forEach(menu => {
-                if (menu !== dropdown.querySelector('.appt-dropdown-menu')) {
-                    menu.classList.remove('show');
-                }
-            });
-
-            menu.classList.toggle('show');
-        }
-
-        document.addEventListener('click', function() {
-            document.querySelectorAll('.appt-dropdown-menu.show').forEach(menu => {
-                menu.classList.remove('show');
             });
         });
 
@@ -737,53 +596,31 @@
             }
         }
 
-        // Edit Modal
-        async function openEditModal(id) {
-            openModal('editModal');
-            const modalBody = document.getElementById('editModalBody');
-            modalBody.innerHTML = '<div class="appt-loading-spinner">Loading edit form...</div>';
-
-            try {
-                const response = await fetch(`/operator/appointments/${id}/edit`);
-                const html = await response.text();
-                const parser = new DOMParser();
-                const doc = parser.parseFromString(html, 'text/html');
-                const formContent = doc.querySelector('.container-fluid') || doc.body;
-                modalBody.innerHTML = `
-                <div class="appt-appointment-edit-form">
-                    ${formContent.innerHTML}
-                    <div class="appt-modal-actions">
-                        <button class="appt-btn-secondary" onclick="closeModal('editModal')">Cancel</button>
-                        <button class="appt-btn-primary" onclick="saveEdit(${id})">Save Changes</button>
-                    </div>
-                </div>
-            `;
-            } catch (error) {
-                modalBody.innerHTML =
-                    '<div class="appt-error-message">Failed to load edit form. Please try again.</div>';
-            }
+        // Complete Modal
+        function openCompleteModal(id) {
+            document.getElementById('completeAppointmentId').value = id;
+            openModal('completeModal');
         }
 
-        async function saveEdit(id) {
-            const form = document.querySelector('#editModalBody form');
-            if (!form) return;
-
-            const formData = new FormData(form);
-            formData.append('_token', csrfToken);
-            formData.append('_method', 'PUT');
+        async function confirmComplete() {
+            const id = document.getElementById('completeAppointmentId').value;
 
             try {
-                const response = await fetch(`/operator/appointments/${id}`, {
-                    method: 'POST',
-                    body: formData
+                const response = await fetch(`/operator/appointments/${id}/complete`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': csrfToken
+                    },
+                    body: JSON.stringify({})
                 });
 
                 if (response.ok) {
-                    closeModal('editModal');
-                    showNotification('Changes saved successfully!');
+                    closeModal('completeModal');
+                    showNotification('Appointment marked as completed successfully!');
                     setTimeout(() => location.reload(), 1000);
                 } else {
-                    showNotification('Failed to save changes', 'error');
+                    showNotification('Failed to complete appointment', 'error');
                 }
             } catch (error) {
                 showNotification('An error occurred', 'error');
@@ -793,11 +630,13 @@
         // Cancel Modal
         function openCancelModal(id) {
             document.getElementById('cancelAppointmentId').value = id;
+            document.getElementById('cancellationReason').value = '';
             openModal('cancelModal');
         }
 
         async function confirmCancel() {
             const id = document.getElementById('cancelAppointmentId').value;
+            const reason = document.getElementById('cancellationReason').value;
 
             try {
                 const response = await fetch(`/operator/appointments/${id}/cancel`, {
@@ -806,7 +645,7 @@
                         'Content-Type': 'application/json',
                         'X-CSRF-TOKEN': csrfToken
                     },
-                    body: JSON.stringify({})
+                    body: JSON.stringify({ reason: reason || 'Cancelled by operator' })
                 });
 
                 if (response.ok) {
@@ -818,38 +657,6 @@
                 }
             } catch (error) {
                 showNotification('An error occurred', 'error');
-            }
-        }
-
-        // Delete Modal
-        function openDeleteModal(id) {
-            document.getElementById('deleteAppointmentId').value = id;
-            openModal('deleteModal');
-        }
-
-        async function confirmDelete() {
-            const id = document.getElementById('deleteAppointmentId').value;
-
-            if (confirm('Are you absolutely sure? This action cannot be undone.')) {
-                try {
-                    const response = await fetch(`/operator/appointments/${id}`, {
-                        method: 'DELETE',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'X-CSRF-TOKEN': csrfToken
-                        }
-                    });
-
-                    if (response.ok) {
-                        closeModal('deleteModal');
-                        showNotification('Appointment deleted successfully!');
-                        setTimeout(() => location.reload(), 1000);
-                    } else {
-                        showNotification('Failed to delete appointment', 'error');
-                    }
-                } catch (error) {
-                    showNotification('An error occurred', 'error');
-                }
             }
         }
 

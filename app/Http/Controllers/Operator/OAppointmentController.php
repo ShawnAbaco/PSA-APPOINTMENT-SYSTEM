@@ -16,66 +16,54 @@ use Illuminate\Support\Facades\Validator;
 
 class OAppointmentController extends Controller
 {
-    public function index(Request $request)
-    {
-        $query = Appointment::with('clients', 'timeSlot');
-        
-        // Apply filters
-        if ($request->filled('status')) {
-            $query->where('status', $request->status);
-        }
-        
-        if ($request->filled('date')) {
-            $query->whereDate('appointment_date', $request->date);
-        }
-        
-        if ($request->filled('search')) {
-            $search = $request->search;
-            $query->where(function($q) use ($search) {
-                $q->where('appointment_number', 'like', "%{$search}%")
-                  ->orWhere('contact_name', 'like', "%{$search}%")
-                  ->orWhere('contact_mobile', 'like', "%{$search}%");
-            });
-        }
-        
-        // Week filter
-        if ($request->filled('week_filter')) {
-            $today = Carbon::today();
-            switch ($request->week_filter) {
-                case 'today':
-                    $query->whereDate('appointment_date', $today);
-                    break;
-                case 'tomorrow':
-                    $query->whereDate('appointment_date', $today->copy()->addDay());
-                    break;
-                case 'this_week':
-                    $query->whereBetween('appointment_date', [$today->copy()->startOfWeek(), $today->copy()->endOfWeek()]);
-                    break;
-                case 'next_week':
-                    $query->whereBetween('appointment_date', [$today->copy()->addWeek()->startOfWeek(), $today->copy()->addWeek()->endOfWeek()]);
-                    break;
-                case 'this_month':
-                    $query->whereMonth('appointment_date', $today->month)
-                          ->whereYear('appointment_date', $today->year);
-                    break;
-            }
-        }
-        
-        $appointments = $query->orderBy('appointment_date', 'desc')
-            ->orderBy('time_slot_id', 'asc')
-            ->paginate($request->get('per_page', 15));
-        
-        if ($request->ajax()) {
-            return response()->json([
-                'html' => view('operator.appointments.partials.table', compact('appointments'))->render(),
-                'total' => $appointments->total(),
-                'current_page' => $appointments->currentPage(),
-                'last_page' => $appointments->lastPage(),
-            ]);
-        }
-        
-        return view('operator.appointments.index', compact('appointments'));
+   public function index(Request $request)
+{
+    $query = Appointment::with('clients', 'timeSlot')
+        ->where('status', 'confirmed');  // Add this line to filter only confirmed
+    
+    // Apply filters
+    if ($request->filled('date')) {
+        $query->whereDate('appointment_date', $request->date);
     }
+    
+    if ($request->filled('search')) {
+        $search = $request->search;
+        $query->where(function($q) use ($search) {
+            $q->where('appointment_number', 'like', "%{$search}%")
+              ->orWhere('contact_name', 'like', "%{$search}%")
+              ->orWhere('contact_mobile', 'like', "%{$search}%");
+        });
+    }
+    
+    // Week filter
+    if ($request->filled('week_filter')) {
+        $today = Carbon::today();
+        switch ($request->week_filter) {
+            case 'today':
+                $query->whereDate('appointment_date', $today);
+                break;
+            case 'tomorrow':
+                $query->whereDate('appointment_date', $today->copy()->addDay());
+                break;
+            case 'this_week':
+                $query->whereBetween('appointment_date', [$today->copy()->startOfWeek(), $today->copy()->endOfWeek()]);
+                break;
+            case 'next_week':
+                $query->whereBetween('appointment_date', [$today->copy()->addWeek()->startOfWeek(), $today->copy()->addWeek()->endOfWeek()]);
+                break;
+            case 'this_month':
+                $query->whereMonth('appointment_date', $today->month)
+                      ->whereYear('appointment_date', $today->year);
+                break;
+        }
+    }
+    
+    $appointments = $query->orderBy('appointment_date', 'desc')
+        ->orderBy('time_slot_id', 'asc')
+        ->paginate($request->get('per_page', 15));
+    
+    return view('operator.appointments.index', compact('appointments'));
+}
     
     public function create()
     {
