@@ -1,7 +1,6 @@
 /* Dashboard Container */
 .dashboard-container {
     margin: 0 auto;
-    padding: 28px 32px;
     min-height: 100vh;
 }
 
@@ -9,7 +8,7 @@
 .welcome-section {
     margin-bottom: 32px;
     padding: 28px 32px;
-    background: var(--primary-gradient);
+    background: var(--title);
     border-radius: 20px;
     display: flex;
     justify-content: space-between;
@@ -491,7 +490,7 @@
 
 @media (max-width: 480px) {
     .stats-grid {
-        grid-template-columns: 1fr;
+        grid-template-columns: 1fr 1fr;
     }
     
     .chart-body {

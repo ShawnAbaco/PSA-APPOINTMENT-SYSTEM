@@ -38,13 +38,12 @@
 .appt-container {
     max-width: 1600px;
     margin: 0 auto;
-    padding: 0;
     animation: apptFadeIn 0.5s ease;
 }
 
 /* Appointments Header */
 .appt-header {
-    background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 50%, var(--primary-dark) 100%);
+    background: var(--title);
     border-radius: var(--border-radius);
     padding: 28px 32px;
     margin-bottom: 28px;
@@ -548,8 +547,9 @@
 /* Responsive Design */
 @media (max-width: 992px) {
     .appt-filters-bar {
-        flex-direction: column;
+        flex-direction: row;
         align-items: stretch;
+        width: 502px;
     }
     
     .appt-filter-group {

@@ -13,416 +13,15 @@
         href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600;14..32,700;14..32,800&display=swap"
         rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        body {
-            font-family: 'Inter', sans-serif;
-            min-height: 100vh;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            position: relative;
-            overflow: hidden;
-            padding: 20px;
-        }
-
-        /* CANVAS BACKGROUND */
-        #canvas-bg {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            z-index: 0;
-            display: block;
-        }
-
-        .gradient-overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: radial-gradient(circle at 40% 50%, rgb(255 255 255 / 30%) 0%, rgb(0 0 0 / 20%) 100%);
-            z-index: 1;
-            pointer-events: none;
-        }
-
-        .vignette {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: radial-gradient(ellipse at center, transparent 50%, rgba(0, 0, 0, 0.25) 100%);
-            z-index: 1;
-            pointer-events: none;
-        }
-
-        /* REGISTER CARD */
-        .register-wrapper {
-            position: relative;
-            z-index: 20;
-            width: 100%;
-            max-width: 520px;
-            margin: 0 auto;
-            animation: fadeSlideUp 0.7s cubic-bezier(0.2, 0.9, 0.4, 1.1);
-        }
-
-        @keyframes fadeSlideUp {
-            0% {
-                opacity: 0;
-                transform: translateY(30px);
-            }
-
-            100% {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-
-        .register-card {
-            background: rgba(255, 255, 255, 0.97);
-            backdrop-filter: blur(12px);
-            border-radius: 48px;
-            padding: 38px 36px;
-            box-shadow: 0 35px 70px -20px rgba(0, 0, 0, 0.4), 0 0 0 1px rgba(206, 17, 38, 0.2);
-            transition: transform 0.35s ease, box-shadow 0.35s ease;
-        }
-
-        .register-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 45px 80px -20px rgba(0, 0, 0, 0.5);
-        }
-
-        .register-header {
-            text-align: center;
-            margin-bottom: 28px;
-        }
-
-        .logo-container {
-            display: flex;
-            justify-content: center;
-            margin-bottom: 16px;
-        }
-
-        .psa-logo-img {
-            width: 520px;
-            height: 100px;
-            background: linear-gradient(0deg, #615c5c, #ffffff00);
-            object-fit: contain;
-            filter: drop-shadow(0 8px 16px rgba(0, 0, 0, 0.15));
-            transition: transform 0.25s ease;
-        }
-
-        .brand-title {
-            font-size: 30px;
-            font-weight: 800;
-            background: linear-gradient(135deg, #0B1E4E, #CE1126);
-            background-clip: text;
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            margin-bottom: 8px;
-            letter-spacing: -0.5px;
-        }
-
-        .subtitle {
-            color: #5a6e8a;
-            font-size: 14px;
-            font-weight: 500;
-        }
-
-        /* Alert styles */
-        .alert-message {
-            background: #FEF2F2;
-            border-left: 5px solid #CE1126;
-            border-radius: 28px;
-            padding: 12px 18px;
-            margin-bottom: 24px;
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            font-size: 13px;
-            font-weight: 600;
-            color: #991B1B;
-            animation: gentleShake 0.4s ease;
-        }
-
-        .alert-success {
-            background: #E6F7EC;
-            border-left-color: #2E7D32;
-            color: #1B5E20;
-        }
-
-        @keyframes gentleShake {
-
-            0%,
-            100% {
-                transform: translateX(0);
-            }
-
-            30% {
-                transform: translateX(-4px);
-            }
-
-            60% {
-                transform: translateX(4px);
-            }
-        }
-
-        /* Form inputs */
-        .input-group {
-            position: relative;
-            margin-bottom: 24px;
-        }
-
-        .input-icon {
-            position: absolute;
-            left: 18px;
-            top: 50%;
-            transform: translateY(-50%);
-            color: #8A99B4;
-            font-size: 16px;
-            pointer-events: none;
-            z-index: 2;
-            transition: color 0.2s;
-        }
-
-        .form-control {
-            width: 100%;
-            padding: 15px 18px 15px 48px;
-            font-size: 14px;
-            font-weight: 500;
-            border: 2px solid #E9EDF2;
-            border-radius: 40px;
-            background: #FFFFFF;
-            transition: all 0.25s ease;
-            font-family: 'Inter', sans-serif;
-            color: #1E293B;
-        }
-
-        .form-control:focus {
-            outline: none;
-            border-color: #CE1126;
-            box-shadow: 0 0 0 4px rgba(206, 17, 38, 0.1);
-        }
-
-        .floating-label {
-            position: absolute;
-            left: 42px;
-            top: 50%;
-            transform: translateY(-50%);
-            background: transparent;
-            padding: 0 6px;
-            color: #8A99B4;
-            font-size: 14px;
-            font-weight: 500;
-            pointer-events: none;
-            transition: all 0.2s ease;
-            white-space: nowrap;
-        }
-
-        .form-control:focus+.floating-label,
-        .form-control:not(:placeholder-shown)+.floating-label {
-            transform: translateY(-30px) translateX(-10px) scale(0.82);
-            background: white;
-            color: #CE1126;
-            border-radius: 12px;
-            font-weight: 600;
-        }
-
-        .password-toggle {
-            position: absolute;
-            right: 18px;
-            top: 50%;
-            transform: translateY(-50%);
-            background: transparent;
-            border: none;
-            cursor: pointer;
-            color: #8A99B4;
-            font-size: 18px;
-            padding: 0;
-            z-index: 3;
-            transition: color 0.2s;
-        }
-
-        .password-toggle:hover {
-            color: #CE1126;
-        }
-
-        /* Staff badge */
-        .staff-badge {
-            background: linear-gradient(135deg, #CE1126, #A31F34);
-            color: white;
-            padding: 8px 20px;
-            border-radius: 40px;
-            display: inline-block;
-            font-size: 12px;
-            font-weight: 700;
-            margin-bottom: 20px;
-            letter-spacing: 1px;
-        }
-
-        .staff-badge i {
-            margin-right: 8px;
-        }
-
-        /* Required field indicator */
-        .required-field::after {
-            content: '*';
-            color: #CE1126;
-            margin-left: 4px;
-        }
-
-        .btn-register {
-            width: 100%;
-            background: linear-gradient(105deg, #CE1126, #A31F34);
-            border: none;
-            padding: 15px 22px;
-            border-radius: 50px;
-            color: white;
-            font-weight: 800;
-            font-size: 15px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 12px;
-            cursor: pointer;
-            transition: all 0.3s cubic-bezier(0.2, 0.9, 0.4, 1.1);
-            box-shadow: 0 12px 24px -14px rgba(206, 17, 38, 0.45);
-            margin-bottom: 24px;
-            letter-spacing: 0.8px;
-        }
-
-        .btn-register:hover {
-            transform: translateY(-3px);
-            background: linear-gradient(105deg, #E31B23, #CE1126);
-            box-shadow: 0 18px 30px -12px #CE1126;
-        }
-
-        .btn-register:active {
-            transform: translateY(1px);
-        }
-
-        .btn-register i {
-            transition: transform 0.2s;
-        }
-
-        .btn-register:hover i {
-            transform: translateX(5px);
-        }
-
-        .login-link {
-            text-align: center;
-            margin-top: 16px;
-            font-size: 13px;
-            font-weight: 600;
-        }
-
-        .login-link a {
-            color: #0038A8;
-            text-decoration: none;
-            font-weight: 800;
-            transition: color 0.2s;
-        }
-
-        .login-link a:hover {
-            color: #CE1126;
-            text-decoration: underline;
-        }
-
-        .info-note {
-            background: #F0F4FA;
-            border-radius: 24px;
-            padding: 12px 18px;
-            margin-top: 20px;
-            font-size: 11px;
-            color: #475569;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            border: 1px solid #E2E8F0;
-        }
-
-        .info-note i {
-            color: #CE1126;
-            font-size: 14px;
-        }
-
-        .footer-note {
-            text-align: center;
-            margin-top: 24px;
-            font-size: 11px;
-            color: #7C8BA0;
-            display: flex;
-            justify-content: center;
-            gap: 12px;
-        }
-
-        /* Password strength indicator */
-        .password-strength {
-            margin-top: 8px;
-            margin-left: 12px;
-            font-size: 11px;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-
-        .strength-bar {
-            width: 60px;
-            height: 4px;
-            background: #E2E8F0;
-            border-radius: 4px;
-            overflow: hidden;
-        }
-
-        .strength-fill {
-            height: 100%;
-            width: 0%;
-            transition: width 0.2s, background 0.2s;
-        }
-
-        @media (max-width: 550px) {
-            .register-card {
-                padding: 28px 22px;
-                border-radius: 36px;
-            }
-
-            .brand-title {
-                font-size: 26px;
-            }
-
-            .form-control {
-                padding: 14px 15px 14px 48px;
-                font-size: 14px;
-            }
-
-            .floating-label {
-                left: 46px;
-                font-size: 13px;
-            }
-
-            .btn-register {
-                padding: 13px 18px;
-                font-size: 14px;
-            }
-
-            .psa-logo-img {
-                width: 490px;
-                height: 100px;
-            }
-        }
-    </style>
+    <link rel="stylesheet" href="{{ asset('css/create.css') }}">
 </head>
 
 <body>
+    <!-- Canvas Background -->
     <canvas id="canvas-bg"></canvas>
+
+    <!-- PSA Overlay Animations -->
+    <div class="overlay"></div>
     <div class="gradient-overlay"></div>
     <div class="vignette"></div>
 
@@ -524,7 +123,10 @@
                 </button>
 
                 <div class="login-link">
-                    Already have an account? <a href="{{ route('login') }}">Sign in here</a>
+                    Already have an account?
+                    <a href="{{ route('login') }}" id="signInLink" style="cursor: pointer;">
+                        Sign in here
+                    </a>
                 </div>
             </form>
 
@@ -535,6 +137,13 @@
                 <span>•</span>
                 <span><i class="fas fa-shield-alt"></i> Encrypted</span>
             </div>
+        </div>
+    </div>
+
+    <!-- PSA LOADING MODAL -->
+    <div class="psa-loader-modal" id="psaLoaderModal">
+        <div class="psa-loader-container">
+            <img src="{{ asset('images/psa.png') }}" alt="PSA Loading" class="psa-loader-logo">
         </div>
     </div>
 
@@ -676,6 +285,19 @@
         animateBackground();
 
         // ============================================================
+        //  PSA LOADER CONTROLS
+        // ============================================================
+        function showPSALoader() {
+            const loader = document.getElementById('psaLoaderModal');
+            if (loader) loader.classList.add('show');
+        }
+
+        function hidePSALoader() {
+            const loader = document.getElementById('psaLoaderModal');
+            if (loader) loader.classList.remove('show');
+        }
+
+        // ============================================================
         //  UI INTERACTIONS
         // ============================================================
 
@@ -766,6 +388,34 @@
             checkPasswordStrength(passwordField.value);
         }
 
+        // Handle form submission - show loading state
+        const registerForm = document.getElementById('registerForm');
+        if (registerForm) {
+            registerForm.addEventListener('submit', function(e) {
+                showPSALoader();
+            });
+        }
+
+        const signInLink = document.getElementById('signInLink');
+        if (signInLink) {
+            signInLink.addEventListener('click', function(e) {
+                e.preventDefault();
+                showPSALoader();
+                // Navigate after a short delay to show loader
+                setTimeout(() => {
+                    window.location.href = this.getAttribute('href');
+                }, 300);
+            });
+        }
+
+        // Handle create account button click (if any other navigation)
+        const createAccountBtn = document.querySelector('.btn-create-account');
+        if (createAccountBtn) {
+            createAccountBtn.addEventListener('click', function(e) {
+                showPSALoader();
+            });
+        }
+
         // Floating label fix for autofilled fields
         document.querySelectorAll('.form-control').forEach(input => {
             if (input.value.trim() !== '') {
@@ -784,6 +434,16 @@
                 }, 500);
             });
         }, 6000);
+
+        // Hide loader when page fully loads
+        window.addEventListener('pageshow', function() {
+            hidePSALoader();
+        });
+
+        // Safety timeout to hide loader if something goes wrong
+        setTimeout(() => {
+            hidePSALoader();
+        }, 3000);
     </script>
 </body>
 

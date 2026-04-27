@@ -2,23 +2,29 @@
 @extends('layouts.operator')
 
 @section('content')
-    <div class="appointments-container">
-        <!-- Header Section with Soft Gradient -->
-        <div class="appointments-header">
+    <div class="appt-container">
+        <!-- Header Section -->
+        <div class="appt-welcome-section">
             <div>
-                <h1 class="page-title">Appointments</h1>
+                <h1 class="appt-title">Appointments</h1>
+                <p class="appt-subtitle">Manage and monitor all client appointments</p>
+            </div>
+            <div class="appt-date-display">
+                <i class="fas fa-calendar-alt"></i>
+                <span>{{ now()->format('l, F j, Y') }}</span>
             </div>
         </div>
 
         <!-- Filters Bar -->
-        <div class="filters-bar">
-            <div class="filter-group">
+        <div class="appt-filters-bar">
+            <div class="appt-filter-group">
                 <i class="fas fa-search"></i>
-                <input type="text" id="searchAppointment" placeholder="Search by number or client..." class="filter-input">
+                <input type="text" id="searchAppointment" placeholder="Search by number or client..."
+                    class="appt-filter-input">
             </div>
-            <div class="filter-group">
+            <div class="appt-filter-group">
                 <i class="fas fa-filter"></i>
-                <select id="statusFilter" class="filter-select">
+                <select id="statusFilter" class="appt-filter-select">
                     <option value="">All Status</option>
                     <option value="pending">Pending</option>
                     <option value="confirmed">Confirmed</option>
@@ -26,13 +32,13 @@
                     <option value="cancelled">Cancelled</option>
                 </select>
             </div>
-            <div class="filter-group">
+            <div class="appt-filter-group">
                 <i class="fas fa-calendar"></i>
-                <input type="date" id="dateFilter" class="filter-input">
+                <input type="date" id="dateFilter" class="appt-filter-input">
             </div>
-            <div class="filter-group">
+            <div class="appt-filter-group">
                 <i class="fas fa-calendar-week"></i>
-                <select id="weekFilter" class="filter-select">
+                <select id="weekFilter" class="appt-filter-select">
                     <option value="">All Time</option>
                     <option value="today">Today</option>
                     <option value="tomorrow">Tomorrow</option>
@@ -41,219 +47,219 @@
                     <option value="this_month">This Month</option>
                 </select>
             </div>
-            <button class="btn-reset" id="resetFilters">
+            <button class="appt-btn-reset" id="resetFilters">
                 <i class="fas fa-undo-alt"></i>
             </button>
         </div>
 
         <!-- Bulk Actions Bar -->
-        <div class="bulk-actions-bar" id="bulkActionsBar" style="display: none;">
-            <div class="bulk-actions-content">
-                <div class="bulk-buttons">
-                    <button class="btn-bulk" id="bulkConfirmBtn">
+        <div class="appt-bulk-actions-bar" id="bulkActionsBar" style="display: none;">
+            <div class="appt-bulk-actions-content">
+                <div class="appt-bulk-buttons">
+                    <button class="appt-btn-bulk" id="bulkConfirmBtn">
                         <i class="fas fa-check-circle"></i>Confirm
                     </button>
-                    <button class="btn-bulk" id="bulkCancelBtn">
+                    <button class="appt-btn-bulk" id="bulkCancelBtn">
                         <i class="fas fa-times-circle"></i>Cancel
                     </button>
-                    <button class="btn-bulk btn-bulk-danger" id="bulkDeleteBtn">
+                    <button class="appt-btn-bulk appt-btn-bulk-danger" id="bulkDeleteBtn">
                         <i class="fas fa-trash-alt"></i>Delete
                     </button>
                 </div>
-                <span class="bulk-count" id="bulkCount">0 items selected</span>
-
-                <span class="bulk-actions">
-                    <button class="btn-bulk" id="clearSelectionBtn">
-                        <i class="fas fa-times"></i>
-                    </button>
-                </span>
+                <span class="appt-bulk-count" id="bulkCount">0 items selected</span>
+                <button class="appt-btn-bulk" id="clearSelectionBtn">
+                    <i class="fas fa-times"></i>
+                </button>
             </div>
         </div>
 
         <!-- Appointments Table -->
-        <div class="table-container">
-            <div class="table-header">
-                <div class="table-title-section">
-                    <div class="select-all-wrapper">
-                        <input type="checkbox" id="selectAllCheckbox" class="select-all-checkbox">
-                        <label for="selectAllCheckbox" class="select-all-label">Select All</label>
+        <div class="appt-card">
+            <div class="appt-card-header">
+                <div class="appt-table-title-section">
+                    <div class="appt-select-all-wrapper">
+                        <input type="checkbox" id="selectAllCheckbox" class="appt-select-all-checkbox">
+                        <label for="selectAllCheckbox" class="appt-select-all-label">Select All</label>
                     </div>
-                    <h3>All Appointments</h3>
-                    <span class="record-count" id="recordCount">{{ $appointments->total() }} records</span>
+                    <h5 class="appt-card-title"><i class="fas fa-calendar-alt"></i> All Appointments</h5>
+                    <span class="appt-record-count" id="recordCount">{{ $appointments->total() }} records</span>
                 </div>
-                <div class="table-actions">
-                    <button class="btn-icon" id="exportBtn" title="Export to CSV">
+                <div class="appt-table-actions">
+                    <button class="appt-btn-icon" id="exportBtn" title="Export to CSV">
                         <i class="fas fa-download"></i>
                     </button>
-                    <button class="btn-icon" id="printBtn" title="Print">
+                    <button class="appt-btn-icon" id="printBtn" title="Print">
                         <i class="fas fa-print"></i>
                     </button>
-                    <button class="btn-icon" id="refreshBtn" title="Refresh">
+                    <button class="appt-btn-icon" id="refreshBtn" title="Refresh">
                         <i class="fas fa-sync-alt"></i>
                     </button>
                 </div>
             </div>
 
-            <div class="table-responsive">
-                <table class="modern-table">
-                    <thead>
-                        <tr>
-                            <th style="width: 40px;">
-                                <input type="checkbox" id="selectAllCheckboxHeader" class="select-all-checkbox">
-                            </th>
-                            <th>Appointment #</th>
-                            <th>Date & Time</th>
-                            <th>Contact Person</th>
-                            <th>Clients</th>
-                            <th>Status</th>
-                            <th>Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody id="appointmentsTableBody">
-                        @forelse($appointments as $appointment)
-                            <tr class="table-row" data-status="{{ $appointment->status }}"
-                                data-date="{{ $appointment->appointment_date }}" data-id="{{ $appointment->id }}">
-                                <td>
-                                    <input type="checkbox" class="appointment-checkbox" value="{{ $appointment->id }}">
-                                </td>
-                                <td class="appointment-number">
-                                    <span class="number-badge">{{ $appointment->appointment_number }}</span>
-                                </td>
-                                <td>
-                                    <div class="date-time">
-                                        <span
-                                            class="date">{{ date('M d, Y', strtotime($appointment->appointment_date)) }}</span>
-                                        <span
-                                            class="time">{{ date('h:i A', strtotime($appointment->appointment_time ?? '09:00')) }}</span>
-                                    </div>
-                                </td>
-                                <td>
-                                    <div class="contact-info">
-                                        <div class="contact-name">{{ $appointment->contact_name }}</div>
-                                        <div class="contact-phone">{{ $appointment->contact_phone ?? '—' }}</div>
-                                    </div>
-                                </td>
-                                <td>
-                                    <div class="client-count">
-                                        <i class="fas fa-user-friends"></i>
-                                        <span>{{ $appointment->clients->count() }} person(s)</span>
-                                    </div>
-                                </td>
-                                <td>
-                                    <span class="status {{ $appointment->status }}">
-                                        <i
-                                            class="fas {{ $appointment->status == 'confirmed' ? 'fa-check-circle' : ($appointment->status == 'pending' ? 'fa-clock' : ($appointment->status == 'completed' ? 'fa-check-double' : 'fa-times-circle')) }}"></i>
-                                        {{ ucfirst($appointment->status) }}
-                                    </span>
-                                </td>
-                                <td>
-                                    <div class="action-buttons">
-                                        <button class="btn-action view" onclick="openViewModal({{ $appointment->id }})"
-                                            title="View Details">
-                                            <i class="fas fa-eye"></i>
-                                        </button>
-                                        <div class="dropdown">
-                                            <button class="btn-action dropdown-toggle" onclick="toggleDropdown(this)">
-                                                <i class="fas fa-ellipsis-v"></i>
+            <div class="appt-card-body">
+                <div class="appt-table-responsive">
+                    <table class="appt-table">
+                        <thead>
+                            <tr>
+                                <th style="width: 40px;">
+                                    <input type="checkbox" id="selectAllCheckboxHeader" class="appt-select-all-checkbox">
+                                </th>
+                                <th>Appointment #</th>
+                                <th>Date & Time</th>
+                                <th>Contact Person</th>
+                                <th>Clients</th>
+                                <th>Status</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="appointmentsTableBody">
+                            @forelse($appointments as $appointment)
+                                <tr class="appt-table-row" data-status="{{ $appointment->status }}"
+                                    data-date="{{ $appointment->appointment_date }}" data-id="{{ $appointment->id }}">
+                                    <td>
+                                        <input type="checkbox" class="appt-checkbox" value="{{ $appointment->id }}">
+                                    </td>
+                                    <td class="appt-appointment-number">
+                                        <span class="appt-number-badge">{{ $appointment->appointment_number }}</span>
+                                    </td>
+                                    <td>
+                                        <div class="appt-date-time">
+                                            <span
+                                                class="appt-date">{{ date('M d, Y', strtotime($appointment->appointment_date)) }}</span>
+                                            <span
+                                                class="appt-time">{{ date('h:i A', strtotime($appointment->appointment_time ?? '09:00')) }}</span>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <div class="appt-contact-info">
+                                            <div class="appt-contact-name">{{ $appointment->contact_name }}</div>
+                                            <div class="appt-contact-phone">{{ $appointment->contact_phone ?? '—' }}</div>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <div class="appt-client-count">
+                                            <i class="fas fa-user-friends"></i>
+                                            <span>{{ $appointment->clients->count() }} person(s)</span>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <span class="appt-status {{ $appointment->status }}">
+                                            <i
+                                                class="fas {{ $appointment->status == 'confirmed' ? 'fa-check-circle' : ($appointment->status == 'pending' ? 'fa-clock' : ($appointment->status == 'completed' ? 'fa-check-double' : 'fa-times-circle')) }}"></i>
+                                            {{ ucfirst($appointment->status) }}
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <div class="appt-action-buttons">
+                                            <button class="appt-btn-action appt-btn-view"
+                                                onclick="openViewModal({{ $appointment->id }})" title="View Details">
+                                                <i class="fas fa-eye"></i>
                                             </button>
-                                            <div class="dropdown-menu">
-                                                <button class="dropdown-item edit"
-                                                    onclick="openEditModal({{ $appointment->id }})">
-                                                    <i class="fas fa-edit"></i> Edit
+                                            <div class="appt-dropdown">
+                                                <button class="appt-btn-action appt-dropdown-toggle"
+                                                    onclick="toggleDropdown(this)">
+                                                    <i class="fas fa-ellipsis-v"></i>
                                                 </button>
-                                                @if (in_array($appointment->status, ['pending', 'confirmed']))
-                                                    <button class="dropdown-item cancel"
-                                                        onclick="openCancelModal({{ $appointment->id }})">
-                                                        <i class="fas fa-times-circle"></i> Cancel
+                                                <div class="appt-dropdown-menu">
+                                                    <button class="appt-dropdown-item appt-dropdown-edit"
+                                                        onclick="openEditModal({{ $appointment->id }})">
+                                                        <i class="fas fa-edit"></i> Edit
                                                     </button>
-                                                @endif
-                                                <button class="dropdown-item delete"
-                                                    onclick="openDeleteModal({{ $appointment->id }})">
-                                                    <i class="fas fa-trash-alt"></i> Delete
-                                                </button>
+                                                    @if (in_array($appointment->status, ['pending', 'confirmed']))
+                                                        <button class="appt-dropdown-item appt-dropdown-cancel"
+                                                            onclick="openCancelModal({{ $appointment->id }})">
+                                                            <i class="fas fa-times-circle"></i> Cancel
+                                                        </button>
+                                                    @endif
+                                                    <button class="appt-dropdown-item appt-dropdown-delete"
+                                                        onclick="openDeleteModal({{ $appointment->id }})">
+                                                        <i class="fas fa-trash-alt"></i> Delete
+                                                    </button>
+                                                </div>
                                             </div>
                                         </div>
-                                    </div>
-                                </td>
-                            </tr>
-                        @empty
-                            <tr>
-                                <td colspan="7" class="empty-state">
-                                    <i class="fas fa-calendar-times"></i>
-                                    <h4>No appointments found</h4>
-                                    <p>No appointments match your current filters</p>
-                                </td>
-                            </tr>
-                        @endforelse
-                    </tbody>
-                </table>
-            </div>
-
-            <div class="pagination-wrapper">
-                <div class="pagination-info">
-                    Showing {{ $appointments->firstItem() ?? 0 }} to {{ $appointments->lastItem() ?? 0 }} of
-                    {{ $appointments->total() }} appointments
+                                    </td>
+                                </tr>
+                            @empty
+                                <tr>
+                                    <td colspan="7" class="appt-empty-state">
+                                        <i class="fas fa-calendar-times"></i>
+                                        <h4>No appointments found</h4>
+                                        <p>No appointments match your current filters</p>
+                                    </td>
+                                </tr>
+                            @endforelse
+                        </tbody>
+                    </table>
                 </div>
-                <div class="simple-pagination">
-                    @if ($appointments->onFirstPage())
-                        <button class="pagination-btn disabled" disabled>
-                            <i class="fas fa-chevron-left"></i> Previous
-                        </button>
-                    @else
-                        <a href="{{ $appointments->previousPageUrl() }}" class="pagination-btn">
-                            <i class="fas fa-chevron-left"></i> Previous
-                        </a>
-                    @endif
 
-                    <span class="pagination-current">
-                        Page {{ $appointments->currentPage() }} of {{ $appointments->lastPage() }}
-                    </span>
+                <div class="appt-pagination-wrapper">
+                    <div class="appt-pagination-info">
+                        Showing {{ $appointments->firstItem() ?? 0 }} to {{ $appointments->lastItem() ?? 0 }} of
+                        {{ $appointments->total() }} appointments
+                    </div>
+                    <div class="appt-simple-pagination">
+                        @if ($appointments->onFirstPage())
+                            <button class="appt-pagination-btn appt-pagination-disabled" disabled>
+                                <i class="fas fa-chevron-left"></i> Previous
+                            </button>
+                        @else
+                            <a href="{{ $appointments->previousPageUrl() }}" class="appt-pagination-btn">
+                                <i class="fas fa-chevron-left"></i> Previous
+                            </a>
+                        @endif
 
-                    @if ($appointments->hasMorePages())
-                        <a href="{{ $appointments->nextPageUrl() }}" class="pagination-btn">
-                            Next <i class="fas fa-chevron-right"></i>
-                        </a>
-                    @else
-                        <button class="pagination-btn disabled" disabled>
-                            Next <i class="fas fa-chevron-right"></i>
-                        </button>
-                    @endif
+                        <span class="appt-pagination-current">
+                            Page {{ $appointments->currentPage() }} of {{ $appointments->lastPage() }}
+                        </span>
+
+                        @if ($appointments->hasMorePages())
+                            <a href="{{ $appointments->nextPageUrl() }}" class="appt-pagination-btn">
+                                Next <i class="fas fa-chevron-right"></i>
+                            </a>
+                        @else
+                            <button class="appt-pagination-btn appt-pagination-disabled" disabled>
+                                Next <i class="fas fa-chevron-right"></i>
+                            </button>
+                        @endif
+                    </div>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- Quick Add Appointment Modal -->
-    <div id="quickAddModal" class="modal">
-        <div class="modal-overlay" onclick="closeModal('quickAddModal')"></div>
-        <div class="modal-container modal-md">
-            <div class="modal-header">
+    <!-- Quick Add Modal -->
+    <div id="quickAddModal" class="appt-modal">
+        <div class="appt-modal-overlay" onclick="closeModal('quickAddModal')"></div>
+        <div class="appt-modal-container appt-modal-md">
+            <div class="appt-modal-header">
                 <h3>Quick Add Appointment</h3>
-                <button class="modal-close" onclick="closeModal('quickAddModal')">&times;</button>
+                <button class="appt-modal-close" onclick="closeModal('quickAddModal')">&times;</button>
             </div>
-            <div class="modal-body">
+            <div class="appt-modal-body">
                 <form id="quickAddForm">
                     @csrf
-                    <div class="form-group">
+                    <div class="appt-form-group">
                         <label>Contact Name *</label>
-                        <input type="text" name="contact_name" class="form-control" required>
+                        <input type="text" name="contact_name" class="appt-form-control" required>
                     </div>
-                    <div class="form-group">
+                    <div class="appt-form-group">
                         <label>Contact Mobile *</label>
-                        <input type="text" name="contact_mobile" class="form-control" required>
+                        <input type="text" name="contact_mobile" class="appt-form-control" required>
                     </div>
-                    <div class="form-group">
+                    <div class="appt-form-group">
                         <label>Appointment Date *</label>
-                        <input type="date" name="appointment_date" class="form-control" required>
+                        <input type="date" name="appointment_date" class="appt-form-control" required>
                     </div>
-                    <div class="form-group">
+                    <div class="appt-form-group">
                         <label>Appointment Time</label>
-                        <input type="time" name="appointment_time" class="form-control">
+                        <input type="time" name="appointment_time" class="appt-form-control">
                     </div>
-                    <div class="modal-actions">
-                        <button type="button" class="btn-secondary"
+                    <div class="appt-modal-actions">
+                        <button type="button" class="appt-btn-secondary"
                             onclick="closeModal('quickAddModal')">Cancel</button>
-                        <button type="submit" class="btn-primary">Create Appointment</button>
+                        <button type="submit" class="appt-btn-primary">Create Appointment</button>
                     </div>
                 </form>
             </div>
@@ -261,75 +267,76 @@
     </div>
 
     <!-- View Modal -->
-    <div id="viewModal" class="modal">
-        <div class="modal-overlay" onclick="closeModal('viewModal')"></div>
-        <div class="modal-container modal-lg">
-            <div class="modal-header">
+    <div id="viewModal" class="appt-modal">
+        <div class="appt-modal-overlay" onclick="closeModal('viewModal')"></div>
+        <div class="appt-modal-container appt-modal-lg">
+            <div class="appt-modal-header">
                 <h3>Appointment Details</h3>
-                <button class="modal-close" onclick="closeModal('viewModal')">&times;</button>
+                <button class="appt-modal-close" onclick="closeModal('viewModal')">&times;</button>
             </div>
-            <div class="modal-body" id="viewModalBody">
-                <div class="loading-spinner">Loading...</div>
+            <div class="appt-modal-body" id="viewModalBody">
+                <div class="appt-loading-spinner">Loading...</div>
             </div>
         </div>
     </div>
 
     <!-- Edit Modal -->
-    <div id="editModal" class="modal">
-        <div class="modal-overlay" onclick="closeModal('editModal')"></div>
-        <div class="modal-container modal-md">
-            <div class="modal-header">
+    <div id="editModal" class="appt-modal">
+        <div class="appt-modal-overlay" onclick="closeModal('editModal')"></div>
+        <div class="appt-modal-container appt-modal-md">
+            <div class="appt-modal-header">
                 <h3>Edit Appointment</h3>
-                <button class="modal-close" onclick="closeModal('editModal')">&times;</button>
+                <button class="appt-modal-close" onclick="closeModal('editModal')">&times;</button>
             </div>
-            <div class="modal-body" id="editModalBody">
-                <div class="loading-spinner">Loading...</div>
+            <div class="appt-modal-body" id="editModalBody">
+                <div class="appt-loading-spinner">Loading...</div>
             </div>
         </div>
     </div>
 
     <!-- Cancel Modal -->
-    <div id="cancelModal" class="modal">
-        <div class="modal-overlay" onclick="closeModal('cancelModal')"></div>
-        <div class="modal-container modal-sm">
-            <div class="modal-header">
+    <div id="cancelModal" class="appt-modal">
+        <div class="appt-modal-overlay" onclick="closeModal('cancelModal')"></div>
+        <div class="appt-modal-container appt-modal-sm">
+            <div class="appt-modal-header appt-modal-header-warning">
                 <h3>Cancel Appointment</h3>
-                <button class="modal-close" onclick="closeModal('cancelModal')">&times;</button>
+                <button class="appt-modal-close" onclick="closeModal('cancelModal')">&times;</button>
             </div>
-            <div class="modal-body">
+            <div class="appt-modal-body">
                 <p>Are you sure you want to cancel this appointment?</p>
-                <p class="text-muted">This action cannot be undone.</p>
+                <p class="appt-text-muted">This action cannot be undone.</p>
                 <input type="hidden" id="cancelAppointmentId">
-                <div class="modal-actions">
-                    <button class="btn-danger" onclick="confirmCancel()">Yes, Cancel</button>
+                <div class="appt-modal-actions">
+                    <button class="appt-btn-secondary" onclick="closeModal('cancelModal')">No, Go Back</button>
+                    <button class="appt-btn-danger" onclick="confirmCancel()">Yes, Cancel</button>
                 </div>
             </div>
         </div>
     </div>
 
     <!-- Delete Modal -->
-    <div id="deleteModal" class="modal">
-        <div class="modal-overlay" onclick="closeModal('deleteModal')"></div>
-        <div class="modal-container modal-sm">
-            <div class="modal-header">
+    <div id="deleteModal" class="appt-modal">
+        <div class="appt-modal-overlay" onclick="closeModal('deleteModal')"></div>
+        <div class="appt-modal-container appt-modal-sm">
+            <div class="appt-modal-header appt-modal-header-danger">
                 <h3>Delete Appointment</h3>
-                <button class="modal-close" onclick="closeModal('deleteModal')">&times;</button>
+                <button class="appt-modal-close" onclick="closeModal('deleteModal')">&times;</button>
             </div>
-            <div class="modal-body">
+            <div class="appt-modal-body">
                 <p>Are you sure you want to delete this appointment?</p>
-                <p class="text-muted">This action is permanent and cannot be undone.</p>
+                <p class="appt-text-muted">This action is permanent and cannot be undone.</p>
                 <input type="hidden" id="deleteAppointmentId">
-                <div class="modal-actions">
-                    <button class="btn-secondary" onclick="closeModal('deleteModal')">Cancel</button>
-                    <button class="btn-danger" onclick="confirmDelete()">Delete Permanently</button>
+                <div class="appt-modal-actions">
+                    <button class="appt-btn-secondary" onclick="closeModal('deleteModal')">Cancel</button>
+                    <button class="appt-btn-danger" onclick="confirmDelete()">Delete Permanently</button>
                 </div>
             </div>
         </div>
     </div>
 
     <!-- Notification Toast -->
-    <div id="notificationToast" class="notification-toast" style="display: none;">
-        <div class="toast-content">
+    <div id="notificationToast" class="appt-notification-toast" style="display: none;">
+        <div class="appt-toast-content">
             <i class="fas fa-check-circle"></i>
             <span id="toastMessage">Action completed successfully!</span>
         </div>
@@ -340,7 +347,7 @@
         const csrfToken = '{{ csrf_token() }}';
         let selectedAppointments = new Set();
 
-        // Filter functionality with pagination support
+        // Filter functionality
         let filterTimeout;
 
         function filterTable() {
@@ -351,13 +358,14 @@
                 const dateFilter = document.getElementById('dateFilter')?.value || '';
                 const weekFilter = document.getElementById('weekFilter')?.value || '';
 
-                const rows = document.querySelectorAll('.table-row');
+                const rows = document.querySelectorAll('.appt-table-row');
                 let visibleCount = 0;
 
                 rows.forEach(row => {
-                    const appointmentNumber = row.querySelector('.number-badge')?.textContent
+                    const appointmentNumber = row.querySelector('.appt-number-badge')?.textContent
                         .toLowerCase() || '';
-                    const contactName = row.querySelector('.contact-name')?.textContent.toLowerCase() || '';
+                    const contactName = row.querySelector('.appt-contact-name')?.textContent
+                    .toLowerCase() || '';
                     const rowStatus = row.getAttribute('data-status') || '';
                     const rowDate = row.getAttribute('data-date') || '';
 
@@ -406,7 +414,6 @@
                     if (shouldShow) visibleCount++;
                 });
 
-                // Update record count
                 const recordCountSpan = document.getElementById('recordCount');
                 if (recordCountSpan) {
                     recordCountSpan.textContent = visibleCount + ' record' + (visibleCount !== 1 ? 's' : '');
@@ -430,9 +437,8 @@
                 bulkBar.style.display = 'none';
             }
 
-            // Update select all checkbox
-            const checkboxes = document.querySelectorAll('.appointment-checkbox');
-            const visibleCheckboxes = Array.from(checkboxes).filter(cb => cb.closest('.table-row').style.display !==
+            const checkboxes = document.querySelectorAll('.appt-checkbox');
+            const visibleCheckboxes = Array.from(checkboxes).filter(cb => cb.closest('.appt-table-row').style.display !==
                 'none');
             const selectAllCheckboxes = document.querySelectorAll('#selectAllCheckbox, #selectAllCheckboxHeader');
 
@@ -460,8 +466,8 @@
         }
 
         function selectAllAppointments() {
-            const checkboxes = document.querySelectorAll('.appointment-checkbox');
-            const visibleCheckboxes = Array.from(checkboxes).filter(cb => cb.closest('.table-row').style.display !==
+            const checkboxes = document.querySelectorAll('.appt-checkbox');
+            const visibleCheckboxes = Array.from(checkboxes).filter(cb => cb.closest('.appt-table-row').style.display !==
                 'none');
             const allSelected = visibleCheckboxes.length === selectedAppointments.size;
 
@@ -522,7 +528,7 @@
         async function bulkDelete() {
             if (selectedAppointments.size === 0) return;
             if (confirm(
-                    `⚠️ WARNING: Delete ${selectedAppointments.size} appointment(s)? This action cannot be undone!`)) {
+                `⚠️ WARNING: Delete ${selectedAppointments.size} appointment(s)? This action cannot be undone!`)) {
                 showNotification(`Deleting ${selectedAppointments.size} appointment(s)...`);
                 const promises = Array.from(selectedAppointments).map(id =>
                     fetch(`/operator/appointments/${id}`, {
@@ -541,20 +547,20 @@
 
         // Export to CSV
         function exportToCSV() {
-            const rows = document.querySelectorAll('.table-row');
+            const rows = document.querySelectorAll('.appt-table-row');
             const csvData = [
                 ['Appointment #', 'Date', 'Time', 'Contact Name', 'Contact Phone', 'Status', 'Clients']
             ];
 
             rows.forEach(row => {
                 if (row.style.display !== 'none') {
-                    const appointmentNumber = row.querySelector('.number-badge')?.textContent || '';
-                    const date = row.querySelector('.date')?.textContent || '';
-                    const time = row.querySelector('.time')?.textContent || '';
-                    const contactName = row.querySelector('.contact-name')?.textContent || '';
-                    const contactPhone = row.querySelector('.contact-phone')?.textContent || '';
-                    const status = row.querySelector('.status')?.textContent.trim() || '';
-                    const clients = row.querySelector('.client-count span')?.textContent || '';
+                    const appointmentNumber = row.querySelector('.appt-number-badge')?.textContent || '';
+                    const date = row.querySelector('.appt-date')?.textContent || '';
+                    const time = row.querySelector('.appt-time')?.textContent || '';
+                    const contactName = row.querySelector('.appt-contact-name')?.textContent || '';
+                    const contactPhone = row.querySelector('.appt-contact-phone')?.textContent || '';
+                    const status = row.querySelector('.appt-status')?.textContent.trim() || '';
+                    const clients = row.querySelector('.appt-client-count span')?.textContent || '';
 
                     csvData.push([appointmentNumber, date, time, contactName, contactPhone, status, clients]);
                 }
@@ -576,24 +582,24 @@
         // Print functionality
         function printTable() {
             const printWindow = window.open('', '_blank');
-            const tableContent = document.querySelector('.table-responsive').cloneNode(true);
+            const tableContent = document.querySelector('.appt-table-responsive').cloneNode(true);
             printWindow.document.write(`
-                <html>
-                <head><title>Appointments Report</title>
-                <style>
-                    body { font-family: Arial, sans-serif; padding: 20px; }
-                    table { width: 100%; border-collapse: collapse; }
-                    th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
-                    th { background: #f5f5f5; }
-                </style>
-                </head>
-                <body>
-                    <h2>Appointments Report</h2>
-                    <p>Generated: ${new Date().toLocaleString()}</p>
-                    ${tableContent.outerHTML}
-                </body>
-                </html>
-            `);
+            <html>
+            <head><title>Appointments Report</title>
+            <style>
+                body { font-family: Arial, sans-serif; padding: 20px; }
+                table { width: 100%; border-collapse: collapse; }
+                th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+                th { background: #f5f5f5; }
+            </style>
+            </head>
+            <body>
+                <h2>Appointments Report</h2>
+                <p>Generated: ${new Date().toLocaleString()}</p>
+                ${tableContent.outerHTML}
+            </body>
+            </html>
+        `);
             printWindow.document.close();
             printWindow.print();
             showNotification('Print preview opened!');
@@ -617,14 +623,6 @@
                 }, 300);
             }, 3000);
         }
-
-        // Per page selector
-        document.getElementById('perPageSelector')?.addEventListener('change', function() {
-            const url = new URL(window.location.href);
-            url.searchParams.set('per_page', this.value);
-            url.searchParams.delete('page');
-            window.location.href = url.toString();
-        });
 
         // Quick add form
         document.getElementById('quickAddForm')?.addEventListener('submit', async function(e) {
@@ -673,7 +671,7 @@
         document.getElementById('bulkDeleteBtn')?.addEventListener('click', () => bulkDelete());
         document.getElementById('clearSelectionBtn')?.addEventListener('click', () => {
             selectedAppointments.clear();
-            document.querySelectorAll('.appointment-checkbox').forEach(cb => cb.checked = false);
+            document.querySelectorAll('.appt-checkbox').forEach(cb => cb.checked = false);
             updateBulkActionsBar();
         });
 
@@ -682,7 +680,7 @@
         });
 
         // Initialize checkboxes
-        document.querySelectorAll('.appointment-checkbox').forEach(checkbox => {
+        document.querySelectorAll('.appt-checkbox').forEach(checkbox => {
             checkbox.addEventListener('change', function() {
                 toggleAppointmentSelection(this, this.value);
             });
@@ -691,11 +689,11 @@
         // Dropdown functionality
         function toggleDropdown(btn) {
             event.stopPropagation();
-            const dropdown = btn.closest('.dropdown');
-            const menu = dropdown.querySelector('.dropdown-menu');
+            const dropdown = btn.closest('.appt-dropdown');
+            const menu = dropdown.querySelector('.appt-dropdown-menu');
 
-            document.querySelectorAll('.dropdown-menu.show').forEach(menu => {
-                if (menu !== dropdown.querySelector('.dropdown-menu')) {
+            document.querySelectorAll('.appt-dropdown-menu.show').forEach(menu => {
+                if (menu !== dropdown.querySelector('.appt-dropdown-menu')) {
                     menu.classList.remove('show');
                 }
             });
@@ -704,7 +702,7 @@
         }
 
         document.addEventListener('click', function() {
-            document.querySelectorAll('.dropdown-menu.show').forEach(menu => {
+            document.querySelectorAll('.appt-dropdown-menu.show').forEach(menu => {
                 menu.classList.remove('show');
             });
         });
@@ -724,7 +722,7 @@
         async function openViewModal(id) {
             openModal('viewModal');
             const modalBody = document.getElementById('viewModalBody');
-            modalBody.innerHTML = '<div class="loading-spinner">Loading appointment details...</div>';
+            modalBody.innerHTML = '<div class="appt-loading-spinner">Loading appointment details...</div>';
 
             try {
                 const response = await fetch(`/operator/appointments/${id}`);
@@ -732,10 +730,10 @@
                 const parser = new DOMParser();
                 const doc = parser.parseFromString(html, 'text/html');
                 const content = doc.querySelector('.container-fluid') || doc.body;
-                modalBody.innerHTML = `<div class="appointment-details-view">${content.innerHTML}</div>`;
+                modalBody.innerHTML = `<div class="appt-appointment-details-view">${content.innerHTML}</div>`;
             } catch (error) {
                 modalBody.innerHTML =
-                    '<div class="error-message">Failed to load appointment details. Please try again.</div>';
+                    '<div class="appt-error-message">Failed to load appointment details. Please try again.</div>';
             }
         }
 
@@ -743,7 +741,7 @@
         async function openEditModal(id) {
             openModal('editModal');
             const modalBody = document.getElementById('editModalBody');
-            modalBody.innerHTML = '<div class="loading-spinner">Loading edit form...</div>';
+            modalBody.innerHTML = '<div class="appt-loading-spinner">Loading edit form...</div>';
 
             try {
                 const response = await fetch(`/operator/appointments/${id}/edit`);
@@ -752,16 +750,17 @@
                 const doc = parser.parseFromString(html, 'text/html');
                 const formContent = doc.querySelector('.container-fluid') || doc.body;
                 modalBody.innerHTML = `
-                    <div class="appointment-edit-form">
-                        ${formContent.innerHTML}
-                        <div class="modal-actions">
-                            <button class="btn-secondary" onclick="closeModal('editModal')">Cancel</button>
-                            <button class="btn-primary" onclick="saveEdit(${id})">Save Changes</button>
-                        </div>
+                <div class="appt-appointment-edit-form">
+                    ${formContent.innerHTML}
+                    <div class="appt-modal-actions">
+                        <button class="appt-btn-secondary" onclick="closeModal('editModal')">Cancel</button>
+                        <button class="appt-btn-primary" onclick="saveEdit(${id})">Save Changes</button>
                     </div>
-                `;
+                </div>
+            `;
             } catch (error) {
-                modalBody.innerHTML = '<div class="error-message">Failed to load edit form. Please try again.</div>';
+                modalBody.innerHTML =
+                    '<div class="appt-error-message">Failed to load edit form. Please try again.</div>';
             }
         }
 
@@ -857,14 +856,13 @@
         // Close modal on escape key
         document.addEventListener('keydown', function(e) {
             if (e.key === 'Escape') {
-                document.querySelectorAll('.modal.active').forEach(modal => {
+                document.querySelectorAll('.appt-modal.active').forEach(modal => {
                     modal.classList.remove('active');
                 });
                 document.body.style.overflow = '';
             }
         });
 
-        // Initialize stats on load
-        updateStats();
+        function updateStats() {}
     </script>
 @endsection

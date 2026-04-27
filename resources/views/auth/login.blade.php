@@ -17,8 +17,11 @@
 
 <body>
 
-    <!-- MODERN CANVAS BACKGROUND -->
+    <!-- Canvas Background -->
     <canvas id="canvas-bg"></canvas>
+
+    <!-- PSA Overlay Animation (Your requested overlay) -->
+    <div class="overlay"></div>
     <div class="gradient-overlay"></div>
     <div class="vignette"></div>
 
@@ -93,7 +96,7 @@
                 </button>
             </form>
 
-            <!-- CREATE ACCOUNT BUTTON - NEW SECTION -->
+            <!-- CREATE ACCOUNT BUTTON -->
             <div class="create-account-section">
                 <div class="divider">
                     <span>Don't have an account?</span>
@@ -103,24 +106,6 @@
                     <span>CREATE NEW ACCOUNT</span>
                 </a>
             </div>
-
-            {{-- <!-- Demo Credentials -->
-            <div class="demo-card">
-                <div class="demo-title">
-                    <i class="fas fa-flask"></i> DEMO ACCESS
-                </div>
-                <div class="demo-row">
-                    <span class="demo-role"><i class="fas fa-user-shield"></i> Administrator</span>
-                    <span class="demo-creds">admin / admin123</span>
-                </div>
-                <div class="demo-row">
-                    <span class="demo-role"><i class="fas fa-user-tie"></i> Staff Officer</span>
-                    <span class="demo-creds">juan.delacruz / staff123</span>
-                </div>
-                <div class="demo-note">
-                    <i class="fas fa-info-circle"></i> Use demo credentials to explore the appointment system.
-                </div>
-            </div> --}}
 
             <div class="footer-note">
                 <span>© 2025 PSA Appointment System</span>
@@ -132,91 +117,11 @@
         </div>
     </div>
 
-    <style>
-        /* Additional styles for create account button */
-        .create-account-section {
-            margin: 24px 0 20px 0;
-        }
-
-        .divider {
-            position: relative;
-            text-align: center;
-            margin-bottom: 20px;
-        }
-
-        .divider span {
-            background: rgba(255, 255, 255, 0.97);
-            padding: 0 15px;
-            font-size: 13px;
-            font-weight: 600;
-            color: #5a6e8a;
-            position: relative;
-            z-index: 1;
-        }
-
-        .divider::before {
-            content: '';
-            position: absolute;
-            top: 50%;
-            left: 0;
-            right: 0;
-            height: 1px;
-            background: linear-gradient(90deg, transparent, #E9EDF2, transparent);
-            z-index: 0;
-        }
-
-        .btn-create-account {
-            width: 100%;
-            background: transparent;
-            border: 2px solid #CE1126;
-            padding: 14px 22px;
-            border-radius: 50px;
-            color: #CE1126;
-            font-weight: 800;
-            font-size: 14px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 12px;
-            cursor: pointer;
-            transition: all 0.3s cubic-bezier(0.2, 0.9, 0.4, 1.1);
-            text-decoration: none;
-            letter-spacing: 0.8px;
-        }
-
-        .btn-create-account:hover {
-            background: linear-gradient(105deg, #CE1126, #A31F34);
-            color: white;
-            transform: translateY(-2px);
-            box-shadow: 0 8px 20px -10px rgba(206, 17, 38, 0.4);
-            border-color: transparent;
-            text-decoration: none;
-        }
-
-        .btn-create-account:active {
-            transform: translateY(1px);
-        }
-
-        .btn-create-account i {
-            font-size: 16px;
-            transition: transform 0.2s;
-        }
-
-        .btn-create-account:hover i {
-            transform: scale(1.1);
-        }
-
-        @media (max-width: 550px) {
-            .btn-create-account {
-                padding: 12px 18px;
-                font-size: 13px;
-            }
-
-            .divider span {
-                font-size: 12px;
-            }
-        }
-    </style>
+    <div class="psa-loader-modal" id="psaLoaderModal">
+        <div class="psa-loader-container">
+            <img src="{{ asset('images/psa.png') }}" alt="PSA Loading" class="psa-loader-logo">
+        </div>
+    </div>
 
     <script>
         // ============================================================
@@ -356,7 +261,20 @@
         animateBackground();
 
         // ============================================================
-        //  UI INTERACTIONS
+        //  PSA LOADER CONTROLS
+        // ============================================================
+        function showPSALoader() {
+            const loader = document.getElementById('psaLoaderModal');
+            if (loader) loader.classList.add('show');
+        }
+
+        function hidePSALoader() {
+            const loader = document.getElementById('psaLoaderModal');
+            if (loader) loader.classList.remove('show');
+        }
+
+        // ============================================================
+        //  UI INTERACTIONS & FORM SUBMIT HANDLER
         // ============================================================
         const toggleBtn = document.getElementById('togglePasswordBtn');
         const passwordField = document.getElementById('password');
@@ -372,6 +290,22 @@
                     icon.classList.remove('fa-eye');
                     icon.classList.add('fa-eye-slash');
                 }
+            });
+        }
+
+        // Handle form submission - show loading state
+        const loginForm = document.getElementById('loginForm');
+        if (loginForm) {
+            loginForm.addEventListener('submit', function(e) {
+                showPSALoader();
+            });
+        }
+
+        // Show loader on create account button click
+        const createAccountBtn = document.querySelector('.btn-create-account');
+        if (createAccountBtn) {
+            createAccountBtn.addEventListener('click', function(e) {
+                showPSALoader();
             });
         }
 
@@ -394,29 +328,43 @@
             }
         });
 
-        // Remember Me functionality with localStorage (for UI convenience)
+        // Remember Me functionality
         if (localStorage.getItem('psa_remember_username')) {
             const savedUsername = localStorage.getItem('psa_remember_username');
-            document.getElementById('username').value = savedUsername;
-            document.getElementById('rememberCheck').checked = true;
+            const usernameField = document.getElementById('username');
+            if (usernameField) usernameField.value = savedUsername;
+            const rememberCheck = document.getElementById('rememberCheck');
+            if (rememberCheck) rememberCheck.checked = true;
         }
 
-        document.getElementById('rememberCheck')?.addEventListener('change', function(e) {
-            const username = document.getElementById('username').value;
-            if (e.target.checked && username) {
-                localStorage.setItem('psa_remember_username', username);
-            } else if (!e.target.checked) {
-                localStorage.removeItem('psa_remember_username');
-            }
+        const rememberCheck = document.getElementById('rememberCheck');
+        const usernameInput = document.getElementById('username');
+
+        if (rememberCheck && usernameInput) {
+            rememberCheck.addEventListener('change', function(e) {
+                const username = usernameInput.value;
+                if (e.target.checked && username) {
+                    localStorage.setItem('psa_remember_username', username);
+                } else if (!e.target.checked) {
+                    localStorage.removeItem('psa_remember_username');
+                }
+            });
+
+            usernameInput.addEventListener('input', function() {
+                if (rememberCheck.checked && this.value) {
+                    localStorage.setItem('psa_remember_username', this.value);
+                }
+            });
+        }
+
+        // Hide loader when page fully loads
+        window.addEventListener('pageshow', function() {
+            hidePSALoader();
         });
 
-        // Save username when typing if remember me is checked
-        document.getElementById('username')?.addEventListener('input', function() {
-            const rememberCheck = document.getElementById('rememberCheck');
-            if (rememberCheck && rememberCheck.checked && this.value) {
-                localStorage.setItem('psa_remember_username', this.value);
-            }
-        });
+        setTimeout(() => {
+            hidePSALoader();
+        }, 3000);
     </script>
 </body>
 

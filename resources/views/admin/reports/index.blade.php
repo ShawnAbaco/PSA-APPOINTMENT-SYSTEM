@@ -85,9 +85,8 @@
                     <div class="reports-stat-info">
                         <h6 class="reports-stat-label">Most Active City</h6>
                         <h2 class="reports-stat-value reports-text-warning">{{ $topCity ?? 'N/A' }}</h2>
-                        <p class="reports-stat-trend"><i class="fas fa-trophy"></i> {{ $topCityCount ?? 0 }} bookings</p>
+                        <p class="reports-stat-trend"> {{ $topCityCount ?? 0 }} bookings</p>
                     </div>
-                    <div class="reports-stat-icon-circle warning-bg"><i class="fas fa-trophy"></i></div>
                 </div>
             </div>
 
@@ -153,7 +152,7 @@
                                 <td>
                                     {{ $summary->user_city }}
                                     @if ($index == 0)
-                                        <span class="reports-badge reports-badge-warning reports-badge-sm">🏆 Top
+                                        <span class="reports-badge reports-badge-warning reports-badge-sm">Top
                                             Location</span>
                                     @endif
                                 </td>

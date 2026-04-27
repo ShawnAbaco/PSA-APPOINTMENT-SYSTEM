@@ -1209,3 +1209,260 @@ body {
             }
         }
         
+                /* ========== PSA BRANDED LOADING STATE ========== */
+        .psa-loader-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.85);
+            backdrop-filter: blur(8px);
+            z-index: 10000;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+        }
+
+        .psa-loader-modal.show {
+            display: flex;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .psa-loader-container {
+            padding: 35px 40px;
+            text-align: center;
+        }
+
+        .psa-loader-logo {
+            width: 100px;
+            height: 100px;
+            object-fit: contain;
+            animation: psaSpin 1.2s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+            filter: drop-shadow(0 0 10px rgba(252, 209, 22, 0.5));
+        }
+
+        @keyframes psaSpin {
+            0% {
+                transform: rotate(0deg) scale(1);
+            }
+
+            50% {
+                transform: rotate(180deg) scale(1.08);
+            }
+
+            100% {
+                transform: rotate(360deg) scale(1);
+            }
+        }
+
+        .psa-loader-container::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 140px;
+            height: 140px;
+            margin-left: -70px;
+            margin-top: -70px;
+            border-radius: 50%;
+            background: transparent;
+            border: 2px solid rgba(252, 209, 22, 0.4);
+            animation: pulseRing 1.5s ease-out infinite;
+            pointer-events: none;
+        }
+
+        @keyframes pulseRing {
+            0% {
+                transform: scale(0.8);
+                opacity: 0.6;
+            }
+
+            100% {
+                transform: scale(1.4);
+                opacity: 0;
+            }
+        }
+
+        .psa-loader-text {
+            color: white;
+            margin-top: 25px;
+            font-weight: 600;
+            letter-spacing: 1px;
+            font-size: 1rem;
+            background: linear-gradient(135deg, #FFE6B0, #FFD966);
+            background-clip: text;
+            -webkit-background-clip: text;
+            color: transparent;
+        }
+
+        .psa-loader-subtext {
+            color: rgba(255, 255, 255, 0.7);
+            font-size: 0.75rem;
+            margin-top: 8px;
+            font-weight: 400;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+
+            to {
+                opacity: 1;
+            }
+        }
+
+        @media (max-width: 550px) {
+            .login-card {
+                padding: 30px 24px;
+            }
+
+            .brand-title {
+                font-size: 22px;
+            }
+
+            .psa-loader-logo {
+                width: 75px;
+                height: 75px;
+            }
+
+            .psa-loader-container {
+                padding: 25px 30px;
+            }
+
+            .psa-loader-text {
+                font-size: 0.85rem;
+            }
+        }
+
+        html {
+            scroll-behavior: smooth;
+            scroll-padding-top: 80px;
+        }
+
+        /* Active nav link styling */
+        .nav-link.active {
+            color: var(--psa-primary);
+            border-bottom: 2px solid var(--psa-accent);
+        }
+
+        /* Section fade-in animation */
+        .hero-section,
+        .howto-section,
+        .map-section,
+        .requirements-section,
+        .info-section {
+            opacity: 0;
+            transform: translateY(20px);
+            transition: opacity 0.6s ease-out, transform 0.6s ease-out;
+        }
+
+        .hero-section.visible,
+        .howto-section.visible,
+        .map-section.visible,
+        .requirements-section.visible,
+        .info-section.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .howto-section {
+            padding: 60px 0;
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+        }
+
+        .howto-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 30px;
+            margin-top: 40px;
+        }
+
+        .howto-card {
+            background: white;
+            border-radius: 20px;
+            padding: 30px 25px;
+            text-align: center;
+            transition: all 0.3s ease;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .howto-card:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+        }
+
+        .howto-icon {
+            width: 80px;
+            height: 80px;
+            background: linear-gradient(135deg, #2c5f8a 0%, #1a3d5c 100%);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 20px;
+            color: white;
+            font-size: 32px;
+            box-shadow: 0 5px 15px rgba(44, 95, 138, 0.3);
+        }
+
+        .howto-step {
+            display: inline-block;
+            background: #e9ecef;
+            color: #2c5f8a;
+            font-size: 12px;
+            font-weight: 700;
+            padding: 4px 12px;
+            border-radius: 20px;
+            margin-bottom: 15px;
+            letter-spacing: 1px;
+        }
+
+        .howto-card h3 {
+            font-size: 1.5rem;
+            margin-bottom: 12px;
+            color: #1a3d5c;
+        }
+
+        .howto-card p {
+            color: #6c757d;
+            line-height: 1.6;
+            margin-bottom: 15px;
+        }
+
+        .howto-card small {
+            display: block;
+            color: #adb5bd;
+            font-size: 0.8rem;
+        }
+
+        .howto-cta {
+            text-align: center;
+            margin-top: 50px;
+        }
+
+        .howto-cta .button {
+            padding: 14px 32px;
+            font-size: 1rem;
+        }
+
+        @media (max-width: 768px) {
+            .howto-grid {
+                gap: 20px;
+            }
+            .howto-card {
+                padding: 20px;
+            }
+            .howto-icon {
+                width: 60px;
+                height: 60px;
+                font-size: 24px;
+            }
+            html {
+                scroll-padding-top: 120px;
+            }
+        }

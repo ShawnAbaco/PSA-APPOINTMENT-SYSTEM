@@ -1,6 +1,5 @@
 .clients-container {
     margin: 0 auto;
-    padding: 28px 32px;
     background: var(--bg-gradient);
     min-height: 100vh;
 }
@@ -9,7 +8,7 @@
 .clients-header {
     margin-bottom: 32px;
     padding: 28px 32px;
-    background: var(--primary-gradient);
+    background: var(--title);
     border-radius: 20px;
     display: flex;
     justify-content: space-between;

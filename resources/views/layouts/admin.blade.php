@@ -3,16 +3,14 @@
 
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes, viewport-fit=cover">
     <title>Admin Panel - PSA Appointment System</title>
     <link rel="icon" type="image/png" sizes="32x32" href="{{ asset('images/psa.png') }}">
     <!-- Fonts and Icons - Only essential external resources -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="{{ asset('css/admin/dashboard.css') }}">
-
     <link rel="stylesheet" href="{{ asset('css/admin/admin-stbar.css') }}">
-
 
     {{-- appointment css link --}}
     <link rel="stylesheet" href="{{ asset('css/admin/appointments/appointments.css') }}">
@@ -30,17 +28,16 @@
     {{-- settings css link --}}
     <link rel="stylesheet" href="{{ asset('css/admin/settings/setting.css') }}">
 
-
 </head>
 
 <body>
     <div class="admin-container">
-        <!-- Sidebar with Logo -->
+        <!-- Sidebar with Logo and Logout at Bottom -->
         <div class="admin-sidebar" id="adminSidebar">
             <div class="sidebar-header">
                 <div class="logo-container">
                     <img src="{{ asset('images/psa.png') }}" alt="PSA Logo" class="sidebar-logo">
-                    <h4>Philippine Statistics Authority</h4>
+                    <h4>Philippine<br>Statistics Authority</h4>
                 </div>
             </div>
             <div class="sidebar-nav">
@@ -94,15 +91,18 @@
                     </a>
                 </div>
                 <div class="sidebar-divider"></div>
-                <div class="nav-item">
-                    <form method="POST" action="{{ route('logout') }}" class="w-100">
-                        @csrf
-                        <button type="submit" class="nav-link logout-btn">
-                            <i class="fas fa-sign-out-alt"></i>
-                            <span>Logout</span>
-                        </button>
-                    </form>
-                </div>
+                <div style="flex: 1;"></div>
+            </div>
+            <!-- Logout at bottom with loading state -->
+            <div class="logout-wrapper">
+                <form method="POST" action="{{ route('logout') }}" id="logoutForm">
+                    @csrf
+                    <button type="submit" class="nav-link logout-btn" id="logoutBtn">
+                        <i class="fas fa-sign-out-alt"></i>
+                        <span>Logout</span>
+                        <div class="btn-loader"></div>
+                    </button>
+                </form>
             </div>
         </div>
 
@@ -110,6 +110,9 @@
         <div class="admin-main">
             <div class="admin-topbar">
                 <div class="topbar-left">
+                    <button class="mobile-menu-btn" id="mobileMenuToggle">
+                        <i class="fas fa-bars"></i>
+                    </button>
                     <div class="welcome-text">
                         <h5>Welcome, {{ Auth::user()->first_name }} {{ Auth::user()->last_name }}</h5>
                     </div>
@@ -127,8 +130,8 @@
                                 <button class="mark-all-read" id="markAllRead">Mark all as read</button>
                             </div>
                             <div class="notification-list" id="notificationList"></div>
-                            <div class="notification-footer">
-                                <a href="#" class="view-all-link">View all notifications</a>
+                            <div class="notification-footer" style="padding: 10px; text-align:center;">
+                                <a href="#" style="color:#CE1126; font-size:0.75rem;">View all</a>
                             </div>
                         </div>
                     </div>
@@ -156,69 +159,80 @@
         </div>
     </div>
 
+    <!-- PSA LOADER MODAL -->
+    <div class="psa-loader-modal" id="psaLoaderModal">
+        <div class="psa-loader-container">
+            <img src="{{ asset('images/psa.png') }}" alt="PSA Loading" class="psa-loader-logo">
+        </div>
+    </div>
+
     <!-- Toast Container -->
     <div class="toast-container" id="toastContainer"></div>
 
     <!-- JavaScript -->
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script>
-        function showToast(title, message, type = 'success') {
-            const toastContainer = document.getElementById('toastContainer');
-            const toast = document.createElement('div');
-            toast.className = `toast-notification toast-${type}`;
-            let icon = '';
-            switch (type) {
-                case 'success':
-                    icon = 'fa-check-circle';
-                    break;
-                case 'error':
-                    icon = 'fa-exclamation-circle';
-                    break;
-                case 'warning':
-                    icon = 'fa-exclamation-triangle';
-                    break;
-                default:
-                    icon = 'fa-info-circle';
+        // ============================================================
+        //  PSA LOADER CONTROLS (from operator)
+        // ============================================================
+        function showPSALoader(customText = null) {
+            const loader = document.getElementById('psaLoaderModal');
+            const loaderText = document.querySelector('.psa-loader-text');
+            if (loaderText && customText) {
+                loaderText.textContent = customText;
+            } else if (loaderText) {
+                loaderText.textContent = 'Loading...';
             }
-            toast.innerHTML = `
-                <div class="toast-icon"><i class="fas ${icon}"></i></div>
-                <div class="toast-content">
-                    <div class="toast-title">${title}</div>
-                    <div class="toast-message">${message}</div>
-                </div>
-                <button class="toast-close" onclick="this.parentElement.remove()"><i class="fas fa-times"></i></button>
-            `;
-            toastContainer.appendChild(toast);
-            setTimeout(() => {
-                toast.style.opacity = '0';
-                setTimeout(() => toast.remove(), 300);
-            }, 5000);
+            if (loader) loader.classList.add('show');
+            document.body.style.overflow = 'hidden';
         }
 
+        function hidePSALoader() {
+            const loader = document.getElementById('psaLoaderModal');
+            if (loader) loader.classList.remove('show');
+            document.body.style.overflow = '';
+        }
+
+        // ============================================================
+        //  TOAST NOTIFICATION (from operator)
+        // ============================================================
+        window.showToast = function(title, message, type = 'info') {
+            const container = document.getElementById('toastContainer');
+            if (!container) return;
+            const toast = document.createElement('div');
+            toast.className = 'toast';
+            let icon = 'fa-info-circle';
+            if (type === 'success') icon = 'fa-check-circle';
+            if (type === 'warning') icon = 'fa-exclamation-triangle';
+            toast.innerHTML =
+                `<i class="fas ${icon}" style="color:#FCD116;"></i><div><strong>${escapeHtml(title)}</strong><br/><small>${escapeHtml(message)}</small></div>`;
+            container.appendChild(toast);
+            setTimeout(() => toast.remove(), 4000);
+        };
+
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        // ============================================================
+        //  NOTIFICATION MANAGER (from operator)
+        // ============================================================
         class NotificationManager {
             constructor() {
-                this.notifications = [];
-                this.unreadCount = 0;
-                this.init();
-            }
-            init() {
-                this.loadNotifications();
-                this.attachEventListeners();
-                this.startAutoRefresh();
-            }
-            loadNotifications() {
                 this.notifications = [{
                         id: 1,
                         title: 'New Appointment',
-                        message: 'John Doe booked an appointment for tomorrow at 10:00 AM',
-                        time: '5 minutes ago',
+                        message: 'John Doe booked for tomorrow at 10:00 AM',
+                        time: '5 min ago',
                         type: 'success',
                         read: false
                     },
                     {
                         id: 2,
                         title: 'Appointment Reminder',
-                        message: 'You have 3 appointments scheduled for today',
+                        message: 'You have 3 appointments today',
                         time: '1 hour ago',
                         type: 'info',
                         read: false
@@ -226,121 +240,254 @@
                     {
                         id: 3,
                         title: 'Schedule Change',
-                        message: 'Your schedule for Friday has been updated',
+                        message: 'Your Friday schedule updated',
                         time: '2 hours ago',
                         type: 'warning',
                         read: false
+                    },
+                    {
+                        id: 4,
+                        title: 'Client Feedback',
+                        message: 'New feedback from Maria Santos',
+                        time: '3 hours ago',
+                        type: 'info',
+                        read: true
+                    },
+                    {
+                        id: 5,
+                        title: 'System Update',
+                        message: 'Maintenance tonight at 11 PM',
+                        time: 'Yesterday',
+                        type: 'warning',
+                        read: true
                     }
                 ];
                 this.unreadCount = this.notifications.filter(n => !n.read).length;
-                this.renderNotifications();
-                this.updateBadge();
+                this.init();
             }
-            renderNotifications() {
+            init() {
+                this.render();
+                this.updateBadge();
+                this.attach();
+                setInterval(() => this.demoNew(), 35000);
+            }
+            render() {
                 const container = document.getElementById('notificationList');
                 if (!container) return;
                 if (this.notifications.length === 0) {
-                    container.innerHTML =
-                        `<div class="notification-item"><div class="notification-content"><div class="notification-title">No new notifications</div></div></div>`;
+                    container.innerHTML = `<div style="padding:30px;text-align:center;">No notifications</div>`;
                     return;
                 }
-                container.innerHTML = this.notifications.map(notification => `
-                    <div class="notification-item ${!notification.read ? 'unread' : ''}" data-id="${notification.id}">
-                        <div class="notification-icon ${notification.type}"><i class="fas ${this.getIconForType(notification.type)}"></i></div>
+                container.innerHTML = this.notifications.map(n => `
+                    <div class="notification-item ${!n.read ? 'unread' : ''}" data-id="${n.id}">
+                        <div class="notification-icon ${n.type}"><i class="fas ${this.getIcon(n.type)}"></i></div>
                         <div class="notification-content">
-                            <div class="notification-title">${notification.title}</div>
-                            <div class="notification-message">${notification.message}</div>
-                            <div class="notification-time">${notification.time}</div>
+                            <div class="notification-title">${escapeHtml(n.title)}</div>
+                            <div class="notification-message">${escapeHtml(n.message)}</div>
+                            <div class="notification-time">${escapeHtml(n.time)}</div>
                         </div>
                     </div>
                 `).join('');
-                document.querySelectorAll('.notification-item').forEach(item => {
-                    item.addEventListener('click', () => {
-                        const id = parseInt(item.dataset.id);
-                        this.markAsRead(id);
-                    });
+                document.querySelectorAll('.notification-item').forEach(el => {
+                    el.addEventListener('click', () => this.markRead(parseInt(el.dataset.id)));
                 });
             }
-            getIconForType(type) {
-                switch (type) {
-                    case 'success':
-                        return 'fa-check-circle';
-                    case 'warning':
-                        return 'fa-exclamation-triangle';
-                    case 'danger':
-                        return 'fa-times-circle';
-                    default:
-                        return 'fa-info-circle';
-                }
+            getIcon(type) {
+                if (type === 'success') return 'fa-check-circle';
+                if (type === 'warning') return 'fa-exclamation-triangle';
+                return 'fa-info-circle';
             }
             updateBadge() {
                 const badge = document.getElementById('notificationCount');
                 if (badge) {
-                    if (this.unreadCount > 0) {
-                        badge.textContent = this.unreadCount;
-                        badge.style.display = 'flex';
-                    } else {
-                        badge.style.display = 'none';
-                    }
+                    badge.textContent = this.unreadCount;
+                    badge.style.display = this.unreadCount > 0 ? 'flex' : 'none';
                 }
             }
-            markAsRead(id) {
-                const notification = this.notifications.find(n => n.id === id);
-                if (notification && !notification.read) {
-                    notification.read = true;
+            markRead(id) {
+                const n = this.notifications.find(x => x.id === id);
+                if (n && !n.read) {
+                    n.read = true;
                     this.unreadCount--;
-                    this.renderNotifications();
+                    this.render();
                     this.updateBadge();
                     showToast('Notification', 'Marked as read', 'info');
                 }
             }
-            markAllAsRead() {
+            markAllRead() {
                 this.notifications.forEach(n => n.read = true);
                 this.unreadCount = 0;
-                this.renderNotifications();
+                this.render();
                 this.updateBadge();
-                showToast('Notifications', 'All notifications marked as read', 'success');
+                showToast('Notifications', 'All marked as read', 'success');
             }
-            attachEventListeners() {
+            demoNew() {
+                const msgs = [{
+                        title: 'New Booking',
+                        message: 'Client requested appointment',
+                        type: 'success'
+                    },
+                    {
+                        title: 'Reminder',
+                        message: 'Appointment in 20 min',
+                        type: 'warning'
+                    },
+                    {
+                        title: 'Info',
+                        message: 'System health check passed',
+                        type: 'info'
+                    }
+                ];
+                const r = msgs[Math.floor(Math.random() * msgs.length)];
+                this.add(r.title, r.message, r.type);
+            }
+            add(title, message, type) {
+                const newN = {
+                    id: Date.now(),
+                    title,
+                    message,
+                    time: 'Just now',
+                    type,
+                    read: false
+                };
+                this.notifications.unshift(newN);
+                this.unreadCount++;
+                this.render();
+                this.updateBadge();
+                showToast(title, message, type);
+            }
+            attach() {
                 const bell = document.getElementById('notificationBell');
                 const dropdown = document.getElementById('notificationDropdown');
-                const markAllBtn = document.getElementById('markAllRead');
-                if (bell) {
-                    bell.addEventListener('click', (e) => {
-                        e.stopPropagation();
-                        dropdown.classList.toggle('show');
-                    });
-                }
-                if (markAllBtn) {
-                    markAllBtn.addEventListener('click', () => {
-                        this.markAllAsRead();
-                    });
-                }
-                document.addEventListener('click', () => {
-                    if (dropdown) dropdown.classList.remove('show');
+                const markBtn = document.getElementById('markAllRead');
+                if (bell) bell.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    dropdown.classList.toggle('show');
                 });
-                if (dropdown) {
-                    dropdown.addEventListener('click', (e) => {
-                        e.stopPropagation();
-                    });
-                }
-            }
-            startAutoRefresh() {
-                setInterval(() => {}, 30000);
+                if (markBtn) markBtn.addEventListener('click', () => this.markAllRead());
+                document.addEventListener('click', (e) => {
+                    if (!bell?.contains(e.target) && !dropdown?.contains(e.target)) dropdown?.classList.remove(
+                        'show');
+                });
             }
         }
 
-        document.querySelectorAll('.alert-dismissible').forEach(alert => {
-            setTimeout(() => {
-                alert.style.opacity = '0';
-                setTimeout(() => alert.remove(), 300);
-            }, 5000);
+        // ============================================================
+        //  MOBILE SIDEBAR TOGGLE (from operator)
+        // ============================================================
+        function initMobileSidebar() {
+            const toggleBtn = document.getElementById('mobileMenuToggle');
+            const sidebar = document.getElementById('adminSidebar');
+            if (!toggleBtn || !sidebar) return;
+            toggleBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                sidebar.classList.toggle('sidebar-open');
+            });
+            document.addEventListener('click', function(event) {
+                if (window.innerWidth <= 768) {
+                    if (!sidebar.contains(event.target) && !toggleBtn.contains(event.target)) {
+                        sidebar.classList.remove('sidebar-open');
+                    }
+                }
+            });
+        }
+
+        // ============================================================
+        //  LOGOUT HANDLER WITH LOADING STATE
+        // ============================================================
+        function initLogoutHandler() {
+            const logoutForm = document.getElementById('logoutForm');
+            const logoutBtn = document.getElementById('logoutBtn');
+
+            if (logoutForm && logoutBtn) {
+                logoutForm.addEventListener('submit', function(e) {
+                    logoutBtn.classList.add('loading');
+                    showPSALoader('Logging out...');
+                    logoutBtn.disabled = true;
+                });
+            }
+        }
+
+        // ============================================================
+        //  FORM SUBMIT LOADER
+        // ============================================================
+        function bindFormLoaders() {
+            const forms = document.querySelectorAll('form:not(#logoutForm)');
+            forms.forEach(form => {
+                form.addEventListener('submit', function(e) {
+                    showPSALoader('Submitting form...');
+                });
+            });
+        }
+
+        // ============================================================
+        //  NAVIGATION LINK LOADER
+        // ============================================================
+        function bindNavigationLoaders() {
+            const navLinks = document.querySelectorAll('.nav-link:not(.logout-btn)');
+            navLinks.forEach(link => {
+                link.addEventListener('click', function(e) {
+                    const href = this.getAttribute('href');
+                    if (href && href !== '#' && !href.startsWith('javascript')) {
+                        showPSALoader('Loading page...');
+                    }
+                });
+            });
+        }
+
+        // ============================================================
+        //  AJAX GLOBAL LOADER
+        // ============================================================
+        if (typeof $ !== 'undefined') {
+            $(document).ajaxStart(function() {
+                showPSALoader('Processing request...');
+            });
+            $(document).ajaxStop(function() {
+                hidePSALoader();
+            });
+            $(document).ajaxError(function() {
+                hidePSALoader();
+            });
+        }
+
+        // ============================================================
+        //  PAGE LOAD COMPLETE
+        // ============================================================
+        window.addEventListener('load', function() {
+            setTimeout(() => hidePSALoader(), 500);
         });
 
+        window.addEventListener('pageshow', function() {
+            hidePSALoader();
+        });
+
+        // ============================================================
+        //  DOM CONTENT LOADED - Initialize all components
+        // ============================================================
         document.addEventListener('DOMContentLoaded', function() {
             window.notificationManager = new NotificationManager();
+            initMobileSidebar();
+            bindFormLoaders();
+            bindNavigationLoaders();
+            initLogoutHandler();
+
+            window.showPSALoader = showPSALoader;
+            window.hidePSALoader = hidePSALoader;
+
+            setTimeout(() => {
+                document.querySelectorAll('.alert').forEach(alert => {
+                    alert.style.opacity = '0';
+                    alert.style.transition = 'opacity 0.3s';
+                    setTimeout(() => alert.remove(), 300);
+                });
+            }, 4000);
+
+            document.querySelectorAll('.alert-close').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    this.parentElement.remove();
+                });
+            });
         });
-        window.showToast = showToast;
     </script>
     @stack('scripts')
 </body>

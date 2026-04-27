@@ -5,7 +5,8 @@
         <!-- Welcome Section -->
         <div class="welcome-section">
             <div>
-                <h1 class="dashboard-title">Dashboard</h1>
+                <h1 class="dashboard-title">Operator Dashboard</h1>
+                <p class="dashboard-subtitle">Manage and monitor appointments in real-time</p>
             </div>
             <div class="date-display">
                 <i class="fas fa-calendar-alt"></i>
@@ -20,7 +21,7 @@
                     <div class="stat-info">
                         <h6 class="stat-label">Today</h6>
                         <h2 class="stat-value">{{ $todayAppointments }}</h2>
-                        <p class="stat-trend trend-neutral">
+                        <p class="stat-trend">
                             <i class="fas fa-calendar-day"></i> Scheduled for today
                         </p>
                     </div>
@@ -35,7 +36,7 @@
                     <div class="stat-info">
                         <h6 class="stat-label">Pending</h6>
                         <h2 class="stat-value text-warning">{{ $pendingAppointments }}</h2>
-                        <p class="stat-trend trend-neutral">
+                        <p class="stat-trend">
                             <i class="fas fa-clock"></i> Awaiting action
                         </p>
                     </div>
@@ -50,7 +51,7 @@
                     <div class="stat-info">
                         <h6 class="stat-label">Confirmed</h6>
                         <h2 class="stat-value text-success">{{ $confirmedAppointments }}</h2>
-                        <p class="stat-trend trend-neutral">
+                        <p class="stat-trend">
                             <i class="fas fa-check-circle"></i> Ready for service
                         </p>
                     </div>
@@ -65,7 +66,7 @@
                     <div class="stat-info">
                         <h6 class="stat-label">Completed</h6>
                         <h2 class="stat-value text-info">{{ $completedAppointments }}</h2>
-                        <p class="stat-trend trend-neutral">
+                        <p class="stat-trend">
                             <i class="fas fa-check-double"></i> Successfully completed
                         </p>
                     </div>
@@ -80,7 +81,7 @@
                     <div class="stat-info">
                         <h6 class="stat-label">Total Appointments</h6>
                         <h2 class="stat-value">{{ $totalAppointments }}</h2>
-                        <p class="stat-trend trend-neutral">
+                        <p class="stat-trend">
                             <i class="fas fa-chart-line"></i> All time total
                         </p>
                     </div>
@@ -92,7 +93,7 @@
         </div>
 
         <!-- Charts and Analytics Section -->
-        <div class="charts-row">
+        <div class="row-3-layout">
             <!-- Appointment Trends Chart -->
             <div class="chart-card">
                 <div class="chart-header">
@@ -127,10 +128,9 @@
             </div>
         </div>
 
-        <!-- Dashboard Grid -->
-        <div class="dashboard-grid">
-            <!-- Recent Appointments Card -->
-            <div class="recent-appointments-card">
+        <!-- Recent Appointments Card -->
+        <div class="upcoming-section">
+            <div class="schedule-card">
                 <div class="card-header">
                     <h5 class="card-title">
                         <i class="fas fa-calendar-alt"></i>
@@ -140,19 +140,20 @@
                         View All <i class="fas fa-arrow-right"></i>
                     </a>
                 </div>
-                <div class="appointments-list">
+                <div class="schedule-list">
                     @forelse($recentAppointments as $appointment)
-                        <div class="appointment-item"
+                        <div class="schedule-item"
                             onclick="window.location='{{ route('operator.appointments.show', $appointment->id) }}'">
-                            <div class="appointment-time">
+                            <div class="schedule-time">
                                 <i class="far fa-calendar-alt"></i>
                                 {{ date('M d, Y', strtotime($appointment->appointment_date)) }}
-                                <span
-                                    class="appointment-time-small">{{ date('h:i A', strtotime($appointment->appointment_time ?? '09:00')) }}</span>
+                                <span class="schedule-time-small">
+                                    {{ date('h:i A', strtotime($appointment->appointment_time ?? '09:00')) }}
+                                </span>
                             </div>
-                            <div class="appointment-info">
-                                <div class="appointment-title">{{ $appointment->appointment_number }}</div>
-                                <div class="appointment-subtitle">{{ $appointment->contact_name }} -
+                            <div class="schedule-info">
+                                <div class="schedule-title">{{ $appointment->appointment_number }}</div>
+                                <div class="schedule-subtitle">{{ $appointment->contact_name }} -
                                     {{ $appointment->clients->count() }} client(s)</div>
                             </div>
                             <span class="status-badge status-{{ $appointment->status }}">
@@ -160,9 +161,10 @@
                             </span>
                         </div>
                     @empty
-                        <div class="appointments-empty">
+                        <div class="empty-state">
                             <i class="fas fa-calendar-times"></i>
-                            <p>No appointments found</p>
+                            <h4>No appointments found</h4>
+                            <p>New appointments will appear here</p>
                         </div>
                     @endforelse
                 </div>
@@ -205,7 +207,7 @@
                     backgroundColor: 'rgba(15, 59, 111, 0.1)',
                     tension: 0.4,
                     fill: true,
-                    pointBackgroundColor: '#F05A28',
+                    pointBackgroundColor: '#c49a2c',
                     pointBorderColor: '#fff',
                     pointBorderWidth: 2,
                     pointRadius: 4,

@@ -46,7 +46,7 @@
 
 /* Welcome Box */
 .user-welcome-box {
-    background: linear-gradient(135deg, var(--user-primary) 0%, var(--user-primary-light) 50%, var(--user-primary-dark) 100%);
+            background: var(--title);
     border-radius: var(--user-radius);
     padding: 28px 32px;
     margin-bottom: 28px;

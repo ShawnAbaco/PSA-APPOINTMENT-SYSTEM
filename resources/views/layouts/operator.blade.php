@@ -3,7 +3,7 @@
 
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes, viewport-fit=cover">
     <title>Operator - PSA Appointment System</title>
     <link rel="icon" type="image/png" sizes="32x32" href="{{ asset('images/psa.png') }}">
 
@@ -11,23 +11,24 @@
     <link rel="stylesheet" href="https://unpkg.com/leaflet-routing-machine@3.2.12/dist/leaflet-routing-machine.css" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+    <!-- Your existing Laravel CSS files (preserved) -->
     <link rel="stylesheet" href="{{ asset('css/operator/dashboard.css') }}">
     <link rel="stylesheet" href="{{ asset('css/operator/operator-stbar.css') }}">
     <link rel="stylesheet" href="{{ asset('css/operator/appointments/appointments.css') }}">
     <link rel="stylesheet" href="{{ asset('css/operator/appointments/show.css') }}">
     <link rel="stylesheet" href="{{ asset('css/operator/clients/client.css') }}">
     <link rel="stylesheet" href="{{ asset('css/operator/clients/show.css') }}">
-    @stack('styles')
 </head>
 
 <body>
     <div class="operator-container">
         <!-- Sidebar -->
-        <div class="operator-sidebar">
+        <div class="operator-sidebar" id="sidebar">
             <div class="sidebar-header">
                 <div class="logo-container">
                     <img src="{{ asset('images/psa.png') }}" alt="PSA Logo" class="sidebar-logo">
-                    <h4>Philippine Statistics Authority</h4>
+                    <h4>Philippine<br>Statistics Authority</h4>
                 </div>
             </div>
             <nav class="sidebar-nav">
@@ -47,34 +48,36 @@
                 </div>
                 <div class="nav-item">
                     <a href="{{ route('operator.clients.index') }}"
-                        class="nav-link {{ request()->routeIs('staoperatorff.clients.*') ? 'active' : '' }}">
+                        class="nav-link {{ request()->routeIs('operator.clients.*') ? 'active' : '' }}">
                         <i class="fas fa-users"></i>
                         <span>Clients</span>
                     </a>
                 </div>
                 <div class="sidebar-divider"></div>
-                <div class="nav-item">
-                    <form method="POST" action="{{ route('logout') }}">
-                        @csrf
-                        <button type="submit" class="nav-link logout-btn">
-                            <i class="fas fa-sign-out-alt"></i>
-                            <span>Logout</span>
-                        </button>
-                    </form>
-                </div>
             </nav>
+            <div class="logout-wrapper">
+                <form method="POST" action="{{ route('logout') }}">
+                    @csrf
+                    <button type="submit" class="nav-link logout-btn">
+                        <i class="fas fa-sign-out-alt"></i>
+                        <span>Logout</span>
+                    </button>
+                </form>
+            </div>
         </div>
 
         <!-- Main Content -->
         <div class="operator-main">
             <div class="operator-topbar">
                 <div class="topbar-left">
+                    <button class="mobile-menu-btn" id="mobileMenuToggle">
+                        <i class="fas fa-bars"></i>
+                    </button>
                     <div class="welcome-text">
                         <h5>Welcome, {{ Auth::user()->first_name }} {{ Auth::user()->last_name }}</h5>
                     </div>
                 </div>
                 <div class="topbar-right">
-                    <!-- Notification Bell -->
                     <div class="notification-container">
                         <button class="notification-bell" id="notificationBell">
                             <i class="fas fa-bell"></i>
@@ -85,11 +88,9 @@
                                 <h6>Notifications</h6>
                                 <button class="mark-all-read" id="markAllRead">Mark all as read</button>
                             </div>
-                            <div class="notification-list" id="notificationList">
-                                <!-- Notifications will be loaded dynamically -->
-                            </div>
-                            <div class="notification-footer">
-                                <a href="#" class="view-all-link">View all notifications</a>
+                            <div class="notification-list" id="notificationList"></div>
+                            <div class="notification-footer" style="padding: 10px; text-align:center;">
+                                <a href="#" style="color:#CE1126; font-size:0.75rem;">View all</a>
                             </div>
                         </div>
                     </div>
@@ -104,49 +105,53 @@
                         <button class="alert-close" onclick="this.parentElement.remove()">&times;</button>
                     </div>
                 @endif
-
                 @if (session('error'))
                     <div class="alert alert-danger">
                         {{ session('error') }}
                         <button class="alert-close" onclick="this.parentElement.remove()">&times;</button>
                     </div>
                 @endif
-
                 @if (session('info'))
                     <div class="alert alert-info">
                         {{ session('info') }}
                         <button class="alert-close" onclick="this.parentElement.remove()">&times;</button>
                     </div>
                 @endif
-
                 @yield('content')
             </div>
         </div>
     </div>
 
-    <!-- Toast Container -->
+    <div class="psa-loader-modal" id="psaLoaderModal">
+        <div class="psa-loader-container">
+            <img src="{{ asset('images/psa.png') }}" alt="PSA Loading" class="psa-loader-logo">
+        </div>
+    </div>
+
     <div class="toast-container" id="toastContainer"></div>
 
-    <!-- Leaflet JS -->
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script src="https://unpkg.com/leaflet-routing-machine@3.2.12/dist/leaflet-routing-machine.js"></script>
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 
     <script>
+        // ========================
+        // NOTIFICATION MANAGER
+        // ========================
         class NotificationManager {
             constructor() {
                 this.notifications = [{
                         id: 1,
                         title: 'New Appointment',
-                        message: 'John Doe booked an appointment for tomorrow at 10:00 AM',
-                        time: '5 minutes ago',
+                        message: 'John Doe booked for tomorrow at 10:00 AM',
+                        time: '5 min ago',
                         type: 'success',
                         read: false
                     },
                     {
                         id: 2,
                         title: 'Appointment Reminder',
-                        message: 'You have 3 appointments scheduled for today',
+                        message: 'You have 3 appointments today',
                         time: '1 hour ago',
                         type: 'info',
                         read: false
@@ -154,7 +159,7 @@
                     {
                         id: 3,
                         title: 'Schedule Change',
-                        message: 'Your schedule for Friday has been updated',
+                        message: 'Your Friday schedule updated',
                         time: '2 hours ago',
                         type: 'warning',
                         read: false
@@ -162,7 +167,7 @@
                     {
                         id: 4,
                         title: 'Client Feedback',
-                        message: 'New feedback received from Maria Santos',
+                        message: 'New feedback from Maria Santos',
                         time: '3 hours ago',
                         type: 'info',
                         read: true
@@ -170,7 +175,7 @@
                     {
                         id: 5,
                         title: 'System Update',
-                        message: 'System maintenance scheduled for tonight at 11 PM',
+                        message: 'Maintenance tonight at 11 PM',
                         time: 'Yesterday',
                         type: 'warning',
                         read: true
@@ -179,91 +184,84 @@
                 this.unreadCount = this.notifications.filter(n => !n.read).length;
                 this.init();
             }
-
             init() {
-                this.renderNotifications();
+                this.render();
                 this.updateBadge();
-                this.attachEventListeners();
-                this.startAutoRefresh();
+                this.attach();
+                setInterval(() => this.demoNew(), 35000);
             }
-
-            renderNotifications() {
+            render() {
                 const container = document.getElementById('notificationList');
                 if (!container) return;
-
                 if (this.notifications.length === 0) {
-                    container.innerHTML = `
-                        <div class="text-center p-4">
-                            <i class="fas fa-bell-slash" style="font-size: 2rem; color: var(--psa-gray);"></i>
-                            <p style="margin-top: 10px; color: var(--text-muted);">No notifications</p>
-                        </div>
-                    `;
+                    container.innerHTML = `<div style="padding:30px;text-align:center;">No notifications</div>`;
                     return;
                 }
-
-                container.innerHTML = this.notifications.map(notification => `
-                    <div class="notification-item ${!notification.read ? 'unread' : ''}" data-id="${notification.id}">
-                        <div class="notification-icon ${notification.type}">
-                            <i class="fas ${this.getIconForType(notification.type)}"></i>
-                        </div>
+                container.innerHTML = this.notifications.map(n => `
+                    <div class="notification-item ${!n.read ? 'unread' : ''}" data-id="${n.id}">
+                        <div class="notification-icon ${n.type}"><i class="fas ${this.getIcon(n.type)}"></i></div>
                         <div class="notification-content">
-                            <div class="notification-title">${notification.title}</div>
-                            <div class="notification-message">${notification.message}</div>
-                            <div class="notification-time">${notification.time}</div>
+                            <div class="notification-title">${n.title}</div>
+                            <div class="notification-message">${n.message}</div>
+                            <div class="notification-time">${n.time}</div>
                         </div>
                     </div>
                 `).join('');
-
-                // Add click handlers
-                document.querySelectorAll('.notification-item').forEach(item => {
-                    item.addEventListener('click', () => {
-                        const id = parseInt(item.dataset.id);
-                        this.markAsRead(id);
-                    });
+                document.querySelectorAll('.notification-item').forEach(el => {
+                    el.addEventListener('click', () => this.markRead(parseInt(el.dataset.id)));
                 });
             }
-
-            getIconForType(type) {
-                switch (type) {
-                    case 'success':
-                        return 'fa-check-circle';
-                    case 'warning':
-                        return 'fa-exclamation-triangle';
-                    case 'danger':
-                        return 'fa-times-circle';
-                    default:
-                        return 'fa-info-circle';
-                }
+            getIcon(type) {
+                if (type === 'success') return 'fa-check-circle';
+                if (type === 'warning') return 'fa-exclamation-triangle';
+                return 'fa-info-circle';
             }
-
             updateBadge() {
-                this.unreadCount = this.notifications.filter(n => !n.read).length;
                 const badge = document.getElementById('notificationCount');
                 if (badge) {
                     badge.textContent = this.unreadCount;
                     badge.style.display = this.unreadCount > 0 ? 'flex' : 'none';
                 }
             }
-
-            markAsRead(id) {
-                const notification = this.notifications.find(n => n.id === id);
-                if (notification && !notification.read) {
-                    notification.read = true;
-                    this.renderNotifications();
+            markRead(id) {
+                const n = this.notifications.find(x => x.id === id);
+                if (n && !n.read) {
+                    n.read = true;
+                    this.unreadCount--;
+                    this.render();
                     this.updateBadge();
                     showToast('Notification', 'Marked as read', 'info');
                 }
             }
-
-            markAllAsRead() {
+            markAllRead() {
                 this.notifications.forEach(n => n.read = true);
-                this.renderNotifications();
+                this.unreadCount = 0;
+                this.render();
                 this.updateBadge();
-                showToast('Notifications', 'All notifications marked as read', 'success');
+                showToast('Notifications', 'All marked as read', 'success');
             }
-
-            addNotification(title, message, type = 'info') {
-                const newNotification = {
+            demoNew() {
+                const msgs = [{
+                        title: 'New Booking',
+                        message: 'Client requested appointment',
+                        type: 'success'
+                    },
+                    {
+                        title: 'Reminder',
+                        message: 'Appointment in 20 min',
+                        type: 'warning'
+                    },
+                    {
+                        title: 'Info',
+                        message: 'System health check passed',
+                        type: 'info'
+                    }
+                ];
+                const r = msgs[Math.floor(Math.random() * msgs.length)];
+                this.add(r.title, r.message, r.type);
+            }
+            add(title, message, type) {
+                const newN = {
                     id: Date.now(),
                     title,
                     message,
@@ -271,82 +269,114 @@
                     type,
                     read: false
                 };
-                this.notifications.unshift(newNotification);
-                this.renderNotifications();
+                this.notifications.unshift(newN);
+                this.unreadCount++;
+                this.render();
                 this.updateBadge();
                 showToast(title, message, type);
             }
-
-            attachEventListeners() {
+            attach() {
                 const bell = document.getElementById('notificationBell');
                 const dropdown = document.getElementById('notificationDropdown');
-                const markAllBtn = document.getElementById('markAllRead');
-
-                if (bell) {
-                    bell.addEventListener('click', (e) => {
-                        e.stopPropagation();
-                        dropdown.classList.toggle('show');
-                    });
-                }
-
-                if (markAllBtn) {
-                    markAllBtn.addEventListener('click', () => {
-                        this.markAllAsRead();
-                    });
-                }
-
-                // Close dropdown when clicking outside
-                document.addEventListener('click', (e) => {
-                    if (!bell?.contains(e.target) && !dropdown?.contains(e.target)) {
-                        dropdown?.classList.remove('show');
-                    }
+                const markBtn = document.getElementById('markAllRead');
+                if (bell) bell.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    dropdown.classList.toggle('show');
                 });
-            }
-
-            startAutoRefresh() {
-                // Simulate new notifications every 30 seconds
-                setInterval(() => {
-                    const demoMessages = [{
-                            title: 'New Appointment',
-                            message: 'A new appointment has been scheduled',
-                            type: 'success'
-                        },
-                        {
-                            title: 'Reminder',
-                            message: 'Upcoming appointment in 30 minutes',
-                            type: 'warning'
-                        },
-                        {
-                            title: 'Update',
-                            message: 'Client information has been updated',
-                            type: 'info'
-                        }
-                    ];
-                    const random = demoMessages[Math.floor(Math.random() * demoMessages.length)];
-                    this.addNotification(random.title, random.message, random.type);
-                }, 30000);
+                if (markBtn) markBtn.addEventListener('click', () => this.markAllRead());
+                document.addEventListener('click', (e) => {
+                    if (!bell?.contains(e.target) && !dropdown?.contains(e.target)) dropdown?.classList.remove(
+                        'show');
+                });
             }
         }
 
-        // Auto-dismiss alerts after 5 seconds
-        document.addEventListener('DOMContentLoaded', function() {
-            // Initialize notification manager
-            window.notificationManager = new NotificationManager();
+        // Toast
+        window.showToast = function(title, message, type = 'info') {
+            const container = document.getElementById('toastContainer');
+            if (!container) return;
+            const toast = document.createElement('div');
+            toast.className = 'toast';
+            let icon = 'fa-info-circle';
+            if (type === 'success') icon = 'fa-check-circle';
+            if (type === 'warning') icon = 'fa-exclamation-triangle';
+            toast.innerHTML =
+                `<i class="fas ${icon}" style="color:#FCD116;"></i><div><strong>${title}</strong><br/><small>${message}</small></div>`;
+            container.appendChild(toast);
+            setTimeout(() => toast.remove(), 4000);
+        };
 
-            // Auto-dismiss alerts
-            setTimeout(function() {
-                document.querySelectorAll('.alert').forEach(function(alert) {
+        // PSA Loader Controls
+        function showPSALoader() {
+            const loader = document.getElementById('psaLoaderModal');
+            if (loader) loader.classList.add('show');
+        }
+
+        function hidePSALoader() {
+            const loader = document.getElementById('psaLoaderModal');
+            if (loader) loader.classList.remove('show');
+        }
+
+        // Mobile Sidebar Toggle
+        function initMobileSidebar() {
+            const toggleBtn = document.getElementById('mobileMenuToggle');
+            const sidebar = document.getElementById('sidebar');
+            if (!toggleBtn || !sidebar) return;
+            toggleBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                sidebar.classList.toggle('sidebar-open');
+            });
+            document.addEventListener('click', function(event) {
+                if (window.innerWidth <= 768) {
+                    if (!sidebar.contains(event.target) && !toggleBtn.contains(event.target)) {
+                        sidebar.classList.remove('sidebar-open');
+                    }
+                }
+            });
+        }
+
+        // Auto-dismiss alerts & bind form loaders with PSA loading state
+        document.addEventListener('DOMContentLoaded', function() {
+            window.notificationManager = new NotificationManager();
+            initMobileSidebar();
+
+            // Auto dismiss alerts after 4 sec
+            setTimeout(() => {
+                document.querySelectorAll('.alert').forEach(alert => {
                     alert.style.opacity = '0';
                     alert.style.transition = 'opacity 0.3s';
-                    setTimeout(function() {
-                        if (alert.parentElement) alert.remove();
-                    }, 300);
+                    setTimeout(() => alert.remove(), 300);
                 });
-            }, 5000);
-        });
+            }, 4000);
 
-        // Expose showToast globally
-        window.showToast = showToast;
+            // Hook into all forms to show PSA loader on submit
+            const forms = document.querySelectorAll('form');
+            forms.forEach(form => {
+                form.addEventListener('submit', function(e) {
+                    showPSALoader();
+                });
+            });
+
+            // Also attach to all navigation links that are actual route changes
+            const navLinks = document.querySelectorAll('.nav-link:not(.logout-btn)');
+            navLinks.forEach(link => {
+                link.addEventListener('click', function(e) {
+                    const href = this.getAttribute('href');
+                    if (href && href !== '#' && !href.startsWith('javascript')) {
+                        showPSALoader();
+                    }
+                });
+            });
+
+            // Hide loader when page finishes loading (backup)
+            window.addEventListener('load', function() {
+                setTimeout(() => hidePSALoader(), 500);
+            });
+
+            // Expose globally
+            window.showPSALoader = showPSALoader;
+            window.hidePSALoader = hidePSALoader;
+        });
     </script>
 
     @stack('scripts')

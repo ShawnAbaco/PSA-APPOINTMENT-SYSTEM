@@ -14,9 +14,6 @@
     <link rel="stylesheet" href="https://unpkg.com/leaflet-routing-machine@3.2.12/dist/leaflet-routing-machine.css" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <link rel="stylesheet" href="{{ asset('css/landing-page.css') }}">
-    <style>
-
-    </style>
 </head>
 
 <body>
@@ -35,6 +32,7 @@
             </div>
             <nav class="main-nav">
                 <a href="#home" class="nav-link">Home</a>
+                <a href="#howto" class="nav-link">How to Book</a>
                 <a href="#map-live" class="nav-link">Map & Directions</a>
                 <a href="#requirements" class="nav-link">Requirements</a>
                 <a href="#info" class="nav-link">Guidelines</a>
@@ -59,17 +57,67 @@
                             →</a> --}}
                         <a class="button button-outline" href="#requirements">View Requirements</a>
                     </div>
-                    {{-- <div class="stats-row">
-                        <div class="stat"><strong>15M+</strong> Registered</div>
-                        <div class="stat"><strong>1,500+</strong> Centers Nationwide</div>
-                        <div class="stat"><strong>Fast</strong> ePhilID printing</div>
-                    </div> --}}
                 </div>
                 <div class="hero-image">
                     <div class="floating-card">
                         <img src="{{ asset('images/ePhilID.png') }}" alt="ePhilID Sample"
                             style="width:100%; border-radius: 24px; object-fit: cover;">
                     </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- STEP BY STEP SECTION - HOW TO BOOK -->
+        <section id="howto" class="howto-section">
+            <div class="container">
+                <div class="section-header">
+                    <h2>How to Book a National ID Appointment</h2>
+                    <p>Follow these simple steps to schedule your appointment in minutes</p>
+                </div>
+                <div class="howto-grid">
+                    <div class="howto-card">
+                        <div class="howto-icon">
+                            <i class="fas fa-user-plus"></i>
+                        </div>
+                        <span class="howto-step">STEP 1</span>
+                        <h3>Add Clients</h3>
+                        <p>Add the person/s who will attend the appointment. Maximum of <strong>4 persons</strong> per
+                            booking.</p>
+                        <small>Each person can select their own service type</small>
+                    </div>
+                    <div class="howto-card">
+                        <div class="howto-icon">
+                            <i class="fas fa-calendar-alt"></i>
+                        </div>
+                        <span class="howto-step">STEP 2</span>
+                        <h3>Select Schedule</h3>
+                        <p>Choose your preferred appointment date and available time slot based on your selected
+                            services.</p>
+                        <small>Real-time slot availability</small>
+                    </div>
+                    <div class="howto-card">
+                        <div class="howto-icon">
+                            <i class="fas fa-phone-alt"></i>
+                        </div>
+                        <span class="howto-step">STEP 3</span>
+                        <h3>Contact Info</h3>
+                        <p>Provide your contact details for appointment confirmation and reminders.</p>
+                        <small>Email & mobile number</small>
+                    </div>
+                    <div class="howto-card">
+                        <div class="howto-icon">
+                            <i class="fas fa-check-double"></i>
+                        </div>
+                        <span class="howto-step">STEP 4</span>
+                        <h3>Review & Confirm</h3>
+                        <p>Double-check all information and confirm your appointment.</p>
+                        <small>Download your confirmation as PNG or PDF</small>
+                    </div>
+                </div>
+                <div class="howto-cta">
+                    <a href="javascript:void(0)" class="button button-primary" id="howtoBookBtn">
+                        <i class="fas fa-calendar-check"></i> Book Your Appointment Now →
+                    </a>
                 </div>
             </div>
         </section>
@@ -88,29 +136,100 @@
             </div>
         </section>
 
-        <!-- Requirements Section -->
+        <!-- Requirements Section - NOW WITH 3 CARDS -->
         <section id="requirements" class="requirements-section">
             <div class="container">
                 <div class="section-header">
-                    <h2>Appointment Requirements</h2>
+                    <h2>Appointment Requirements & Services</h2>
                     <p>Prepare the necessary documents before your scheduled visit</p>
                 </div>
                 <div class="requirements-grid">
+                    {{-- CARD 1: National ID Registration (Primary & Secondary) --}}
                     <div class="req-card">
                         <div class="req-header">
                             <h3>National ID Registration</h3>
                         </div>
                         <ul class="req-docs">
-                            <li><strong>PRIMARY:</strong> PSA Birth Certificate + 1 government-issued ID (Passport,
-                                UMID, Driver's License)</li>
-                            <li><strong>SECONDARY:</strong> PSA/LCRO Birth Certificate, Voter's ID, Postal ID,
-                                PhilHealth ID</li>
-                            <li>Employee ID, School ID, Barangay Certificate</li>
+                            <li><strong>PRIMARY DOCUMENTS:</strong>
+                                <ol style="margin-top: 5px; margin-left: 20px; list-style: decimal;">
+                                    <li>PSA-issued Certificate of Live Birth and one (1) government-issued
+                                        identification document which bears the full name, front-facing photograph, and
+                                        signature or thumbmark;</li>
+                                    <li>Philippine Passport or ePassport issued by the Department of Foreign Affairs
+                                        (DFA);</li>
+                                    <li>Unified Multi-purpose Identification (UMID) Card issued by the Government
+                                        Service Insurance System (GSIS) or Social Security System (SSS); or</li>
+                                    <li>Student's License Permit or Non-Professional/Professional Driver's License
+                                        issued by the Land Transportation Office (LTO).</li>
+                                </ol>
+                            </li>
+                            <li><strong>SECONDARY DOCUMENTS:</strong>
+                                <ol
+                                    style="margin-top: 5px; margin-left: 20px; list-style: decimal; max-height: 200px; overflow-y: auto;">
+                                    <li>PSA-issued Certificate of Live Birth/National Statistics Office (NSO)-issued
+                                        Certificate of Live Birth with Birth Reference Number (BreN);</li>
+                                    <li>Local Civil Registry Office (LCRO)-issued Certificate of Live Birth;</li>
+                                    <li>PSA-issued Report of Birth:</li>
+                                    <li>PSA-issued Certificate of Foundling:</li>
+                                    <li>Integrated Bar of the Philippines (IBP) Identification Card;</li>
+                                    <li>Professional Regulatory Commission (PRC) ID;</li>
+                                    <li>Seaman's Book (Seafarer's Record Book);</li>
+                                    <li>Overseas Workers Welfare Administration (OWWA) ID:</li>
+                                    <li>Senior Citizen's ID;</li>
+                                    <li>SSS ID;</li>
+                                    <li>Pantawid Pamilyang Pilipino Program (4Ps) ID;</li>
+                                    <li>License to Own or Possess Firearms (LTOPF);</li>
+                                    <li>NBI Clearance;</li>
+                                    <li>Police Clearance/ID:</li>
+                                    <li>Solo Parent's ID;</li>
+                                    <li>Person with Disability (PWD) ID;</li>
+                                    <li>Voter's ID;</li>
+                                    <li>Postal ID;</li>
+                                    <li>Taxpayer Identification Number (TIN):</li>
+                                    <li>PhilHealth ID;</li>
+                                    <li>Special Resident Retiree's Visa (SRRV);</li>
+                                    <li>National ID from other countries;</li>
+                                    <li>Residence ID from other countries;</li>
+                                    <li>Professional Identification Card;</li>
+                                    <li>Eligibility Card; and</li>
+                                    <li>Dependent's ID.</li>
+                                </ol>
+                            </li>
                         </ul>
                         <div class="warning-note">Bring <strong>original documents</strong>. No photocopies accepted
                             for primary validation.</div>
                     </div>
 
+                    {{-- CARD 2: Status Inquiry (ePhilID Issuance + TRN Retrieval) --}}
+                    <div class="req-card">
+                        <div class="req-header">
+                            <h3>Status Inquiry</h3>
+                        </div>
+                        <ul class="req-docs">
+                            <li><strong>ePhilID Issuance (Printing)</strong>
+                                <ul style="margin-top: 5px; margin-left: 20px; list-style: disc;">
+                                    <li>Transaction slip or reference number from Step 1 registration</li>
+                                    <li><strong>For Representative:</strong> Authorization letter + valid ID of both
+                                        parties</li>
+                                    <li><strong>For Minor:</strong> Birth Certificate + Guardian's valid ID</li>
+                                </ul>
+                            </li>
+                            <li><strong>TRN Retrieval</strong>
+                                <ul style="margin-top: 5px; margin-left: 20px; list-style: disc;">
+                                    <li>Provide: First, Middle, Last Name</li>
+                                    <li>Date of Birth (exact as registered)</li>
+                                    <li>Sex / Gender information</li>
+                                </ul>
+                            </li>
+                        </ul>
+                        <div class="warning-note">ePhilID is a valid proof of identity while waiting for the physical
+                            card.<br>
+                            Confidential per RA 10173 (Data Privacy Act). TRN will only be released to the data subject.
+                        </div>
+                    </div>
+
+
+                    {{-- CARD 3: Correction / Updating --}}
                     <div class="req-card">
                         <div class="req-header">
                             <h3>Correction / Updating</h3>
@@ -123,33 +242,6 @@
                         </ul>
                         <div class="warning-note">Bring <strong>ORIGINAL copies</strong> of supporting documents for
                             any demographic change.</div>
-                    </div>
-
-                    <div class="req-card">
-                        <div class="req-header">
-                            <h3>ePhilID Issuance (Printing)</h3>
-                        </div>
-                        <ul class="req-docs">
-                            <li>Transaction slip or reference number from Step 1 registration</li>
-                            <li><strong>For Representative:</strong> Authorization letter + valid ID of both parties
-                            </li>
-                            <li><strong>For Minor:</strong> Birth Certificate + Guardian's valid ID</li>
-                        </ul>
-                        <div class="warning-note">ePhilID is a valid proof of identity while waiting for the physical
-                            card.</div>
-                    </div>
-
-                    <div class="req-card">
-                        <div class="req-header">
-                            <h3>TRN Retrieval</h3>
-                        </div>
-                        <ul class="req-docs">
-                            <li>Provide: First, Middle, Last Name</li>
-                            <li>Date of Birth (exact as registered)</li>
-                            <li>Sex / Gender information</li>
-                        </ul>
-                        <div class="warning-note">Confidential per RA 10173 (Data Privacy Act). TRN will only be
-                            released to the data subject.</div>
                     </div>
                 </div>
             </div>
@@ -321,12 +413,87 @@
         (function() {
             'use strict';
 
+            // Smooth scroll and active link highlighting
+            const navLinks = document.querySelectorAll('.nav-link');
+            const sections = document.querySelectorAll('section[id]');
+
+            // Function to update active nav link based on scroll position
+            function updateActiveNavLink() {
+                let currentSection = '';
+                const scrollPosition = window.scrollY + 100; // Offset for header
+
+                sections.forEach(section => {
+                    const sectionTop = section.offsetTop;
+                    const sectionHeight = section.offsetHeight;
+                    if (scrollPosition >= sectionTop && scrollPosition < sectionTop + sectionHeight) {
+                        currentSection = section.getAttribute('id');
+                    }
+                });
+
+                navLinks.forEach(link => {
+                    link.classList.remove('active');
+                    const href = link.getAttribute('href');
+                    if (href === `#${currentSection}`) {
+                        link.classList.add('active');
+                    }
+                });
+            }
+
+            // Function to handle smooth scroll when clicking nav links
+            function handleNavClick(e) {
+                const targetId = this.getAttribute('href');
+                if (targetId && targetId !== '#book-appointment' && targetId !== 'javascript:void(0)') {
+                    e.preventDefault();
+                    const targetElement = document.querySelector(targetId);
+                    if (targetElement) {
+                        const headerOffset = 80;
+                        const elementPosition = targetElement.offsetTop;
+                        const offsetPosition = elementPosition - headerOffset;
+
+                        window.scrollTo({
+                            top: offsetPosition,
+                            behavior: 'smooth'
+                        });
+
+                        // Update URL hash without jumping
+                        history.pushState(null, null, targetId);
+                    }
+                }
+            }
+
+            // Add click handlers to nav links
+            navLinks.forEach(link => {
+                link.addEventListener('click', handleNavClick);
+            });
+
+            // Listen for scroll events to update active link
+            window.addEventListener('scroll', updateActiveNavLink);
+            window.addEventListener('load', updateActiveNavLink);
+
+            // Section fade-in animation on scroll
+            const fadeSections = document.querySelectorAll(
+                '.hero-section, .howto-section, .map-section, .requirements-section, .info-section');
+
+            function checkFadeIn() {
+                fadeSections.forEach(section => {
+                    const sectionTop = section.getBoundingClientRect().top;
+                    const windowHeight = window.innerHeight;
+                    if (sectionTop < windowHeight - 100) {
+                        section.classList.add('visible');
+                    }
+                });
+            }
+
+            window.addEventListener('scroll', checkFadeIn);
+            window.addEventListener('load', checkFadeIn);
+
             // Get all book appointment buttons/links
             const bookButtons = [
                 document.getElementById('heroBookBtn'),
                 document.getElementById('bookAppointmentNavBtn'),
                 document.getElementById('guidelinesBookBtn'),
-                document.getElementById('footerBookBtn')
+                document.getElementById('footerBookBtn'),
+                document.getElementById('howtoBookBtn')
             ].filter(btn => btn !== null);
 
             const modal = document.getElementById('appointmentModal');
@@ -334,46 +501,32 @@
             const loadingOverlay = document.getElementById('modalLoading');
             const closeModalBtn = document.getElementById('closeAppointmentModalBtn');
 
-            // The URL to the appointment blade (client/appointment)
-            // Adjust the route as needed. Using the same URL pattern as your original href="/appointment"
             const appointmentUrl = "{{ url('/appointment') }}";
 
-            // Function to open modal and load iframe
             function openAppointmentModal() {
-                // Show modal
                 modal.classList.add('active');
                 document.body.classList.add('modal-open');
-
-                // Show loading
                 loadingOverlay.style.display = 'flex';
                 iframe.style.opacity = '0';
-
-                // Set iframe source (clear first to force reload)
                 iframe.src = 'about:blank';
-
-                // Small timeout to ensure iframe reloads properly
                 setTimeout(() => {
                     iframe.src = appointmentUrl;
                 }, 50);
             }
 
-            // Close modal function
             function closeAppointmentModal() {
                 modal.classList.remove('active');
                 document.body.classList.remove('modal-open');
-                // Clear iframe to stop any background processes
                 setTimeout(() => {
                     iframe.src = 'about:blank';
                 }, 300);
             }
 
-            // When iframe loads, hide loading overlay
             iframe.addEventListener('load', function() {
                 loadingOverlay.style.display = 'none';
                 iframe.style.opacity = '1';
             });
 
-            // If iframe fails to load (timeout fallback)
             setTimeout(() => {
                 if (loadingOverlay.style.display !== 'none') {
                     loadingOverlay.innerHTML =
@@ -381,7 +534,6 @@
                 }
             }, 8000);
 
-            // Add click handlers to all book buttons
             bookButtons.forEach(btn => {
                 if (btn) {
                     btn.addEventListener('click', function(e) {
@@ -391,39 +543,30 @@
                 }
             });
 
-            // Close modal on X button
             if (closeModalBtn) {
                 closeModalBtn.addEventListener('click', closeAppointmentModal);
             }
 
-            // Close modal when clicking outside the modal container (on overlay)
             modal.addEventListener('click', function(e) {
                 if (e.target === modal) {
                     closeAppointmentModal();
                 }
             });
 
-            // Close modal on ESC key
             document.addEventListener('keydown', function(e) {
                 if (e.key === 'Escape' && modal.classList.contains('active')) {
                     closeAppointmentModal();
                 }
             });
 
-            // Handle any hash links that might try to navigate away (keep modal behavior)
-            // For existing nav links that are not book appointment, they work normally.
-
-            // Also update any dynamically added book buttons if needed (but all are static)
             console.log('Appointment modal initialized. Buttons found:', bookButtons.length);
         })();
 
-        // Keep existing modal functions for privacy modals
         function closeModal(modalId) {
             const modal = document.getElementById(modalId);
             if (modal) modal.style.display = 'none';
         }
 
-        // Privacy modal triggers (existing)
         document.getElementById('privacyPolicyLink')?.addEventListener('click', function(e) {
             e.preventDefault();
             document.getElementById('privacyModal').style.display = 'flex';
@@ -433,7 +576,6 @@
             document.getElementById('dataPrivacyModal').style.display = 'flex';
         });
 
-        // Close modals when clicking outside
         window.onclick = function(event) {
             const privacyModal = document.getElementById('privacyModal');
             const dataPrivacyModal = document.getElementById('dataPrivacyModal');
@@ -443,7 +585,6 @@
     </script>
 
     <script>
-        // Location detection that stores data for appointment blade
         async function detectAndStoreLocation() {
             if (!navigator.geolocation) {
                 console.warn("Geolocation not supported");
@@ -462,7 +603,6 @@
                 const lat = position.coords.latitude;
                 const lng = position.coords.longitude;
 
-                // Get address using reverse geocoding
                 let city = '',
                     address = '',
                     zipcode = '';
@@ -480,7 +620,6 @@
                     console.error('Reverse geocoding error:', error);
                 }
 
-                // Store location data in localStorage for appointment blade
                 const locationData = {
                     lat: lat,
                     lng: lng,
@@ -505,23 +644,19 @@
             }
         }
 
-        // Detect location when page loads (for the map)
         setTimeout(() => {
             detectAndStoreLocation();
         }, 1000);
 
-        // Also detect when user clicks any book appointment button
         const bookButtons = document.querySelectorAll(
-            '#heroBookBtn, #bookAppointmentNavBtn, #guidelinesBookBtn, #footerBookBtn');
+            '#heroBookBtn, #bookAppointmentNavBtn, #guidelinesBookBtn, #footerBookBtn, #howtoBookBtn');
         bookButtons.forEach(btn => {
             if (btn) {
                 btn.addEventListener('click', function(e) {
-                    // Check if location was detected, if not, detect before opening
                     const stored = localStorage.getItem('userLocation');
                     if (!stored || JSON.parse(stored).detected === false) {
                         e.preventDefault();
                         detectAndStoreLocation().then(() => {
-                            // After detection, open modal
                             document.getElementById('appointmentModal').classList.add('active');
                             document.body.classList.add('modal-open');
                             const iframe = document.getElementById('appointmentIframe');
