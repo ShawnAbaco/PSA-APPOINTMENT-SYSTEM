@@ -353,56 +353,39 @@ class SettingsController extends Controller
         }
     }
     
-    public function testEmail(Request $request)
-    {
-        $request->validate([
-            'email' => 'required|email'
-        ]);
+    /**
+ * Test email configuration using .env settings
+ */
+public function testEmail(Request $request)
+{
+    $request->validate([
+        'email' => 'required|email'
+    ]);
+    
+    try {
+        $mailService = new \App\Services\MailService();
+        $result = $mailService->sendTestEmail($request->email);
         
-        try {
-            $mailService = new MailService();
-            
-            $testAppointment = new \stdClass();
-            $testAppointment->appointment_number = 'TEST-001';
-            $testAppointment->reference_code = 'TEST-REF-' . date('Ymd');
-            $testAppointment->appointment_date = now();
-            $testAppointment->type = 'single';
-            $testAppointment->contact_name = 'Test User';
-            $testAppointment->contact_mobile = '09123456789';
-            $testAppointment->contact_email = $request->email;
-            
-            $testClients = [
-                [
-                    'first_name' => 'Test',
-                    'middle_name' => '',
-                    'last_name' => 'User',
-                    'suffix' => '',
-                    'service' => 'reg'
-                ]
-            ];
-            
-            $result = $mailService->sendAppointmentConfirmation($testAppointment, $testClients);
-            
-            if ($result) {
-                return response()->json([
-                    'success' => true,
-                    'message' => 'Test email sent successfully to ' . $request->email
-                ]);
-            } else {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Failed to send test email. Check your SMTP settings and logs.'
-                ], 500);
-            }
-            
-        } catch (\Exception $e) {
-            \Log::error('Test email failed: ' . $e->getMessage());
+        if ($result) {
+            return response()->json([
+                'success' => true,
+                'message' => 'Test email sent successfully to ' . $request->email
+            ]);
+        } else {
             return response()->json([
                 'success' => false,
-                'message' => 'Error: ' . $e->getMessage()
+                'message' => 'Failed to send test email. Check your .env SMTP settings and logs.'
             ], 500);
         }
+        
+    } catch (\Exception $e) {
+        \Log::error('Test email failed: ' . $e->getMessage());
+        return response()->json([
+            'success' => false,
+            'message' => 'Error: ' . $e->getMessage()
+        ], 500);
     }
+}
 
     public function storeTimeSlot(Request $request)
     {

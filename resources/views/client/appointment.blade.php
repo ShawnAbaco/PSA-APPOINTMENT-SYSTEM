@@ -228,11 +228,8 @@ body {
 }
 
 .btn-add-client {
-    background: #28a745;
-    color: white;
-    width: 100%;
-    justify-content: center;
-    margin-top: 10px;
+    border-style: solid;
+    border-color: #1a3d5c;
 }
 
 .btn-requirements {

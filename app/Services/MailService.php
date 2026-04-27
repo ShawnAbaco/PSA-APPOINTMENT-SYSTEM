@@ -5,9 +5,7 @@ namespace App\Services;
 use PHPMailer\PHPMailer\PHPMailer;
 use PHPMailer\PHPMailer\SMTP;
 use PHPMailer\PHPMailer\Exception;
-use App\Models\Setting;
 use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\Crypt;
 
 class MailService
 {
@@ -16,7 +14,8 @@ class MailService
 
     public function __construct()
     {
-        $this->isEnabled = $this->getSetting('notification.enable_email', true);
+        // Check if mail is enabled in .env (default to true)
+        $this->isEnabled = env('MAIL_ENABLED', true);
         
         if ($this->isEnabled) {
             $this->initialize();
@@ -28,21 +27,19 @@ class MailService
         $this->mail = new PHPMailer(true);
         
         try {
-            // Server settings
+            // Server settings from .env
             $this->mail->isSMTP();
-            $this->mail->Host = $this->getSetting('email_host', 'smtp.gmail.com');
+            $this->mail->Host = env('MAIL_HOST', 'smtp.gmail.com');
             $this->mail->SMTPAuth = true;
-            $this->mail->Username = $this->getSetting('email_username', '');
+            $this->mail->Username = env('MAIL_USERNAME', '');
+            $this->mail->Password = env('MAIL_PASSWORD', '');
+            $this->mail->SMTPSecure = env('MAIL_ENCRYPTION', 'tls');
+            $this->mail->Port = env('MAIL_PORT', 587);
             
-            // Get password and decrypt if needed
-            $password = $this->getPassword();
-            $this->mail->Password = $password;
-            
-            $this->mail->SMTPSecure = $this->getSetting('email_encryption', 'tls');
-            $this->mail->Port = $this->getSetting('email_port', 587);
+            // From address from .env
             $this->mail->setFrom(
-                $this->getSetting('email_from_address', 'noreply@psa.gov.ph'),
-                $this->getSetting('email_from_name', 'PSA Appointment System')
+                env('MAIL_FROM_ADDRESS', 'noreply@psa.gov.ph'),
+                env('MAIL_FROM_NAME', 'PSA Appointment System')
             );
             
             // Disable SSL verification for local development (remove in production)
@@ -53,49 +50,29 @@ class MailService
                     'allow_self_signed' => true
                 ]
             ];
+            
+            Log::info('Mail service initialized with .env configuration', [
+                'host' => env('MAIL_HOST'),
+                'port' => env('MAIL_PORT'),
+                'encryption' => env('MAIL_ENCRYPTION'),
+                'from' => env('MAIL_FROM_ADDRESS')
+            ]);
+            
         } catch (Exception $e) {
             Log::error('PHPMailer initialization failed: ' . $e->getMessage());
         }
     }
     
     /**
-     * Get and decrypt password from settings
+     * Send appointment confirmation email
      */
-    protected function getPassword()
-    {
-        $setting = Setting::where('key', 'email_password')->first();
-        
-        if (!$setting || empty($setting->value)) {
-            return '';
-        }
-        
-        // Check if the value is already plain text or encrypted
-        $value = $setting->value;
-        
-        // Try to decrypt (if it's encrypted)
-        try {
-            // Check if it looks like an encrypted string (base64 encoded)
-            if (preg_match('/^[a-zA-Z0-9\/\+=]+$/', $value) && strlen($value) > 50) {
-                return Crypt::decryptString($value);
-            }
-        } catch (\Exception $e) {
-            // If decryption fails, assume it's plain text (for backward compatibility)
-            Log::warning('Could not decrypt email password, using as is');
-        }
-        
-        return $value;
-    }
-
-    protected function getSetting($key, $default = null)
-    {
-        return Setting::get($key, $default);
-    }
-    
-    // Rest of your MailService methods remain the same...
-    
     public function sendAppointmentConfirmation($appointment, $clients)
     {
         if (!$this->isEnabled || !$appointment->contact_email) {
+            Log::info('Email not sent: disabled or no recipient', [
+                'enabled' => $this->isEnabled,
+                'has_email' => !empty($appointment->contact_email)
+            ]);
             return false;
         }
 
@@ -121,20 +98,98 @@ class MailService
             
         } catch (Exception $e) {
             Log::error('Email sending failed: ' . $e->getMessage(), [
-                'appointment_number' => $appointment->appointment_number
+                'appointment_number' => $appointment->appointment_number,
+                'error' => $e->getMessage()
             ]);
             return false;
         }
     }
     
+    /**
+     * Send test email
+     */
+    public function sendTestEmail($recipientEmail)
+    {
+        if (!$this->isEnabled) {
+            Log::error('Test email failed: Mail service is disabled');
+            return false;
+        }
+
+        try {
+            $this->mail->clearAddresses();
+            $this->mail->addAddress($recipientEmail);
+            
+            $this->mail->Subject = 'Test Email from PSA Appointment System';
+            
+            $body = $this->generateTestEmailBody();
+            $this->mail->isHTML(true);
+            $this->mail->Body = $body;
+            $this->mail->AltBody = strip_tags($body);
+            
+            $this->mail->send();
+            
+            Log::info('Test email sent successfully to: ' . $recipientEmail);
+            return true;
+            
+        } catch (Exception $e) {
+            Log::error('Test email failed: ' . $e->getMessage());
+            return false;
+        }
+    }
+    
+    /**
+     * Generate test email body
+     */
+    protected function generateTestEmailBody()
+    {
+        return "
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <title>Test Email</title>
+            <meta charset='UTF-8'>
+        </head>
+        <body style='font-family: Arial, sans-serif; line-height: 1.6; color: #333;'>
+            <div style='max-width: 600px; margin: 0 auto; padding: 20px;'>
+                <div style='text-align: center; border-bottom: 3px solid #2c5f8a; padding-bottom: 15px; margin-bottom: 20px;'>
+                    <h2 style='color: #2c5f8a; margin: 0;'>Philippine Statistics Authority</h2>
+                    <p style='margin: 5px 0;'>National ID Appointment System</p>
+                </div>
+                
+                <div style='background: #e8f5e9; padding: 15px; border-radius: 5px; margin-bottom: 20px; text-align: center;'>
+                    <h3 style='color: #2e7d32; margin: 0;'>✓ Test Email Successful!</h3>
+                </div>
+                
+                <p>Dear User,</p>
+                <p>This is a test email from the PSA Appointment System. Your email configuration is working correctly!</p>
+                
+                <div style='background: #f9f9f9; padding: 15px; border-radius: 5px; margin: 20px 0;'>
+                    <h4 style='color: #2c5f8a; margin-top: 0;'>Configuration Details:</h4>
+                    <p><strong>SMTP Host:</strong> " . env('MAIL_HOST', 'Not set') . "</p>
+                    <p><strong>SMTP Port:</strong> " . env('MAIL_PORT', 'Not set') . "</p>
+                    <p><strong>Encryption:</strong> " . env('MAIL_ENCRYPTION', 'Not set') . "</p>
+                    <p><strong>From Address:</strong> " . env('MAIL_FROM_ADDRESS', 'Not set') . "</p>
+                    <p><strong>From Name:</strong> " . env('MAIL_FROM_NAME', 'Not set') . "</p>
+                </div>
+                
+                <div style='text-align: center; font-size: 12px; color: #999; margin-top: 20px; padding-top: 15px; border-top: 1px solid #ddd;'>
+                    <p>© " . date('Y') . " Philippine Statistics Authority. All rights reserved.</p>
+                </div>
+            </div>
+        </body>
+        </html>
+        ";
+    }
+    
+    /**
+     * Generate appointment confirmation email body
+     */
     protected function generateConfirmationEmail($appointment, $clients)
     {
-        // Your existing email generation code...
         $services = [
             'reg' => 'National ID Registration',
-            'correction' => 'Correction/Updating',
-            'ephilid' => 'ePhilID Issuance',
-            'trn' => 'TRN Retrieval'
+            'updating' => 'Correction/Updating',
+            'inquiry' => 'Status Inquiry / TRN Retrieval'
         ];
         
         $clientsHtml = '';
@@ -174,17 +229,17 @@ class MailService
                     <h3 style='color: #2e7d32; margin: 0;'>✓ Appointment Confirmed!</h3>
                 </div>
                 
-                <p>Dear <strong>{$appointment->contact_name}</strong>,</p>
+                <p>Dear <strong>" . htmlspecialchars($appointment->contact_name) . "</strong>,</p>
                 <p>Your appointment has been successfully booked. Please find the details below:</p>
                 
                 <table style='width: 100%; border-collapse: collapse; margin: 20px 0; background: #f9f9f9;'>
                     <tr>
                         <td style='padding: 10px; border: 1px solid #ddd; background: #f5f5f5; width: 40%;'><strong>Appointment Number:</strong></td>
-                        <td style='padding: 10px; border: 1px solid #ddd;'><strong>{$appointment->appointment_number}</strong></td>
+                        <td style='padding: 10px; border: 1px solid #ddd;'><strong>" . htmlspecialchars($appointment->appointment_number) . "</strong></td>
                     </tr>
                     <tr>
                         <td style='padding: 10px; border: 1px solid #ddd; background: #f5f5f5;'><strong>Reference Code:</strong></td>
-                        <td style='padding: 10px; border: 1px solid #ddd;'><code style='background: #fff; padding: 3px 5px;'>{$appointment->reference_code}</code></td>
+                        <td style='padding: 10px; border: 1px solid #ddd;'><code style='background: #fff; padding: 3px 5px;'>" . htmlspecialchars($appointment->reference_code) . "</code></td>
                     </tr>
                     <tr>
                         <td style='padding: 10px; border: 1px solid #ddd; background: #f5f5f5;'><strong>Appointment Date:</strong></td>
@@ -214,16 +269,16 @@ class MailService
                 <table style='width: 100%; border-collapse: collapse; margin-bottom: 20px; background: #f9f9f9;'>
                     <tr>
                         <td style='padding: 10px; border: 1px solid #ddd; background: #f5f5f5; width: 40%;'><strong>Contact Person:</strong></td>
-                        <td style='padding: 10px; border: 1px solid #ddd;'>{$appointment->contact_name}</td>
+                        <td style='padding: 10px; border: 1px solid #ddd;'>" . htmlspecialchars($appointment->contact_name) . "</td>
                     </tr>
                     <tr>
                         <td style='padding: 10px; border: 1px solid #ddd; background: #f5f5f5;'><strong>Mobile Number:</strong></td>
-                        <td style='padding: 10px; border: 1px solid #ddd;'>{$appointment->contact_mobile}</td>
+                        <td style='padding: 10px; border: 1px solid #ddd;'>" . htmlspecialchars($appointment->contact_mobile) . "</td>
                     </tr>
                     " . ($appointment->contact_email ? "
                     <tr>
                         <td style='padding: 10px; border: 1px solid #ddd; background: #f5f5f5;'><strong>Email:</strong></td>
-                        <td style='padding: 10px; border: 1px solid #ddd;'>{$appointment->contact_email}</td>
+                        <td style='padding: 10px; border: 1px solid #ddd;'>" . htmlspecialchars($appointment->contact_email) . "</td>
                     </tr>" : "") . "
                 </table>
                 
