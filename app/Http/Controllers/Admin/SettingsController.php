@@ -393,7 +393,6 @@ public function testEmail(Request $request)
             'start_time' => 'required|date_format:H:i',
             'end_time' => 'required|date_format:H:i|after:start_time',
             'slot_label' => 'nullable|string|max:255',
-            'capacity_per_slot' => 'required|integer|min:1|max:50',
         ]);
         
         $displayOrder = TimeSlot::max('display_order') + 1;

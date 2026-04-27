@@ -46,94 +46,90 @@ class AppointmentController extends Controller
         }
     }
     
-   /**
- * Get day type for a specific date
- * Returns: 'working' or 'non_working'
- */
-private function getDayType($date)
-{
-    try {
-        // Check override FIRST (for holidays and special non-working days)
-        $override = WorkingDaysOverride::where('date', $date)->first();
-        if ($override) {
-            return $override->day_type; // 'non_working' or 'holiday'
-        }
-        
-        // Get day name from Carbon
-        $dayName = strtolower($date->format('l')); // monday, tuesday, etc.
-        
-        // Check default working days configuration
-        $default = WorkingDaysDefault::where('day_name', $dayName)->first();
-        
-        if (!$default) {
-            return 'working'; // Default to working if not found
-        }
-        
-        return $default->day_type; // 'working' or 'non_working'
-    } catch (\Exception $e) {
-        Log::warning('Error getting day type: ' . $e->getMessage());
-        return 'working';
-    }
-}
-
-/**
- * Get capacity for a specific date, time slot, and service
- * 
- * Priority order:
- * 1. SlotCapacityOverride (admin can set custom capacity for any date)
- * 2. SlotCapacityRule based on day_type from working_days (working, non_working, holiday)
- * 3. Default fallback (4 for working, 0 for others)
- */
-private function getCapacity($date, $timeSlotId, $service)
-{
-    try {
-        // STEP 1: Check for SlotCapacityOverride FIRST (highest priority)
-        // Admin can set custom capacity for any specific date (holidays, special days, etc.)
-        $override = SlotCapacityOverride::where('date', $date)
-            ->where('time_slot_id', $timeSlotId)
-            ->first();
-        
-        if ($override) {
-            switch ($service) {
-                case 'reg': return $override->reg_capacity ?? 0;
-                case 'updating': return $override->updating_capacity ?? 0;
-                case 'inquiry': return $override->inquiry_capacity ?? 0;
-                default: return 0;
+    /**
+     * Get day type for a specific date
+     * Returns: 'working', 'non_working', or 'holiday'
+     */
+    private function getDayType($date)
+    {
+        try {
+            // Check override FIRST (for holidays and special non-working days)
+            $override = WorkingDaysOverride::where('date', $date->format('Y-m-d'))->first();
+            if ($override) {
+                return $override->day_type; // 'non_working' or 'holiday'
             }
-        }
-        
-        // STEP 2: Get day type from working days configuration
-        // This checks working_days_overrides first, then working_days_defaults
-        $dayType = $this->getDayType(Carbon::parse($date));
-        
-        // STEP 3: Get capacity rule based on day_type
-        $rule = SlotCapacityRule::where('time_slot_id', $timeSlotId)
-            ->where('day_type', $dayType)
-            ->first();
-        
-        if ($rule) {
-            switch ($service) {
-                case 'reg': return $rule->reg_capacity;
-                case 'updating': return $rule->updating_capacity;
-                case 'inquiry': return $rule->inquiry_capacity;
-                default: return 0;
+            
+            // Get day name from Carbon
+            $dayName = strtolower($date->format('l')); // monday, tuesday, etc.
+            
+            // Check default working days configuration
+            $default = WorkingDaysDefault::where('day_name', $dayName)->first();
+            
+            if (!$default) {
+                return 'working'; // Default to working if not found
             }
+            
+            return $default->day_type; // 'working' or 'non_working'
+        } catch (\Exception $e) {
+            Log::warning('Error getting day type: ' . $e->getMessage());
+            return 'working';
         }
-        
-        // STEP 4: Default fallback values
-        // If no rule found, return sensible defaults
-        if ($dayType === 'working') {
-            return 4; // Default working day capacity
-        }
-        
-        // For non_working and holiday, default to 0 (closed)
-        return 0;
-        
-    } catch (\Exception $e) {
-        Log::warning('Error getting capacity: ' . $e->getMessage());
-        return 4; // Default to 4 on error
     }
-}
+    
+    /**
+     * Get capacity for a specific date, time slot, and service
+     * 
+     * Priority order:
+     * 1. SlotCapacityOverride (admin can set custom capacity for any date)
+     * 2. SlotCapacityRule based on day_type from working_days (working, non_working, holiday)
+     * 3. Default fallback (4 for working, 0 for others)
+     */
+    private function getCapacity($date, $timeSlotId, $service)
+    {
+        try {
+            // STEP 1: Check for SlotCapacityOverride FIRST (highest priority)
+            $override = SlotCapacityOverride::where('date', $date)
+                ->where('time_slot_id', $timeSlotId)
+                ->first();
+            
+            if ($override) {
+                switch ($service) {
+                    case 'reg': return $override->reg_capacity ?? 0;
+                    case 'updating': return $override->updating_capacity ?? 0;
+                    case 'inquiry': return $override->inquiry_capacity ?? 0;
+                    default: return 0;
+                }
+            }
+            
+            // STEP 2: Get day type from working days configuration
+            $dayType = $this->getDayType(Carbon::parse($date));
+            
+            // STEP 3: Get capacity rule based on day_type
+            $rule = SlotCapacityRule::where('time_slot_id', $timeSlotId)
+                ->where('day_type', $dayType)
+                ->first();
+            
+            if ($rule) {
+                switch ($service) {
+                    case 'reg': return $rule->reg_capacity;
+                    case 'updating': return $rule->updating_capacity;
+                    case 'inquiry': return $rule->inquiry_capacity;
+                    default: return 0;
+                }
+            }
+            
+            // STEP 4: Default fallback values
+            if ($dayType === 'working') {
+                return 4; // Default working day capacity
+            }
+            
+            return 0; // For non_working and holiday, default to 0 (closed)
+            
+        } catch (\Exception $e) {
+            Log::warning('Error getting capacity: ' . $e->getMessage());
+            return 4;
+        }
+    }
     
     /**
      * Get booked count for a specific date, time slot, and service
@@ -163,173 +159,178 @@ private function getCapacity($date, $timeSlotId, $service)
     }
 
     public function getAvailableDates(Request $request)
-    {
-        try {
-            $month = (int)$request->get('month', date('n'));
-            $year = (int)$request->get('year', date('Y'));
-            $clientCount = (int)$request->get('client_count', 1);
-            $selectedService = $request->get('service');
-            $servicesParam = $request->get('services');
-            
-            // Get list of services to check
-            $servicesToCheck = [];
-            if ($servicesParam) {
-                $servicesToCheck = explode(',', $servicesParam);
-            } elseif ($selectedService) {
-                $servicesToCheck = [$selectedService];
-            } else {
-                $servicesToCheck = ['reg', 'updating', 'inquiry'];
-            }
-            
-            $advanceDays = 30;
-            $advanceSetting = Setting::where('key', 'appointment.advance_booking_days')->first();
-            if ($advanceSetting) {
-                $advanceDays = (int)$advanceSetting->value;
-            }
-            
-            $maxDate = Carbon::now()->addDays($advanceDays);
-            $dates = [];
-            $daysInMonth = Carbon::create($year, $month)->daysInMonth;
-            
-            // Get all active time slots
-            $timeSlots = TimeSlot::where('is_active', true)->get();
-            
-            for ($day = 1; $day <= $daysInMonth; $day++) {
-                $date = Carbon::create($year, $month, $day);
-                $dateKey = $date->format('Y-m-d');
-                
-                // Skip past dates
-                if ($date->lt(Carbon::now()->startOfDay())) {
-                    continue;
-                }
-                
-                // Skip dates beyond max booking
-                if ($date->gt($maxDate)) {
-                    continue;
-                }
-                
-                // Check if date is working day using getDayType
-                $dayType = $this->getDayType($date);
-                // Skip if it's Sunday or Holiday (non-working days)
-                if ($dayType === 'sunday' || $dayType === 'holiday') {
-                    continue;
-                }
-                
-                if ($timeSlots->isEmpty()) {
-                    continue;
-                }
-                
-                $hasAvailableSlot = false;
-                $serviceAvailability = [];
-                
-                foreach ($servicesToCheck as $service) {
-                    $totalAvailable = 0;
-                    
-                    foreach ($timeSlots as $timeSlot) {
-                        $available = $this->getAvailableSlots($dateKey, $timeSlot->id, $service);
-                        $totalAvailable += $available;
-                    }
-                    
-                    $serviceAvailability[$service] = $totalAvailable;
-                    
-                    if ($totalAvailable >= $clientCount) {
-                        $hasAvailableSlot = true;
-                    }
-                }
-                
-                // Only include dates that have at least one available slot
-                if ($hasAvailableSlot) {
-                    $dates[] = [
-                        'date' => $dateKey,
-                        'available' => true,
-                        'available_slots' => min($serviceAvailability),
-                        'service_availability' => $serviceAvailability,
-                        'day' => $date->format('l'),
-                        'display_date' => $date->format('F d, Y'),
-                        'day_type' => $dayType, // Add day type for debugging
-                    ];
-                }
-            }
-            
-            return response()->json([
-                'success' => true,
-                'dates' => $dates,
-                'month' => Carbon::create($year, $month)->format('F Y'),
-            ]);
-            
-        } catch (\Exception $e) {
-            Log::error('getAvailableDates error: ' . $e->getMessage());
-            Log::error($e->getTraceAsString());
-            
-            return response()->json([
-                'success' => false,
-                'message' => $e->getMessage(),
-                'dates' => []
-            ], 500);
+{
+    try {
+        $month = (int)$request->get('month', date('n'));
+        $year = (int)$request->get('year', date('Y'));
+        $clientCount = (int)$request->get('client_count', 1);
+        $servicesParam = $request->get('services', '');
+        
+        // Get list of services to check
+        $servicesToCheck = !empty($servicesParam) ? explode(',', $servicesParam) : ['reg', 'updating', 'inquiry'];
+        
+        $advanceDays = 30;
+        $advanceSetting = Setting::where('key', 'appointment.advance_booking_days')->first();
+        if ($advanceSetting) {
+            $advanceDays = (int)$advanceSetting->value;
         }
-    }
-    
-    public function getAvailableTimeSlots(Request $request)
-    {
-        try {
-            $date = $request->get('date');
-            $servicesParam = $request->get('services', '');
-            $clientCount = (int)$request->get('client_count', 1);
+        
+        $maxDate = Carbon::now()->addDays($advanceDays);
+        $dates = [];
+        $daysInMonth = Carbon::create($year, $month)->daysInMonth;
+        
+        // Get all active time slots
+        $timeSlots = TimeSlot::where('is_active', true)->get();
+        
+        for ($day = 1; $day <= $daysInMonth; $day++) {
+            $date = Carbon::create($year, $month, $day);
+            $dateKey = $date->format('Y-m-d');
             
-            $servicesToCheck = !empty($servicesParam) ? explode(',', $servicesParam) : ['reg', 'updating', 'inquiry'];
+            // Skip past dates
+            if ($date->lt(Carbon::now()->startOfDay())) {
+                continue;
+            }
             
-            // Get all active time slots
-            $timeSlots = TimeSlot::where('is_active', true)
-                ->orderBy('display_order')
-                ->get();
+            // Skip dates beyond max booking
+            if ($date->gt($maxDate)) {
+                continue;
+            }
             
-            $availableTimeSlots = [];
+            // Check if date is a working day
+            $dayType = $this->getDayType($date);
+            if ($dayType !== 'working') {
+                continue;
+            }
+            
+            if ($timeSlots->isEmpty()) {
+                continue;
+            }
+            
+            // Check if there's ANY time slot that can accommodate ALL selected services
+            $hasAnyAvailableTimeSlot = false;
+            $serviceAvailability = [];
+            
+            foreach ($servicesToCheck as $service) {
+                $serviceAvailability[$service] = 0;
+            }
             
             foreach ($timeSlots as $timeSlot) {
-                $availableForServices = [];
-                $hasAnyAvailability = false;
-                $minAvailable = PHP_INT_MAX;
+                $allServicesHaveAvailability = true;
                 
                 foreach ($servicesToCheck as $service) {
-                    $available = $this->getAvailableSlots($date, $timeSlot->id, $service);
-                    $availableForServices[$service] = $available;
-                    $minAvailable = min($minAvailable, $available);
-                    
-                    if ($available > 0) {
-                        $hasAnyAvailability = true;
+                    $available = $this->getAvailableSlots($dateKey, $timeSlot->id, $service);
+                    if ($available <= 0) {
+                        $allServicesHaveAvailability = false;
+                        break;
                     }
                 }
                 
-                // Show the time slot if ANY service has availability
-                if ($hasAnyAvailability) {
-                    $availableTimeSlots[] = [
-                        'id' => $timeSlot->id,
-                        'time_slot_id' => $timeSlot->id,
-                        'slot_label' => $timeSlot->label ?? $this->formatTimeRange($timeSlot->start_time, $timeSlot->end_time),
-                        'start_time' => $timeSlot->start_time,
-                        'end_time' => $timeSlot->end_time,
-                        'is_available' => true,
-                        'available_slots' => $minAvailable,
-                        'service_availability' => $availableForServices,
-                    ];
+                if ($allServicesHaveAvailability) {
+                    $hasAnyAvailableTimeSlot = true;
+                    // Add to service availability totals
+                    foreach ($servicesToCheck as $service) {
+                        $available = $this->getAvailableSlots($dateKey, $timeSlot->id, $service);
+                        $serviceAvailability[$service] += $available;
+                    }
                 }
             }
             
-            return response()->json([
-                'success' => true,
-                'time_slots' => $availableTimeSlots,
-                'date' => $date
-            ]);
-            
-        } catch (\Exception $e) {
-            Log::error('getAvailableTimeSlots error: ' . $e->getMessage());
-            return response()->json([
-                'success' => false,
-                'message' => $e->getMessage(),
-                'time_slots' => []
-            ], 500);
+            // Only include dates that have at least one time slot where ALL services have availability
+            if ($hasAnyAvailableTimeSlot) {
+                $totalAvailableForClientCount = min($serviceAvailability);
+                
+                $dates[] = [
+                    'date' => $dateKey,
+                    'available' => true,
+                    'available_slots' => $totalAvailableForClientCount,
+                    'service_availability' => $serviceAvailability,
+                    'day' => $date->format('l'),
+                    'display_date' => $date->format('F d, Y'),
+                    'day_type' => $dayType,
+                ];
+            }
         }
+        
+        return response()->json([
+            'success' => true,
+            'dates' => $dates,
+            'month' => Carbon::create($year, $month)->format('F Y'),
+        ]);
+        
+    } catch (\Exception $e) {
+        Log::error('getAvailableDates error: ' . $e->getMessage());
+        Log::error($e->getTraceAsString());
+        
+        return response()->json([
+            'success' => false,
+            'message' => $e->getMessage(),
+            'dates' => []
+        ], 500);
     }
+}
+    
+    public function getAvailableTimeSlots(Request $request)
+{
+    try {
+        $date = $request->get('date');
+        $servicesParam = $request->get('services', '');
+        $clientCount = (int)$request->get('client_count', 1);
+        
+        $servicesToCheck = !empty($servicesParam) ? explode(',', $servicesParam) : ['reg', 'updating', 'inquiry'];
+        
+        // Get all active time slots
+        $timeSlots = TimeSlot::where('is_active', true)
+            ->orderBy('display_order')
+            ->get();
+        
+        $availableTimeSlots = [];
+        
+        foreach ($timeSlots as $timeSlot) {
+            $availableForServices = [];
+            $allServicesHaveAvailability = true; // Changed from $hasAnyAvailability
+            $minAvailable = PHP_INT_MAX;
+            
+            foreach ($servicesToCheck as $service) {
+                $available = $this->getAvailableSlots($date, $timeSlot->id, $service);
+                $availableForServices[$service] = $available;
+                $minAvailable = min($minAvailable, $available);
+                
+                // If ANY service has 0 available slots, this time slot is NOT available for this client group
+                if ($available <= 0) {
+                    $allServicesHaveAvailability = false;
+                }
+            }
+            
+            // Show time slot ONLY if ALL selected services have at least 1 available slot
+            if ($allServicesHaveAvailability) {
+                $availableTimeSlots[] = [
+                    'id' => $timeSlot->id,
+                    'time_slot_id' => $timeSlot->id,
+                    'slot_label' => $timeSlot->label ?? $this->formatTimeRange($timeSlot->start_time, $timeSlot->end_time),
+                    'start_time' => $timeSlot->start_time,
+                    'end_time' => $timeSlot->end_time,
+                    'is_available' => true,
+                    'available_slots' => $minAvailable,
+                    'service_availability' => $availableForServices,
+                ];
+            }
+        }
+        
+        return response()->json([
+            'success' => true,
+            'time_slots' => $availableTimeSlots,
+            'date' => $date
+        ]);
+        
+    } catch (\Exception $e) {
+        Log::error('getAvailableTimeSlots error: ' . $e->getMessage());
+        return response()->json([
+            'success' => false,
+            'message' => $e->getMessage(),
+            'time_slots' => []
+        ], 500);
+    }
+}
     
     private function formatTimeRange($startTime, $endTime)
     {
@@ -351,7 +352,6 @@ private function getCapacity($date, $timeSlotId, $service)
             $clientCount = count($request->clients);
             $detectedType = $clientCount === 1 ? 'single' : 'multiple';
             
-            // Override the appointment_type in the request
             $request->merge(['appointment_type' => $detectedType]);
             
             \Log::info('Auto-detected appointment type: ' . $detectedType . ' (Clients: ' . $clientCount . ')');
@@ -386,13 +386,13 @@ private function getCapacity($date, $timeSlotId, $service)
                 ], 422);
             }
             
-            // Check if the selected date is working (not Sunday or Holiday)
+            // Check if the selected date is working
             $dateToCheck = Carbon::parse($request->appointment_date);
             $dayType = $this->getDayType($dateToCheck);
-            if ($dayType === 'sunday' || $dayType === 'holiday') {
+            if ($dayType !== 'working') {
                 return response()->json([
                     'success' => false,
-                    'message' => 'The selected date is not available for appointments. Please choose a working day (Monday to Saturday).'
+                    'message' => 'The selected date is not available for appointments. Please choose a working day.'
                 ], 422);
             }
             
@@ -475,7 +475,7 @@ private function getCapacity($date, $timeSlotId, $service)
                 
                 $appointment->save();
                 
-                // Store clients and collect their data with client numbers
+                // Store clients
                 $clientsData = [];
                 $clientsList = [];
                 
@@ -494,7 +494,6 @@ private function getCapacity($date, $timeSlotId, $service)
                     $client->requirements_acknowledged = true;
                     $client->acknowledged_at = now();
                     
-                    // Save TRN data for inquiry service
                     if ($clientData['service'] === 'inquiry') {
                         $client->has_trn = $clientData['has_trn'] ?? null;
                         $client->trn_number = ($clientData['has_trn'] ?? false) ? ($clientData['trn_number'] ?? null) : null;
@@ -502,7 +501,6 @@ private function getCapacity($date, $timeSlotId, $service)
                     
                     $client->save();
                     
-                    // Build full name
                     $fullName = trim($clientData['first_name'] . ' ' . ($clientData['middle_name'] ? $clientData['middle_name'] . ' ' : '') . $clientData['last_name']);
                     if (!empty($clientData['suffix'])) {
                         $fullName .= ' ' . $clientData['suffix'];
@@ -600,7 +598,6 @@ private function getCapacity($date, $timeSlotId, $service)
         return 'CLN-' . $year . $month . '-' . str_pad($last, 5, '0', STR_PAD_LEFT);
     }
     
-    // ========== API endpoint to get location statistics ==========
     public function getLocationStats(Request $request)
     {
         try {
@@ -632,7 +629,6 @@ private function getCapacity($date, $timeSlotId, $service)
         }
     }
     
-    // ========== Get PSA coordinates for map ==========
     public function getPsaCoordinates()
     {
         return response()->json([

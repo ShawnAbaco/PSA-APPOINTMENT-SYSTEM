@@ -173,11 +173,7 @@
                                     <input type="text" id="new_slot_label" class="settings-form-control"
                                         placeholder="e.g., 9:00 AM - 10:00 AM">
                                 </div>
-                                <div class="settings-form-group">
-                                    <label class="settings-form-label">Capacity</label>
-                                    <input type="number" id="new_capacity" class="settings-form-control" value="4"
-                                        min="1" max="50">
-                                </div>
+                               
                                 <div class="settings-form-group settings-form-group-btn">
                                     <button type="button" id="addTimeSlotBtn" class="settings-btn settings-btn-success">
                                         <i class="fas fa-plus"></i> Add Time Slot
@@ -197,9 +193,9 @@
                 <div class="settings-card-body">
                     <div class="settings-alert settings-alert-warning">
                         <i class="fas fa-info-circle"></i>
-                        <span>These are the default capacity rules for working and non-working days. When you create a new
-                            slot without an override, these values will be used. <strong>Changes here will NOT affect
-                                existing slots that have manual overrides.</strong></span>
+                        <span>These are the default capacity rules for working days. When you create a new slot without an
+                            override, these values will be used. <strong>Changes here will NOT affect existing slots that
+                                have manual overrides.</strong></span>
                     </div>
 
                     <div class="settings-table-responsive">
@@ -207,8 +203,6 @@
                             <thead class="settings-table-dark">
                                 <tr>
                                     <th style="width: 200px">Time Slot</th>
-                                    <th style="width: 120px">Day Type</th>
-                                    <th>Reason</th>
                                     <th>Registration (R)</th>
                                     <th>Updating (U)</th>
                                     <th>Inquiry (S)</th>
@@ -217,64 +211,38 @@
                             <tbody id="capacityRulesTableBody">
                                 @foreach ($timeSlots as $timeSlot)
                                     @php
-                                        $dayTypes = ['working', 'non_working'];
-                                        $dayTypeNames = [
-                                            'working' => 'Working Day',
-                                            'non_working' => 'Non-Working Day',
-                                        ];
-                                        $dayTypeColors = ['working' => 'success', 'non_working' => 'danger'];
+                                        $rule =
+                                            $capacityRules[$timeSlot->id]->firstWhere('day_type', 'working') ?? null;
                                     @endphp
-                                    @foreach ($dayTypes as $dayType)
-                                        @php
-                                            $rule =
-                                                $capacityRules[$timeSlot->id]->firstWhere('day_type', $dayType) ?? null;
-                                            $defaultValues = [
-                                                'working' => ['reg' => 4, 'updating' => 4, 'inquiry' => 4],
-                                                'non_working' => ['reg' => 0, 'updating' => 0, 'inquiry' => 0],
-                                            ];
-                                        @endphp
-                                        <tr>
-                                            @if ($loop->first)
-                                                <td rowspan="{{ count($dayTypes) }}" class="settings-time-slot-cell">
-                                                    <strong>{{ $timeSlot->label }}</strong><br>
-                                                    <small
-                                                        class="settings-text-muted">{{ date('g:i A', strtotime($timeSlot->start_time)) }}
-                                                        - {{ date('g:i A', strtotime($timeSlot->end_time)) }}</small>
-                                                </td>
-                                            @endif
-                                            <td>
-                                                <span
-                                                    class="settings-badge settings-badge-{{ $dayTypeColors[$dayType] }}">
-                                                    {{ $dayTypeNames[$dayType] }}
-                                                </span>
-                                            </td>
-                                            <td>
-                                                <small
-                                                    class="settings-text-muted">{{ $rule->reason ?? ($dayType === 'working' ? 'Regular working day' : 'Non-working day') }}</small>
-                                            </td>
-                                            <td>
-                                                <input type="number"
-                                                    name="capacities[{{ $timeSlot->id }}][{{ $dayType }}][reg]"
-                                                    class="settings-capacity-input"
-                                                    value="{{ $rule->reg_capacity ?? $defaultValues[$dayType]['reg'] }}"
-                                                    min="0" max="100">
-                                            </td>
-                                            <td>
-                                                <input type="number"
-                                                    name="capacities[{{ $timeSlot->id }}][{{ $dayType }}][updating]"
-                                                    class="settings-capacity-input"
-                                                    value="{{ $rule->updating_capacity ?? $defaultValues[$dayType]['updating'] }}"
-                                                    min="0" max="100">
-                                            </td>
-                                            <td>
-                                                <input type="number"
-                                                    name="capacities[{{ $timeSlot->id }}][{{ $dayType }}][inquiry]"
-                                                    class="settings-capacity-input"
-                                                    value="{{ $rule->inquiry_capacity ?? $defaultValues[$dayType]['inquiry'] }}"
-                                                    min="0" max="100">
-                                            </td>
-                                        </tr>
-                                    @endforeach
+                                    <tr>
+                                        <td class="settings-time-slot-cell">
+                                            <strong>{{ $timeSlot->label }}</strong><br>
+                                            <small
+                                                class="settings-text-muted">{{ date('g:i A', strtotime($timeSlot->start_time)) }}
+                                                - {{ date('g:i A', strtotime($timeSlot->end_time)) }}</small>
+                                        </td>
+                                        <td>
+                                            <input type="number"
+                                                name="capacities[{{ $timeSlot->id }}][working][reg]"
+                                                class="settings-capacity-input"
+                                                value="{{ $rule->reg_capacity ?? 4 }}"
+                                                min="0" max="100">
+                                        </td>
+                                        <td>
+                                            <input type="number"
+                                                name="capacities[{{ $timeSlot->id }}][working][updating]"
+                                                class="settings-capacity-input"
+                                                value="{{ $rule->updating_capacity ?? 4 }}"
+                                                min="0" max="100">
+                                        </td>
+                                        <td>
+                                            <input type="number"
+                                                name="capacities[{{ $timeSlot->id }}][working][inquiry]"
+                                                class="settings-capacity-input"
+                                                value="{{ $rule->inquiry_capacity ?? 4 }}"
+                                                min="0" max="100">
+                                        </td>
+                                    </tr>
                                 @endforeach
                             </tbody>
                         </table>
@@ -282,8 +250,9 @@
 
                     <div class="settings-alert settings-alert-info settings-mt-3">
                         <i class="fas fa-info-circle"></i>
-                        <span><strong>Note:</strong> Working days are Tuesday to Friday. Non-working days include Monday,
-                            Saturday, and Sunday (or any day marked as non-working in Working Days Configuration).</span>
+                        <span><strong>Note:</strong> Working days are Tuesday to Friday. Each working day has the capacity
+                            shown above. Non-working days (Monday, Saturday, Sunday, and holidays) have 0 capacity by
+                            default.</span>
                     </div>
 
                     <div class="settings-action-group">
@@ -352,8 +321,6 @@
                 </div>
             </div>
 
-           
-
             <!-- Action Buttons -->
             <div class="settings-action-buttons">
                 <button type="submit" class="settings-btn settings-btn-primary settings-btn-lg">
@@ -389,45 +356,12 @@
                     $('.settings-day-checkbox').prop('checked', true);
                 });
 
-                // Password toggle functionality
-                const passwordField = document.getElementById('email_password');
-                const toggleBtn = document.getElementById('togglePasswordBtn');
-                const toggleIcon = document.getElementById('togglePasswordIcon');
-                const passwordStatus = document.getElementById('passwordStatus');
-
-                if (toggleBtn && passwordField) {
-                    toggleBtn.addEventListener('click', function(e) {
-                        e.preventDefault();
-                        const type = passwordField.getAttribute('type') === 'password' ? 'text' : 'password';
-                        passwordField.setAttribute('type', type);
-                        if (type === 'text') {
-                            toggleIcon.classList.remove('fa-eye');
-                            toggleIcon.classList.add('fa-eye-slash');
-                        } else {
-                            toggleIcon.classList.remove('fa-eye-slash');
-                            toggleIcon.classList.add('fa-eye');
-                        }
-                    });
-
-                    passwordField.addEventListener('input', function() {
-                        if (this.value.length > 0 && passwordStatus) {
-                            passwordStatus.innerHTML =
-                                '<i class="fas fa-edit"></i> New password will be saved when you submit the form.';
-                            passwordStatus.style.color = '#f59e0b';
-                        } else if (this.value.length === 0 && passwordStatus) {
-                            passwordStatus.innerHTML =
-                                '<i class="fas fa-lock"></i> Leave empty to keep current password.';
-                            passwordStatus.style.color = '#6b7280';
-                        }
-                    });
-                }
-
                 // Add Time Slot
                 $('#addTimeSlotBtn').click(function() {
                     const startTime = $('#new_start_time').val();
                     const endTime = $('#new_end_time').val();
                     const slotLabel = $('#new_slot_label').val();
-                    const capacity = $('#new_capacity').val();
+                    
 
                     if (!startTime || !endTime) {
                         showToast('Missing Information', 'Please enter start time and end time', 'warning');
@@ -574,54 +508,15 @@
                     if (confirm('Reset all capacity rules to default values? This cannot be undone.')) {
                         $('.settings-capacity-input').each(function() {
                             const name = $(this).attr('name');
-                            if (name.includes('working')) {
-                                if (name.includes('reg')) $(this).val(4);
-                                else if (name.includes('updating')) $(this).val(4);
-                                else if (name.includes('inquiry')) $(this).val(4);
-                            } else if (name.includes('non_working')) {
-                                $(this).val(0);
-                            }
+                            // Working days only - set to 4
+                            if (name.includes('reg')) $(this).val(4);
+                            else if (name.includes('updating')) $(this).val(4);
+                            else if (name.includes('inquiry')) $(this).val(4);
                         });
                         showToast('Reset Complete',
-                            'Values reset to defaults (Working days: 4 each, Non-working days: 0). Click "Save Default Capacity Rules" to apply.',
+                            'Values reset to defaults (Working days: 4 each). Click "Save Default Capacity Rules" to apply.',
                             'success');
                     }
-                });
-
-                // Test email functionality
-                $('#testEmailBtn').click(function() {
-                    const testEmail = prompt('Enter email address to send test email:',
-                        '{{ Auth::user()->email }}');
-                    if (!testEmail) return;
-
-                    const originalText = $(this).html();
-                    $(this).html('<i class="fas fa-spinner fa-spin"></i> Sending...').prop('disabled', true);
-
-                    $.ajax({
-                        url: '{{ route('admin.settings.test-email') }}',
-                        method: 'POST',
-                        data: {
-                            _token: '{{ csrf_token() }}',
-                            email: testEmail
-                        },
-                        success: function(response) {
-                            if (response.success) {
-                                showToast('Success!', response.message, 'success');
-                            } else {
-                                showToast('Error', response.message, 'error');
-                            }
-                        },
-                        error: function(xhr) {
-                            let errorMsg = 'Failed to send test email. Check your SMTP settings.';
-                            if (xhr.responseJSON && xhr.responseJSON.message) {
-                                errorMsg = xhr.responseJSON.message;
-                            }
-                            showToast('Error', errorMsg, 'error');
-                        },
-                        complete: function() {
-                            $('#testEmailBtn').html(originalText).prop('disabled', false);
-                        }
-                    });
                 });
 
                 // Clear cache

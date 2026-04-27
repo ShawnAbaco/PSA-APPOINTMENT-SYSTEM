@@ -13,761 +13,969 @@
     <link rel="stylesheet" href="{{ asset('css/appointment.css') }}">
     <style>
         /* ========== MOBILE RESPONSIVE STYLES ========== */
-:root {
-    --primary: #2c5f8a;
-    --secondary: #6c757d;
-    --success: #28a745;
-    --danger: #dc3545;
-    --warning: #ffc107;
-    --gray-50: #f8f9fa;
-    --gray-200: #e9ecef;
-    --gray-500: #6c757d;
-    --gray-700: #495057;
-    --gray-900: #212529;
-    --radius: 8px;
-}
-
-/* Base responsive adjustments */
-* {
-    box-sizing: border-box;
-}
-
-body {
-    margin: 0;
-    padding: 0;
-    background: #f0f2f5;
-}
-
-/* Appointment Card */
-.appointment-card {
-    max-width: 1200px;
-    margin: 20px auto;
-    background: white;
-    border-radius: 16px;
-    box-shadow: 0 10px 40px rgba(0,0,0,0.1);
-    overflow: hidden;
-}
-
-/* Card Header */
-.card-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 15px 20px;
-    background: linear-gradient(135deg, #2c5f8a 0%, #1a3d5c 100%);
-    color: white;
-    flex-wrap: wrap;
-    gap: 10px;
-}
-
-.logos {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-}
-
-.header-title img {
-    height: 50px;
-    width: auto;
-}
-
-/* Stepper - Mobile First */
-.stepper {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 8px;
-    padding: 15px;
-    background: #f8f9fa;
-    border-bottom: 1px solid #e0e0e0;
-}
-
-.step {
-    flex: 1;
-    min-width: 60px;
-    text-align: center;
-    padding: 8px 5px;
-    background: white;
-    border-radius: 30px;
-    font-size: 12px;
-    font-weight: 500;
-    color: #666;
-    border: 1px solid #ddd;
-    cursor: pointer;
-    transition: all 0.3s;
-}
-
-.step.active {
-    background: var(--primary);
-    color: white;
-    border-color: var(--primary);
-}
-
-.step-num {
-    display: inline-block;
-    width: 22px;
-    height: 22px;
-    line-height: 22px;
-    text-align: center;
-    background: rgba(0,0,0,0.1);
-    border-radius: 50%;
-    margin-right: 5px;
-    font-size: 11px;
-}
-
-.step.active .step-num {
-    background: rgba(255,255,255,0.3);
-}
-
-/* Content Body */
-.content-body {
-    padding: 20px;
-}
-
-/* Section Title */
-.section-title {
-    font-size: 20px;
-    font-weight: 600;
-    margin-bottom: 20px;
-    color: var(--gray-900);
-    border-left: 4px solid var(--primary);
-    padding-left: 15px;
-}
-
-/* Form Rows - Mobile Responsive */
-.form-row {
-    display: flex;
-    gap: 15px;
-    margin-bottom: 15px;
-    flex-wrap: wrap;
-}
-
-.form-col {
-    flex: 1;
-    min-width: 150px;
-}
-
-.form-col label {
-    display: block;
-    margin-bottom: 5px;
-    font-weight: 500;
-    font-size: 13px;
-    color: var(--gray-700);
-}
-
-.form-col input, 
-.form-col select {
-    width: 100%;
-    padding: 10px 12px;
-    border: 1px solid var(--gray-200);
-    border-radius: var(--radius);
-    font-size: 14px;
-    transition: border-color 0.3s;
-}
-
-.form-col input:focus,
-.form-col select:focus {
-    outline: none;
-    border-color: var(--primary);
-}
-
-/* Client Card */
-.client-card {
-    background: white;
-    border: 1px solid var(--gray-200);
-    border-radius: 12px;
-    padding: 15px;
-    margin-bottom: 20px;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
-}
-
-.client-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    flex-wrap: wrap;
-    gap: 10px;
-    margin-bottom: 15px;
-    padding-bottom: 10px;
-    border-bottom: 1px solid var(--gray-200);
-}
-
-.client-title {
-    font-weight: 600;
-    font-size: 16px;
-    color: var(--primary);
-}
-
-/* Buttons */
-.btn-next, .btn-add-client, .btn-requirements {
-    padding: 12px 24px;
-    border: none;
-    border-radius: 40px;
-    font-size: 14px;
-    font-weight: 600;
-    cursor: pointer;
-    transition: all 0.3s;
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
-}
-
-.btn-next {
-    background: var(--primary);
-    color: white;
-    margin-top: 20px;
-}
-
-.btn-next:hover {
-    background: #1a3d5c;
-    transform: translateY(-2px);
-}
-
-.back-btn {
-    background: var(--gray-500);
-    margin-right: 10px;
-}
-
-.btn-add-client {
-    border-style: solid;
-    border-color: #1a3d5c;
-}
-
-.btn-requirements {
-    background: var(--gray-200);
-    color: var(--gray-700);
-    padding: 8px 16px;
-    font-size: 12px;
-}
-
-/* Calendar - Mobile Responsive */
-.calendar-container {
-    background: white;
-    border-radius: 12px;
-    padding: 15px;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-    overflow-x: auto;
-}
-
-.calendar-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 15px;
-    flex-wrap: wrap;
-    gap: 10px;
-}
-
-.calendar-month-year {
-    font-size: 16px;
-    font-weight: 600;
-}
-
-.calendar-nav {
-    display: flex;
-    gap: 10px;
-}
-
-.calendar-nav-btn {
-    background: var(--gray-200);
-    border: none;
-    width: 32px;
-    height: 32px;
-    border-radius: 50%;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-
-.calendar-weekdays {
-    display: grid;
-    grid-template-columns: repeat(7, 1fr);
-    text-align: center;
-    font-weight: 600;
-    font-size: 12px;
-    margin-bottom: 10px;
-    color: var(--gray-500);
-}
-
-.calendar-days {
-    display: grid;
-    grid-template-columns: repeat(7, 1fr);
-    gap: 4px;
-}
-
-.calendar-day {
-    background: var(--gray-50);
-    border-radius: 8px;
-    padding: 8px 4px;
-    text-align: center;
-    cursor: pointer;
-    transition: all 0.2s;
-    position: relative;
-    min-height: 55px;
-}
-
-.calendar-day.available {
-    background: #e8f5e9;
-}
-
-.calendar-day.available:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 2px 8px rgba(0,0,0,0.15);
-}
-
-.calendar-day.disabled {
-    opacity: 0.4;
-    cursor: not-allowed;
-    background: var(--gray-200);
-}
-
-.calendar-day.selected {
-    border: 2px solid var(--primary);
-    background: #e3f2fd;
-}
-
-.day-number {
-    font-size: 14px;
-    font-weight: 700;
-    margin-bottom: 4px;
-}
-
-.slot-count {
-    font-size: 10px;
-    font-weight: 600;
-    padding: 2px 4px;
-    border-radius: 10px;
-    display: inline-block;
-}
-
-.slot-count.available {
-    background: #4caf50;
-    color: white;
-}
-
-.slot-count.full {
-    background: #f44336;
-    color: white;
-}
-
-/* Service Badges */
-.service-badge {
-    display: inline-block;
-    font-size: 9px;
-    font-weight: bold;
-    padding: 2px 4px;
-    margin: 1px;
-    border-radius: 4px;
-}
-
-.service-badge.available {
-    background: #28a745;
-    color: white;
-}
-
-.service-badge.full {
-    background: #dc3545;
-    color: white;
-}
-
-.slot-indicators {
-    display: flex;
-    justify-content: center;
-    gap: 3px;
-    flex-wrap: wrap;
-    margin-top: 4px;
-}
-
-/* Time Slots - Mobile Responsive */
-.time-slots-container {
-    margin-top: 20px;
-    padding: 15px;
-    background: var(--gray-50);
-    border-radius: 12px;
-}
-
-.time-slots-title {
-    font-weight: 600;
-    margin-bottom: 15px;
-    color: var(--primary);
-    font-size: 14px;
-}
-
-.time-slots-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
-    gap: 10px;
-}
-
-.time-slot-card {
-    background: white;
-    border: 2px solid var(--gray-200);
-    border-radius: 10px;
-    padding: 10px;
-    text-align: center;
-    cursor: pointer;
-    transition: all 0.2s;
-}
-
-.time-slot-card.selected {
-    border-color: #28a745;
-    background: #e8f5e9;
-}
-
-.time-slot-card.disabled {
-    opacity: 0.5;
-    cursor: not-allowed;
-}
-
-.time-slot-time {
-    font-weight: bold;
-    font-size: 13px;
-    margin-bottom: 4px;
-}
-
-.time-slot-availability {
-    font-size: 10px;
-}
-
-.time-slot-availability.available {
-    color: #28a745;
-}
-
-.time-slot-availability.full {
-    color: #dc3545;
-}
-
-/* Review Section */
-.review-container {
-    background: var(--gray-50);
-    border-radius: 12px;
-    padding: 15px;
-}
-
-.review-section {
-    margin-bottom: 20px;
-    padding-bottom: 15px;
-    border-bottom: 1px solid var(--gray-200);
-}
-
-.review-section:last-child {
-    border-bottom: none;
-    margin-bottom: 0;
-    padding-bottom: 0;
-}
-
-.review-section-title {
-    font-weight: 600;
-    color: var(--primary);
-}
-
-.edit-link {
-    background: none;
-    border: none;
-    cursor: pointer;
-    font-size: 12px;
-}
-
-/* Summary Box */
-.summary-box {
-    background: var(--gray-50);
-    border-radius: 12px;
-    padding: 15px;
-    margin-bottom: 20px;
-}
-
-.summary-row {
-    display: flex;
-    justify-content: space-between;
-    padding: 8px 0;
-    border-bottom: 1px solid var(--gray-200);
-}
-
-.summary-row:last-child {
-    border-bottom: none;
-}
-
-.summary-label {
-    font-weight: 600;
-    color: var(--gray-700);
-}
-
-.summary-value {
-    color: var(--gray-900);
-}
-
-/* Modal Responsive */
-.modal-content {
-    width: 90%;
-    max-width: 500px;
-    margin: 50px auto;
-    background: white;
-    border-radius: 12px;
-    max-height: 80vh;
-    overflow-y: auto;
-}
-
-/* Footer */
-.footer-note {
-    display: flex;
-    justify-content: space-between;
-    flex-wrap: wrap;
-    gap: 10px;
-    padding: 15px 20px;
-    background: var(--gray-50);
-    font-size: 11px;
-    color: var(--gray-500);
-    text-align: center;
-}
-
-/* Mobile Breakpoints */
-@media (max-width: 768px) {
-    /* Card header */
-    .card-header {
-        flex-direction: column;
-        text-align: center;
-    }
-    
-    /* Stepper */
-    .stepper {
-        overflow-x: auto;
-        flex-wrap: nowrap;
-        -webkit-overflow-scrolling: touch;
-    }
-    
-    .step {
-        flex: 0 0 auto;
-        min-width: 70px;
-        font-size: 10px;
-    }
-    
-    .step-num {
-        width: 20px;
-        height: 20px;
-        line-height: 20px;
-        font-size: 10px;
-    }
-    
-    /* Content body */
-    .content-body {
-        padding: 15px;
-    }
-    
-    /* Section title */
-    .section-title {
-        font-size: 18px;
-    }
-    
-    /* Form rows */
-    .form-row {
-        flex-direction: column;
-        gap: 12px;
-    }
-    
-    .form-col {
-        min-width: 100%;
-    }
-    
-    /* Calendar */
-    .calendar-container {
-        padding: 10px;
-    }
-    
-    .calendar-day {
-        padding: 6px 2px;
-        min-height: 50px;
-    }
-    
-    .day-number {
-        font-size: 12px;
-    }
-    
-    .slot-count {
-        font-size: 9px;
-        padding: 1px 3px;
-    }
-    
-    .service-badge {
-        font-size: 8px;
-        padding: 1px 3px;
-    }
-    
-    /* Time slots */
-    .time-slots-grid {
-        grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
-    }
-    
-    .time-slot-card {
-        padding: 8px;
-    }
-    
-    .time-slot-time {
-        font-size: 11px;
-    }
-    
-    /* Buttons */
-    .btn-next, .btn-add-client {
-        width: 100%;
-        justify-content: center;
-    }
-    
-    .back-btn {
-        margin-right: 0;
-        margin-bottom: 10px;
-    }
-    
-    .button-group {
-        display: flex;
-        flex-direction: column;
-        gap: 10px;
-    }
-    
-    /* Client header */
-    .client-header {
-        flex-direction: column;
-        align-items: flex-start;
-    }
-    
-    /* Modal */
-    .modal-content {
-        width: 95%;
-        margin: 20px auto;
-    }
-    
-    /* Guide steps */
-    .guide-step h3 {
-        font-size: 1rem;
-    }
-    
-    .guide-step p {
-        font-size: 0.75rem;
-    }
-    
-     
-    
-    .qr-scan-area {
-        padding: 12px;
-    }
-    
-    .qr-scan-btn {
-        width: 100%;
-    }
-    
-    /* TRN Field */
-    .trn-field-group {
-        padding: 15px;
-    }
-    
-    /* Footer */
-    .footer-note {
-        flex-direction: column;
-        text-align: center;
-        gap: 5px;
-    }
-}
-
-@media (max-width: 480px) {
-    /* Extra small devices */
-    .appointment-card {
-        margin: 10px;
-        border-radius: 12px;
-    }
-    
-    .content-body {
-        padding: 12px;
-    }
-    
-    .calendar-weekdays {
-        font-size: 10px;
-    }
-    
-    .calendar-day {
-        padding: 4px 2px;
-        min-height: 45px;
-    }
-    
-    .day-number {
-        font-size: 11px;
-    }
-    
-    .time-slots-grid {
-        grid-template-columns: 1fr;
-    }
-    
-    .time-slot-card {
-        padding: 10px;
-    }
-    
-    .review-container {
-        padding: 12px;
-    }
-    
-    .summary-row {
-        flex-direction: column;
-        gap: 5px;
-    }
-    
-    .summary-label {
-        font-weight: 700;
-    }
-    
-    .modal-header h3 {
-        font-size: 16px;
-    }
-    
-    #successDetails {
-        font-size: 13px;
-    }
-    
-    #successDetails p {
-        margin: 8px 0;
-    }
-    
-    #successDetails ul {
-        padding-left: 20px;
-    }
-}
-
-/* Landscape mode on mobile */
-@media (max-width: 768px) and (orientation: landscape) {
-    .stepper {
-        flex-wrap: wrap;
-    }
-    
-    .step {
-        flex: 1;
-        min-width: auto;
-    }
-    
-    .calendar-days {
-        gap: 2px;
-    }
-    
-    .calendar-day {
-        min-height: 40px;
-    }
-}
-
-/* Touch improvements for mobile */
-@media (hover: none) and (pointer: coarse) {
-    .btn-next, 
-    .btn-add-client, 
-    .calendar-day,
-    .time-slot-card,
-    .step {
-        cursor: pointer;
-        -webkit-tap-highlight-color: transparent;
-    }
-    
-    .btn-next:active,
-    .btn-add-client:active {
-        transform: scale(0.98);
-    }
-    
-    .calendar-day:active {
-        transform: scale(0.95);
-    }
-}
+        :root {
+            --primary: #2c5f8a;
+            --secondary: #6c757d;
+            --success: #28a745;
+            --danger: #dc3545;
+            --warning: #ffc107;
+            --gray-50: #f8f9fa;
+            --gray-200: #e9ecef;
+            --gray-500: #6c757d;
+            --gray-700: #495057;
+            --gray-900: #212529;
+            --radius: 8px;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            background: #f0f2f5;
+        }
+
+        .appointment-card {
+            max-width: 1200px;
+            margin: 20px auto;
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px 20px;
+            background: linear-gradient(135deg, #2c5f8a 0%, #1a3d5c 100%);
+            color: white;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .logos {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .header-title img {
+            height: 50px;
+            width: auto;
+        }
+
+        .stepper {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            padding: 15px;
+            background: #f8f9fa;
+            border-bottom: 1px solid #e0e0e0;
+        }
+
+        .step {
+            flex: 1;
+            min-width: 60px;
+            text-align: center;
+            padding: 8px 5px;
+            background: white;
+            border-radius: 30px;
+            font-size: 12px;
+            font-weight: 500;
+            color: #666;
+            border: 1px solid #ddd;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .step.active {
+            background: var(--primary);
+            color: white;
+            border-color: var(--primary);
+        }
+
+        .step-num {
+            display: inline-block;
+            width: 22px;
+            height: 22px;
+            line-height: 22px;
+            text-align: center;
+            background: rgba(0, 0, 0, 0.1);
+            border-radius: 50%;
+            margin-right: 5px;
+            font-size: 11px;
+        }
+
+        .step.active .step-num {
+            background: rgba(255, 255, 255, 0.3);
+        }
+
+        .content-body {
+            padding: 20px;
+        }
+
+        .section-title {
+            font-size: 20px;
+            font-weight: 600;
+            margin-bottom: 20px;
+            color: var(--gray-900);
+            border-left: 4px solid var(--primary);
+            padding-left: 15px;
+        }
+
+        .form-row {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 15px;
+            flex-wrap: wrap;
+        }
+
+        .form-col {
+            flex: 1;
+            min-width: 150px;
+        }
+
+        .form-col label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 500;
+            font-size: 13px;
+            color: var(--gray-700);
+        }
+
+        .form-col input,
+        .form-col select {
+            width: 100%;
+            padding: 10px 12px;
+            border: 1px solid var(--gray-200);
+            border-radius: var(--radius);
+            font-size: 14px;
+            transition: border-color 0.3s;
+        }
+
+        .form-col input:focus,
+        .form-col select:focus {
+            outline: none;
+            border-color: var(--primary);
+        }
+
+        .client-card {
+            background: white;
+            border: 1px solid var(--gray-200);
+            border-radius: 12px;
+            padding: 15px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+        }
+
+        .client-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid var(--gray-200);
+        }
+
+        .client-title {
+            font-weight: 600;
+            font-size: 16px;
+            color: var(--primary);
+        }
+
+        .btn-next,
+        .btn-add-client,
+        .btn-requirements {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 40px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-next {
+            background: var(--primary);
+            color: white;
+            margin-top: 20px;
+        }
+
+        .btn-next:hover {
+            background: #1a3d5c;
+            transform: translateY(-2px);
+        }
+
+        .back-btn {
+            background: var(--gray-500);
+            margin-right: 10px;
+        }
+
+        .btn-add-client {
+            border-style: solid;
+            border-color: #1a3d5c;
+        }
+
+        .btn-requirements {
+            background: var(--gray-200);
+            color: var(--gray-700);
+            padding: 8px 16px;
+            font-size: 12px;
+        }
+
+        .calendar-container {
+            background: white;
+            border-radius: 12px;
+            padding: 15px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            overflow-x: auto;
+        }
+
+        .calendar-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .calendar-month-year {
+            font-size: 16px;
+            font-weight: 600;
+        }
+
+        .calendar-nav {
+            display: flex;
+            gap: 10px;
+        }
+
+        .calendar-nav-btn {
+            background: var(--gray-200);
+            border: none;
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .calendar-weekdays {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            text-align: center;
+            font-weight: 600;
+            font-size: 12px;
+            margin-bottom: 10px;
+            color: var(--gray-500);
+        }
+
+        .calendar-days {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 4px;
+        }
+
+        .calendar-day {
+            background: var(--gray-50);
+            border-radius: 8px;
+            padding: 12px 4px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s;
+            min-height: 55px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .calendar-day.available {
+            background: #e8f5e9;
+        }
+
+        .calendar-day.available:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+        }
+
+        .calendar-day.disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+            background: var(--gray-200);
+        }
+
+        .calendar-day.selected {
+            border: 2px solid var(--primary);
+            background: #e3f2fd;
+        }
+
+        .day-number {
+            font-size: 14px;
+            font-weight: 700;
+        }
+
+        .time-slots-container {
+            margin-top: 20px;
+            padding: 15px;
+            background: var(--gray-50);
+            border-radius: 12px;
+        }
+
+        .time-slots-title {
+            font-weight: 600;
+            margin-bottom: 15px;
+            color: var(--primary);
+            font-size: 14px;
+        }
+
+        .time-slots-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+            gap: 10px;
+        }
+
+        .time-slot-card {
+            background: white;
+            border: 2px solid var(--gray-200);
+            border-radius: 10px;
+            padding: 10px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .time-slot-card.selected {
+            border-color: #28a745;
+            background: #e8f5e9;
+        }
+
+        .time-slot-card.disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .time-slot-time {
+            font-weight: bold;
+            font-size: 13px;
+            margin-bottom: 4px;
+        }
+
+        .time-slot-availability {
+            font-size: 10px;
+        }
+
+        .time-slot-availability.available {
+            color: #28a745;
+        }
+
+        .time-slot-availability.full {
+            color: #dc3545;
+        }
+
+        .review-container {
+            background: var(--gray-50);
+            border-radius: 12px;
+            padding: 15px;
+        }
+
+        .review-section {
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid var(--gray-200);
+        }
+
+        .review-section:last-child {
+            border-bottom: none;
+            margin-bottom: 0;
+            padding-bottom: 0;
+        }
+
+        .review-section-title {
+            font-weight: 600;
+            color: var(--primary);
+        }
+
+        .edit-link {
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: 12px;
+        }
+
+        .summary-box {
+            background: var(--gray-50);
+            border-radius: 12px;
+            padding: 15px;
+            margin-bottom: 20px;
+        }
+
+        .summary-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+            border-bottom: 1px solid var(--gray-200);
+        }
+
+        .summary-row:last-child {
+            border-bottom: none;
+        }
+
+        .summary-label {
+            font-weight: 600;
+            color: var(--gray-700);
+        }
+
+        .summary-value {
+            color: var(--gray-900);
+        }
+
+        .modal-content {
+            width: 90%;
+            max-width: 500px;
+            margin: 50px auto;
+            background: white;
+            border-radius: 12px;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+
+        .footer-note {
+            display: flex;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 10px;
+            padding: 15px 20px;
+            background: var(--gray-50);
+            font-size: 11px;
+            color: var(--gray-500);
+            text-align: center;
+        }
+
+        @media (max-width: 768px) {
+            .card-header {
+                flex-direction: column;
+                text-align: center;
+            }
+
+            .stepper {
+                overflow-x: auto;
+                flex-wrap: nowrap;
+                -webkit-overflow-scrolling: touch;
+            }
+
+            .step {
+                flex: 0 0 auto;
+                min-width: 70px;
+                font-size: 10px;
+            }
+
+            .step-num {
+                width: 20px;
+                height: 20px;
+                line-height: 20px;
+                font-size: 10px;
+            }
+
+            .content-body {
+                padding: 15px;
+            }
+
+            .section-title {
+                font-size: 18px;
+            }
+
+            .form-row {
+                flex-direction: column;
+                gap: 12px;
+            }
+
+            .form-col {
+                min-width: 100%;
+            }
+
+            .calendar-container {
+                padding: 10px;
+            }
+
+            .calendar-day {
+                padding: 8px 2px;
+                min-height: 45px;
+            }
+
+            .day-number {
+                font-size: 12px;
+            }
+
+            .time-slots-grid {
+                grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+            }
+
+            .time-slot-card {
+                padding: 8px;
+            }
+
+            .time-slot-time {
+                font-size: 11px;
+            }
+
+            .btn-next,
+            .btn-add-client {
+                width: 100%;
+                justify-content: center;
+            }
+
+            .back-btn {
+                margin-right: 0;
+                margin-bottom: 10px;
+            }
+
+            .button-group {
+                display: flex;
+                flex-direction: column;
+                gap: 10px;
+            }
+
+            .client-header {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+
+            .modal-content {
+                width: 95%;
+                margin: 20px auto;
+            }
+
+            .guide-step h3 {
+                font-size: 1rem;
+            }
+
+            .guide-step p {
+                font-size: 0.75rem;
+            }
+
+            .qr-scan-area {
+                padding: 12px;
+            }
+
+            .qr-scan-btn {
+                width: 100%;
+            }
+
+            .trn-field-group {
+                padding: 15px;
+            }
+
+            .footer-note {
+                flex-direction: column;
+                text-align: center;
+                gap: 5px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .appointment-card {
+                margin: 10px;
+                border-radius: 12px;
+            }
+
+            .content-body {
+                padding: 12px;
+            }
+
+            .calendar-weekdays {
+                font-size: 10px;
+            }
+
+            .calendar-day {
+                padding: 6px 2px;
+                min-height: 40px;
+            }
+
+            .day-number {
+                font-size: 11px;
+            }
+
+            .time-slots-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .time-slot-card {
+                padding: 10px;
+            }
+
+            .review-container {
+                padding: 12px;
+            }
+
+            .summary-row {
+                flex-direction: column;
+                gap: 5px;
+            }
+
+            .summary-label {
+                font-weight: 700;
+            }
+
+            .modal-header h3 {
+                font-size: 16px;
+            }
+
+            #successDetails {
+                font-size: 13px;
+            }
+
+            #successDetails p {
+                margin: 8px 0;
+            }
+
+            #successDetails ul {
+                padding-left: 20px;
+            }
+        }
+
+        @media (max-width: 768px) and (orientation: landscape) {
+            .stepper {
+                flex-wrap: wrap;
+            }
+
+            .step {
+                flex: 1;
+                min-width: auto;
+            }
+
+            .calendar-days {
+                gap: 2px;
+            }
+
+            .calendar-day {
+                min-height: 35px;
+            }
+        }
+
+        @media (hover: none) and (pointer: coarse) {
+
+            .btn-next,
+            .btn-add-client,
+            .calendar-day,
+            .time-slot-card,
+            .step {
+                cursor: pointer;
+                -webkit-tap-highlight-color: transparent;
+            }
+
+            .btn-next:active,
+            .btn-add-client:active {
+                transform: scale(0.98);
+            }
+
+            .calendar-day:active {
+                transform: scale(0.95);
+            }
+        }
+
+        @keyframes spin {
+            0% {
+                transform: rotate(0deg);
+            }
+
+            100% {
+                transform: rotate(360deg);
+            }
+        }
+
+        .spinner {
+            width: 40px;
+            height: 40px;
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #2c5f8a;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        .privacy-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            z-index: 10000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .privacy-modal {
+            background: white;
+            max-width: 500px;
+            width: 90%;
+            max-height: 80vh;
+            overflow-y: auto;
+            padding: 25px;
+            border-radius: 16px;
+            position: relative;
+        }
+
+        .privacy-modal h2 {
+            color: var(--primary);
+            margin-bottom: 15px;
+        }
+
+        .privacy-modal p {
+            margin-bottom: 12px;
+            font-size: 14px;
+            line-height: 1.5;
+            color: #333;
+        }
+
+        .legal-ref {
+            font-weight: bold;
+            color: var(--primary);
+        }
+
+        .btn-agree {
+            background: var(--primary);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 30px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            width: 100%;
+            margin-top: 15px;
+        }
+
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 10000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-header {
+            padding: 15px 20px;
+            border-bottom: 1px solid #ddd;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .close-modal {
+            font-size: 28px;
+            cursor: pointer;
+        }
+
+        .btn-understand {
+            background: var(--primary);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            margin: 15px;
+        }
+
+        .req-list {
+            padding: 20px;
+        }
+
+        .req-list h4 {
+            color: var(--primary);
+            margin-bottom: 10px;
+        }
+
+        .req-list ul {
+            margin-left: 20px;
+        }
+
+        .req-list li {
+            margin-bottom: 8px;
+        }
+
+        .selected-date-display {
+            margin-top: 15px;
+            padding: 10px;
+            background: #e8f5e9;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .slot-info {
+            margin-bottom: 15px;
+            padding: 10px;
+            background: #e3f2fd;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .req-summary-banner {
+            background: #fff3cd;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+
+        .req-item {
+            padding: 5px 0;
+            font-size: 13px;
+        }
+
+        .identity-reminder {
+            background: #f0f7ff;
+            padding: 10px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            font-size: 12px;
+            border-left: 3px solid var(--primary);
+        }
+
+        .trn-field-group {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 15px 0;
+        }
+
+        .trn-question {
+            font-weight: 600;
+            margin-bottom: 10px;
+        }
+
+        .trn-checkbox-group {
+            display: flex;
+            gap: 20px;
+            margin-bottom: 15px;
+        }
+
+        .trn-checkbox-group label {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .trn-input-group {
+            margin-top: 10px;
+        }
+
+        .trn-input {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            font-family: monospace;
+            font-size: 14px;
+        }
+
+        .trn-valid {
+            border-color: #28a745;
+            background: #f0fff4;
+        }
+
+        .trn-invalid {
+            border-color: #dc3545;
+            background: #fff5f5;
+        }
+
+        .trn-char-counter {
+            display: block;
+            font-size: 11px;
+            margin-top: 5px;
+        }
+
+        .trn-char-counter.valid {
+            color: #28a745;
+        }
+
+        .trn-char-counter.invalid {
+            color: #dc3545;
+        }
+
+        .qr-scan-area {
+            margin-top: 15px;
+            text-align: center;
+        }
+
+        .qr-scan-btn {
+            background: var(--primary);
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 8px;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+
+        .qr-reader-container {
+            margin-top: 10px;
+        }
+
+        .confirmation-checkbox {
+            margin: 20px 0;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 8px;
+        }
+
+        .confirmation-checkbox input {
+            margin-right: 10px;
+        }
+
+        .reminder {
+            background: #fff3cd;
+            padding: 10px;
+            border-radius: 8px;
+            font-size: 13px;
+        }
+
+        .text-muted {
+            color: #6c757d;
+        }
+
+        .badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: 600;
+        }
+
+        .badge-success {
+            background: #28a745;
+            color: white;
+        }
+
+        .badge-secondary {
+            background: #6c757d;
+            color: white;
+        }
     </style>
 </head>
 
@@ -798,7 +1006,7 @@ body {
     </div>
 
     <!-- REQUIREMENTS MODAL -->
-    <div class="modal-overlay" id="reqModal">
+    <div class="modal-overlay" id="reqModal" style="display: none;">
         <div class="modal-content">
             <div class="modal-header">
                 <h3 id="modalServiceTitle">Requirements</h3>
@@ -810,53 +1018,35 @@ body {
     </div>
 
     <!-- SUCCESS MODAL -->
-<div class="modal-overlay" id="successModal">
-    <div class="modal-content" style="max-width: 600px; text-align: center;">
-        <div class="modal-header">
-            <h3 style="color: var(--success);"><i class="fas fa-check-circle"></i> Appointment Confirmed!</h3>
-            <span class="close-modal" id="closeSuccessModal">&times;</span>
-        </div>
-        <div id="successBody" style="padding: 20px;">
-            <p>Your appointment has been successfully booked.</p>
-            <div id="successDetails"></div>
-            <div style="display: flex; gap: 10px; justify-content: center; margin-top: 20px;">
-                <button class="btn-next" id="downloadPngBtn" style="background: #28a745;">
-                    <i class="fas fa-image"></i> Download PNG
-                </button>
-                <button class="btn-next" id="downloadPdfBtn" style="background: #dc3545;">
-                    <i class="fas fa-file-pdf"></i> Download PDF
-                </button>
+    <div class="modal-overlay" id="successModal" style="display: none;">
+        <div class="modal-content" style="max-width: 600px; text-align: center;">
+            <div class="modal-header">
+                <h3 style="color: var(--success);"><i class="fas fa-check-circle"></i> Appointment Confirmed!</h3>
+                <span class="close-modal" id="closeSuccessModal">&times;</span>
+            </div>
+            <div id="successBody" style="padding: 20px;">
+                <p>Your appointment has been successfully booked.</p>
+                <div id="successDetails"></div>
+                <div style="display: flex; gap: 10px; justify-content: center; margin-top: 20px;">
+                    <button class="btn-next" id="downloadPngBtn" style="background: #28a745;">
+                        <i class="fas fa-image"></i> Download PNG
+                    </button>
+                    <button class="btn-next" id="downloadPdfBtn" style="background: #dc3545;">
+                        <i class="fas fa-file-pdf"></i> Download PDF
+                    </button>
+                </div>
             </div>
         </div>
     </div>
-</div>
 
     <!-- LOADING OVERLAY -->
     <div id="loadingOverlay"
         style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); z-index: 9999; align-items: center; justify-content: center;">
         <div style="background: white; padding: 20px; border-radius: 10px; text-align: center;">
-            <div class="spinner"
-                style="width: 40px; height: 40px; border: 4px solid #f3f3f3; border-top: 4px solid #2c5f8a; border-radius: 50%; animation: spin 1s linear infinite; margin: 0 auto 15px;">
-            </div>
+            <div class="spinner"></div>
             <p>Processing your appointment...</p>
         </div>
     </div>
-
-    <style>
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-        .spinner {
-            width: 40px;
-            height: 40px;
-            border: 4px solid #f3f3f3;
-            border-top: 4px solid #2c5f8a;
-            border-radius: 50%;
-            animation: spin 1s linear infinite;
-        }
-        .hidden { display: none !important; }
-    </style>
 
     <!-- MAIN APPOINTMENT CARD -->
     <div class="appointment-card">
@@ -889,8 +1079,9 @@ body {
                     <h3><span class="step-number">📋</span> How to Book an Appointment</h3>
                     <p>Follow these simple steps to schedule your National ID appointment</p>
                 </div>
-                
-                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px; margin-bottom: 30px;">
+
+                <div
+                    style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px; margin-bottom: 30px;">
                     <div style="background: #f8f9fa; padding: 20px; border-radius: 12px; text-align: center;">
                         <div style="font-size: 40px; margin-bottom: 10px;">👥</div>
                         <h4>Step 1: Add Clients</h4>
@@ -912,7 +1103,7 @@ body {
                         <p>Review and confirm your appointment</p>
                     </div>
                 </div>
-                
+
                 <div style="background: #e3f2fd; padding: 15px; border-radius: 10px; margin-bottom: 20px;">
                     <i class="fas fa-info-circle" style="color: #2c5f8a;"></i>
                     <strong>Important Reminders:</strong>
@@ -923,7 +1114,7 @@ body {
                         <li>Arrive 15 minutes before your scheduled time</li>
                     </ul>
                 </div>
-                
+
                 <button class="btn-next" id="startBookingBtn">Start Booking <i class="fas fa-arrow-right"></i></button>
             </div>
 
@@ -948,12 +1139,15 @@ body {
                 <div id="clientCountContainer"
                     style="margin-top: 20px; padding: 14px; background: var(--gray-50); border-radius: var(--radius); border: 1px solid var(--gray-200);">
                     <p style="display: flex; justify-content: space-between;">
-                        <span><i class="fas fa-users" style="color: var(--primary);"></i> <strong>Total persons:</strong></span>
-                        <span style="font-weight: 700; color: var(--primary);"><span id="clientCount">1</span> / 4</span>
+                        <span><i class="fas fa-users" style="color: var(--primary);"></i> <strong>Total
+                                persons:</strong></span>
+                        <span style="font-weight: 700; color: var(--primary);"><span id="clientCount">1</span> /
+                            4</span>
                     </p>
                 </div>
 
-                <button class="btn-next" id="nextToSchedule">Next: Select Schedule <i class="fas fa-arrow-right"></i></button>
+                <button class="btn-next" id="nextToSchedule">Next: Select Schedule <i
+                        class="fas fa-arrow-right"></i></button>
             </div>
 
             <!-- STEP 3: SCHEDULE -->
@@ -969,13 +1163,16 @@ body {
                     <div class="calendar-header">
                         <span class="calendar-month-year" id="calendarMonthYear">Loading...</span>
                         <div class="calendar-nav">
-                            <button class="calendar-nav-btn" id="prevMonthBtn"><i class="fas fa-chevron-left"></i></button>
-                            <button class="calendar-nav-btn" id="nextMonthBtn"><i class="fas fa-chevron-right"></i></button>
+                            <button class="calendar-nav-btn" id="prevMonthBtn"><i
+                                    class="fas fa-chevron-left"></i></button>
+                            <button class="calendar-nav-btn" id="nextMonthBtn"><i
+                                    class="fas fa-chevron-right"></i></button>
                         </div>
                     </div>
                     <div class="calendar-weekdays">
                         <span class="weekday">Mo</span><span class="weekday">Tu</span><span class="weekday">We</span>
-                        <span class="weekday">Th</span><span class="weekday">Fr</span><span class="weekday">Sa</span><span class="weekday">Su</span>
+                        <span class="weekday">Th</span><span class="weekday">Fr</span><span
+                            class="weekday">Sa</span><span class="weekday">Su</span>
                     </div>
                     <div class="calendar-days" id="calendarDays">
                         <div class="loading-spinner">Loading calendar...</div>
@@ -985,7 +1182,8 @@ body {
                 <div class="selected-date-display">
                     <i class="far fa-check-circle" style="color: var(--success);"></i>
                     <span>Selected Date:</span>
-                    <span id="selectedDateText" style="font-weight: 600; color: var(--gray-900);">No date selected</span>
+                    <span id="selectedDateText" style="font-weight: 600; color: var(--gray-900);">No date
+                        selected</span>
                 </div>
 
                 <!-- Time Slots Container -->
@@ -998,7 +1196,8 @@ body {
                     </div>
                 </div>
 
-                <button class="btn-next" id="nextToContact">Next: Contact Info <i class="fas fa-arrow-right"></i></button>
+                <button class="btn-next" id="nextToContact">Next: Contact Info <i
+                        class="fas fa-arrow-right"></i></button>
                 <button class="btn-next back-btn" id="backToClients"><i class="fas fa-arrow-left"></i> Back</button>
             </div>
 
@@ -1020,14 +1219,22 @@ body {
                 </div>
 
                 <div style="margin-bottom: 20px;">
-    <label>Mobile Number <span style="color: var(--danger);">*</span></label>
-    <input type="tel" id="contactMobile" placeholder="09XXXXXXXXX" maxlength="11" pattern="09[0-9]{9}" 
-           oninput="this.value = this.value.replace(/[^0-9]/g, '').slice(0, 11); if(this.value.length > 0 && !this.value.startsWith('09')) this.value = '09' + this.value.replace(/^09/, '');">
-    <small style="color: #666; display: block; margin-top: 5px;">Format: 09XXXXXXXXX (11 digits, must start with 09)</small>
-</div>
+                    <label>Mobile Number <span style="color: var(--danger);">*</span></label>
+                    <div style="display: flex; align-items: center; border: 1px solid var(--gray-200); border-radius: var(--radius); overflow: hidden;">
+                        <span style="background: var(--gray-100); padding: 10px 12px; font-weight: 500; color: var(--gray-700); border-right: 1px solid var(--gray-200);">+63</span>
+                        <input type="tel" id="contactMobile" name="contact_mobile_suffix" placeholder="9XXXXXXXXX" maxlength="10"
+                            pattern="[0-9]{10}"
+                            oninput="this.value = this.value.replace(/[^0-9]/g, '').slice(0, 10); if(this.value.length > 0 && !this.value.startsWith('9')) this.value = '';"
+                            style="flex: 1; padding: 10px 12px; border: none; outline: none; font-size: 14px;">
+                    </div>
+                    <input type="hidden" name="contact_mobile" id="contactMobileFull">
+                    <small style="color: #666; display: block; margin-top: 5px;">Format: +63 9XXXXXXXXX (10 digits starting with 9, e.g., 9123456789)</small>
+                </div>
 
-                <button class="btn-next" id="nextToReview">Review Appointment <i class="fas fa-arrow-right"></i></button>
-                <button class="btn-next back-btn" id="backToScheduleFromContact"><i class="fas fa-arrow-left"></i> Back</button>
+                <button class="btn-next" id="nextToReview">Review Appointment <i
+                        class="fas fa-arrow-right"></i></button>
+                <button class="btn-next back-btn" id="backToScheduleFromContact"><i class="fas fa-arrow-left"></i>
+                    Back</button>
             </div>
 
             <!-- STEP 5: REVIEW -->
@@ -1037,24 +1244,31 @@ body {
                 <div class="review-container">
                     <div class="review-section">
                         <div style="display: flex; justify-content: space-between; margin-bottom: 12px;">
-                            <span class="review-section-title"><i class="fas fa-users" style="color: var(--primary);"></i> Clients (<span id="reviewClientCount">1</span>)</span>
-                            <button class="edit-link" data-edit="clients" style="color: var(--secondary);"><i class="fas fa-pen"></i> Edit</button>
+                            <span class="review-section-title"><i class="fas fa-users"
+                                    style="color: var(--primary);"></i> Clients (<span
+                                    id="reviewClientCount">1</span>)</span>
+                            <button class="edit-link" data-edit="clients"
+                                style="color: var(--secondary);"><i class="fas fa-pen"></i> Edit</button>
                         </div>
                         <div id="reviewClientsList"></div>
                     </div>
 
                     <div class="review-section">
                         <div style="display: flex; justify-content: space-between; margin-bottom: 12px;">
-                            <span class="review-section-title"><i class="far fa-calendar-alt" style="color: var(--primary);"></i> Schedule</span>
-                            <button class="edit-link" data-edit="schedule" style="color: var(--secondary);"><i class="fas fa-pen"></i> Edit</button>
+                            <span class="review-section-title"><i class="far fa-calendar-alt"
+                                    style="color: var(--primary);"></i> Schedule</span>
+                            <button class="edit-link" data-edit="schedule"
+                                style="color: var(--secondary);"><i class="fas fa-pen"></i> Edit</button>
                         </div>
                         <div><span id="reviewDateTime" style="font-weight: 600;">-</span></div>
                     </div>
 
                     <div class="review-section">
                         <div style="display: flex; justify-content: space-between; margin-bottom: 12px;">
-                            <span class="review-section-title"><i class="fas fa-address-book" style="color: var(--primary);"></i> Contact</span>
-                            <button class="edit-link" data-edit="contact" style="color: var(--secondary);"><i class="fas fa-pen"></i> Edit</button>
+                            <span class="review-section-title"><i class="fas fa-address-book"
+                                    style="color: var(--primary);"></i> Contact</span>
+                            <button class="edit-link" data-edit="contact"
+                                style="color: var(--secondary);"><i class="fas fa-pen"></i> Edit</button>
                         </div>
                         <div>
                             <span id="reviewContactName" style="font-weight: 600;">-</span><br>
@@ -1064,7 +1278,8 @@ body {
                     </div>
                 </div>
 
-                <button class="btn-next" id="nextToConfirm">Proceed to Confirm <i class="fas fa-arrow-right"></i></button>
+                <button class="btn-next" id="nextToConfirm">Proceed to Confirm <i
+                        class="fas fa-arrow-right"></i></button>
                 <button class="btn-next back-btn" id="backToContact"><i class="fas fa-arrow-left"></i> Back</button>
             </div>
 
@@ -1073,16 +1288,20 @@ body {
                 <div class="section-title">Confirm Appointment</div>
 
                 <div class="summary-box">
-                    <div class="summary-row"><span class="summary-label">Clients</span><span class="summary-value" id="sumClients">-</span></div>
-                    <div class="summary-row"><span class="summary-label">Date & Time</span><span class="summary-value" id="sumDateTime">-</span></div>
-                    <div class="summary-row"><span class="summary-label">Contact</span><span class="summary-value" id="sumContact">-</span></div>
+                    <div class="summary-row"><span class="summary-label">Clients</span><span class="summary-value"
+                            id="sumClients">-</span></div>
+                    <div class="summary-row"><span class="summary-label">Date & Time</span><span class="summary-value"
+                            id="sumDateTime">-</span></div>
+                    <div class="summary-row"><span class="summary-label">Contact</span><span class="summary-value"
+                            id="sumContact">-</span></div>
                 </div>
 
                 <div class="confirmation-checkbox">
                     <input type="checkbox" id="confirmCheckbox">
                     <label for="confirmCheckbox">
                         <strong>I confirm that all information is accurate and complete.</strong><br>
-                        <span style="font-size: 0.85rem; color: var(--gray-500);">I have read all service requirements and will bring necessary documents.</span>
+                        <span style="font-size: 0.85rem; color: var(--gray-500);">I have read all service requirements
+                            and will bring necessary documents.</span>
                     </label>
                 </div>
 
@@ -1118,17 +1337,12 @@ body {
         (function() {
             'use strict';
 
-            // Removed appointmentType - now always 'multiple' style
             let selectedDate = null;
             let selectedTimeSlot = null;
             let selectedTimeSlotLabel = null;
             let availableDatesData = [];
             let availableTimeSlots = [];
-
-            // TRN related variables
             let clientTrnData = {};
-
-            // Location variables
             let userLocation = {
                 lat: null,
                 lng: null,
@@ -1136,12 +1350,9 @@ body {
                 address: null,
                 zipcode: null
             };
-
-            // QR Scanner instance
             let html5QrCode = null;
             let currentQrClientId = null;
 
-            // TRN validation - exactly 29 digits
             const TRN_LENGTH = 29;
             const MAX_CLIENTS = 4;
 
@@ -1200,7 +1411,19 @@ body {
                 confirm: document.getElementById('sectionConfirm')
             };
 
-            // ==================== LOAD LOCATION ====================
+            // Birthdate validation function
+            function validateBirthdate(input) {
+                if (input.value) {
+                    const year = input.value.split('-')[0];
+                    if (year && year.length !== 4) {
+                        input.setCustomValidity('Year must be 4 digits (e.g., 1990)');
+                        input.reportValidity();
+                        input.value = '';
+                    } else {
+                        input.setCustomValidity('');
+                    }
+                }
+            }
 
             function loadLocationFromLandingPage() {
                 const stored = localStorage.getItem('userLocation');
@@ -1219,8 +1442,6 @@ body {
                             document.getElementById('userCity').value = userLocation.city;
                             document.getElementById('userAddress').value = userLocation.address;
                             document.getElementById('userZipcode').value = userLocation.zipcode;
-
-                            console.log('Location loaded from landing page:', userLocation);
                             return true;
                         }
                     } catch (e) {
@@ -1280,7 +1501,7 @@ body {
                     if (!acked) allAcked = false;
                     const displayName = getFullName(c);
                     html +=
-                        `<div class="req-item"><i class="fas ${acked ? 'fa-check-circle' : 'fa-exclamation-circle'}" style="color:${acked?'var(--success)':'var(--warning)'};"></i> ${displayName || 'Person '+(i+1)} - ${getServiceName(svc)} ${acked ? '✓' : '(Pending)'}</div>`;
+                        `<div class="req-item"><i class="fas ${acked ? 'fa-check-circle' : 'fa-exclamation-circle'}" style="color:${acked ? 'var(--success)' : 'var(--warning)'};"></i> ${displayName || 'Person ' + (i + 1)} - ${getServiceName(svc)} ${acked ? '✓' : '(Pending)'}</div>`;
                 });
                 list.innerHTML = html;
                 banner.classList.toggle('complete', allAcked);
@@ -1291,15 +1512,12 @@ body {
             async function loadAvailableDates() {
                 const clientCount = clients.length;
                 const services = [...new Set(clients.map(c => c.service))];
-
                 let url =
                     `{{ route('client.appointment.available-dates') }}?month=${currentMonth + 1}&year=${currentYear}&client_count=${clientCount}&services=${services.join(',')}`;
-
                 try {
                     const response = await fetch(url);
                     if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
                     const data = await response.json();
-
                     if (data.success) {
                         availableDatesData = data.dates;
                         renderCalendar();
@@ -1316,101 +1534,82 @@ body {
 
             function renderTimeSlots(timeSlots) {
                 const timeSlotsGrid = document.getElementById('timeSlotsGrid');
-
+                
                 if (!timeSlots || timeSlots.length === 0) {
-                    timeSlotsGrid.innerHTML =
-                        '<div class="time-slots-loading"><i class="fas fa-info-circle"></i> No available time slots for this date.</div>';
+                    timeSlotsGrid.innerHTML = '<div class="time-slots-loading"><i class="fas fa-info-circle"></i> No available time slots for your selected services on this date.</div>';
                     return;
                 }
-
+                
                 const selectedServices = [...new Set(clients.map(c => c.service))];
-                const serviceShort = { 'reg': 'R', 'updating': 'U', 'inquiry': 'S' };
-                const serviceNames = { 'reg': 'Registration', 'updating': 'Correction/Updating', 'inquiry': 'Status Inquiry' };
-
+                
                 let html = '';
                 timeSlots.forEach(slot => {
                     const isSelected = selectedTimeSlot === slot.id;
-                    let hasAnyAvailability = false;
-                    let serviceBadgesHtml = '';
-
+                    let allServicesAvailable = true;
+                    
                     if (slot.service_availability) {
                         for (const service of selectedServices) {
                             const availableSlots = slot.service_availability[service] || 0;
-                            const shortCode = serviceShort[service] || service.charAt(0).toUpperCase();
-                            const badgeClass = availableSlots > 0 ? 'available' : 'full';
-                            if (availableSlots > 0) hasAnyAvailability = true;
-                            serviceBadgesHtml += `<span class="service-badge ${badgeClass}" title="${serviceNames[service]}: ${availableSlots} slots">${shortCode}${availableSlots}</span>`;
+                            if (availableSlots <= 0) {
+                                allServicesAvailable = false;
+                                break;
+                            }
                         }
                     }
-
-                    html += `
-                        <div class="time-slot-card ${!hasAnyAvailability ? 'disabled' : ''} ${isSelected ? 'selected' : ''}" 
-                             data-slot-id="${slot.id}" data-slot-label="${slot.slot_label}" data-available="${hasAnyAvailability}">
-                            <div class="time-slot-time">${slot.slot_label}</div>
-                            <div class="slot-indicators" style="margin-top: 8px; margin-bottom: 4px;">${serviceBadgesHtml}</div>
-                            <div class="time-slot-availability ${hasAnyAvailability ? 'available' : 'full'}">${hasAnyAvailability ? 'Available' : 'Fully Booked'}</div>
-                        </div>`;
+                    
+                    if (allServicesAvailable) {
+                        html += `
+                            <div class="time-slot-card ${isSelected ? 'selected' : ''}" 
+                                 data-slot-id="${slot.id}" data-slot-label="${slot.slot_label}" data-available="true">
+                                <div class="time-slot-time">${slot.slot_label}</div>
+                            </div>`;
+                    }
                 });
-
-                timeSlotsGrid.innerHTML = html;
-                document.querySelectorAll('.time-slot-card').forEach(card => {
-                    card.addEventListener('click', () => {
-                        if (card.dataset.available !== 'true') return;
-                        document.querySelectorAll('.time-slot-card').forEach(c => c.classList.remove('selected'));
-                        card.classList.add('selected');
-                        selectedTimeSlot = parseInt(card.dataset.slotId);
-                        selectedTimeSlotLabel = card.dataset.slotLabel;
+                
+                if (html === '') {
+                    timeSlotsGrid.innerHTML = '<div class="time-slots-loading"><i class="fas fa-info-circle"></i> No available time slots for your selected services on this date.</div>';
+                } else {
+                    timeSlotsGrid.innerHTML = html;
+                    
+                    document.querySelectorAll('.time-slot-card').forEach(card => {
+                        card.addEventListener('click', () => {
+                            if (card.dataset.available !== 'true') return;
+                            document.querySelectorAll('.time-slot-card').forEach(c => c.classList.remove('selected'));
+                            card.classList.add('selected');
+                            selectedTimeSlot = parseInt(card.dataset.slotId);
+                            selectedTimeSlotLabel = card.dataset.slotLabel;
+                        });
                     });
-                });
+                }
             }
 
             function renderCalendar() {
                 const monthNames = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August',
-                    'September', 'October', 'November', 'December'];
+                    'September', 'October', 'November', 'December'
+                ];
                 document.getElementById('calendarMonthYear').textContent = `${monthNames[currentMonth]} ${currentYear}`;
-
                 const firstDay = new Date(currentYear, currentMonth, 1);
                 const startDayOfWeek = firstDay.getDay() || 7;
                 const startOffset = startDayOfWeek === 7 ? 0 : startDayOfWeek - 1;
                 const daysInMonth = new Date(currentYear, currentMonth + 1, 0).getDate();
-
                 let html = '';
                 for (let i = 0; i < startOffset; i++) html += '<div class="calendar-day empty"></div>';
-
                 const today = new Date();
                 today.setHours(0, 0, 0, 0);
-                const selectedServices = [...new Set(clients.map(c => c.service))];
-                const serviceShort = { 'reg': 'R', 'updating': 'U', 'inquiry': 'S' };
-
                 for (let d = 1; d <= daysInMonth; d++) {
                     const date = new Date(currentYear, currentMonth, d);
                     const dateKey = `${currentYear}-${String(currentMonth + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
                     const dateData = availableDatesData ? availableDatesData.find(item => item.date === dateKey) : null;
                     const isPast = date < today;
                     const isSelected = selectedDate === dateKey;
-
                     let cls = 'calendar-day';
                     if (isPast) cls += ' disabled';
                     else if (dateData && dateData.available) cls += ' available';
                     else if (!dateData) cls += ' disabled';
                     if (isSelected) cls += ' selected';
-
-                    let indicatorsHtml = '';
-                    if (dateData && !isPast && dateData.available && dateData.service_availability) {
-                        indicatorsHtml = '<div class="slot-indicators">';
-                        for (const service of selectedServices) {
-                            const slots = dateData.service_availability[service] || 0;
-                            const badgeClass = slots > 0 ? 'available' : 'full';
-                            const shortCode = serviceShort[service] || service.charAt(0).toUpperCase();
-                            indicatorsHtml += `<span class="service-badge ${badgeClass}">${shortCode}${slots}</span>`;
-                        }
-                        indicatorsHtml += '</div>';
-                    }
-
                     html += `<div class="${cls}" data-date="${dateKey}" onclick="window.selectDate('${dateKey}')">`;
-                    html += `<div class="day-number">${d}</div>${indicatorsHtml}</div>`;
+                    html += `<div class="day-number">${d}</div></div>`;
                 }
-
                 document.getElementById('calendarDays').innerHTML = html;
             }
 
@@ -1427,28 +1626,34 @@ body {
             async function loadTimeSlots(date) {
                 const timeSlotsGrid = document.getElementById('timeSlotsGrid');
                 const timeSlotsContainer = document.getElementById('timeSlotsContainer');
-                if (!date) { timeSlotsContainer.style.display = 'none'; return; }
+                if (!date) {
+                    timeSlotsContainer.style.display = 'none';
+                    return;
+                }
                 timeSlotsContainer.style.display = 'block';
-                timeSlotsGrid.innerHTML = '<div class="time-slots-loading"><i class="fas fa-spinner fa-spin"></i> Loading available time slots...</div>';
+                timeSlotsGrid.innerHTML =
+                    '<div class="time-slots-loading"><i class="fas fa-spinner fa-spin"></i> Loading available time slots...</div>';
                 try {
                     const selectedServices = [...new Set(clients.map(c => c.service))];
-                    const url = `{{ route('client.appointment.available-time-slots') }}?date=${date}&services=${selectedServices.join(',')}&client_count=${clients.length}`;
+                    const url =
+                        `{{ route('client.appointment.available-time-slots') }}?date=${date}&services=${selectedServices.join(',')}&client_count=${clients.length}`;
                     const response = await fetch(url);
                     const data = await response.json();
                     if (data.success && data.time_slots && data.time_slots.length > 0) {
                         availableTimeSlots = data.time_slots;
                         renderTimeSlots(availableTimeSlots);
                     } else {
-                        timeSlotsGrid.innerHTML = '<div class="time-slots-loading"><i class="fas fa-info-circle"></i> No available time slots for this date.</div>';
+                        timeSlotsGrid.innerHTML =
+                            '<div class="time-slots-loading"><i class="fas fa-info-circle"></i> No available time slots for this date.</div>';
                     }
                 } catch (error) {
                     console.error('Error loading time slots:', error);
-                    timeSlotsGrid.innerHTML = '<div class="time-slots-loading"><i class="fas fa-exclamation-triangle"></i> Failed to load time slots.</div>';
+                    timeSlotsGrid.innerHTML =
+                        '<div class="time-slots-loading"><i class="fas fa-exclamation-triangle"></i> Failed to load time slots.</div>';
                 }
             }
 
-            // ==================== TRN FUNCTIONS ====================
-
+            // TRN Functions
             function validateAndStyleTrnInput(clientId) {
                 const trnInput = document.getElementById(`trnNumber_${clientId}`);
                 const charCounter = document.getElementById(`trnCharCounter_${clientId}`);
@@ -1522,10 +1727,33 @@ body {
                 const trnInputArea = document.getElementById(`trnInputArea_${clientId}`);
                 const trnNumberInput = document.getElementById(`trnNumber_${clientId}`);
                 const scanBtn = document.querySelector(`.qr-scan-btn[data-client-id="${clientId}"]`);
-                if (!clientTrnData[clientId]) clientTrnData[clientId] = { hasTrn: null, trnNumber: '', isValid: false };
-                if (radioYes) radioYes.addEventListener('change', function() { if (this.checked) { clientTrnData[clientId].hasTrn = true; if (trnInputArea) trnInputArea.style.display = 'block'; setTimeout(() => validateAndStyleTrnInput(clientId), 10); } });
-                if (radioNo) radioNo.addEventListener('change', function() { if (this.checked) { clientTrnData[clientId].hasTrn = false; clientTrnData[clientId].trnNumber = ''; clientTrnData[clientId].isValid = false; if (trnInputArea) trnInputArea.style.display = 'none'; if (trnNumberInput) trnNumberInput.value = ''; } });
-                if (trnNumberInput) trnNumberInput.addEventListener('input', function(e) { this.value = this.value.replace(/[^0-9]/g, ''); if (this.value.length > TRN_LENGTH) this.value = this.value.slice(0, TRN_LENGTH); clientTrnData[clientId].trnNumber = this.value; validateAndStyleTrnInput(clientId); });
+                if (!clientTrnData[clientId]) clientTrnData[clientId] = {
+                    hasTrn: null,
+                    trnNumber: '',
+                    isValid: false
+                };
+                if (radioYes) radioYes.addEventListener('change', function() {
+                    if (this.checked) {
+                        clientTrnData[clientId].hasTrn = true;
+                        if (trnInputArea) trnInputArea.style.display = 'block';
+                        setTimeout(() => validateAndStyleTrnInput(clientId), 10);
+                    }
+                });
+                if (radioNo) radioNo.addEventListener('change', function() {
+                    if (this.checked) {
+                        clientTrnData[clientId].hasTrn = false;
+                        clientTrnData[clientId].trnNumber = '';
+                        clientTrnData[clientId].isValid = false;
+                        if (trnInputArea) trnInputArea.style.display = 'none';
+                        if (trnNumberInput) trnNumberInput.value = '';
+                    }
+                });
+                if (trnNumberInput) trnNumberInput.addEventListener('input', function(e) {
+                    this.value = this.value.replace(/[^0-9]/g, '');
+                    if (this.value.length > TRN_LENGTH) this.value = this.value.slice(0, TRN_LENGTH);
+                    clientTrnData[clientId].trnNumber = this.value;
+                    validateAndStyleTrnInput(clientId);
+                });
                 if (scanBtn) scanBtn.addEventListener('click', () => startQrScanner(clientId));
             }
 
@@ -1537,7 +1765,15 @@ body {
                 currentQrClientId = clientId;
                 html5QrCode = new Html5Qrcode(`qr-reader_${clientId}`);
                 try {
-                    await html5QrCode.start({ facingMode: "environment" }, { fps: 10, qrbox: { width: 250, height: 250 } },
+                    await html5QrCode.start({
+                            facingMode: "environment"
+                        }, {
+                            fps: 10,
+                            qrbox: {
+                                width: 250,
+                                height: 250
+                            }
+                        },
                         (decodedText) => {
                             const trnInput = document.getElementById(`trnNumber_${clientId}`);
                             if (trnInput) {
@@ -1549,14 +1785,22 @@ body {
                             }
                             if (html5QrCode && html5QrCode.isScanning) html5QrCode.stop();
                             qrReaderDiv.style.display = 'none';
-                            alert(clientTrnData[clientId].isValid ? 'QR Code scanned successfully!' : 'QR Code scanned. Please ensure TRN is exactly 29 digits.');
+                            alert(clientTrnData[clientId].isValid ? 'QR Code scanned successfully!' :
+                                'QR Code scanned. Please ensure TRN is exactly 29 digits.');
                         },
                         (errorMessage) => console.log(`QR Scan error: ${errorMessage}`)
                     );
-                } catch (err) { console.error(`Failed to start QR scanner: ${err}`); alert('Could not access camera. Please grant camera permissions.'); qrReaderDiv.style.display = 'none'; }
+                } catch (err) {
+                    console.error(`Failed to start QR scanner: ${err}`);
+                    alert('Could not access camera. Please grant camera permissions.');
+                    qrReaderDiv.style.display = 'none';
+                }
             }
 
-            function shouldShowTrnForClient(client) { return client.service === 'inquiry'; }
+            function shouldShowTrnForClient(client) {
+                return client.service === 'inquiry';
+            }
+
             function validateTrnForClient(client) {
                 if (!shouldShowTrnForClient(client)) return true;
                 const trnData = clientTrnData[client.id];
@@ -1572,13 +1816,16 @@ body {
                     const svc = c.service;
                     const reminder = identityReminders[svc] || 'Please ensure the information is accurate.';
                     const showTrn = shouldShowTrnForClient(c);
-                    const trnData = clientTrnData[c.id] || { hasTrn: null, trnNumber: '', isValid: false };
-
+                    const trnData = clientTrnData[c.id] || {
+                        hasTrn: null,
+                        trnNumber: '',
+                        isValid: false
+                    };
                     const card = document.createElement('div');
                     card.className = 'client-card';
                     card.innerHTML = `
                         <div class="client-header">
-                            <span class="client-title"><i class="fas fa-user-circle"></i> Person ${i+1}</span>
+                            <span class="client-title"><i class="fas fa-user-circle"></i> Person ${i + 1}</span>
                             <div style="display: flex; gap: 8px;">
                                 <button class="btn-view-req" data-id="${c.id}"><i class="fas fa-book"></i> View Requirements</button>
                                 ${clients.length > 1 ? `<button class="btn-remove-client" data-id="${c.id}"><i class="fas fa-trash-alt"></i></button>` : ''}
@@ -1591,18 +1838,22 @@ body {
                         </div>
                         <div class="form-row">
                             <div class="form-col"><label>Last Name <span style="color: var(--danger);">*</span></label><input class="client-lastname" data-id="${c.id}" value="${escapeHtml(c.lastName) || ''}" placeholder="Last Name"></div>
-                            <div class="form-col"><label>Suffix</label><select class="client-suffix" data-id="${c.id}"><option value="">-- None --</option><option value="Jr." ${c.suffix === 'Jr.' ? 'selected' : ''}>Jr.</option><option value="Sr." ${c.suffix === 'Sr.' ? 'selected' : ''}>Sr.</option><option value="I" ${c.suffix === 'I' ? 'selected' : ''}>I</option><option value="II" ${c.suffix === 'II' ? 'selected' : ''}>II</option><option value="III" ${c.suffix === 'III' ? 'selected' : ''}>III</option><option value="IV" ${c.suffix === 'IV' ? 'selected' : ''}>IV</option><option value="V" ${c.suffix === 'V' ? 'selected' : ''}>V</option></select></div>
+                            <div class="form-col"><label>Suffix</label><select class="client-suffix" data-id="${c.id}"><option value=""> None </option><option value="Jr." ${c.suffix === 'Jr.' ? 'selected' : ''}>Jr.</option><option value="Sr." ${c.suffix === 'Sr.' ? 'selected' : ''}>Sr.</option><option value="I" ${c.suffix === 'I' ? 'selected' : ''}>I</option><option value="II" ${c.suffix === 'II' ? 'selected' : ''}>II</option><option value="III" ${c.suffix === 'III' ? 'selected' : ''}>III</option><option value="IV" ${c.suffix === 'IV' ? 'selected' : ''}>IV</option><option value="V" ${c.suffix === 'V' ? 'selected' : ''}>V</option></select></div>
                         </div>
                         <div class="form-row">
-                            <div class="form-col"><label>Sex <span style="color: var(--danger);">*</span></label><select class="client-sex" data-id="${c.id}"><option value="Male" ${c.sex==='Male'?'selected':''}>Male</option><option value="Female" ${c.sex==='Female'?'selected':''}>Female</option></select></div>
-                            <div class="form-col"><label>Birthdate <span style="color: var(--danger);">*</span></label><input type="date" class="client-birthdate" data-id="${c.id}" value="${c.birthdate || ''}"></div>
+                            <div class="form-col"><label>Sex <span style="color: var(--danger);">*</span></label><select class="client-sex" data-id="${c.id}"><option value="Male" ${c.sex === 'Male' ? 'selected' : ''}>Male</option><option value="Female" ${c.sex === 'Female' ? 'selected' : ''}>Female</option></select></div>
+                            <div class="form-col"><label>Birthdate <span style="color: var(--danger);">*</span></label>
+                            <input type="date" class="client-birthdate" data-id="${c.id}" value="${c.birthdate || ''}" 
+                                oninput="validateBirthdate(this)" 
+                                onchange="validateBirthdate(this)">
+                            </div>
                         </div>
                         <div class="form-col" style="margin-top: 12px;">
                             <label>Service <span style="color: var(--danger);">*</span></label>
                             <select class="client-service" data-id="${c.id}">
-                                <option value="reg" ${c.service==='reg' ? 'selected' : ''}>National ID Registration</option>
-                                <option value="updating" ${c.service==='updating' ? 'selected' : ''}>Correction/Updating</option>
-                                <option value="inquiry" ${c.service==='inquiry' ? 'selected' : ''}>Status Inquiry / Retrieval Of TRN / Other Concern</option>
+                                <option value="reg" ${c.service === 'reg' ? 'selected' : ''}>National ID Registration</option>
+                                <option value="updating" ${c.service === 'updating' ? 'selected' : ''}>Correction/Updating</option>
+                                <option value="inquiry" ${c.service === 'inquiry' ? 'selected' : ''}>Status Inquiry / Retrieval Of TRN / Other Concern</option>
                             </select>
                         </div>
                         ${showTrn ? createTrnHtml(c.id, trnData.hasTrn, trnData.trnNumber) : ''}
@@ -1629,24 +1880,64 @@ body {
             }
 
             function attachClientEvents() {
-                document.querySelectorAll('.client-firstname').forEach(e => e.addEventListener('input', (ev) => { const c = clients.find(x => x.id == ev.target.dataset.id); if (c) c.firstName = ev.target.value; }));
-                document.querySelectorAll('.client-middlename').forEach(e => e.addEventListener('input', (ev) => { const c = clients.find(x => x.id == ev.target.dataset.id); if (c) c.middleName = ev.target.value; }));
-                document.querySelectorAll('.client-lastname').forEach(e => e.addEventListener('input', (ev) => { const c = clients.find(x => x.id == ev.target.dataset.id); if (c) c.lastName = ev.target.value; }));
-                document.querySelectorAll('.client-suffix').forEach(e => e.addEventListener('change', (ev) => { const c = clients.find(x => x.id == ev.target.dataset.id); if (c) c.suffix = ev.target.value; }));
-                document.querySelectorAll('.client-sex').forEach(e => e.addEventListener('change', (ev) => { const c = clients.find(x => x.id == ev.target.dataset.id); if (c) c.sex = ev.target.value; }));
-                document.querySelectorAll('.client-birthdate').forEach(e => e.addEventListener('input', (ev) => { const c = clients.find(x => x.id == ev.target.dataset.id); if (c) c.birthdate = ev.target.value; }));
+                document.querySelectorAll('.client-firstname').forEach(e => e.addEventListener('input', (ev) => {
+                    const c = clients.find(x => x.id == ev.target.dataset.id);
+                    if (c) c.firstName = ev.target.value;
+                }));
+                document.querySelectorAll('.client-middlename').forEach(e => e.addEventListener('input', (ev) => {
+                    const c = clients.find(x => x.id == ev.target.dataset.id);
+                    if (c) c.middleName = ev.target.value;
+                }));
+                document.querySelectorAll('.client-lastname').forEach(e => e.addEventListener('input', (ev) => {
+                    const c = clients.find(x => x.id == ev.target.dataset.id);
+                    if (c) c.lastName = ev.target.value;
+                }));
+                document.querySelectorAll('.client-suffix').forEach(e => e.addEventListener('change', (ev) => {
+                    const c = clients.find(x => x.id == ev.target.dataset.id);
+                    if (c) c.suffix = ev.target.value;
+                }));
+                document.querySelectorAll('.client-sex').forEach(e => e.addEventListener('change', (ev) => {
+                    const c = clients.find(x => x.id == ev.target.dataset.id);
+                    if (c) c.sex = ev.target.value;
+                }));
+                document.querySelectorAll('.client-birthdate').forEach(e => e.addEventListener('input', (ev) => {
+                    const c = clients.find(x => x.id == ev.target.dataset.id);
+                    if (c) {
+                        // Validate the date before saving
+                        if (ev.target.value) {
+                            const year = ev.target.value.split('-')[0];
+                            if (year && year.length !== 4) {
+                                alert('Please enter a valid year (YYYY format, e.g., 1990)');
+                                ev.target.value = '';
+                                return;
+                            }
+                        }
+                        c.birthdate = ev.target.value;
+                    }
+                }));
                 document.querySelectorAll('.client-service').forEach(e => e.addEventListener('change', (ev) => {
                     const c = clients.find(x => x.id == ev.target.dataset.id);
                     if (c) {
                         c.service = ev.target.value;
                         c.reqAcknowledged = false;
                         if (c.service !== 'inquiry') delete clientTrnData[c.id];
-                        else if (!clientTrnData[c.id]) clientTrnData[c.id] = { hasTrn: null, trnNumber: '', isValid: false };
+                        else if (!clientTrnData[c.id]) clientTrnData[c.id] = {
+                            hasTrn: null,
+                            trnNumber: '',
+                            isValid: false
+                        };
                         renderClients();
                         updateReqSummary();
                     }
                 }));
-                document.querySelectorAll('.req-ack').forEach(e => e.addEventListener('change', (ev) => { const c = clients.find(x => x.id == ev.target.dataset.id); if (c) { c.reqAcknowledged = ev.target.checked; renderClients(); updateReqSummary(); } }));
+                document.querySelectorAll('.req-ack').forEach(e => e.addEventListener('change', (ev) => {
+                    const c = clients.find(x => x.id == ev.target.dataset.id);
+                    if (c) {
+                        c.reqAcknowledged = ev.target.checked;
+                        renderClients();
+                        updateReqSummary();
+                    }
+                }));
                 document.querySelectorAll('.btn-view-req').forEach(b => b.addEventListener('click', (ev) => {
                     const id = ev.target.closest('.btn-view-req').dataset.id;
                     const client = clients.find(c => c.id == id);
@@ -1662,7 +1953,9 @@ body {
                     renderClients();
                     updateReqSummary();
                 }));
-                clients.forEach(client => { if (shouldShowTrnForClient(client)) attachTrnEvents(client.id); });
+                clients.forEach(client => {
+                    if (shouldShowTrnForClient(client)) attachTrnEvents(client.id);
+                });
             }
 
             function setActiveStep(s) {
@@ -1674,336 +1967,480 @@ body {
                 s.classList.remove('hidden');
             }
 
-            // ==================== SUBMIT HANDLER ====================
-
-            document.getElementById('submitRequestBtn').onclick = async () => {
-    const locationData = {
-        user_lat: document.getElementById('userLat').value || null,
-        user_lng: document.getElementById('userLng').value || null,
-        user_city: document.getElementById('userCity').value || null,
-        user_address: document.getElementById('userAddress').value || null,
-        user_zipcode: document.getElementById('userZipcode').value || null
-    };
-
-    const clientsData = clients.map(c => {
-        const clientInfo = {
-            first_name: c.firstName,
-            middle_name: c.middleName || null,
-            last_name: c.lastName,
-            suffix: c.suffix || null,
-            sex: c.sex,
-            birthdate: c.birthdate,
-            service: c.service
-        };
-        if (shouldShowTrnForClient(c)) {
-            const trnData = clientTrnData[c.id];
-            if (trnData) {
-                clientInfo.has_trn = trnData.hasTrn;
-                clientInfo.trn_number = trnData.hasTrn && trnData.isValid ? trnData.trnNumber : null;
-            }
-        }
-        return clientInfo;
-    });
-
-    const formData = {
-        appointment_type: 'multiple',
-        appointment_date: selectedDate,
-        appointment_time_slot_id: selectedTimeSlot,
-        contact_name: document.getElementById('contactName').value,
-        contact_email: document.getElementById('contactEmail').value || null,
-        contact_mobile: document.getElementById('contactMobile').value,
-        user_lat: locationData.user_lat,
-        user_lng: locationData.user_lng,
-        user_city: locationData.user_city,
-        user_address: locationData.user_address,
-        user_zipcode: locationData.user_zipcode,
-        clients: clientsData
-    };
-
-    if (!formData.contact_name) { alert('Please enter contact name'); return; }
-    if (!formData.contact_mobile) { alert('Please enter mobile number'); return; }
-    if (!formData.appointment_date) { alert('Please select an appointment date'); return; }
-    if (!formData.appointment_time_slot_id) { alert('Please select a preferred time slot'); return; }
-
-    // Validate mobile number format
-    const mobileRegex = /^09\d{9}$/;
-    if (!mobileRegex.test(formData.contact_mobile)) {
-        alert('Please enter a valid mobile number (11 digits starting with 09, e.g., 09123456789)');
-        return;
-    }
-
-    showLoading();
-    try {
-        const response = await fetch('{{ route('client.appointment.store') }}', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content, 'Accept': 'application/json' },
-            body: JSON.stringify(formData)
-        });
-        const result = await response.json();
-        if (result.success) {
-            // Build detailed clients HTML
-            let clientsHtml = '';
-            if (result.appointment.clients_list && result.appointment.clients_list.length > 0) {
-                clientsHtml = '<div style="text-align: left; margin-top: 10px;"><strong>Client Details:</strong><ul style="margin-top: 5px;">';
-                result.appointment.clients_list.forEach(client => {
-                    clientsHtml += `<li><strong>${escapeHtml(client.name)}</strong><br>
-                                    <small>Client Number: ${client.client_number}</small><br>
-                                    <small>Service: ${client.service_name}</small>
-                                   </li>`;
-                });
-                clientsHtml += '</ul></div>';
-            }
-            
-            let locationMessage = result.appointment.location_city ? `<p><strong>Location:</strong> ${result.appointment.location_city}</p>` : '';
-            
-            document.getElementById('successDetails').innerHTML = `
-                <div style="text-align: left;">
-                    <p><strong>Appointment Number:</strong> ${result.appointment.number}</p>
-                    <p><strong>Reference Code:</strong> ${result.appointment.reference_code}</p>
-                    <p><strong>Date & Time:</strong> ${result.appointment.date} at ${result.appointment.time || 'Selected time slot'}</p>
-                    <p><strong>Contact Person:</strong> ${escapeHtml(result.appointment.contact_name)}</p>
-                    <p><strong>Contact Number:</strong> ${result.appointment.contact_mobile}</p>
-                    ${result.appointment.contact_email ? `<p><strong>Email:</strong> ${result.appointment.contact_email}</p>` : ''}
-                    <p><strong>Total Clients:</strong> ${result.appointment.clients_count} person(s)</p>
-                    ${clientsHtml}
-                    ${locationMessage}
-                    <hr>
-                    <p><small>A confirmation ${result.email_sent ? 'email has been sent' : 'SMS will be sent'} to your registered contact.</small></p>
-                    <p><small style="color: #dc3545;">⚠️ Please save your Reference Code for verification.</small></p>
-                </div>
-            `;
-            successModal.style.display = 'flex';
-        } else { 
-            alert('Error: ' + (result.message || 'Unknown error occurred')); 
-        }
-    } catch (error) { 
-        console.error('Submission error:', error); 
-        alert('Failed to submit appointment. Please check your connection and try again.'); 
-    } finally { 
-        hideLoading(); 
-    }
-};
-
             // ==================== EVENT LISTENERS ====================
 
             document.getElementById('agreePrivacyBtn').onclick = () => privacyModal.style.display = 'none';
-            document.getElementById('startBookingBtn').onclick = () => { showSection(sections.clients); setActiveStep(2); };
+            document.getElementById('startBookingBtn').onclick = () => {
+                showSection(sections.clients);
+                setActiveStep(2);
+            };
             document.getElementById('addClientBtn').onclick = () => {
-                if (clients.length >= MAX_CLIENTS) { alert(`Maximum ${MAX_CLIENTS} persons only.`); return; }
+                if (clients.length >= MAX_CLIENTS) {
+                    alert(`Maximum ${MAX_CLIENTS} persons only.`);
+                    return;
+                }
                 const newId = nextClientId++;
-                clients.push({ id: newId, firstName: '', middleName: '', lastName: '', suffix: '', sex: 'Male', birthdate: '', service: 'reg', reqAcknowledged: false });
+                clients.push({
+                    id: newId,
+                    firstName: '',
+                    middleName: '',
+                    lastName: '',
+                    suffix: '',
+                    sex: 'Male',
+                    birthdate: '',
+                    service: 'reg',
+                    reqAcknowledged: false
+                });
                 renderClients();
             };
             document.getElementById('nextToSchedule').onclick = () => {
                 for (let c of clients) {
-                    if (!c.firstName?.trim() || !c.lastName?.trim()) { alert('First Name and Last Name are required for all clients'); return; }
-                    if (!c.sex) { alert('Please select sex for all clients'); return; }
-                    if (!c.birthdate) { alert('Please enter birthdate for all clients'); return; }
-                    if (!c.service) { alert('Please select service for all clients'); return; }
-                    if (!validateTrnForClient(c)) { const clientName = getFullName(c) || `Person ${clients.indexOf(c) + 1}`; alert(`${clientName}: Please indicate whether you have a TRN. If YES, please enter the exact 29-digit TRN number or scan the QR code.`); return; }
+                    if (!c.firstName?.trim() || !c.lastName?.trim()) {
+                        alert('First Name and Last Name are required for all clients');
+                        return;
+                    }
+                    if (!c.sex) {
+                        alert('Please select sex for all clients');
+                        return;
+                    }
+                    if (!c.birthdate) {
+                        alert('Please enter birthdate for all clients');
+                        return;
+                    }
+                    if (!c.service) {
+                        alert('Please select service for all clients');
+                        return;
+                    }
+                    if (!validateTrnForClient(c)) {
+                        const clientName = getFullName(c) || `Person ${clients.indexOf(c) + 1}`;
+                        alert(
+                            `${clientName}: Please indicate whether you have a TRN. If YES, please enter the exact 29-digit TRN number or scan the QR code.`
+                        );
+                        return;
+                    }
                 }
-                if (!allRequirementsAcknowledged()) { alert('Please acknowledge all requirements.'); return; }
+                if (!allRequirementsAcknowledged()) {
+                    alert('Please acknowledge all requirements.');
+                    return;
+                }
                 loadAvailableDates();
                 showSection(sections.schedule);
                 setActiveStep(3);
             };
-            document.getElementById('backToClients').onclick = () => { showSection(sections.clients); setActiveStep(2); };
-            document.getElementById('prevMonthBtn').onclick = () => { currentMonth--; if (currentMonth < 0) { currentMonth = 11; currentYear--; } loadAvailableDates(); };
-            document.getElementById('nextMonthBtn').onclick = () => { currentMonth++; if (currentMonth > 11) { currentMonth = 0; currentYear++; } loadAvailableDates(); };
-            document.getElementById('nextToContact').onclick = () => { if (!selectedDate) { alert('Please select an appointment date.'); return; } if (!selectedTimeSlot) { alert('Please select a preferred time slot.'); return; } showSection(sections.contact); setActiveStep(4); };
-            document.getElementById('backToScheduleFromContact').onclick = () => { showSection(sections.schedule); setActiveStep(3); };
+            document.getElementById('backToClients').onclick = () => {
+                showSection(sections.clients);
+                setActiveStep(2);
+            };
+            document.getElementById('prevMonthBtn').onclick = () => {
+                currentMonth--;
+                if (currentMonth < 0) {
+                    currentMonth = 11;
+                    currentYear--;
+                }
+                loadAvailableDates();
+            };
+            document.getElementById('nextMonthBtn').onclick = () => {
+                currentMonth++;
+                if (currentMonth > 11) {
+                    currentMonth = 0;
+                    currentYear++;
+                }
+                loadAvailableDates();
+            };
+            document.getElementById('nextToContact').onclick = () => {
+                if (!selectedDate) {
+                    alert('Please select an appointment date.');
+                    return;
+                }
+                if (!selectedTimeSlot) {
+                    alert('Please select a preferred time slot.');
+                    return;
+                }
+                showSection(sections.contact);
+                setActiveStep(4);
+            };
+            document.getElementById('backToScheduleFromContact').onclick = () => {
+                showSection(sections.schedule);
+                setActiveStep(3);
+            };
             document.getElementById('nextToReview').onclick = () => {
                 const name = document.getElementById('contactName').value;
-                const mob = document.getElementById('contactMobile').value;
-                if (!name || !mob) { alert('Contact name and mobile number are required.'); return; }
+                const mobileSuffix = document.getElementById('contactMobile').value;
+                
+                if (!name || !mobileSuffix) {
+                    alert('Contact name and mobile number are required.');
+                    return;
+                }
+                
+                // Validate mobile suffix format (10 digits starting with 9)
+                if (mobileSuffix.length !== 10 || !mobileSuffix.startsWith('9')) {
+                    alert('Please enter a valid mobile number. Format: 9XXXXXXXXX (10 digits starting with 9, e.g., 9123456789)');
+                    return;
+                }
+                
+                const fullMobile = '+63' + mobileSuffix;
+                
                 document.getElementById('reviewClientCount').textContent = clients.length;
-                document.getElementById('reviewClientsList').innerHTML = clients.map((c, i) => `<div class="client-summary-item"><strong>${i+1}. ${escapeHtml(getFullName(c))}</strong> - ${getServiceName(c.service)}</div>`).join('');
-                document.getElementById('reviewDateTime').textContent = formatDisplayDateTime(selectedDate, selectedTimeSlotLabel);
+                document.getElementById('reviewClientsList').innerHTML = clients.map((c, i) =>
+                    `<div class="client-summary-item"><strong>${i + 1}. ${escapeHtml(getFullName(c))}</strong> - ${getServiceName(c.service)}</div>`
+                ).join('');
+                document.getElementById('reviewDateTime').textContent = formatDisplayDateTime(selectedDate,
+                    selectedTimeSlotLabel);
                 document.getElementById('reviewContactName').textContent = escapeHtml(name);
-                document.getElementById('reviewContactEmail').textContent = document.getElementById('contactEmail').value || 'Not provided';
-                document.getElementById('reviewContactMobile').textContent = mob;
+                document.getElementById('reviewContactEmail').textContent = document.getElementById('contactEmail')
+                    .value || 'Not provided';
+                document.getElementById('reviewContactMobile').textContent = fullMobile;
                 showSection(sections.review);
                 setActiveStep(5);
             };
-            document.getElementById('backToContact').onclick = () => { showSection(sections.contact); setActiveStep(4); };
+            document.getElementById('backToContact').onclick = () => {
+                showSection(sections.contact);
+                setActiveStep(4);
+            };
             document.getElementById('nextToConfirm').onclick = () => {
+                const mobileSuffix = document.getElementById('contactMobile').value;
+                const fullMobile = mobileSuffix ? '+63' + mobileSuffix : '';
+                
                 document.getElementById('sumClients').textContent = clients.length + ' person(s)';
-                document.getElementById('sumDateTime').textContent = formatDisplayDateTime(selectedDate, selectedTimeSlotLabel);
-                document.getElementById('sumContact').textContent = document.getElementById('contactName').value + ' / ' + document.getElementById('contactMobile').value;
+                document.getElementById('sumDateTime').textContent = formatDisplayDateTime(selectedDate,
+                    selectedTimeSlotLabel);
+                document.getElementById('sumContact').textContent = document.getElementById('contactName').value +
+                    ' / ' + fullMobile;
                 showSection(sections.confirm);
                 setActiveStep(6);
             };
-            document.getElementById('backToReview').onclick = () => { showSection(sections.review); setActiveStep(5); };
-            document.getElementById('confirmCheckbox').onchange = (e) => { document.getElementById('submitRequestBtn').disabled = !e.target.checked; };
-            document.getElementById('closeReqModal').onclick = () => reqModal.style.display = 'none';
-            document.getElementById('understandBtn').onclick = () => reqModal.style.display = 'none';
-            document.getElementById('closeSuccessModal').onclick = () => successModal.style.display = 'none';
-            document.querySelectorAll('[data-edit]').forEach(btn => {
-                btn.addEventListener('click', (e) => {
-                    const target = e.target.closest('[data-edit]').dataset.edit;
-                    if (target === 'clients') { showSection(sections.clients); setActiveStep(2); }
-                    else if (target === 'schedule') { showSection(sections.schedule); setActiveStep(3); }
-                    else if (target === 'contact') { showSection(sections.contact); setActiveStep(4); }
+            document.getElementById('backToReview').onclick = () => {
+                showSection(sections.review);
+                setActiveStep(5);
+            };
+            
+            // Checkbox event listener - enable/disable submit button
+            const confirmCheckbox = document.getElementById('confirmCheckbox');
+            const submitBtn = document.getElementById('submitRequestBtn');
+            
+            if (confirmCheckbox && submitBtn) {
+                confirmCheckbox.addEventListener('change', function(e) {
+                    submitBtn.disabled = !e.target.checked;
+                    console.log('Checkbox checked:', e.target.checked, 'Button disabled:', submitBtn.disabled);
                 });
-            });
+            }
+            
+            document.getElementById('closeReqModal').onclick = () => reqModal.style.display = 'none';
+document.getElementById('understandBtn').onclick = () => reqModal.style.display = 'none';
+document.getElementById('closeSuccessModal').onclick = () => {
+    successModal.style.display = 'none';
+    window.location.href = '/';
+};
 
-            renderClients();
-            window.addEventListener('click', (e) => { if (e.target === reqModal) reqModal.style.display = 'none'; if (e.target === successModal) successModal.style.display = 'none'; });
-            document.addEventListener('keydown', (e) => { if (e.key === 'Escape') { reqModal.style.display = 'none'; successModal.style.display = 'none'; } });
-            loadLocationFromLandingPage();
+document.querySelectorAll('[data-edit]').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+        const target = e.target.closest('[data-edit]').dataset.edit;
+        if (target === 'clients') {
+            showSection(sections.clients);
+            setActiveStep(2);
+        } else if (target === 'schedule') {
+            showSection(sections.schedule);
+            setActiveStep(3);
+        } else if (target === 'contact') {
+            showSection(sections.contact);
+            setActiveStep(4);
+        }
+    });
+});
+
+renderClients();
+window.addEventListener('click', (e) => {
+    if (e.target === reqModal) reqModal.style.display = 'none';
+    if (e.target === successModal) {
+        successModal.style.display = 'none';
+        window.location.href = '/';
+    }
+});
+document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') {
+        if (reqModal.style.display !== 'none') reqModal.style.display = 'none';
+        if (successModal.style.display !== 'none') {
+            successModal.style.display = 'none';
+            window.location.href = '/';
+        }
+    }
+});
+loadLocationFromLandingPage();
+            
+            // Submit button handler - with correct mobile validation for +63 format
+            submitBtn.onclick = async () => {
+                const locationData = {
+                    user_lat: document.getElementById('userLat').value || null,
+                    user_lng: document.getElementById('userLng').value || null,
+                    user_city: document.getElementById('userCity').value || null,
+                    user_address: document.getElementById('userAddress').value || null,
+                    user_zipcode: document.getElementById('userZipcode').value || null
+                };
+
+                const clientsData = clients.map(c => {
+                    const clientInfo = {
+                        first_name: c.firstName,
+                        middle_name: c.middleName || null,
+                        last_name: c.lastName,
+                        suffix: c.suffix || null,
+                        sex: c.sex,
+                        birthdate: c.birthdate,
+                        service: c.service
+                    };
+                    if (shouldShowTrnForClient(c)) {
+                        const trnData = clientTrnData[c.id];
+                        if (trnData) {
+                            clientInfo.has_trn = trnData.hasTrn;
+                            clientInfo.trn_number = trnData.hasTrn && trnData.isValid ? trnData.trnNumber : null;
+                        }
+                    }
+                    return clientInfo;
+                });
+
+                // Get and validate mobile number with +63 format
+                const mobileSuffix = document.getElementById('contactMobile').value;
+                let fullMobileNumber = '';
+                
+                if (!mobileSuffix || mobileSuffix.length !== 10 || !mobileSuffix.startsWith('9')) {
+                    alert('Please enter a valid mobile number. Format: 9XXXXXXXXX (10 digits starting with 9, e.g., 9123456789)');
+                    return;
+                }
+                
+                fullMobileNumber = '+63' + mobileSuffix;
+
+                const formData = {
+                    appointment_type: 'multiple',
+                    appointment_date: selectedDate,
+                    appointment_time_slot_id: selectedTimeSlot,
+                    contact_name: document.getElementById('contactName').value,
+                    contact_email: document.getElementById('contactEmail').value || null,
+                    contact_mobile: fullMobileNumber,
+                    user_lat: locationData.user_lat,
+                    user_lng: locationData.user_lng,
+                    user_city: locationData.user_city,
+                    user_address: locationData.user_address,
+                    user_zipcode: locationData.user_zipcode,
+                    clients: clientsData
+                };
+
+                if (!formData.contact_name) {
+                    alert('Please enter contact name');
+                    return;
+                }
+                if (!formData.contact_mobile) {
+                    alert('Please enter mobile number');
+                    return;
+                }
+                if (!formData.appointment_date) {
+                    alert('Please select an appointment date');
+                    return;
+                }
+                if (!formData.appointment_time_slot_id) {
+                    alert('Please select a preferred time slot');
+                    return;
+                }
+
+                showLoading();
+                try {
+                    const response = await fetch('{{ route('client.appointment.store') }}', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+                            'Accept': 'application/json'
+                        },
+                        body: JSON.stringify(formData)
+                    });
+                    const result = await response.json();
+                    if (result.success) {
+                        let clientsHtml = '';
+                        if (result.appointment.clients_list && result.appointment.clients_list.length > 0) {
+                            clientsHtml =
+                                '<div style="text-align: left; margin-top: 10px;"><strong>Client Details:</strong><ul style="margin-top: 5px;">';
+                            result.appointment.clients_list.forEach(client => {
+                                clientsHtml += `<li><strong>${escapeHtml(client.name)}</strong><br>
+                                        <small>Client Number: ${client.client_number}</small><br>
+                                        <small>Service: ${client.service_name}</small>
+                                       </li>`;
+                            });
+                            clientsHtml += '</ul></div>';
+                        }
+
+                        let locationMessage = result.appointment.location_city ?
+                            `<p><strong>Location:</strong> ${result.appointment.location_city}</p>` : '';
+
+                        document.getElementById('successDetails').innerHTML = `
+                            <div style="text-align: left;">
+                                <p><strong>Appointment Number:</strong> ${result.appointment.number}</p>
+                                <p><strong>Reference Code:</strong> ${result.appointment.reference_code}</p>
+                                <p><strong>Date & Time:</strong> ${result.appointment.date} at ${result.appointment.time || 'Selected time slot'}</p>
+                                <p><strong>Contact Person:</strong> ${escapeHtml(result.appointment.contact_name)}</p>
+                                <p><strong>Contact Number:</strong> ${result.appointment.contact_mobile}</p>
+                                ${result.appointment.contact_email ? `<p><strong>Email:</strong> ${result.appointment.contact_email}</p>` : ''}
+                                <p><strong>Total Clients:</strong> ${result.appointment.clients_count} person(s)</p>
+                                ${clientsHtml}
+                                ${locationMessage}
+                                <hr>
+                                <p><small>A confirmation ${result.email_sent ? 'email has been sent' : 'SMS will be sent'} to your registered contact.</small></p>
+                                <p><small style="color: #dc3545;">⚠️ Please save your Reference Code for verification.</small></p>
+                            </div>
+                        `;
+                        successModal.style.display = 'flex';
+                    } else {
+                        alert('Error: ' + (result.message || 'Unknown error occurred'));
+                    }
+                } catch (error) {
+                    console.error('Submission error:', error);
+                    alert('Failed to submit appointment. Please check your connection and try again.');
+                } finally {
+                    hideLoading();
+                }
+            };
         })();
 
-
-
         // ==================== DOWNLOAD FUNCTIONS ====================
+        async function captureSuccessModal() {
+            const successDetails = document.getElementById('successDetails');
+            if (!successDetails) return null;
 
-// Function to capture the success details as an image/canvas
-async function captureSuccessModal() {
-    const successDetails = document.getElementById('successDetails');
-    if (!successDetails) return null;
-    
-    // Create a temporary container for the receipt
-    const receiptContainer = document.createElement('div');
-    receiptContainer.style.cssText = `
-        background: white;
-        padding: 30px;
-        border-radius: 12px;
-        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-        max-width: 500px;
-        margin: 0 auto;
-        box-shadow: 0 4px 20px rgba(0,0,0,0.1);
-    `;
-    
-    // Get the current date and time for the receipt
-    const now = new Date();
-    const formattedDateTime = now.toLocaleString('en-US', {
-        year: 'numeric',
-        month: 'long',
-        day: 'numeric',
-        hour: '2-digit',
-        minute: '2-digit'
-    });
-    
-    // Build receipt HTML
-    receiptContainer.innerHTML = `
-        <div style="text-align: center; margin-bottom: 20px;">
-            <img src="{{ asset('images/psa-logo.png') }}" alt="PSA Logo" style="height: 60px; width: auto; margin-bottom: 10px;">
-            <h2 style="color: #2c5f8a; margin: 0;">Philippine Statistics Authority</h2>
-            <h3 style="color: #4a5568; margin: 5px 0;">National ID System (PhilSys)</h3>
-            <p style="color: #718096; margin: 5px 0;">Appointment Confirmation</p>
-        </div>
-        <div style="border-top: 2px solid #2c5f8a; margin: 10px 0;"></div>
-        <div style="padding: 10px 0;">
-            ${successDetails.innerHTML}
-        </div>
-        <div style="border-top: 1px solid #e2e8f0; margin: 10px 0;"></div>
-        <div style="text-align: center; padding-top: 10px;">
-            <p style="color: #718096; font-size: 12px; margin: 5px 0;">This is a system-generated confirmation.</p>
-            <p style="color: #718096; font-size: 12px; margin: 5px 0;">Generated on: ${formattedDateTime}</p>
-            <p style="color: #718096; font-size: 12px; margin: 5px 0;">© ${new Date().getFullYear()} Philippine Statistics Authority</p>
-        </div>
-    `;
-    
-    return receiptContainer;
-}
+            const receiptContainer = document.createElement('div');
+            receiptContainer.style.cssText = `
+                background: white;
+                padding: 30px;
+                border-radius: 12px;
+                font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+                max-width: 500px;
+                margin: 0 auto;
+                box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+            `;
 
-// Download as PNG
-document.getElementById('downloadPngBtn').onclick = async () => {
-    try {
-        // Show loading indicator
-        const btn = document.getElementById('downloadPngBtn');
-        const originalText = btn.innerHTML;
-        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Generating...';
-        btn.disabled = true;
-        
-        // Dynamically load html2canvas if not already loaded
-        if (typeof html2canvas === 'undefined') {
-            await new Promise((resolve, reject) => {
-                const script = document.createElement('script');
-                script.src = 'https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js';
-                script.onload = resolve;
-                script.onerror = reject;
-                document.head.appendChild(script);
+            const now = new Date();
+            const formattedDateTime = now.toLocaleString('en-US', {
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit'
             });
-        }
-        
-        const receipt = await captureSuccessModal();
-        if (!receipt) {
-            alert('Unable to generate receipt');
-            return;
-        }
-        
-        document.body.appendChild(receipt);
-        
-        const canvas = await html2canvas(receipt, {
-            scale: 2,
-            backgroundColor: '#ffffff',
-            logging: false,
-            useCORS: true
-        });
-        
-        document.body.removeChild(receipt);
-        
-        const link = document.createElement('a');
-        link.download = `appointment-confirmation-${Date.now()}.png`;
-        link.href = canvas.toDataURL('image/png');
-        link.click();
-        
-        btn.innerHTML = originalText;
-        btn.disabled = false;
-    } catch (error) {
-        console.error('PNG download error:', error);
-        alert('Failed to generate PNG. Please try again.');
-        const btn = document.getElementById('downloadPngBtn');
-        btn.innerHTML = '<i class="fas fa-image"></i> Download PNG';
-        btn.disabled = false;
-    }
-};
 
-// Download as PDF
-document.getElementById('downloadPdfBtn').onclick = async () => {
-    try {
-        // Show loading indicator
-        const btn = document.getElementById('downloadPdfBtn');
-        const originalText = btn.innerHTML;
-        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Generating...';
-        btn.disabled = true;
-        
-        const receipt = await captureSuccessModal();
-        if (!receipt) {
-            alert('Unable to generate receipt');
-            return;
+            receiptContainer.innerHTML = `
+                <div style="text-align: center; margin-bottom: 20px;">
+                    <img src="{{ asset('images/psa-logo.png') }}" alt="PSA Logo" style="height: 60px; width: auto; margin-bottom: 10px;">
+                    <h2 style="color: #2c5f8a; margin: 0;">Philippine Statistics Authority</h2>
+                    <h3 style="color: #4a5568; margin: 5px 0;">National ID System (PhilSys)</h3>
+                    <p style="color: #718096; margin: 5px 0;">Appointment Confirmation</p>
+                </div>
+                <div style="border-top: 2px solid #2c5f8a; margin: 10px 0;"></div>
+                <div style="padding: 10px 0;">
+                    ${successDetails.innerHTML}
+                </div>
+                <div style="border-top: 1px solid #e2e8f0; margin: 10px 0;"></div>
+                <div style="text-align: center; padding-top: 10px;">
+                    <p style="color: #718096; font-size: 12px; margin: 5px 0;">This is a system-generated confirmation.</p>
+                    <p style="color: #718096; font-size: 12px; margin: 5px 0;">Generated on: ${formattedDateTime}</p>
+                    <p style="color: #718096; font-size: 12px; margin: 5px 0;">© ${new Date().getFullYear()} Philippine Statistics Authority</p>
+                </div>
+            `;
+
+            return receiptContainer;
         }
-        
-        document.body.appendChild(receipt);
-        
-        const opt = {
-            margin: [0.5, 0.5, 0.5, 0.5],
-            filename: `appointment-confirmation-${Date.now()}.pdf`,
-            image: { type: 'jpeg', quality: 0.98 },
-            html2canvas: { scale: 2, useCORS: true },
-            jsPDF: { unit: 'in', format: 'letter', orientation: 'portrait' }
+
+        document.getElementById('downloadPngBtn').onclick = async () => {
+            try {
+                const btn = document.getElementById('downloadPngBtn');
+                const originalText = btn.innerHTML;
+                btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Generating...';
+                btn.disabled = true;
+
+                if (typeof html2canvas === 'undefined') {
+                    await new Promise((resolve, reject) => {
+                        const script = document.createElement('script');
+                        script.src = 'https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js';
+                        script.onload = resolve;
+                        script.onerror = reject;
+                        document.head.appendChild(script);
+                    });
+                }
+
+                const receipt = await captureSuccessModal();
+                if (!receipt) {
+                    alert('Unable to generate receipt');
+                    return;
+                }
+
+                document.body.appendChild(receipt);
+                const canvas = await html2canvas(receipt, {
+                    scale: 2,
+                    backgroundColor: '#ffffff',
+                    logging: false,
+                    useCORS: true
+                });
+                document.body.removeChild(receipt);
+
+                const link = document.createElement('a');
+                link.download = `appointment-confirmation-${Date.now()}.png`;
+                link.href = canvas.toDataURL('image/png');
+                link.click();
+
+                btn.innerHTML = originalText;
+                btn.disabled = false;
+            } catch (error) {
+                console.error('PNG download error:', error);
+                alert('Failed to generate PNG. Please try again.');
+                const btn = document.getElementById('downloadPngBtn');
+                btn.innerHTML = '<i class="fas fa-image"></i> Download PNG';
+                btn.disabled = false;
+            }
         };
-        
-        await html2pdf().set(opt).from(receipt).save();
-        document.body.removeChild(receipt);
-        
-        btn.innerHTML = originalText;
-        btn.disabled = false;
-    } catch (error) {
-        console.error('PDF download error:', error);
-        alert('Failed to generate PDF. Please try again.');
-        const btn = document.getElementById('downloadPdfBtn');
-        btn.innerHTML = '<i class="fas fa-file-pdf"></i> Download PDF';
-        btn.disabled = false;
-    }
-};
 
+        document.getElementById('downloadPdfBtn').onclick = async () => {
+            try {
+                const btn = document.getElementById('downloadPdfBtn');
+                const originalText = btn.innerHTML;
+                btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Generating...';
+                btn.disabled = true;
 
+                const receipt = await captureSuccessModal();
+                if (!receipt) {
+                    alert('Unable to generate receipt');
+                    return;
+                }
+
+                document.body.appendChild(receipt);
+
+                const opt = {
+                    margin: [0.5, 0.5, 0.5, 0.5],
+                    filename: `appointment-confirmation-${Date.now()}.pdf`,
+                    image: {
+                        type: 'jpeg',
+                        quality: 0.98
+                    },
+                    html2canvas: {
+                        scale: 2,
+                        useCORS: true
+                    },
+                    jsPDF: {
+                        unit: 'in',
+                        format: 'letter',
+                        orientation: 'portrait'
+                    }
+                };
+
+                await html2pdf().set(opt).from(receipt).save();
+                document.body.removeChild(receipt);
+
+                btn.innerHTML = originalText;
+                btn.disabled = false;
+            } catch (error) {
+                console.error('PDF download error:', error);
+                alert('Failed to generate PDF. Please try again.');
+                const btn = document.getElementById('downloadPdfBtn');
+                btn.innerHTML = '<i class="fas fa-file-pdf"></i> Download PDF';
+                btn.disabled = false;
+            }
+        };
     </script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"
-        integrity="sha512-GsLlZN/3F2ErC5ifS5QtgpiJtWd43JWSuIgh7mbzZ8zBps+dvLusV+eNQATqgA/HdeKFVgA5v3S/cIrLF7QnIg=="
-        crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 </body>
 
 </html>
