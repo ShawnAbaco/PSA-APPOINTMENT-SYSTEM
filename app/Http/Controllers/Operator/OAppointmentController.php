@@ -19,8 +19,8 @@ class OAppointmentController extends Controller
    public function index(Request $request)
 {
     $query = Appointment::with('clients', 'timeSlot')
-        ->where('status', 'confirmed');  // Add this line to filter only confirmed
-    
+        ->whereIn('status', ['confirmed', 'completed']);
+
     // Apply filters
     if ($request->filled('date')) {
         $query->whereDate('appointment_date', $request->date);
@@ -255,41 +255,75 @@ class OAppointmentController extends Controller
     }
     
     public function cancel($id)
-    {
-        $appointment = Appointment::findOrFail($id);
-        
-        if (!in_array($appointment->status, ['pending', 'confirmed'])) {
-            return redirect()->back()
-                ->with('error', 'Only pending or confirmed appointments can be cancelled.');
+{
+    $appointment = Appointment::findOrFail($id);
+    
+    if (!in_array($appointment->status, ['pending', 'confirmed'])) {
+        if (request()->ajax() || request()->wantsJson()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Only pending or confirmed appointments can be cancelled.'
+            ], 400);
         }
-        
-        $appointment->status = 'cancelled';
-        $appointment->cancelled_at = now();
-        $appointment->cancellation_reason = request('reason', 'Cancelled by operator');
-        $appointment->processed_by = auth()->id();
-        $appointment->save();
-        
-        return redirect()->back()
-            ->with('success', 'Appointment cancelled successfully!');
+        return redirect()->back()->with('error', 'Only pending or confirmed appointments can be cancelled.');
     }
     
-    public function complete($id)
-    {
-        $appointment = Appointment::findOrFail($id);
-        
-        if ($appointment->status !== 'confirmed') {
-            return redirect()->back()
-                ->with('error', 'Only confirmed appointments can be marked as completed.');
-        }
-        
-        $appointment->status = 'completed';
-        $appointment->completed_at = now();
-        $appointment->processed_by = auth()->id();
-        $appointment->save();
-        
-        return redirect()->back()
-            ->with('success', 'Appointment marked as completed!');
+    $appointment->status = 'cancelled';
+    $appointment->cancelled_at = now();
+    $appointment->cancellation_reason = request('reason', 'Cancelled by operator');
+    $appointment->processed_by = auth()->id();
+    $appointment->save();
+    
+    // Return JSON for AJAX requests
+    if (request()->ajax() || request()->wantsJson()) {
+        return response()->json([
+            'success' => true,
+            'message' => 'Appointment cancelled successfully!',
+            'appointment' => [
+                'id' => $appointment->id,
+                'status' => $appointment->status,
+                'cancelled_at' => $appointment->cancelled_at
+            ]
+        ]);
     }
+    
+    return redirect()->back()->with('success', 'Appointment cancelled successfully!');
+}
+    
+   public function complete($id)
+{
+    $appointment = Appointment::findOrFail($id);
+    
+    if ($appointment->status !== 'confirmed') {
+        if (request()->ajax() || request()->wantsJson()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Only confirmed appointments can be marked as completed.'
+            ], 400);
+        }
+        return redirect()->back()->with('error', 'Only confirmed appointments can be marked as completed.');
+    }
+    
+    $appointment->status = 'completed';
+    $appointment->completed_at = now();
+    $appointment->processed_by = auth()->id();
+    $appointment->save();
+    
+    // Check for AJAX request - use wantsJson() as well
+    if (request()->ajax() || request()->wantsJson()) {
+        return response()->json([
+            'success' => true,
+            'message' => 'Appointment marked as completed!',
+            'appointment' => [
+                'id' => $appointment->id,
+                'status' => $appointment->status,
+                'completed_at' => $appointment->completed_at
+            ]
+        ]);
+    }
+    
+    return redirect()->back()->with('success', 'Appointment marked as completed!');
+}
     
     public function destroy($id)
     {

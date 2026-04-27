@@ -1,48 +1,49 @@
 @extends('layouts.staff')
 
-
 @section('content')
-    <div class="container-fluid">
-        <div class="d-flex justify-content-between mb-4">
-            <h1 class="h3">Appointment Details</h1>
-           
+    <div class="appointment-show container-fluid">
+        <div class="appointment-show__header d-flex justify-content-between mb-4">
+            <h1 class="appointment-show__title h3">Appointment Details</h1>
         </div>
 
-        <div class="row">
-            <div class="col-md-6">
-                <div class="card mb-4">
-                    <div class="card-header">
+        <div class="appointment-show__grid row">
+            <div class="appointment-show__section col-md-6">
+                <div class="info-card card mb-4">
+                    <div class="info-card__header card-header">
                         <h5>Appointment Info</h5>
                     </div>
-                    <div class="card-body">
+                    <div class="info-card__body card-body">
                         <p><strong>Appointment #:</strong> {{ $appointment->appointment_number }}</p>
                         <p><strong>Date:</strong> {{ date('F d, Y', strtotime($appointment->appointment_date)) }}</p>
                         <p><strong>Time Slot:</strong> {{ $appointment->timeSlot->label ?? 'N/A' }}</p>
                         <p><strong>Type:</strong> {{ ucfirst($appointment->type) }}</p>
                         <p><strong>Status:</strong> <span
-                                class="status-badge status-{{ $appointment->status }}">{{ ucfirst($appointment->status) }}</span>
+                                class="status-badge status-badge--{{ $appointment->status }}">{{ ucfirst($appointment->status) }}</span>
                         </p>
                         <p><strong>Reference Code:</strong> <code>{{ $appointment->reference_code }}</code></p>
-                        @if($appointment->confirmed_at)
-                            <p><strong>Confirmed At:</strong> {{ date('F d, Y h:i A', strtotime($appointment->confirmed_at)) }}</p>
+                        @if ($appointment->confirmed_at)
+                            <p><strong>Confirmed At:</strong>
+                                {{ date('F d, Y h:i A', strtotime($appointment->confirmed_at)) }}</p>
                         @endif
-                        @if($appointment->completed_at)
-                            <p><strong>Completed At:</strong> {{ date('F d, Y h:i A', strtotime($appointment->completed_at)) }}</p>
+                        @if ($appointment->completed_at)
+                            <p><strong>Completed At:</strong>
+                                {{ date('F d, Y h:i A', strtotime($appointment->completed_at)) }}</p>
                         @endif
-                        @if($appointment->cancelled_at)
-                            <p><strong>Cancelled At:</strong> {{ date('F d, Y h:i A', strtotime($appointment->cancelled_at)) }}</p>
+                        @if ($appointment->cancelled_at)
+                            <p><strong>Cancelled At:</strong>
+                                {{ date('F d, Y h:i A', strtotime($appointment->cancelled_at)) }}</p>
                             <p><strong>Cancellation Reason:</strong> {{ $appointment->cancellation_reason ?? 'N/A' }}</p>
                         @endif
                     </div>
                 </div>
             </div>
 
-            <div class="col-md-6">
-                <div class="card mb-4">
-                    <div class="card-header">
+            <div class="appointment-show__section col-md-6">
+                <div class="contact-card card mb-4">
+                    <div class="contact-card__header card-header">
                         <h5>Contact Info</h5>
                     </div>
-                    <div class="card-body">
+                    <div class="contact-card__body card-body">
                         <p><strong>Name:</strong> {{ $appointment->contact_name }}</p>
                         <p><strong>Email:</strong> {{ $appointment->contact_email ?? 'N/A' }}</p>
                         <p><strong>Mobile:</strong> {{ $appointment->contact_mobile }}</p>
@@ -51,22 +52,20 @@
             </div>
         </div>
 
-        <div class="card mb-4">
-            <div class="card-header">
+        <div class="clients-card card mb-4">
+            <div class="clients-card__header card-header">
                 <h5>Clients</h5>
             </div>
-            <div class="card-body">
+            <div class="clients-card__body card-body">
                 <div class="table-responsive">
-                    <table class="table table-bordered">
+                    <table class="clients-table table table-bordered">
                         <thead>
                             <tr>
                                 <th>#</th>
                                 <th>Client Number</th>
                                 <th>Full Name</th>
-                                <th>Sex</th>
                                 <th>Birthdate</th>
                                 <th>Service</th>
-                                <th>TRN</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -76,29 +75,16 @@
                                     <td>{{ $client->client_number ?? 'N/A' }}</td>
                                     <td>{{ $client->first_name }} {{ $client->middle_name }} {{ $client->last_name }}
                                         {{ $client->suffix }}</td>
-                                    <td>{{ $client->sex }}</td>
                                     <td>{{ date('M d, Y', strtotime($client->birthdate)) }}</td>
                                     <td>
                                         @php
                                             $serviceNames = [
                                                 'reg' => 'Registration',
                                                 'updating' => 'Correction/Updating',
-                                                'inquiry' => 'Status Inquiry'
+                                                'inquiry' => 'Status Inquiry',
                                             ];
                                         @endphp
                                         {{ $serviceNames[$client->service] ?? $client->service }}
-                                    </td>
-                                    <td>
-                                        @if($client->service === 'inquiry')
-                                            @if($client->has_trn)
-                                                <span class="badge badge-success">Has TRN</span>
-                                                <small class="d-block text-muted">{{ substr($client->trn_number, 0, 10) }}...</small>
-                                            @else
-                                                <span class="badge badge-secondary">No TRN</span>
-                                            @endif
-                                        @else
-                                            <span class="text-muted">—</span>
-                                        @endif
                                     </td>
                                 </tr>
                             @endforeach
@@ -108,67 +94,49 @@
             </div>
         </div>
 
-        
-            <div class="action-buttons-group">
-                @if ($appointment->status == 'pending')
-                    <button class="btn btn-success btn-action confirm-btn" data-id="{{ $appointment->id }}">
-                        <i class="fas fa-check-circle"></i> Confirm Appointment
-                    </button>
-                @endif
-                
-                @if ($appointment->status == 'confirmed')
-                    <button class="btn btn-info btn-action complete-btn" data-id="{{ $appointment->id }}">
-                        <i class="fas fa-check-double"></i> Mark Complete
-                    </button>
-                @endif
-                
-                @if (in_array($appointment->status, ['pending', 'confirmed']))
-                    <button class="btn btn-warning btn-action cancel-btn" data-id="{{ $appointment->id }}">
-                        <i class="fas fa-times-circle"></i> Cancel Appointment
-                    </button>
-                @endif
-                
-                @if (in_array($appointment->status, ['cancelled', 'completed']))
-                    <button class="btn btn-danger btn-action delete-btn" data-id="{{ $appointment->id }}">
-                        <i class="fas fa-trash-alt"></i> Delete Appointment
-                    </button>
-                @endif
-           
-        </div>
+        {{-- <div class="action-buttons-group">
+            @if ($appointment->status == 'pending')
+                <button class="btn btn--success btn-action confirm-btn"
+                    onclick="confirmAppointment({{ $appointment->id }})" title="Confirm">
+                    <i class="fas fa-check-circle"></i> Confirm
+                </button>
+            @endif
+        </div> --}}
+
     </div>
 
     <!-- Cancel Reason Modal -->
-    <div class="modal" id="cancelReasonModal">
-        <div class="modal-overlay" onclick="closeCancelModal()"></div>
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <div class="modal-header">
+    <div class="modal modal--cancel-reason" id="cancelReasonModal">
+        <div class="modal__overlay" onclick="closeCancelModal()"></div>
+        <div class="modal__dialog">
+            <div class="modal__content">
+                <div class="modal__header">
                     <h5>Cancellation Reason</h5>
-                    <button class="modal-close" onclick="closeCancelModal()">&times;</button>
+                    <button class="modal__close" onclick="closeCancelModal()">&times;</button>
                 </div>
-                <div class="modal-body">
+                <div class="modal__body">
                     <p>Please provide a reason for cancelling this appointment:</p>
                     <textarea id="cancellationReason" class="form-control" rows="3" placeholder="Enter cancellation reason..."></textarea>
                 </div>
-                <div class="modal-footer">
-                    <button class="btn btn-secondary" onclick="closeCancelModal()">Close</button>
-                    <button class="btn btn-warning" id="confirmCancelBtn">Confirm Cancellation</button>
+                <div class="modal__footer">
+                    <button class="btn btn--secondary" onclick="closeCancelModal()">Close</button>
+                    <button class="btn btn--warning" id="confirmCancelBtn">Confirm Cancellation</button>
                 </div>
             </div>
         </div>
     </div>
 
     <!-- Delete Confirmation Modal -->
-    <div class="modal" id="deleteConfirmModal">
-        <div class="modal-overlay" onclick="closeDeleteModal()"></div>
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <div class="modal-header">
+    <div class="modal modal--delete-confirm" id="deleteConfirmModal">
+        <div class="modal__overlay" onclick="closeDeleteModal()"></div>
+        <div class="modal__dialog">
+            <div class="modal__content">
+                <div class="modal__header">
                     <h5>Delete Appointment</h5>
-                    <button class="modal-close" onclick="closeDeleteModal()">&times;</button>
+                    <button class="modal__close" onclick="closeDeleteModal()">&times;</button>
                 </div>
-                <div class="modal-body">
-                    <div class="alert alert-danger">
+                <div class="modal__body">
+                    <div class="alert alert--danger">
                         <i class="fas fa-exclamation-triangle"></i>
                         <strong>Warning!</strong> This action cannot be undone.
                     </div>
@@ -176,49 +144,86 @@
                     <p class="text-muted">Appointment #: <strong>{{ $appointment->appointment_number }}</strong></p>
                     <p class="text-muted">Client: <strong>{{ $appointment->contact_name }}</strong></p>
                 </div>
-                <div class="modal-footer">
-                    <button class="btn btn-secondary" onclick="closeDeleteModal()">Cancel</button>
-                    <button class="btn btn-danger" id="confirmDeleteBtn">Yes, Delete Permanently</button>
+                <div class="modal__footer">
+                    <button class="btn btn--secondary" onclick="closeDeleteModal()">Cancel</button>
+                    <button class="btn btn--danger" id="confirmDeleteBtn">Yes, Delete Permanently</button>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- Notification Toast -->
-    <div id="notificationToast" class="toast" style="display: none;">
-        <div class="toast-header">
-            <i class="fas fa-info-circle"></i>
-            <strong>Notification</strong>
-            <button class="btn-close" onclick="hideToast()">&times;</button>
-        </div>
-        <div class="toast-body" id="toastMessage">
-            Action completed successfully!
-        </div>
-    </div>
-
-    @push('scripts')
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script>
-        // Store the current appointment ID
-        let currentAppointmentId = {{ $appointment->id }};
-        let pendingAction = null;
+        // CSRF Token setup
+        const csrfToken = '{{ csrf_token() }}';
 
-        // Confirm Appointment
-        document.querySelectorAll('.confirm-btn').forEach(btn => {
-            btn.addEventListener('click', function() {
-                if (confirm('Confirm this appointment?')) {
-                    performAction('confirm');
-                }
+        // Confirm Appointment with SweetAlert
+        async function confirmAppointment(id) {
+            const result = await Swal.fire({
+                title: 'Confirm Appointment?',
+                text: "This will change the status from Pending to Confirmed.",
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonColor: '#10b981',
+                cancelButtonColor: '#6b7280',
+                confirmButtonText: 'Yes, confirm it!',
+                cancelButtonText: 'Cancel'
             });
-        });
 
-        // Complete Appointment
-        document.querySelectorAll('.complete-btn').forEach(btn => {
-            btn.addEventListener('click', function() {
-                if (confirm('Mark this appointment as completed?')) {
-                    performAction('complete');
+            if (result.isConfirmed) {
+                Swal.fire({
+                    title: 'Processing...',
+                    text: 'Please wait',
+                    allowOutsideClick: false,
+                    didOpen: () => {
+                        Swal.showLoading();
+                    }
+                });
+
+                try {
+                    const response = await fetch(`/staff/appointments/${id}/confirm`, {
+                        method: 'PUT',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRF-TOKEN': csrfToken,
+                            'Accept': 'application/json',
+                            'X-Requested-With': 'XMLHttpRequest'
+                        },
+                        body: JSON.stringify({})
+                    });
+
+                    const data = await response.json();
+
+                    if (response.ok && data.success) {
+                        Swal.fire({
+                            title: 'Confirmed!',
+                            text: data.message,
+                            icon: 'success',
+                            confirmButtonColor: '#10b981',
+                            timer: 1500,
+                            showConfirmButton: false
+                        }).then(() => {
+                            // Refresh the page after SweetAlert closes
+                            window.location.reload();
+                        });
+                    } else {
+                        Swal.fire({
+                            title: 'Error!',
+                            text: data.message || 'Failed to confirm appointment.',
+                            icon: 'error',
+                            confirmButtonColor: '#ef4444'
+                        });
+                    }
+                } catch (error) {
+                    Swal.fire({
+                        title: 'Error!',
+                        text: 'An error occurred while confirming the appointment.',
+                        icon: 'error',
+                        confirmButtonColor: '#ef4444'
+                    });
                 }
-            });
-        });
+            }
+        }
 
         // Cancel Appointment - Show Modal
         document.querySelectorAll('.cancel-btn').forEach(btn => {
@@ -229,9 +234,71 @@
         });
 
         // Confirm Cancel with reason
-        document.getElementById('confirmCancelBtn').addEventListener('click', function() {
+        document.getElementById('confirmCancelBtn').addEventListener('click', async function() {
             const reason = document.getElementById('cancellationReason').value;
-            performAction('cancel', reason);
+            if (!reason.trim()) {
+                await Swal.fire({
+                    title: 'Reason Required',
+                    text: 'Please provide a cancellation reason.',
+                    icon: 'warning',
+                    confirmButtonColor: '#ef4444'
+                });
+                return;
+            }
+
+            Swal.fire({
+                title: 'Processing...',
+                text: 'Please wait',
+                allowOutsideClick: false,
+                didOpen: () => {
+                    Swal.showLoading();
+                }
+            });
+
+            try {
+                const response = await fetch(`/staff/appointments/{{ $appointment->id }}/cancel`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': csrfToken,
+                        'Accept': 'application/json',
+                        'X-Requested-With': 'XMLHttpRequest'
+                    },
+                    body: JSON.stringify({
+                        reason: reason
+                    })
+                });
+
+                const data = await response.json();
+
+                if (response.ok && data.success) {
+                    Swal.fire({
+                        title: 'Cancelled!',
+                        text: data.message,
+                        icon: 'success',
+                        confirmButtonColor: '#10b981',
+                        timer: 1500,
+                        showConfirmButton: false
+                    }).then(() => {
+                        // Refresh the page after SweetAlert closes
+                        window.location.reload();
+                    });
+                } else {
+                    Swal.fire({
+                        title: 'Error!',
+                        text: data.message || 'Failed to cancel appointment.',
+                        icon: 'error',
+                        confirmButtonColor: '#ef4444'
+                    });
+                }
+            } catch (error) {
+                Swal.fire({
+                    title: 'Error!',
+                    text: 'An error occurred while cancelling the appointment.',
+                    icon: 'error',
+                    confirmButtonColor: '#ef4444'
+                });
+            }
             closeCancelModal();
         });
 
@@ -243,15 +310,68 @@
         });
 
         // Confirm Delete
-        document.getElementById('confirmDeleteBtn').addEventListener('click', function() {
-            performAction('delete');
+        document.getElementById('confirmDeleteBtn').addEventListener('click', async function() {
+            Swal.fire({
+                title: 'Processing...',
+                text: 'Please wait',
+                allowOutsideClick: false,
+                didOpen: () => {
+                    Swal.showLoading();
+                }
+            });
+
+            try {
+                const response = await fetch(`/staff/appointments/{{ $appointment->id }}`, {
+                    method: 'DELETE',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': csrfToken,
+                        'Accept': 'application/json',
+                        'X-Requested-With': 'XMLHttpRequest'
+                    }
+                });
+
+                const data = await response.json();
+
+                if (response.ok && data.success) {
+                    Swal.fire({
+                        title: 'Deleted!',
+                        text: data.message,
+                        icon: 'success',
+                        confirmButtonColor: '#10b981',
+                        timer: 1500,
+                        showConfirmButton: false
+                    }).then(() => {
+                        // Redirect to index page after delete
+                        window.location.href = '/staff/appointments';
+                    });
+                } else {
+                    Swal.fire({
+                        title: 'Error!',
+                        text: data.message || 'Failed to delete appointment.',
+                        icon: 'error',
+                        confirmButtonColor: '#ef4444'
+                    });
+                }
+            } catch (error) {
+                Swal.fire({
+                    title: 'Error!',
+                    text: 'An error occurred while deleting the appointment.',
+                    icon: 'error',
+                    confirmButtonColor: '#ef4444'
+                });
+            }
             closeDeleteModal();
         });
 
-        // Print button
-        document.querySelector('.print-btn')?.addEventListener('click', function() {
-            window.print();
-        });
+        // Close modals
+        function closeCancelModal() {
+            document.getElementById('cancelReasonModal').classList.remove('show');
+        }
+
+        function closeDeleteModal() {
+            document.getElementById('deleteConfirmModal').classList.remove('show');
+        }
 
         // Close modals when clicking outside
         window.onclick = function(event) {
@@ -264,132 +384,186 @@
                 closeDeleteModal();
             }
         };
-
-        function closeCancelModal() {
-            document.getElementById('cancelReasonModal').classList.remove('show');
-        }
-
-        function closeDeleteModal() {
-            document.getElementById('deleteConfirmModal').classList.remove('show');
-        }
-
-        function hideToast() {
-            const toast = document.getElementById('notificationToast');
-            toast.style.display = 'none';
-        }
-
-        function showNotification(message, isError = false) {
-            const toast = document.getElementById('notificationToast');
-            const toastMessage = document.getElementById('toastMessage');
-            const icon = toast.querySelector('.toast-header i');
-            
-            toastMessage.textContent = message;
-            
-            if (isError) {
-                icon.className = 'fas fa-exclamation-circle';
-                icon.style.color = '#dc2626';
-                toast.style.borderLeft = '3px solid #dc2626';
-            } else {
-                icon.className = 'fas fa-check-circle';
-                icon.style.color = '#10b981';
-                toast.style.borderLeft = '3px solid #10b981';
-            }
-            
-            toast.style.display = 'block';
-            
-            setTimeout(() => {
-                toast.style.opacity = '0';
-                setTimeout(() => {
-                    toast.style.display = 'none';
-                    toast.style.opacity = '1';
-                }, 300);
-            }, 3000);
-        }
-
-        async function performAction(action, reason = null) {
-            // Disable buttons to prevent double submission
-            const buttons = document.querySelectorAll('.btn-action');
-            buttons.forEach(btn => {
-                btn.disabled = true;
-                btn.style.opacity = '0.6';
-            });
-            
-            let url = '';
-            let method = 'PUT';
-            let body = { _token: '{{ csrf_token() }}' };
-            
-            switch(action) {
-                case 'confirm':
-                    url = `/staff/appointments/${currentAppointmentId}/confirm`;
-                    break;
-                case 'complete':
-                    url = `/staff/appointments/${currentAppointmentId}/complete`;
-                    break;
-                case 'cancel':
-                    url = `/staff/appointments/${currentAppointmentId}/cancel`;
-                    body.reason = reason || 'Cancelled by staff';
-                    break;
-                case 'delete':
-                    url = `/staff/appointments/${currentAppointmentId}`;
-                    method = 'DELETE';
-                    break;
-            }
-            
-            try {
-                const response = await fetch(url, {
-                    method: method,
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'X-CSRF-TOKEN': '{{ csrf_token() }}'
-                    },
-                    body: JSON.stringify(body)
-                });
-                
-                const data = await response.json();
-                
-                if (response.ok && (data.success || response.status === 200)) {
-                    showNotification(getSuccessMessage(action));
-                    setTimeout(() => {
-                        window.location.reload();
-                    }, 1500);
-                } else {
-                    showNotification(data.message || getErrorMessage(action), true);
-                    // Re-enable buttons on error
-                    buttons.forEach(btn => {
-                        btn.disabled = false;
-                        btn.style.opacity = '1';
-                    });
-                }
-            } catch (error) {
-                console.error('Error:', error);
-                showNotification('An error occurred. Please try again.', true);
-                // Re-enable buttons on error
-                buttons.forEach(btn => {
-                    btn.disabled = false;
-                    btn.style.opacity = '1';
-                });
-            }
-        }
-
-        function getSuccessMessage(action) {
-            const messages = {
-                'confirm': 'Appointment confirmed successfully!',
-                'complete': 'Appointment marked as completed!',
-                'cancel': 'Appointment cancelled successfully!',
-                'delete': 'Appointment deleted successfully!'
-            };
-            return messages[action] || 'Action completed successfully!';
-        }
-
-        function getErrorMessage(action) {
-            const messages = {
-                'confirm': 'Failed to confirm appointment.',
-                'complete': 'Failed to mark appointment as completed.',
-                'cancel': 'Failed to cancel appointment.',
-                'delete': 'Failed to delete appointment.'
-            };
-            return messages[action] || 'Action failed. Please try again.';
-        }
     </script>
-    @endpush
+
+    <style>
+        /* Button Styles */
+        .btn-action {
+            transition: all 0.3s ease;
+            margin: 0 5px;
+        }
+
+        .action-buttons-group {
+            margin-top: 20px;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            display: flex;
+            gap: 10px;
+            justify-content: flex-end;
+        }
+
+        /* Status Badge Styles */
+        .status-badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.875rem;
+            font-weight: 500;
+        }
+
+        .status-badge--pending {
+            background: #fef3c7;
+            color: #d97706;
+        }
+
+        .status-badge--confirmed {
+            background: #d1fae5;
+            color: #059669;
+        }
+
+        .status-badge--cancelled {
+            background: #fee2e2;
+            color: #dc2626;
+        }
+
+        .status-badge--completed {
+            background: #dbeafe;
+            color: #2563eb;
+        }
+
+        /* Badge Styles */
+        .badge {
+            display: inline-block;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            font-weight: 500;
+        }
+
+        .badge--success {
+            background: #d1fae5;
+            color: #059669;
+        }
+
+        .badge--secondary {
+            background: #e5e7eb;
+            color: #4b5563;
+        }
+
+        /* Modal Styles */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 1000;
+        }
+
+        .modal.show {
+            display: block;
+        }
+
+        .modal__overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+        }
+
+        .modal__dialog {
+            position: relative;
+            top: 50%;
+            transform: translateY(-50%);
+            max-width: 500px;
+            margin: 0 auto;
+            z-index: 1001;
+        }
+
+        .modal__content {
+            background: white;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+        }
+
+        .modal__header {
+            padding: 15px 20px;
+            background: #f8f9fa;
+            border-bottom: 1px solid #e9ecef;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .modal__header h5 {
+            margin: 0;
+            font-size: 1.1rem;
+        }
+
+        .modal__close {
+            background: none;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            color: #6c757d;
+        }
+
+        .modal__close:hover {
+            color: #343a40;
+        }
+
+        .modal__body {
+            padding: 20px;
+        }
+
+        .modal__footer {
+            padding: 15px 20px;
+            background: #f8f9fa;
+            border-top: 1px solid #e9ecef;
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+        }
+
+        /* Alert Styles */
+        .alert {
+            padding: 12px 15px;
+            border-radius: 6px;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .alert--danger {
+            background: #fee;
+            border-left: 3px solid #dc2626;
+            color: #991b1b;
+        }
+
+        /* Form Control */
+        .form-control {
+            width: 100%;
+            padding: 8px 12px;
+            border: 1px solid #d1d5db;
+            border-radius: 6px;
+            font-size: 14px;
+        }
+
+        .form-control:focus {
+            outline: none;
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+        }
+
+        .text-muted {
+            color: #6c757d;
+            font-size: 0.9rem;
+        }
+    </style>
 @endsection

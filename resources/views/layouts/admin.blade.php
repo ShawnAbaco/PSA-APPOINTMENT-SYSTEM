@@ -173,7 +173,7 @@
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script>
         // ============================================================
-        //  PSA LOADER CONTROLS (from operator)
+        //  PSA LOADER CONTROLS 
         // ============================================================
         function showPSALoader(customText = null) {
             const loader = document.getElementById('psaLoaderModal');
@@ -194,7 +194,7 @@
         }
 
         // ============================================================
-        //  TOAST NOTIFICATION (from operator)
+        //  TOAST NOTIFICATION 
         // ============================================================
         window.showToast = function(title, message, type = 'info') {
             const container = document.getElementById('toastContainer');
@@ -217,7 +217,7 @@
         }
 
         // ============================================================
-        //  NOTIFICATION MANAGER (from operator)
+        //  NOTIFICATION MANAGER
         // ============================================================
         class NotificationManager {
             constructor() {
@@ -373,7 +373,7 @@
         }
 
         // ============================================================
-        //  MOBILE SIDEBAR TOGGLE (from operator)
+        //  MOBILE SIDEBAR TOGGLE 
         // ============================================================
         function initMobileSidebar() {
             const toggleBtn = document.getElementById('mobileMenuToggle');

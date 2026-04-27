@@ -16,7 +16,6 @@
     <link rel="stylesheet" href="{{ asset('css/staff/appointments/appointments.css') }}">
     <link rel="stylesheet" href="{{ asset('css/staff/appointments/show.css') }}">
     <link rel="stylesheet" href="{{ asset('css/staff/clients/client.css') }}">
-    <link rel="stylesheet" href="{{ asset('css/staff/clients/show.css') }}">
 
 </head>
 

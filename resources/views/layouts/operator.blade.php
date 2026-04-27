@@ -18,7 +18,6 @@
     <link rel="stylesheet" href="{{ asset('css/operator/appointments/appointments.css') }}">
     <link rel="stylesheet" href="{{ asset('css/operator/appointments/show.css') }}">
     <link rel="stylesheet" href="{{ asset('css/operator/clients/client.css') }}">
-    <link rel="stylesheet" href="{{ asset('css/operator/clients/show.css') }}">
 </head>
 
 <body>
