@@ -12,15 +12,11 @@ use Illuminate\Support\Facades\DB;
 class OClientController extends Controller
 {
     /**
-     * Display a listing of all clients from CONFIRMED appointments only.
+     * Display a listing of all clients.
      */
     public function index(Request $request)
     {
-        // Only get clients from confirmed appointments
-        $query = AppointmentClient::with('appointment.timeSlot')
-            ->whereHas('appointment', function($q) {
-                $q->where('status', 'confirmed');
-            });
+        $query = AppointmentClient::with('appointment.timeSlot');
         
         // Search functionality
         if ($request->filled('search')) {
@@ -30,12 +26,11 @@ class OClientController extends Controller
                   ->orWhere('last_name', 'like', "%{$search}%")
                   ->orWhere('middle_name', 'like', "%{$search}%")
                   ->orWhere('psa_reference_number', 'like', "%{$search}%")
-                  ->orWhere('trn_number', 'like', "%{$search}%")
-                  ->orWhere('client_number', 'like', "%{$search}%");
+                  ->orWhere('trn_number', 'like', "%{$search}%");
             });
         }
         
-        // Filter by service
+        // Filter by service (UPDATED: reg, updating, inquiry)
         if ($request->filled('service')) {
             $query->where('service', $request->service);
         }
@@ -47,33 +42,21 @@ class OClientController extends Controller
         
         // Filter by verification status
         if ($request->filled('verified')) {
-            if ($request->verified === 'verified') {
-                $query->where('is_verified', true);
-            } elseif ($request->verified === 'pending') {
-                $query->where('is_verified', false);
-            }
+            $query->where('is_verified', $request->verified === 'true');
         }
         
         // Order by latest first
         $clients = $query->latest()->paginate(10);
         
-        // Get service counts for statistics (only from confirmed appointments)
-        $serviceCounts = AppointmentClient::whereHas('appointment', function($q) {
-                $q->where('status', 'confirmed');
-            })
-            ->selectRaw('service, COUNT(*) as count')
+        // Get service counts for statistics (UPDATED service codes)
+        $serviceCounts = AppointmentClient::selectRaw('service, COUNT(*) as count')
             ->groupBy('service')
             ->pluck('count', 'service');
         
-        $totalClients = AppointmentClient::whereHas('appointment', function($q) {
-            $q->where('status', 'confirmed');
-        })->count();
+        $totalClients = AppointmentClient::count();
+        $verifiedClients = AppointmentClient::where('is_verified', true)->count();
         
-        $verifiedClients = AppointmentClient::whereHas('appointment', function($q) {
-            $q->where('status', 'confirmed');
-        })->where('is_verified', true)->count();
-        
-        // Service name mapping
+        // Updated service mapping
         $services = [
             'reg' => 'National ID Registration',
             'updating' => 'Correction/Updating',
@@ -94,24 +77,17 @@ class OClientController extends Controller
      */
     public function show($id)
     {
-        $client = AppointmentClient::with('appointment.timeSlot')
-            ->whereHas('appointment', function($q) {
-                $q->where('status', 'confirmed');
-            })
-            ->findOrFail($id);
+        $client = AppointmentClient::with('appointment.timeSlot')->findOrFail($id);
         
-        // Get client's appointment history (only confirmed appointments for this person)
+        // Get client's appointment history (all appointments for this person)
         $clientHistory = AppointmentClient::with('appointment.timeSlot')
-            ->whereHas('appointment', function($q) {
-                $q->where('status', 'confirmed');
-            })
             ->where('first_name', $client->first_name)
             ->where('last_name', $client->last_name)
             ->where('birthdate', $client->birthdate)
             ->orderBy('created_at', 'desc')
             ->get();
         
-        // Service name mapping
+        // Updated service name mapping
         $services = [
             'reg' => 'National ID Registration',
             'updating' => 'Correction/Updating',
@@ -122,24 +98,18 @@ class OClientController extends Controller
     }
     
     /**
-     * Search clients via AJAX (only from confirmed appointments).
+     * Search clients via AJAX.
      */
     public function search(Request $request)
     {
         $search = $request->get('q');
         
-        $clients = AppointmentClient::whereHas('appointment', function($q) {
-                $q->where('status', 'confirmed');
-            })
-            ->where(function($query) use ($search) {
-                $query->where('first_name', 'like', "%{$search}%")
-                    ->orWhere('last_name', 'like', "%{$search}%")
-                    ->orWhere('psa_reference_number', 'like', "%{$search}%")
-                    ->orWhere('trn_number', 'like', "%{$search}%")
-                    ->orWhere('client_number', 'like', "%{$search}%");
-            })
+        $clients = AppointmentClient::where('first_name', 'like', "%{$search}%")
+            ->orWhere('last_name', 'like', "%{$search}%")
+            ->orWhere('psa_reference_number', 'like', "%{$search}%")
+            ->orWhere('trn_number', 'like', "%{$search}%")
             ->limit(10)
-            ->get(['id', 'client_number', 'first_name', 'middle_name', 'last_name', 'suffix', 'psa_reference_number', 'trn_number']);
+            ->get(['id', 'first_name', 'middle_name', 'last_name', 'suffix', 'psa_reference_number', 'trn_number']);
         
         return response()->json($clients);
     }
@@ -149,10 +119,7 @@ class OClientController extends Controller
      */
     public function update(Request $request, $id)
     {
-        $client = AppointmentClient::whereHas('appointment', function($q) {
-                $q->where('status', 'confirmed');
-            })
-            ->findOrFail($id);
+        $client = AppointmentClient::findOrFail($id);
         
         $validated = $request->validate([
             'first_name' => 'required|string|max:255',
@@ -195,15 +162,21 @@ class OClientController extends Controller
      */
     public function verify($id)
     {
-        $client = AppointmentClient::whereHas('appointment', function($q) {
-                $q->where('status', 'confirmed');
-            })
-            ->findOrFail($id);
+        $client = AppointmentClient::findOrFail($id);
         
         $client->update([
             'is_verified' => true,
             'verified_at' => now(),
         ]);
+        
+        // Update appointment status if pending
+        if ($client->appointment && $client->appointment->status === 'pending') {
+            $client->appointment->update([
+                'status' => 'confirmed',
+                'confirmed_at' => now(),
+                'processed_by' => Auth::id(),
+            ]);
+        }
         
         return redirect()->back()->with('success', 'Client verified successfully.');
     }
@@ -217,11 +190,7 @@ class OClientController extends Controller
             'psa_reference_number' => 'required|string|max:255',
         ]);
         
-        $client = AppointmentClient::whereHas('appointment', function($q) {
-                $q->where('status', 'confirmed');
-            })
-            ->findOrFail($id);
-        
+        $client = AppointmentClient::findOrFail($id);
         $client->update([
             'psa_reference_number' => $request->psa_reference_number,
         ]);
@@ -241,10 +210,7 @@ class OClientController extends Controller
             'trn_number' => 'required|string|size:29|regex:/^\d+$/',
         ]);
         
-        $client = AppointmentClient::whereHas('appointment', function($q) {
-                $q->where('status', 'confirmed');
-            })
-            ->findOrFail($id);
+        $client = AppointmentClient::findOrFail($id);
         
         if ($client->service !== 'inquiry') {
             return response()->json([
@@ -265,15 +231,11 @@ class OClientController extends Controller
     }
     
     /**
-     * Export clients to CSV (only from confirmed appointments).
+     * Export clients to CSV.
      */
     public function export(Request $request)
     {
-        $clients = AppointmentClient::with('appointment.timeSlot')
-            ->whereHas('appointment', function($q) {
-                $q->where('status', 'confirmed');
-            })
-            ->get();
+        $clients = AppointmentClient::with('appointment.timeSlot')->get();
         
         $filename = 'clients_export_' . date('Y-m-d_His') . '.csv';
         
@@ -281,12 +243,12 @@ class OClientController extends Controller
             function() use ($clients) {
                 $handle = fopen('php://output', 'w');
                 
-                // Add CSV headers
+                // Add CSV headers (UPDATED)
                 fputcsv($handle, [
                     'ID', 'Client Number', 'First Name', 'Middle Name', 'Last Name', 'Suffix', 
                     'Sex', 'Birthdate', 'Service', 'Has TRN', 'TRN Number', 'PSA Reference Number', 
                     'Is Verified', 'Verified At', 'Appointment Number', 'Appointment Date', 
-                    'Appointment Time', 'Created At'
+                    'Appointment Time', 'Appointment Status', 'Created At'
                 ]);
                 
                 // Service name mapping
@@ -317,6 +279,7 @@ class OClientController extends Controller
                         $client->appointment?->appointment_number,
                         $client->appointment?->appointment_date,
                         $timeSlotLabel,
+                        $client->appointment?->status,
                         $client->created_at,
                     ]);
                 }
@@ -332,30 +295,19 @@ class OClientController extends Controller
     }
     
     /**
-     * Get client statistics for dashboard (only from confirmed appointments).
+     * Get client statistics for dashboard.
      */
     public function statistics()
     {
-        $totalClients = AppointmentClient::whereHas('appointment', function($q) {
-            $q->where('status', 'confirmed');
-        })->count();
-        
-        $verifiedClients = AppointmentClient::whereHas('appointment', function($q) {
-            $q->where('status', 'confirmed');
-        })->where('is_verified', true)->count();
-        
+        $totalClients = AppointmentClient::count();
+        $verifiedClients = AppointmentClient::where('is_verified', true)->count();
         $unverifiedClients = $totalClients - $verifiedClients;
         
-        // Clients with TRN (for inquiry service) from confirmed appointments
-        $clientsWithTrn = AppointmentClient::whereHas('appointment', function($q) {
-            $q->where('status', 'confirmed');
-        })->where('has_trn', true)->count();
+        // Clients with TRN (for inquiry service)
+        $clientsWithTrn = AppointmentClient::where('has_trn', true)->count();
         
-        // Clients by service from confirmed appointments
-        $clientsByService = AppointmentClient::whereHas('appointment', function($q) {
-                $q->where('status', 'confirmed');
-            })
-            ->selectRaw('service, COUNT(*) as count')
+        // Clients by service (UPDATED)
+        $clientsByService = AppointmentClient::selectRaw('service, COUNT(*) as count')
             ->groupBy('service')
             ->get()
             ->map(function($item) {
@@ -368,19 +320,13 @@ class OClientController extends Controller
                 return $item;
             });
         
-        // Clients by sex from confirmed appointments
-        $clientsBySex = AppointmentClient::whereHas('appointment', function($q) {
-                $q->where('status', 'confirmed');
-            })
-            ->selectRaw('sex, COUNT(*) as count')
+        // Clients by sex
+        $clientsBySex = AppointmentClient::selectRaw('sex, COUNT(*) as count')
             ->groupBy('sex')
             ->get();
         
-        // Recent clients from confirmed appointments
+        // Recent clients
         $recentClients = AppointmentClient::with('appointment.timeSlot')
-            ->whereHas('appointment', function($q) {
-                $q->where('status', 'confirmed');
-            })
             ->latest()
             ->take(10)
             ->get();
@@ -397,19 +343,16 @@ class OClientController extends Controller
     }
     
     /**
-     * Delete a client record (only if from confirmed appointment).
+     * Delete a client record.
      */
     public function destroy($id)
     {
-        $client = AppointmentClient::whereHas('appointment', function($q) {
-                $q->where('status', 'confirmed');
-            })
-            ->findOrFail($id);
+        $client = AppointmentClient::findOrFail($id);
         
         // Check if client has an appointment
         if ($client->appointment) {
             return redirect()->back()->with('error', 
-                'Cannot delete client because they have an associated confirmed appointment. Cancel the appointment first.'
+                'Cannot delete client because they have an associated appointment. Delete the appointment first.'
             );
         }
         
@@ -419,15 +362,11 @@ class OClientController extends Controller
     }
     
     /**
-     * Get client details for AJAX request (only from confirmed appointments).
+     * Get client details for AJAX request.
      */
     public function getClientDetails($id)
     {
-        $client = AppointmentClient::with('appointment.timeSlot')
-            ->whereHas('appointment', function($q) {
-                $q->where('status', 'confirmed');
-            })
-            ->findOrFail($id);
+        $client = AppointmentClient::with('appointment.timeSlot')->findOrFail($id);
         
         $services = [
             'reg' => 'National ID Registration',
@@ -467,7 +406,7 @@ class OClientController extends Controller
     }
     
     /**
-     * Bulk verify clients (only from confirmed appointments).
+     * Bulk verify clients.
      */
     public function bulkVerify(Request $request)
     {
@@ -477,9 +416,6 @@ class OClientController extends Controller
         ]);
         
         $count = AppointmentClient::whereIn('id', $request->client_ids)
-            ->whereHas('appointment', function($q) {
-                $q->where('status', 'confirmed');
-            })
             ->where('is_verified', false)
             ->update([
                 'is_verified' => true,

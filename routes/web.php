@@ -57,7 +57,8 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
     Route::get('/appointment-places', [App\Http\Controllers\Admin\DashboardController::class, 'getAppointmentPlacesAjax']);
     Route::get('/location-map-data', [App\Http\Controllers\Admin\DashboardController::class, 'getLocationMapDataAjax']);
     Route::get('/summary-stats', [App\Http\Controllers\Admin\DashboardController::class, 'getSummaryStats']);
-    
+    Route::get('/calendar-data', [App\Http\Controllers\Admin\DashboardController::class, 'getCalendarData'])->name('calendar-data');    
+        
     Route::get('/appointments/{id}/modal', [App\Http\Controllers\Admin\AppointmentController::class, 'showModal'])->name('admin.appointments.modal');
     Route::get('/appointments/{id}/json', [App\Http\Controllers\Admin\AppointmentController::class, 'getJson'])->name('admin.appointments.json');
     
