@@ -189,8 +189,8 @@
 
 /* User Stats */
 .user-stats {
-    margin-top: 12px;
-    padding-top: 10px;
+    margin-top: 1px;
+    padding-top: 1px;
     border-top: 1px solid var(--gray-200);
 }
 
@@ -845,3 +845,125 @@
         border: 1px solid var(--gray-300);
     }
 }
+.slot-tooltip {
+            position: fixed;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+            padding: 12px 16px;
+            min-width: 260px;
+            z-index: 10000;
+            pointer-events: auto;
+            border: 1px solid #e0e0e0;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        }
+
+        .tooltip-header {
+            font-weight: 600;
+            color: #0f3b6f;
+            padding-bottom: 8px;
+            margin-bottom: 8px;
+            border-bottom: 1px solid #e0e0e0;
+            font-size: 14px;
+        }
+
+        .tooltip-body {
+            font-size: 13px;
+        }
+
+        .tooltip-service-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 6px 0;
+            border-bottom: 1px solid #f0f0f0;
+        }
+
+        .tooltip-service-row:last-child {
+            border-bottom: none;
+        }
+
+        .service-name {
+            color: #6c757d;
+            font-size: 12px;
+        }
+
+        .service-remaining {
+            font-weight: 600;
+            font-size: 12px;
+        }
+
+        .service-remaining.green {
+            color: #10b981;
+        }
+
+        .service-remaining.yellow {
+            color: #f59e0b;
+        }
+
+        .service-remaining.red {
+            color: #ef4444;
+        }
+
+        .service-remaining.full {
+            color: #dc3545;
+        }
+
+        .calendar-day {
+            cursor: pointer;
+            position: relative;
+            transition: all 0.2s ease;
+        }
+
+        .calendar-day:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+            z-index: 10;
+        }
+
+        .calendar-day.available {
+            background: linear-gradient(135deg, #e8f5e9 0%, #c8e6c9 100%);
+        }
+
+        .calendar-day.partial {
+            background: linear-gradient(135deg, #fff3e0 0%, #ffe0b2 100%);
+        }
+
+        .calendar-day.full {
+            background: linear-gradient(135deg, #ffebee 0%, #ffcdd2 100%);
+        }
+
+        .calendar-day.past {
+            background: #f5f5f5;
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        .calendar-day.weekend {
+            background: #fafafa;
+            opacity: 0.7;
+            cursor: not-allowed;
+        }
+
+        .slot-info {
+            font-size: 10px;
+            display: block;
+            margin-top: 4px;
+            font-weight: 500;
+        }
+
+        .slot-info.full-label {
+            color: #dc3545;
+        }
+
+        .slot-info.past-label {
+            color: #6c757d;
+        }
+
+        .slot-info.weekend-label {
+            color: #6c757d;
+        }
+
+        .day-number {
+            font-size: 14px;
+            font-weight: 600;
+        }

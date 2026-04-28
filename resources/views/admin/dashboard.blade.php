@@ -55,8 +55,12 @@
                         <h6 class="stat-label">System Users</h6>
                         <div class="user-stats">
                             <div class="user-stat-item">
-                                <span class="user-stat-label">Admins:</span>
+                                <span class="user-stat-label">Admin:</span>
                                 <span class="user-stat-value">{{ $totalAdmins }}</span>
+                            </div>
+                            <div class="user-stat-item">
+                                <span class="user-stat-label">Operator:</span>
+                                <span class="user-stat-value">{{ $totalOperator }}</span>
                             </div>
                             <div class="user-stat-item">
                                 <span class="user-stat-label">Staff:</span>
@@ -146,13 +150,6 @@
                     </div>
                     <div class="calendar-days" id="calendarDays"></div>
                 </div>
-                {{-- <div class="calendar-legend">
-                    <div class="legend-item"><span class="legend-color available"></span><span>Available (>50% slots)</span>
-                    </div>
-                    <div class="legend-item"><span class="legend-color partial"></span><span>Partial (<50% slots)</span>
-                    </div>
-                    <div class="legend-item"><span class="legend-color full"></span><span>Full (0 slots)</span></div>
-                </div> --}}
             </div>
         </div>
 
@@ -251,482 +248,23 @@
             </div>
         </div>
     </div>
+
+    <!-- Tooltip for slot details - FIXED STRUCTURE -->
+    <div id="slotTooltip" class="slot-tooltip" style="display: none;">
+        <div class="tooltip-header">
+            <i class="fas fa-calendar-day"></i> <span id="tooltipDate"></span>
+        </div>
+        <div class="tooltip-body" id="tooltipBody"></div>
+    </div>
 @endsection
-
-@push('styles')
-    <style>
-        /* Dashboard Styles */
-        .dashboard-container {
-            padding: 20px;
-            background: #f5f7fb;
-            min-height: 100vh;
-        }
-
-        .welcome-section {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 30px;
-        }
-
-        .dashboard-title {
-            font-size: 28px;
-            font-weight: 700;
-            color: #1f2937;
-            margin: 0;
-        }
-
-        .dashboard-subtitle {
-            color: #6b7280;
-            margin: 5px 0 0;
-        }
-
-        .date-display {
-            background: white;
-            padding: 10px 20px;
-            border-radius: 10px;
-            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-        }
-
-        /* Stats Grid */
-        .stats-grid {
-            display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            gap: 20px;
-            margin-bottom: 30px;
-        }
-
-        .stat-card {
-            background: white;
-            border-radius: 12px;
-            padding: 20px;
-            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-            transition: transform 0.2s;
-        }
-
-        .stat-card:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-        }
-
-        .stat-card-content {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .stat-label {
-            color: #6b7280;
-            font-size: 14px;
-            margin: 0 0 10px;
-        }
-
-        .stat-value {
-            font-size: 32px;
-            font-weight: 700;
-            margin: 0 0 5px;
-        }
-
-        .text-success {
-            color: #10b981;
-        }
-
-        .stat-trend {
-            font-size: 12px;
-            margin: 0;
-        }
-
-        .trend-up {
-            color: #10b981;
-        }
-
-        .trend-neutral {
-            color: #6b7280;
-        }
-
-        .stat-icon-circle {
-            width: 50px;
-            height: 50px;
-            background: #f3f4f6;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 24px;
-            color: #0f3b6f;
-        }
-
-        .success-bg {
-            background: #d1fae5;
-            color: #10b981;
-        }
-
-        .user-stats {
-            margin-top: 10px;
-        }
-
-        .user-stat-item {
-            display: flex;
-            justify-content: space-between;
-            font-size: 14px;
-            margin-bottom: 5px;
-        }
-
-        /* Row 2 Layout */
-        .row-2-layout {
-            display: grid;
-            grid-template-columns: 1fr 1.5fr;
-            gap: 20px;
-            margin-bottom: 30px;
-        }
-
-        /* Places Card */
-        .places-card,
-        .calendar-card,
-        .chart-card,
-        .schedule-card {
-            background: white;
-            border-radius: 12px;
-            padding: 20px;
-            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-        }
-
-        .card-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 20px;
-            padding-bottom: 15px;
-            border-bottom: 1px solid #e5e7eb;
-        }
-
-        .card-title {
-            font-size: 18px;
-            font-weight: 600;
-            margin: 0;
-        }
-
-        .places-list {
-            max-height: 400px;
-            overflow-y: auto;
-        }
-
-        .place-item {
-            margin-bottom: 20px;
-        }
-
-        .place-info {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            margin-bottom: 8px;
-        }
-
-        .place-name {
-            font-weight: 500;
-            color: #1f2937;
-        }
-
-        .place-count {
-            display: flex;
-            justify-content: space-between;
-            margin-bottom: 5px;
-            font-size: 14px;
-        }
-
-        .count-number {
-            font-weight: 700;
-            font-size: 18px;
-            color: #0f3b6f;
-        }
-
-        .count-label {
-            color: #6b7280;
-        }
-
-        .place-progress {
-            background: #f3f4f6;
-            border-radius: 10px;
-            height: 8px;
-            overflow: hidden;
-        }
-
-        .progress-bar {
-            height: 100%;
-            border-radius: 10px;
-            transition: width 0.3s;
-        }
-
-        /* Calendar Styles */
-        .calendar-weekdays {
-            display: grid;
-            grid-template-columns: repeat(7, 1fr);
-            text-align: center;
-            margin-bottom: 10px;
-            font-weight: 600;
-            color: #6b7280;
-        }
-
-        .weekday {
-            padding: 10px;
-            font-size: 14px;
-        }
-
-        .calendar-days {
-            display: grid;
-            grid-template-columns: repeat(7, 1fr);
-            gap: 5px;
-        }
-
-        .calendar-day {
-            min-height: 80px;
-            padding: 8px;
-            border-radius: 8px;
-            background: #f9fafb;
-            position: relative;
-            cursor: pointer;
-            transition: all 0.2s;
-        }
-
-        .calendar-day:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-        }
-
-        .calendar-day.available {
-            background: linear-gradient(135deg, #10b981 0%, #34d399 100%);
-            color: white;
-        }
-
-        .calendar-day.partial {
-            background: linear-gradient(135deg, #f59e0b 0%, #fbbf24 100%);
-            color: white;
-        }
-
-        .calendar-day.full {
-            background: linear-gradient(135deg, #ef4444 0%, #f87171 100%);
-            color: white;
-        }
-
-        .calendar-day.weekend,
-        .calendar-day.past {
-            background: #e5e7eb;
-            color: #9ca3af;
-            cursor: not-allowed;
-        }
-
-        .calendar-day.empty {
-            background: transparent;
-            cursor: default;
-        }
-
-        .day-number {
-            font-size: 18px;
-            font-weight: 600;
-            display: block;
-            margin-bottom: 5px;
-        }
-
-        .slot-info {
-            font-size: 11px;
-            display: block;
-            margin-top: 5px;
-        }
-
-        .calendar-legend {
-            display: flex;
-            gap: 15px;
-            margin-top: 15px;
-            padding-top: 15px;
-            border-top: 1px solid #e5e7eb;
-        }
-
-        .legend-item {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            font-size: 12px;
-        }
-
-        .legend-color {
-            width: 16px;
-            height: 16px;
-            border-radius: 4px;
-        }
-
-        .legend-color.available {
-            background: #10b981;
-        }
-
-        .legend-color.partial {
-            background: #f59e0b;
-        }
-
-        .legend-color.full {
-            background: #ef4444;
-        }
-
-        .legend-color.weekend {
-            background: #e5e7eb;
-        }
-
-        /* Row 3 Layout */
-        .row-3-layout {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 20px;
-            margin-bottom: 30px;
-        }
-
-        .chart-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 20px;
-        }
-
-        .chart-title {
-            font-size: 16px;
-            font-weight: 600;
-            margin: 0;
-        }
-
-        .chart-filter,
-        .places-filter,
-        .calendar-filter {
-            padding: 5px 10px;
-            border: 1px solid #e5e7eb;
-            border-radius: 6px;
-            background: white;
-            font-size: 12px;
-            cursor: pointer;
-        }
-
-        .chart-body {
-            height: 300px;
-            position: relative;
-        }
-
-        /* Upcoming Section */
-        .schedule-list {
-            max-height: 400px;
-            overflow-y: auto;
-        }
-
-        .schedule-item {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            padding: 15px;
-            border-bottom: 1px solid #f3f4f6;
-            cursor: pointer;
-            transition: background 0.2s;
-        }
-
-        .schedule-item:hover {
-            background: #f9fafb;
-        }
-
-        .schedule-time {
-            min-width: 180px;
-        }
-
-        .schedule-time-small {
-            display: block;
-            font-size: 12px;
-            color: #6b7280;
-            margin-top: 5px;
-        }
-
-        .schedule-info {
-            flex: 1;
-            margin-left: 20px;
-        }
-
-        .schedule-title {
-            font-weight: 600;
-            margin-bottom: 5px;
-        }
-
-        .schedule-subtitle {
-            font-size: 14px;
-            color: #6b7280;
-        }
-
-        .status-badge {
-            padding: 5px 12px;
-            border-radius: 20px;
-            font-size: 12px;
-            font-weight: 500;
-        }
-
-        .status-pending {
-            background: #fef3c7;
-            color: #d97706;
-        }
-
-        .status-confirmed {
-            background: #d1fae5;
-            color: #059669;
-        }
-
-        .status-completed {
-            background: #dbeafe;
-            color: #2563eb;
-        }
-
-        .status-cancelled {
-            background: #fee2e2;
-            color: #dc2626;
-        }
-
-        .empty-state {
-            text-align: center;
-            padding: 40px;
-            color: #9ca3af;
-        }
-
-        .empty-state i {
-            font-size: 48px;
-            margin-bottom: 15px;
-        }
-
-        .empty-state h4 {
-            margin: 10px 0;
-            color: #6b7280;
-        }
-
-        .view-link {
-            color: #0f3b6f;
-            text-decoration: none;
-            font-size: 14px;
-        }
-
-        .view-link:hover {
-            text-decoration: underline;
-        }
-
-        @media (max-width: 1200px) {
-            .stats-grid {
-                grid-template-columns: repeat(2, 1fr);
-            }
-
-            .row-2-layout {
-                grid-template-columns: 1fr;
-            }
-
-            .row-3-layout {
-                grid-template-columns: 1fr;
-            }
-        }
-    </style>
-@endpush
 
 @push('scripts')
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script>
         // Store chart instances
         let appointmentTrendsChart, statusBumpChart, summaryChart;
+        let tooltipTimeout = null;
+        let isHoveringTooltip = false;
 
         // Chart data from server
         const chartData = {
@@ -757,32 +295,190 @@
         const statusTimeData = @json($statusTimeData);
 
         // ============================================
+        // TOOLTIP FUNCTIONS - FIXED
+        // ============================================
+        function showTooltip(event, date, slots) {
+            const tooltip = document.getElementById('slotTooltip');
+            const tooltipDate = document.getElementById('tooltipDate');
+            const tooltipBody = document.getElementById('tooltipBody');
+
+            if (!tooltip || !tooltipDate || !tooltipBody) {
+                console.error('Tooltip elements not found');
+                return;
+            }
+
+            // Clear any pending hide timeout
+            if (tooltipTimeout) {
+                clearTimeout(tooltipTimeout);
+                tooltipTimeout = null;
+            }
+
+            const dateObj = new Date(date);
+            const formattedDate = dateObj.toLocaleDateString('en-US', {
+                weekday: 'long',
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric'
+            });
+
+            tooltipDate.textContent = formattedDate;
+
+            let tooltipHtml = '';
+
+            if (slots && slots.service_breakdown) {
+                const services = [{
+                        key: 'reg',
+                        name: 'National ID Registration'
+                    },
+                    {
+                        key: 'updating',
+                        name: 'Correction/Updating'
+                    },
+                    {
+                        key: 'inquiry',
+                        name: 'Status Inquiry'
+                    }
+                ];
+
+                let totalRemaining = 0;
+                let totalCapacity = 0;
+
+                services.forEach(service => {
+                    const capacity = slots.service_breakdown[service.key]?.capacity || 0;
+                    const booked = slots.service_breakdown[service.key]?.booked || 0;
+                    const remaining = capacity - booked;
+                    totalRemaining += remaining;
+                    totalCapacity += capacity;
+
+                    let statusClass = 'green';
+                    let statusText = `${remaining} left`;
+
+                    if (remaining <= 0) {
+                        statusClass = 'full';
+                        statusText = 'FULL';
+                    } else if (remaining < capacity / 2) {
+                        statusClass = 'yellow';
+                    }
+
+                    tooltipHtml += `
+                        <div class="tooltip-service-row">
+                            <span class="service-name">${service.name}</span>
+                            <span class="service-remaining ${statusClass}">${statusText}</span>
+                        </div>
+                    `;
+                });
+
+                let totalStatusClass = 'green';
+                let totalStatusText = `${totalRemaining} slots left`;
+                if (totalRemaining <= 0) {
+                    totalStatusClass = 'full';
+                    totalStatusText = 'FULLY BOOKED';
+                } else if (totalRemaining < totalCapacity / 2) {
+                    totalStatusClass = 'yellow';
+                }
+
+                tooltipHtml += `
+                    <div class="tooltip-service-row" style="margin-top: 8px; padding-top: 8px; border-top: 2px solid #e0e0e0; font-weight: 600;">
+                        <span class="service-name">TOTAL AVAILABLE</span>
+                        <span class="service-remaining ${totalStatusClass}">${totalStatusText}</span>
+                    </div>
+                `;
+            } else if (slots) {
+                const remaining = slots.remaining || 0;
+                const total = slots.total || 84;
+
+                let statusClass = 'green';
+                let statusText = `${remaining} slots left`;
+
+                if (remaining <= 0) {
+                    statusClass = 'full';
+                    statusText = 'FULLY BOOKED';
+                } else if (remaining < total / 2) {
+                    statusClass = 'yellow';
+                }
+
+                tooltipHtml = `
+                    <div class="tooltip-service-row">
+                        <span class="service-name">Total Available Slots</span>
+                        <span class="service-remaining ${statusClass}">${statusText}</span>
+                    </div>
+                `;
+            } else {
+                tooltipHtml = `
+                    <div class="tooltip-service-row">
+                        <span class="service-name">No slot information available</span>
+                    </div>
+                `;
+            }
+
+            tooltipBody.innerHTML = tooltipHtml;
+            tooltip.style.display = 'block';
+
+            // Position tooltip
+            const rect = event.target.getBoundingClientRect();
+            let left = rect.right + 10;
+            let top = rect.top;
+
+            const tooltipRect = tooltip.getBoundingClientRect();
+
+            // Check if tooltip goes off screen to the right
+            if (left + tooltipRect.width > window.innerWidth) {
+                left = rect.left - tooltipRect.width - 10;
+            }
+
+            // Check if tooltip goes off screen at the bottom
+            if (top + tooltipRect.height > window.innerHeight) {
+                top = window.innerHeight - tooltipRect.height - 10;
+            }
+
+            // Check if tooltip goes off screen at the top
+            if (top < 0) {
+                top = 10;
+            }
+
+            tooltip.style.left = left + 'px';
+            tooltip.style.top = top + 'px';
+        }
+
+        function hideTooltip() {
+            // Don't hide if mouse is over tooltip
+            if (isHoveringTooltip) return;
+
+            tooltipTimeout = setTimeout(() => {
+                const tooltip = document.getElementById('slotTooltip');
+                if (tooltip) {
+                    tooltip.style.display = 'none';
+                }
+                tooltipTimeout = null;
+            }, 300);
+        }
+
+        function cancelHideTooltip() {
+            if (tooltipTimeout) {
+                clearTimeout(tooltipTimeout);
+                tooltipTimeout = null;
+            }
+        }
+
+        // ============================================
         // SUMMARY CHART
         // ============================================
         function getSummaryDataForPeriod(period) {
             const stats = summaryStatsData[period] || summaryStatsData.today;
-
             return {
                 labels: ['Total Appointment', 'Total Slots', 'Total by Location'],
-                data: [
-                    stats.total || 0,
-                    stats.slots || 0,
-                    stats.by_location || 0
-                ]
+                data: [stats.total || 0, stats.slots || 0, stats.by_location || 0]
             };
         }
 
         function initSummaryChart(period = 'today') {
             const ctx = document.getElementById('summaryChart');
             if (!ctx) return;
-
             if (summaryChart) summaryChart.destroy();
-
             const {
                 labels,
                 data
             } = getSummaryDataForPeriod(period);
-
             summaryChart = new Chart(ctx, {
                 type: 'bar',
                 data: {
@@ -790,11 +486,7 @@
                     datasets: [{
                         label: 'Count',
                         data: data,
-                        backgroundColor: [
-                            '#0f3b6f',
-                            '#c49a2c',
-                            '#10b981'
-                        ],
+                        backgroundColor: ['#0f3b6f', '#c49a2c', '#10b981'],
                         borderRadius: 8,
                         barPercentage: 0.7
                     }]
@@ -805,41 +497,6 @@
                     plugins: {
                         legend: {
                             display: false
-                        },
-                        tooltip: {
-                            callbacks: {
-                                label: function(context) {
-                                    let label = context.label || '';
-                                    let value = context.raw;
-                                    let periodText = '';
-
-                                    switch (period) {
-                                        case 'today':
-                                            periodText = 'today';
-                                            break;
-                                        case 'yesterday':
-                                            periodText = 'yesterday';
-                                            break;
-                                        case 'weekly':
-                                            periodText = 'this week';
-                                            break;
-                                        case 'monthly':
-                                            periodText = 'this month';
-                                            break;
-                                        case 'yearly':
-                                            periodText = 'this year';
-                                            break;
-                                    }
-
-                                    if (label === 'Total Slots') {
-                                        return `${label} ${periodText}: ${value.toLocaleString()}`;
-                                    } else if (label === 'Total by Location') {
-                                        return `${label} ${periodText}: ${value.toLocaleString()}`;
-                                    } else {
-                                        return `${label} ${periodText}: ${value.toLocaleString()}`;
-                                    }
-                                }
-                            }
                         }
                     },
                     scales: {
@@ -850,34 +507,12 @@
                             },
                             title: {
                                 display: true,
-                                text: 'Count',
-                                font: {
-                                    size: 12,
-                                    weight: 'bold'
-                                }
-                            },
-                            ticks: {
-                                callback: function(value) {
-                                    return value.toLocaleString();
-                                },
-                                stepSize: function() {
-                                    const max = Math.max(...data);
-                                    if (max <= 10) return 1;
-                                    if (max <= 50) return 5;
-                                    if (max <= 100) return 10;
-                                    return 20;
-                                }
+                                text: 'Count'
                             }
                         },
                         x: {
                             grid: {
                                 display: false
-                            },
-                            ticks: {
-                                font: {
-                                    size: 11,
-                                    weight: '500'
-                                }
                             }
                         }
                     }
@@ -886,19 +521,19 @@
         }
 
         // ============================================
-        // STATUS DISTRIBUTION CHART - Labels Hidden
+        // STATUS DISTRIBUTION CHART
         // ============================================
         function getStatusCountsForPeriod(period) {
             const today = new Date();
             const labels = [];
-            const pendingData = [];
-            const confirmedData = [];
-            const completedData = [];
-            const cancelledData = [];
+            const pendingData = [],
+                confirmedData = [],
+                completedData = [],
+                cancelledData = [];
 
             if (period === 'today') {
                 const dateKey = today.toISOString().split('T')[0];
-                labels.push(''); // Empty label
+                labels.push('');
                 pendingData.push(statusTimeData[dateKey]?.pending || 0);
                 confirmedData.push(statusTimeData[dateKey]?.confirmed || 0);
                 completedData.push(statusTimeData[dateKey]?.completed || 0);
@@ -907,7 +542,7 @@
                 const yesterday = new Date(today);
                 yesterday.setDate(today.getDate() - 1);
                 const dateKey = yesterday.toISOString().split('T')[0];
-                labels.push(''); // Empty label
+                labels.push('');
                 pendingData.push(statusTimeData[dateKey]?.pending || 0);
                 confirmedData.push(statusTimeData[dateKey]?.confirmed || 0);
                 completedData.push(statusTimeData[dateKey]?.completed || 0);
@@ -917,7 +552,7 @@
                     const date = new Date(today);
                     date.setDate(today.getDate() - i);
                     const dateKey = date.toISOString().split('T')[0];
-                    labels.push(''); // Empty labels for weekly
+                    labels.push('');
                     pendingData.push(statusTimeData[dateKey]?.pending || 0);
                     confirmedData.push(statusTimeData[dateKey]?.confirmed || 0);
                     completedData.push(statusTimeData[dateKey]?.completed || 0);
@@ -928,13 +563,12 @@
                 const month = today.getMonth();
                 const daysInMonth = new Date(year, month + 1, 0).getDate();
                 for (let i = 1; i <= daysInMonth; i++) {
-                    labels.push(''); // Empty labels for monthly
+                    labels.push('');
                     pendingData.push(0);
                     confirmedData.push(0);
                     completedData.push(0);
                     cancelledData.push(0);
                 }
-                // Fill with actual data
                 for (let i = 1; i <= daysInMonth; i++) {
                     const dateKey = `${year}-${String(month + 1).padStart(2, '0')}-${String(i).padStart(2, '0')}`;
                     if (statusTimeData[dateKey]) {
@@ -945,10 +579,9 @@
                     }
                 }
             } else if (period === 'yearly') {
-                const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
                 const year = today.getFullYear();
                 for (let i = 0; i < 12; i++) {
-                    labels.push(''); // Empty labels for yearly
+                    labels.push('');
                     let pendingSum = 0,
                         confirmedSum = 0,
                         completedSum = 0,
@@ -967,7 +600,6 @@
                     cancelledData.push(cancelledSum);
                 }
             }
-
             return {
                 labels,
                 pendingData,
@@ -980,9 +612,7 @@
         function initStatusBumpChart(period = 'weekly') {
             const ctx = document.getElementById('statusDistributionChart');
             if (!ctx) return;
-
             if (statusBumpChart) statusBumpChart.destroy();
-
             const {
                 labels,
                 pendingData,
@@ -990,7 +620,6 @@
                 completedData,
                 cancelledData
             } = getStatusCountsForPeriod(period);
-
             statusBumpChart = new Chart(ctx, {
                 type: 'line',
                 data: {
@@ -999,48 +628,28 @@
                             label: 'Pending',
                             data: pendingData,
                             borderColor: '#f59e0b',
-                            backgroundColor: 'transparent',
-                            borderWidth: 2,
                             tension: 0.3,
-                            pointBackgroundColor: '#f59e0b',
-                            pointBorderColor: '#fff',
-                            pointBorderWidth: 2,
                             pointRadius: 4
                         },
                         {
                             label: 'Confirmed',
                             data: confirmedData,
                             borderColor: '#10b981',
-                            backgroundColor: 'transparent',
-                            borderWidth: 2,
                             tension: 0.3,
-                            pointBackgroundColor: '#10b981',
-                            pointBorderColor: '#fff',
-                            pointBorderWidth: 2,
                             pointRadius: 4
                         },
                         {
                             label: 'Completed',
                             data: completedData,
                             borderColor: '#3b82f6',
-                            backgroundColor: 'transparent',
-                            borderWidth: 2,
                             tension: 0.3,
-                            pointBackgroundColor: '#3b82f6',
-                            pointBorderColor: '#fff',
-                            pointBorderWidth: 2,
                             pointRadius: 4
                         },
                         {
                             label: 'Cancelled',
                             data: cancelledData,
                             borderColor: '#ef4444',
-                            backgroundColor: 'transparent',
-                            borderWidth: 2,
                             tension: 0.3,
-                            pointBackgroundColor: '#ef4444',
-                            pointBorderColor: '#fff',
-                            pointBorderWidth: 2,
                             pointRadius: 4
                         }
                     ]
@@ -1048,45 +657,20 @@
                 options: {
                     responsive: true,
                     maintainAspectRatio: false,
-                    interaction: {
-                        mode: 'index',
-                        intersect: false
-                    },
                     plugins: {
                         legend: {
-                            position: 'bottom',
-                            labels: {
-                                usePointStyle: true
-                            }
-                        },
-                        tooltip: {
-                            callbacks: {
-                                label: function(context) {
-                                    return `${context.dataset.label}: ${context.raw} appointments`;
-                                }
-                            }
+                            position: 'bottom'
                         }
                     },
                     scales: {
                         y: {
                             beginAtZero: true,
-                            grid: {
-                                color: 'rgba(0,0,0,0.05)'
-                            },
-                            title: {
-                                display: true,
-                                text: 'Number of Appointments'
-                            },
                             ticks: {
-                                stepSize: 1,
-                                precision: 0
+                                stepSize: 1
                             }
                         },
                         x: {
-                            display: false,
-                            grid: {
-                                display: false
-                            }
+                            display: false
                         }
                     }
                 }
@@ -1094,24 +678,18 @@
         }
 
         // ============================================
-        // APPOINTMENT TRENDS CHART - Labels Hidden
+        // APPOINTMENT TRENDS CHART
         // ============================================
         function initAppointmentTrendsChart(period = 'today') {
             const ctx = document.getElementById('appointmentTrendsChart');
             if (!ctx) return;
-
             if (appointmentTrendsChart) appointmentTrendsChart.destroy();
-
             const data = chartData[period];
             if (!data) return;
-
-            // Create empty labels array of same length
-            const emptyLabels = new Array(data.labels.length).fill('');
-
             appointmentTrendsChart = new Chart(ctx, {
                 type: 'line',
                 data: {
-                    labels: emptyLabels,
+                    labels: new Array(data.labels.length).fill(''),
                     datasets: [{
                         label: 'Appointments',
                         data: data.data,
@@ -1121,49 +699,26 @@
                         tension: 0.4,
                         fill: true,
                         pointBackgroundColor: '#c49a2c',
-                        pointBorderColor: '#fff',
-                        pointBorderWidth: 2,
-                        pointRadius: 4,
-                        pointHoverRadius: 6
+                        pointRadius: 4
                     }]
                 },
                 options: {
                     responsive: true,
                     maintainAspectRatio: false,
                     plugins: {
-                        legend: {
-                            position: 'top'
-                        },
                         tooltip: {
-                            backgroundColor: 'rgba(0,0,0,0.8)',
                             callbacks: {
-                                // Show the actual label in tooltip
-                                title: function(tooltipItems) {
-                                    const index = tooltipItems[0].dataIndex;
-                                    return data.labels[index];
-                                },
-                                label: function(context) {
-                                    return `Appointments: ${context.raw}`;
-                                }
+                                title: (items) => data.labels[items[0].dataIndex],
+                                label: (ctx) => `Appointments: ${ctx.raw}`
                             }
                         }
                     },
                     scales: {
                         y: {
-                            beginAtZero: true,
-                            grid: {
-                                color: 'rgba(0,0,0,0.05)'
-                            },
-                            title: {
-                                display: true,
-                                text: 'Number of Appointments'
-                            }
+                            beginAtZero: true
                         },
                         x: {
-                            display: false,
-                            grid: {
-                                display: false
-                            }
+                            display: false
                         }
                     }
                 }
@@ -1203,15 +758,28 @@
                 const isPastDate = currentDate < today;
                 const isWeekend = (dayOfWeek === 0 || dayOfWeek === 6);
                 const slots = slotData[dateKey] || {
-                    total: 20,
+                    total: 84,
                     booked: 0,
-                    remaining: 20
+                    remaining: 84,
+                    service_breakdown: {
+                        reg: {
+                            capacity: 28,
+                            booked: 0
+                        },
+                        updating: {
+                            capacity: 28,
+                            booked: 0
+                        },
+                        inquiry: {
+                            capacity: 28,
+                            booked: 0
+                        }
+                    }
                 };
                 const remaining = slots.remaining;
                 const total = slots.total;
 
                 let statusClass = '';
-
                 if (isPastDate) {
                     statusClass = 'past';
                 } else if (isWeekend) {
@@ -1226,11 +794,13 @@
 
                 const dayElement = document.createElement('div');
                 dayElement.className = `calendar-day ${statusClass}`;
+                dayElement.setAttribute('data-date', dateKey);
+                dayElement.setAttribute('data-slots', JSON.stringify(slots));
 
                 let slotInfo = '';
                 if (!isPastDate && !isWeekend) {
                     if (remaining <= 0) {
-                        slotInfo = '<span class="slot-info full-label">Full</span>';
+                        slotInfo = '<span class="slot-info full-label">FULL</span>';
                     } else {
                         slotInfo = `<span class="slot-info">${remaining} slots left</span>`;
                     }
@@ -1241,8 +811,36 @@
                 }
 
                 dayElement.innerHTML = `<span class="day-number">${day}</span>${slotInfo}`;
+
+                // Add hover events for available days
+                if (!isPastDate && !isWeekend) {
+                    dayElement.addEventListener('mouseenter', (e) => {
+                        const slotsData = JSON.parse(dayElement.getAttribute('data-slots'));
+                        showTooltip(e, dateKey, slotsData);
+                    });
+                    dayElement.addEventListener('mouseleave', () => {
+                        hideTooltip();
+                    });
+                }
+
                 calendarDays.appendChild(dayElement);
             }
+        }
+
+        // Setup tooltip hover handling
+        function setupTooltipHandlers() {
+            const tooltip = document.getElementById('slotTooltip');
+            if (!tooltip) return;
+
+            tooltip.addEventListener('mouseenter', () => {
+                isHoveringTooltip = true;
+                cancelHideTooltip();
+            });
+
+            tooltip.addEventListener('mouseleave', () => {
+                isHoveringTooltip = false;
+                hideTooltip();
+            });
         }
 
         // ============================================
@@ -1254,36 +852,33 @@
                 .then(data => {
                     const placesList = document.getElementById('placesList');
                     if (!placesList) return;
-
                     placesList.innerHTML = '';
                     if (data.length === 0) {
                         placesList.innerHTML =
                             '<div class="empty-state"><i class="fas fa-map-marker-alt"></i><h4>No location data available</h4></div>';
                         return;
                     }
-
                     data.forEach(place => {
                         placesList.innerHTML += `
-                    <div class="place-item">
-                        <div class="place-info">
-                            <i class="fas fa-location-dot"></i>
-                            <span class="place-name">${escapeHtml(place.name)}</span>
-                        </div>
-                        <div class="place-count">
-                            <span class="count-number">${place.count}</span>
-                            <span class="count-label">appointments</span>
-                        </div>
-                        <div class="place-progress">
-                            <div class="progress-bar" style="width: ${place.percentage}%; background: ${place.color}"></div>
-                        </div>
-                    </div>
-                `;
+                            <div class="place-item">
+                                <div class="place-info">
+                                    <i class="fas fa-location-dot"></i>
+                                    <span class="place-name">${escapeHtml(place.name)}</span>
+                                </div>
+                                <div class="place-count">
+                                    <span class="count-number">${place.count}</span>
+                                    <span class="count-label">appointments</span>
+                                </div>
+                                <div class="place-progress">
+                                    <div class="progress-bar" style="width: ${place.percentage}%; background: ${place.color}"></div>
+                                </div>
+                            </div>
+                        `;
                     });
                 })
                 .catch(error => console.error('Error loading places:', error));
         }
 
-        // Helper function to escape HTML
         function escapeHtml(text) {
             const div = document.createElement('div');
             div.textContent = text;
@@ -1296,15 +891,11 @@
         let refreshInterval;
 
         function startAutoRefresh() {
-            refreshInterval = setInterval(function() {
-                refreshDashboardData();
-            }, 30000);
+            refreshInterval = setInterval(refreshDashboardData, 30000);
         }
 
         function stopAutoRefresh() {
-            if (refreshInterval) {
-                clearInterval(refreshInterval);
-            }
+            if (refreshInterval) clearInterval(refreshInterval);
         }
 
         function refreshDashboardData() {
@@ -1314,10 +905,8 @@
             fetch('/admin/summary-stats')
                 .then(response => response.json())
                 .then(data => {
-                    const todayAppointmentsSpan = document.getElementById('todayAppointments');
-                    if (todayAppointmentsSpan) {
-                        todayAppointmentsSpan.textContent = data.today;
-                    }
+                    const todaySpan = document.getElementById('todayAppointments');
+                    if (todaySpan) todaySpan.textContent = data.today;
                 })
                 .catch(error => console.error('Error refreshing stats:', error));
 
@@ -1329,6 +918,24 @@
 
             const summaryPeriod = document.getElementById('summaryFilter')?.value || 'today';
             initSummaryChart(summaryPeriod);
+
+            const monthFilter = document.getElementById('calendarMonthFilter');
+            const yearFilter = document.getElementById('calendarYearFilter');
+            if (monthFilter && yearFilter) {
+                refreshCalendarData(parseInt(yearFilter.value), parseInt(monthFilter.value));
+            }
+        }
+
+        function refreshCalendarData(year, month) {
+            fetch(`/admin/calendar-data?year=${year}&month=${month}`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        Object.assign(slotData, data.slotData);
+                        generateCalendar(year, month);
+                    }
+                })
+                .catch(error => console.error('Error refreshing calendar:', error));
         }
 
         // ============================================
@@ -1342,34 +949,27 @@
             const currentDate = new Date();
             generateCalendar(currentDate.getFullYear(), currentDate.getMonth() + 1);
 
+            setupTooltipHandlers();
+
             const summaryFilter = document.getElementById('summaryFilter');
-            if (summaryFilter) {
-                summaryFilter.addEventListener('change', (e) => initSummaryChart(e.target.value));
-            }
+            if (summaryFilter) summaryFilter.addEventListener('change', (e) => initSummaryChart(e.target.value));
 
             const statusFilter = document.getElementById('statusPeriodFilter');
-            if (statusFilter) {
-                statusFilter.addEventListener('change', (e) => initStatusBumpChart(e.target.value));
-            }
+            if (statusFilter) statusFilter.addEventListener('change', (e) => initStatusBumpChart(e.target.value));
 
             const trendFilter = document.getElementById('trendFilter');
-            if (trendFilter) {
-                trendFilter.addEventListener('change', (e) => initAppointmentTrendsChart(e.target.value));
-            }
+            if (trendFilter) trendFilter.addEventListener('change', (e) => initAppointmentTrendsChart(e.target
+                .value));
 
             const placesFilter = document.getElementById('placesFilter');
-            if (placesFilter) {
-                placesFilter.addEventListener('change', (e) => loadAppointmentPlaces(e.target.value));
-            }
+            if (placesFilter) placesFilter.addEventListener('change', (e) => loadAppointmentPlaces(e.target.value));
 
             const monthFilter = document.getElementById('calendarMonthFilter');
             const yearFilter = document.getElementById('calendarYearFilter');
 
             if (monthFilter && yearFilter) {
-                const updateCalendar = () => {
-                    generateCalendar(parseInt(yearFilter.value), parseInt(monthFilter.value));
-                };
-
+                const updateCalendar = () => generateCalendar(parseInt(yearFilter.value), parseInt(monthFilter
+                    .value));
                 monthFilter.addEventListener('change', updateCalendar);
                 yearFilter.addEventListener('change', updateCalendar);
             }
@@ -1377,8 +977,6 @@
             startAutoRefresh();
         });
 
-        window.addEventListener('beforeunload', function() {
-            stopAutoRefresh();
-        });
+        window.addEventListener('beforeunload', stopAutoRefresh);
     </script>
 @endpush

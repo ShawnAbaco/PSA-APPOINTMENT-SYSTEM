@@ -15,6 +15,7 @@ use App\Models\WorkingDaysOverride;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 
 class DashboardController extends Controller
 {
@@ -23,6 +24,7 @@ class DashboardController extends Controller
         // User stats
         $totalUsers = User::count();
         $totalAdmins = User::where('role', 'admin')->count();
+        $totalOperator = User::where('role', 'operator')->count();
         $totalStaff = User::where('role', 'staff')->count();
         $activeStaff = User::where('role', 'staff')->where('is_active', true)->count();
         
@@ -109,7 +111,7 @@ class DashboardController extends Controller
         // Appointment Places (based on user_city from appointments table)
         $appointmentPlaces = $this->getAppointmentPlaces();
         
-        // Calendar Slot Data - Get daily capacity from rules
+        // Calendar Slot Data - Get daily capacity from rules with per-service breakdown
         $calendarSlotData = $this->getCalendarSlotData();
         
         // Summary Data for chart
@@ -119,7 +121,7 @@ class DashboardController extends Controller
         $locationMapData = $this->getLocationMapData();
         
         return view('admin.dashboard', compact(
-            'totalUsers', 'totalAdmins', 'totalStaff', 'activeStaff',
+            'totalUsers', 'totalAdmins', 'totalOperator', 'totalStaff', 'activeStaff',
             'totalAppointments', 'pendingAppointments', 'confirmedAppointments',
             'completedAppointments', 'cancelledAppointments', 'todayAppointments',
             'upcomingAppointments', 'todayLabels', 'todayData', 'yesterdayLabels',
@@ -157,6 +159,25 @@ class DashboardController extends Controller
      */
     private function getSummaryStatsData()
     {
+        // Get total slots count (sum of capacities across all time slots for working days)
+        $timeSlots = TimeSlot::where('is_active', true)->get();
+        $totalSlots = 0;
+        foreach ($timeSlots as $timeSlot) {
+            $rule = SlotCapacityRule::where('time_slot_id', $timeSlot->id)
+                ->where('day_type', 'working')
+                ->first();
+            if ($rule) {
+                $totalSlots += $rule->reg_capacity + $rule->updating_capacity + $rule->inquiry_capacity;
+            } else {
+                $totalSlots += 12; // Default total capacity per time slot (4 per service type)
+            }
+        }
+        
+        // Get total distinct locations with appointments
+        $totalLocations = Appointment::whereNotNull('user_city')
+            ->distinct('user_city')
+            ->count('user_city');
+        
         return [
             'today' => [
                 'total' => Appointment::whereDate('appointment_date', Carbon::today())->count(),
@@ -164,6 +185,8 @@ class DashboardController extends Controller
                 'confirmed' => Appointment::whereDate('appointment_date', Carbon::today())->where('status', 'confirmed')->count(),
                 'completed' => Appointment::whereDate('appointment_date', Carbon::today())->where('status', 'completed')->count(),
                 'cancelled' => Appointment::whereDate('appointment_date', Carbon::today())->where('status', 'cancelled')->count(),
+                'slots' => $totalSlots,
+                'by_location' => Appointment::whereDate('appointment_date', Carbon::today())->whereNotNull('user_city')->distinct('user_city')->count('user_city')
             ],
             'yesterday' => [
                 'total' => Appointment::whereDate('appointment_date', Carbon::yesterday())->count(),
@@ -171,6 +194,8 @@ class DashboardController extends Controller
                 'confirmed' => Appointment::whereDate('appointment_date', Carbon::yesterday())->where('status', 'confirmed')->count(),
                 'completed' => Appointment::whereDate('appointment_date', Carbon::yesterday())->where('status', 'completed')->count(),
                 'cancelled' => Appointment::whereDate('appointment_date', Carbon::yesterday())->where('status', 'cancelled')->count(),
+                'slots' => $totalSlots,
+                'by_location' => Appointment::whereDate('appointment_date', Carbon::yesterday())->whereNotNull('user_city')->distinct('user_city')->count('user_city')
             ],
             'weekly' => [
                 'total' => Appointment::whereBetween('appointment_date', [Carbon::now()->startOfWeek(), Carbon::now()->endOfWeek()])->count(),
@@ -178,6 +203,8 @@ class DashboardController extends Controller
                 'confirmed' => Appointment::whereBetween('appointment_date', [Carbon::now()->startOfWeek(), Carbon::now()->endOfWeek()])->where('status', 'confirmed')->count(),
                 'completed' => Appointment::whereBetween('appointment_date', [Carbon::now()->startOfWeek(), Carbon::now()->endOfWeek()])->where('status', 'completed')->count(),
                 'cancelled' => Appointment::whereBetween('appointment_date', [Carbon::now()->startOfWeek(), Carbon::now()->endOfWeek()])->where('status', 'cancelled')->count(),
+                'slots' => $totalSlots * 7, // Weekly slot capacity
+                'by_location' => Appointment::whereBetween('appointment_date', [Carbon::now()->startOfWeek(), Carbon::now()->endOfWeek()])->whereNotNull('user_city')->distinct('user_city')->count('user_city')
             ],
             'monthly' => [
                 'total' => Appointment::whereMonth('appointment_date', Carbon::now()->month)->count(),
@@ -185,6 +212,8 @@ class DashboardController extends Controller
                 'confirmed' => Appointment::whereMonth('appointment_date', Carbon::now()->month)->where('status', 'confirmed')->count(),
                 'completed' => Appointment::whereMonth('appointment_date', Carbon::now()->month)->where('status', 'completed')->count(),
                 'cancelled' => Appointment::whereMonth('appointment_date', Carbon::now()->month)->where('status', 'cancelled')->count(),
+                'slots' => $totalSlots * 30,
+                'by_location' => Appointment::whereMonth('appointment_date', Carbon::now()->month)->whereNotNull('user_city')->distinct('user_city')->count('user_city')
             ],
             'yearly' => [
                 'total' => Appointment::whereYear('appointment_date', Carbon::now()->year)->count(),
@@ -192,6 +221,8 @@ class DashboardController extends Controller
                 'confirmed' => Appointment::whereYear('appointment_date', Carbon::now()->year)->where('status', 'confirmed')->count(),
                 'completed' => Appointment::whereYear('appointment_date', Carbon::now()->year)->where('status', 'completed')->count(),
                 'cancelled' => Appointment::whereYear('appointment_date', Carbon::now()->year)->where('status', 'cancelled')->count(),
+                'slots' => $totalSlots * 365,
+                'by_location' => $totalLocations
             ],
         ];
     }
@@ -244,7 +275,89 @@ class DashboardController extends Controller
     }
     
     /**
-     * Get calendar slot data - Calculate daily capacity from rules
+     * Get capacity for a specific date, time slot, and service
+     * This returns the MAXIMUM number of clients that can be served for this service
+     */
+    private function getCapacity($date, $timeSlotId, $service)
+    {
+        try {
+            // Check for override first
+            $override = SlotCapacityOverride::where('date', $date)
+                ->where('time_slot_id', $timeSlotId)
+                ->first();
+            
+            if ($override) {
+                switch ($service) {
+                    case 'reg': return $override->reg_capacity ?? 0;
+                    case 'updating': return $override->updating_capacity ?? 0;
+                    case 'inquiry': return $override->inquiry_capacity ?? 0;
+                    default: return 0;
+                }
+            }
+            
+            // Get day type
+            $dayType = $this->getDayTypeForDate(Carbon::parse($date));
+            
+            // Get capacity rule
+            $rule = SlotCapacityRule::where('time_slot_id', $timeSlotId)
+                ->where('day_type', $dayType)
+                ->first();
+            
+            if ($rule) {
+                switch ($service) {
+                    case 'reg': return $rule->reg_capacity;
+                    case 'updating': return $rule->updating_capacity;
+                    case 'inquiry': return $rule->inquiry_capacity;
+                    default: return 0;
+                }
+            }
+            
+            // Default fallback - 4 per service per time slot for working days
+            if ($dayType === 'working') {
+                return 4;
+            }
+            return 0;
+            
+        } catch (\Exception $e) {
+            Log::error('Error getting capacity: ' . $e->getMessage());
+            return 4;
+        }
+    }
+    
+    /**
+     * Get booked count for a specific date, time slot, and service
+     * This counts the number of CLIENTS (from appointment_clients) booked for this service
+     */
+    private function getBookedCount($date, $timeSlotId, $service)
+    {
+        try {
+            // Count clients directly from appointment_clients table
+            // This ensures we count each person individually, not each appointment
+            return AppointmentClient::where('service', $service)
+                ->whereHas('appointment', function($query) use ($date, $timeSlotId) {
+                    $query->where('appointment_date', $date)
+                        ->where('time_slot_id', $timeSlotId)
+                        ->where('status', '!=', 'cancelled');
+                })
+                ->count();
+        } catch (\Exception $e) {
+            Log::error('Error getting booked count: ' . $e->getMessage());
+            return 0;
+        }
+    }
+    
+    /**
+     * Get available slots for a specific date, time slot, and service
+     */
+    private function getAvailableSlots($date, $timeSlotId, $service)
+    {
+        $capacity = $this->getCapacity($date, $timeSlotId, $service);
+        $booked = $this->getBookedCount($date, $timeSlotId, $service);
+        return max(0, $capacity - $booked);
+    }
+    
+    /**
+     * Get calendar slot data with per-service breakdown
      */
     private function getCalendarSlotData()
     {
@@ -252,41 +365,51 @@ class DashboardController extends Controller
         $startOfMonth = Carbon::now()->startOfMonth();
         $endOfMonth = Carbon::now()->endOfMonth();
         
-        // Get all time slots
+        // Get all active time slots
         $timeSlots = TimeSlot::where('is_active', true)->get();
         
-        // Get appointments grouped by date
-        $appointmentsByDate = Appointment::whereBetween('appointment_date', [$startOfMonth, $endOfMonth])
-            ->select('appointment_date', DB::raw('count(*) as total'))
-            ->groupBy('appointment_date')
-            ->get()
-            ->keyBy('appointment_date');
+        // Services to track
+        $services = ['reg', 'updating', 'inquiry'];
         
-        // Calculate capacity for each date based on rules
+        // Calculate capacity and booked for each date
         $currentDate = clone $startOfMonth;
         while ($currentDate <= $endOfMonth) {
             $dateKey = $currentDate->format('Y-m-d');
             $dayType = $this->getDayTypeForDate($currentDate);
             
             $totalCapacity = 0;
+            $totalBooked = 0;
+            $serviceBreakdown = [];
             
-            // Sum capacity from all time slots for this day type
+            // Initialize service breakdown
+            foreach ($services as $service) {
+                $serviceBreakdown[$service] = ['capacity' => 0, 'booked' => 0];
+            }
+            
+            // Sum capacity and booked appointments from all time slots for this day
             foreach ($timeSlots as $timeSlot) {
-                $rule = SlotCapacityRule::where('time_slot_id', $timeSlot->id)
-                    ->where('day_type', $dayType)
-                    ->first();
+                // Calculate capacity for each service
+                foreach ($services as $service) {
+                    $capacity = $this->getCapacity($dateKey, $timeSlot->id, $service);
+                    $serviceBreakdown[$service]['capacity'] += $capacity;
+                    $totalCapacity += $capacity;
+                }
                 
-                if ($rule) {
-                    // Sum all service capacities for total daily capacity
-                    $totalCapacity += $rule->reg_capacity + $rule->updating_capacity + $rule->inquiry_capacity;
+                // Count booked clients for this time slot on this date
+                foreach ($services as $service) {
+                    $booked = $this->getBookedCount($dateKey, $timeSlot->id, $service);
+                    $serviceBreakdown[$service]['booked'] += $booked;
+                    $totalBooked += $booked;
                 }
             }
             
-            $booked = isset($appointmentsByDate[$dateKey]) ? $appointmentsByDate[$dateKey]->total : 0;
+            $remaining = max(0, $totalCapacity - $totalBooked);
             
             $slotData[$dateKey] = [
                 'total' => $totalCapacity,
-                'booked' => $booked
+                'booked' => $totalBooked,
+                'remaining' => $remaining,
+                'service_breakdown' => $serviceBreakdown
             ];
             
             $currentDate->addDay();
@@ -391,6 +514,8 @@ class DashboardController extends Controller
      */
     public function getSummaryStats()
     {
+        $todayAppointments = Appointment::whereDate('appointment_date', Carbon::today())->count();
+        
         $totalAppointments = Appointment::count();
         $pendingAppointments = Appointment::where('status', 'pending')->count();
         $confirmedAppointments = Appointment::where('status', 'confirmed')->count();
@@ -405,12 +530,72 @@ class DashboardController extends Controller
             ->get();
         
         return response()->json([
+            'today' => $todayAppointments,
             'total' => $totalAppointments,
             'pending' => $pendingAppointments,
             'confirmed' => $confirmedAppointments,
             'completed' => $completedAppointments,
             'cancelled' => $cancelledAppointments,
             'by_city' => $appointmentsByCity
+        ]);
+    }
+    
+    /**
+     * Get refreshed calendar data via AJAX
+     */
+    public function getCalendarData(Request $request)
+    {
+        $year = $request->get('year', Carbon::now()->year);
+        $month = $request->get('month', Carbon::now()->month);
+        
+        $startDate = Carbon::create($year, $month, 1)->startOfMonth();
+        $endDate = Carbon::create($year, $month, 1)->endOfMonth();
+        
+        $timeSlots = TimeSlot::where('is_active', true)->get();
+        $services = ['reg', 'updating', 'inquiry'];
+        
+        $slotData = [];
+        $currentDate = clone $startDate;
+        
+        while ($currentDate <= $endDate) {
+            $dateKey = $currentDate->format('Y-m-d');
+            $dayType = $this->getDayTypeForDate($currentDate);
+            
+            $totalCapacity = 0;
+            $totalBooked = 0;
+            $serviceBreakdown = [];
+            
+            foreach ($services as $service) {
+                $serviceBreakdown[$service] = ['capacity' => 0, 'booked' => 0];
+            }
+            
+            foreach ($timeSlots as $timeSlot) {
+                foreach ($services as $service) {
+                    $capacity = $this->getCapacity($dateKey, $timeSlot->id, $service);
+                    $serviceBreakdown[$service]['capacity'] += $capacity;
+                    $totalCapacity += $capacity;
+                    
+                    $booked = $this->getBookedCount($dateKey, $timeSlot->id, $service);
+                    $serviceBreakdown[$service]['booked'] += $booked;
+                    $totalBooked += $booked;
+                }
+            }
+            
+            $remaining = max(0, $totalCapacity - $totalBooked);
+            
+            $slotData[$dateKey] = [
+                'total' => $totalCapacity,
+                'booked' => $totalBooked,
+                'remaining' => $remaining,
+                'service_breakdown' => $serviceBreakdown
+            ];
+            
+            $currentDate->addDay();
+        }
+        
+        return response()->json([
+            'success' => true,
+            'slotData' => $slotData
         ]);
     }
 }
