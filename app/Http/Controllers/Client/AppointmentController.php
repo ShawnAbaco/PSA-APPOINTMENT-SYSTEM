@@ -45,37 +45,40 @@ class AppointmentController extends Controller
             return view('client.appointment', compact('services'));
         }
     }
-    
     /**
-     * Get day type for a specific date
-     * Returns: 'working', 'non_working', or 'holiday'
-     */
-    private function getDayType($date)
-    {
-        try {
-            // Check override FIRST (for holidays and special non-working days)
-            $override = WorkingDaysOverride::where('date', $date->format('Y-m-d'))->first();
-            if ($override) {
-                return $override->day_type; // 'non_working' or 'holiday'
-            }
-            
-            // Get day name from Carbon
-            $dayName = strtolower($date->format('l')); // monday, tuesday, etc.
-            
-            // Check default working days configuration
-            $default = WorkingDaysDefault::where('day_name', $dayName)->first();
-            
-            if (!$default) {
-                return 'working'; // Default to working if not found
-            }
-            
-            return $default->day_type; // 'working' or 'non_working'
-        } catch (\Exception $e) {
-            Log::warning('Error getting day type: ' . $e->getMessage());
-            return 'working';
+ * Get day type for a specific date
+ * Returns: 'working', 'non_working', or 'holiday'
+ */
+private function getDayType($date)
+{
+    try {
+        // Check override FIRST (for holidays and special non-working days)
+        $override = WorkingDaysOverride::where('date', $date->format('Y-m-d'))->first();
+        if ($override) {
+            return $override->day_type;
         }
+        
+        // Get day name from Carbon
+        $dayName = strtolower($date->format('l')); // monday, tuesday, etc.
+        
+        // Get from database using correct column name 'day_name'
+        $default = WorkingDaysDefault::where('day_name', $dayName)->first();
+        
+        if (!$default) {
+            \Log::warning("No working day configuration found for: {$dayName}");
+            return 'non_working';
+        }
+        
+        return $default->day_type;
+        
+    } catch (\Exception $e) {
+        \Log::error('Error in getDayType: ' . $e->getMessage());
+        return 'non_working';
     }
-    
+}
+
+
+
     /**
      * Get capacity for a specific date, time slot, and service
      * 

@@ -111,6 +111,9 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
     // Settings index and update
     Route::get('/settings', [App\Http\Controllers\Admin\SettingsController::class, 'index'])->name('settings.index');
     Route::post('/settings', [App\Http\Controllers\Admin\SettingsController::class, 'update'])->name('settings.update');
+    Route::post('/settings/working-days', [App\Http\Controllers\Admin\SettingsController::class, 'updateWorkingDays'])->name('settings.working-days');
+    Route::post('/settings/appointment', [App\Http\Controllers\Admin\SettingsController::class, 'updateAppointmentSettings'])->name('settings.appointment');
+    Route::post('/settings/appointment/reset', [App\Http\Controllers\Admin\SettingsController::class, 'resetAppointmentSettings'])->name('settings.appointment.reset');
 });
 
 // Staff routes
@@ -177,4 +180,16 @@ Route::prefix('client')->name('client.')->group(function () {
     Route::get('/appointment/available-dates', [App\Http\Controllers\Client\AppointmentController::class, 'getAvailableDates'])->name('appointment.available-dates');
     Route::get('/appointment/available-time-slots', [App\Http\Controllers\Client\AppointmentController::class, 'getAvailableTimeSlots'])->name('appointment.available-time-slots');
     Route::get('/appointment/check-availability', [App\Http\Controllers\Client\AppointmentController::class, 'checkAvailability'])->name('appointment.check-availability');
+});
+
+
+
+// Add this to your routes/web.php temporarily (REMOVE AFTER TESTING)
+Route::get('/debug/working-days', function() {
+    $days = App\Models\WorkingDaysDefault::all();
+    $result = [];
+    foreach ($days as $day) {
+        $result[$day->day_name] = $day->day_type;
+    }
+    return response()->json($result);
 });
