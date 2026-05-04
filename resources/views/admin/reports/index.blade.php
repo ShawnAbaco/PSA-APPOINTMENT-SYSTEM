@@ -9,9 +9,11 @@
                 <h1 class="reports-title">Reports & Analytics</h1>
                 <p class="reports-subtitle">Comprehensive analytics and insights for your appointment system</p>
             </div>
-            <div class="reports-date-display">
-                <i class="fas fa-calendar-alt"></i>
-                <span>{{ now()->format('l, F j, Y') }}</span>
+            <div style="display: flex; gap: 10px; align-items: flex-start;">
+                <div class="reports-date-display">
+                    <i class="fas fa-calendar-alt"></i>
+                    <span>{{ now()->format('l, F j, Y') }}</span>
+                </div>
             </div>
         </div>
 
@@ -20,18 +22,15 @@
             <div class="reports-card-header">
                 <h5 class="reports-card-title"><i class="fas fa-filter"></i> Filter Reports</h5>
                 <!-- Export Buttons -->
-                <div class="reports-card">
-                    <div class="reports-card-body reports-action-buttons">
-                        <button onclick="exportToCSV()" class="reports-btn reports-btn-success"><i
-                                class="fas fa-file-csv"></i>
-                            Export to CSV</button>
-                        <button onclick="window.print()" class="reports-btn reports-btn-secondary"><i
-                                class="fas fa-print"></i>
-                            Print Report</button>
-                        <button onclick="copyTableData()" class="reports-btn reports-btn-info"><i class="fas fa-copy"></i>
-                            Copy
-                            Summary</button>
-                    </div>
+                <div class="export-buttons">
+                    <a href="{{ route('admin.reports.export.pdf', request()->query()) }}"
+                        class="reports-btn reports-btn-pdf">
+                        <i class="fas fa-file-pdf"></i> Export PDF
+                    </a>
+                    <a href="{{ route('admin.reports.export.excel', request()->query()) }}"
+                        class="reports-btn reports-btn-excel">
+                        <i class="fas fa-file-excel"></i> Export Excel
+                    </a>
                 </div>
             </div>
             <div class="reports-card-body">
@@ -58,8 +57,6 @@
                                 <option value="completed" {{ request('status') == 'completed' ? 'selected' : '' }}>Completed
                                 </option>
                                 <option value="cancelled" {{ request('status') == 'cancelled' ? 'selected' : '' }}>Cancelled
-                                </option>
-                                <option value="no_show" {{ request('status') == 'no_show' ? 'selected' : '' }}>No Show
                                 </option>
                             </select>
                         </div>
@@ -187,8 +184,8 @@
         .leaflet-right {
             right: -10px;
         }
-    </style>
 
+    </style>
 
     <script>
         // Appointment Status Chart
@@ -196,14 +193,13 @@
         new Chart(ctx1, {
             type: 'bar',
             data: {
-                labels: ['Pending', 'Confirmed', 'Completed', 'Cancelled', 'No Show'],
+                labels: ['Pending', 'Confirmed', 'Completed', 'Cancelled'],
                 datasets: [{
                     label: 'Number of Appointments',
                     data: [{{ $pendingAppointments ?? 0 }}, {{ $confirmedAppointments ?? 0 }},
-                        {{ $completedAppointments ?? 0 }}, {{ $cancelledAppointments ?? 0 }},
-                        {{ $summary['no_show'] ?? 0 }}
+                        {{ $completedAppointments ?? 0 }}, {{ $cancelledAppointments ?? 0 }}
                     ],
-                    backgroundColor: ['#f59e0b', '#10b981', '#3b82f6', '#ef4444', '#6c757d'],
+                    backgroundColor: ['#f59e0b', '#10b981', '#3b82f6', '#ef4444'],
                     borderRadius: 8,
                     barPercentage: 0.7
                 }]
@@ -312,8 +308,9 @@
             });
         }
 
-        // Initialize Leaflet Map
+        // Map initialization
         let map, markersLayer;
+        let ctrlPressed = false;
         const individualBookings = @json($individualBookings ?? []);
         const psaLat = @json($psaLat ?? 8.4815315);
         const psaLng = @json($psaLng ?? 124.6549067);
@@ -334,48 +331,47 @@
             }
         }
 
+        function escapeHtml(text) {
+            if (!text) return '';
+            return String(text).replace(/[&<>]/g, function(m) {
+                if (m === '&') return '&amp;';
+                if (m === '<') return '&lt;';
+                if (m === '>') return '&gt;';
+                return m;
+            });
+        }
+
         function initMap() {
             map = L.map('bookingsMap').setView(psaCenter, 13);
 
-            // Google Hybrid layer
             const googleHybrid = L.tileLayer('https://{s}.google.com/vt/lyrs=y&x={x}&y={y}&z={z}', {
                 subdomains: ['mt0', 'mt1', 'mt2', 'mt3'],
-                maxZoom: 20,
+                maxZoom: 20
             });
-
             const googleSatellite = L.tileLayer('https://{s}.google.com/vt/lyrs=s&x={x}&y={y}&z={z}', {
                 subdomains: ['mt0', 'mt1', 'mt2', 'mt3'],
-                maxZoom: 20,
+                maxZoom: 20
             });
-
             const googleStreets = L.tileLayer('https://{s}.google.com/vt/lyrs=m&x={x}&y={y}&z={z}', {
                 subdomains: ['mt0', 'mt1', 'mt2', 'mt3'],
-                maxZoom: 20,
+                maxZoom: 20
             });
-
             googleHybrid.addTo(map);
-
-            const baseMaps = {
+            L.control.layers({
                 "Hybrid View": googleHybrid,
                 "Satellite View": googleSatellite,
                 "Street Map": googleStreets
-            };
+            }).addTo(map);
 
-            L.control.layers(baseMaps).addTo(map);
-
-            // PSA Marker
             const psaIconCustom = L.divIcon({
-                html: '<img src="{{ asset('images/psa.png') }}" class="psa-icon-img" alt="PSA">',
+                html: '<img src="{{ asset('images/psa.png') }}" class="psa-icon-img" alt="PSA" style="width:44px;height:44px;border-radius:50%;border:2px solid #c49a2c;">',
                 iconSize: [44, 44],
                 popupAnchor: [0, -22],
                 className: 'psa-marker-container'
             });
-
             L.marker(psaCenter, {
                 icon: psaIconCustom
             }).addTo(map);
-
-            // Add circles around PSA
             L.circle(psaCenter, {
                 color: '#c49a2c',
                 fillColor: '#f59e0b',
@@ -391,15 +387,12 @@
                 weight: 1.5,
                 dashArray: '8, 6'
             }).addTo(map);
-
-            // Scale control
             L.control.scale({
                 metric: true,
                 imperial: false,
                 position: 'bottomleft'
             }).addTo(map);
 
-            // Marker Cluster Group
             markersLayer = L.markerClusterGroup({
                 chunkedLoading: true,
                 maxClusterRadius: 60,
@@ -409,188 +402,130 @@
                 removeOutsideVisibleBounds: true
             });
 
-            // Create markers for each booking with NICE ICONS
             individualBookings.forEach(booking => {
                 if (booking.lat && booking.lng) {
-                    const statusClass = getMarkerColor(booking.status);
-
-                    // Create custom HTML for marker with nice icon
-                    const markerHtml = `
-                        <div class="custom-marker-icon ${statusClass}">
-                            <i class="fas fa-calendar-check"></i>
-                        </div>
-                    `;
-
                     const icon = L.divIcon({
-                        html: markerHtml,
+                        html: `<div class="custom-marker-icon" style="width:32px;height:32px;background: linear-gradient(135deg, #f59e0b, #d97706); border-radius:50%; display:flex; align-items:center; justify-content:center;"><i class="fas fa-calendar-check" style="font-size:16px; color:white;"></i></div>`,
                         iconSize: [32, 32],
                         popupAnchor: [0, -16],
                         className: 'marker-container'
                     });
-
                     const marker = L.marker([parseFloat(booking.lat), parseFloat(booking.lng)], {
                         icon
                     });
-
                     const clients = booking.clients || [];
-                    const clientsCount = clients.length;
-
-                    // Build clients HTML
                     let clientsHtml = '';
                     if (clients.length > 0) {
                         clientsHtml = '<div class="popup-clients-list">';
                         clients.forEach(client => {
-                            let serviceName = '';
-                            switch (client.service) {
-                                case 'reg':
-                                    serviceName = 'National ID Registration';
-                                    break;
-                                case 'updating':
-                                    serviceName = 'Updating';
-                                    break;
-                                case 'inquiry':
-                                    serviceName = 'Status Inquiry';
-                                    break;
-                                default:
-                                    serviceName = client.service;
-                            }
-                            clientsHtml += `
-                                <div class="popup-client-item">
-                                    <div>
-                                        <div class="popup-client-name">${escapeHtml(client.first_name)} ${escapeHtml(client.last_name)}</div>
-                                        <div class="popup-client-service">${serviceName}</div>
-                                    </div>
-                                    <span class="popup-client-badge">${client.sex || 'N/A'}</span>
-                                </div>
-                            `;
+                            let serviceName = client.service === 'reg' ? 'National ID Registration' : (
+                                client.service === 'updating' ? 'Updating' : 'Status Inquiry');
+                            clientsHtml +=
+                                `<div class="popup-client-item"><div><div class="popup-client-name">${escapeHtml(client.first_name)} ${escapeHtml(client.last_name)}</div><div class="popup-client-service">${serviceName}</div></div><span class="popup-client-badge">${client.sex || 'N/A'}</span></div>`;
                         });
                         clientsHtml += '</div>';
                     } else {
                         clientsHtml =
                             '<div class="popup-client-item" style="text-align:center; color:#999;">No clients</div>';
                     }
-
                     const statusText = booking.status.charAt(0).toUpperCase() + booking.status.slice(1);
                     const appointmentDate = new Date(booking.appointment_date).toLocaleDateString('en-US', {
                         month: 'short',
                         day: 'numeric',
                         year: 'numeric'
                     });
-
-                    const popupContent = `
-                        <div>
-                            <div class="popup-header">
-                                <span class="popup-appointment"><i class="fas fa-hashtag"></i> ${escapeHtml(booking.appointment_number)}</span>
-                                <span class="popup-status ${booking.status}">${statusText}</span>
-                            </div>
-                            <div class="popup-body">
-                                <div class="popup-location">
-                                    <i class="fas fa-map-marker-alt"></i> ${escapeHtml(booking.user_city || 'Unknown Location')}
-                                </div>
-                                <div class="popup-info-row">
-                                    <i class="fas fa-calendar-alt"></i> <strong>${appointmentDate}</strong>
-                                </div>
-                                <div class="popup-info-row">
-                                    <i class="fas fa-user-circle"></i> ${escapeHtml(booking.contact_name)}
-                                </div>
-                                <div class="popup-info-row">
-                                    <i class="fas fa-phone-alt"></i> ${escapeHtml(booking.contact_mobile)}
-                                </div>
-                                <div class="popup-clients">
-                                    <div class="popup-clients-header">
-                                        <i class="fas fa-users"></i> Clients (${clientsCount})
-                                    </div>
-                                    ${clientsHtml}
-                                </div>
-                            </div>
-                        </div>
-                    `;
-
+                    const popupContent =
+                        `<div style="min-width:260px;"><div class="popup-header" style="display:flex; justify-content:space-between; margin-bottom:10px; border-bottom:1px solid #eee; padding-bottom:8px;"><span class="popup-appointment"><i class="fas fa-hashtag"></i> ${escapeHtml(booking.appointment_number)}</span><span style="padding:2px 8px; border-radius:12px; font-size:11px; background:${booking.status === 'completed' ? '#10b981' : booking.status === 'confirmed' ? '#3b82f6' : booking.status === 'pending' ? '#f59e0b' : '#ef4444'}; color:white;">${statusText}</span></div><div class="popup-body"><div class="popup-location" style="margin-bottom:5px;"><i class="fas fa-map-marker-alt"></i> ${escapeHtml(booking.user_city || 'Unknown Location')}</div><div class="popup-info-row" style="margin-bottom:5px;"><i class="fas fa-calendar-alt"></i> <strong>${appointmentDate}</strong></div><div class="popup-info-row" style="margin-bottom:5px;"><i class="fas fa-user-circle"></i> ${escapeHtml(booking.contact_name)}</div><div class="popup-info-row" style="margin-bottom:10px;"><i class="fas fa-phone-alt"></i> ${escapeHtml(booking.contact_mobile)}</div><div class="popup-clients"><div class="popup-clients-header" style="font-weight:bold; margin-bottom:5px;"><i class="fas fa-users"></i> Clients (${clients.length})</div>${clientsHtml}</div></div></div>`;
                     marker.bindPopup(popupContent, {
                         maxWidth: 320,
                         minWidth: 280,
                         className: 'custom-popup'
                     });
-
                     markersLayer.addLayer(marker);
                 }
             });
-
             map.addLayer(markersLayer);
 
-            // Legend
+            map.scrollWheelZoom.disable();
+            const CtrlZoomControl = L.Control.extend({
+                options: {
+                    position: 'bottomright'
+                },
+                onAdd: function() {
+                    const container = L.DomUtil.create('div', 'ctrl-zoom-hint');
+                    container.innerHTML =
+                        `<kbd>Ctrl</kbd><span>+</span><i class="fas fa-mouse-pointer"></i><span>Scroll to zoom map</span>`;
+                    return container;
+                }
+            });
+            map.addControl(new CtrlZoomControl());
+            const activeIndicator = document.createElement('div');
+            activeIndicator.className = 'ctrl-zoom-active';
+            activeIndicator.innerHTML = '<i class="fas fa-search"></i> Ctrl + Scroll active';
+            document.body.appendChild(activeIndicator);
+
+            function handleKeyDown(e) {
+                if (e.key === 'Control' || e.key === 'Meta' || e.keyCode === 17 || e.keyCode === 91) {
+                    ctrlPressed = true;
+                    if (map && !map.scrollWheelZoom.enabled()) {
+                        map.scrollWheelZoom.enable();
+                        activeIndicator.style.display = 'flex';
+                        setTimeout(() => {
+                            if (activeIndicator) activeIndicator.style.opacity = '1';
+                        }, 10);
+                    }
+                }
+            }
+
+            function handleKeyUp(e) {
+                if (e.key === 'Control' || e.key === 'Meta' || e.keyCode === 17 || e.keyCode === 91) {
+                    ctrlPressed = false;
+                    if (map && map.scrollWheelZoom.enabled()) {
+                        map.scrollWheelZoom.disable();
+                        activeIndicator.style.opacity = '0';
+                        setTimeout(() => {
+                            if (activeIndicator) activeIndicator.style.display = 'none';
+                        }, 300);
+                    }
+                }
+            }
+            document.addEventListener('keydown', handleKeyDown);
+            document.addEventListener('keyup', handleKeyUp);
+            window.addEventListener('blur', function() {
+                ctrlPressed = false;
+                if (map && map.scrollWheelZoom.enabled()) {
+                    map.scrollWheelZoom.disable();
+                    activeIndicator.style.display = 'none';
+                }
+            });
+            const mapContainer = document.getElementById('bookingsMap');
+            if (mapContainer) {
+                mapContainer.addEventListener('wheel', function(e) {
+                    if (!ctrlPressed) {
+                        e.preventDefault();
+                        return false;
+                    }
+                }, {
+                    passive: false
+                });
+            }
+
             const legend = L.control({
-                position: 'bottomright'
+                position: 'bottomleft'
             });
             legend.onAdd = function() {
                 const div = L.DomUtil.create('div', 'map-legend');
-                div.innerHTML = `
-                    <div style="display:flex; align-items:center; gap:8px;">
-                        <div class="custom-marker-icon" style="width:24px; height:24px; background: linear-gradient(135deg, #f59e0b, #d97706); "><i class="fas fa-calendar-check" style="font-size:10px;"></i></div>
-                        <span>Appointment</span>
-                    </div>
-                    <div style="display:flex; align-items:center; gap:8px; margin-left:12px;">
-                        <img src="{{ asset('images/psa.png') }}" style="width:24px;height:24px;border-radius:50%;border:2px solid #c49a2c;">
-                        <span>PSA Center</span>
-                    </div>
-                `;
+                div.innerHTML =
+                    `<div style="display:flex; align-items:center; gap:8px; background: rgba(0,0,0,0.7); padding: 5px 10px; border-radius: 8px;"><div class="custom-marker-icon" style="width:24px; height:24px; background: linear-gradient(135deg, #f59e0b, #d97706); border-radius:50%; display:flex; align-items:center; justify-content:center;"><i class="fas fa-calendar-check" style="font-size:12px; color:white;"></i></div><span style="color:white;">Appointment</span></div><div style="display:flex; align-items:center; gap:8px; margin-left:12px; background: rgba(0,0,0,0.7); padding: 5px 10px; border-radius: 8px;"><img src="{{ asset('images/psa.png') }}" style="width:24px;height:24px;border-radius:50%;border:2px solid #c49a2c;"><span style="color:white;">PSA Center</span></div>`;
                 return div;
             };
             legend.addTo(map);
         }
 
-        function escapeHtml(text) {
-            if (!text) return '';
-            return String(text).replace(/[&<>]/g, function(m) {
-                if (m === '&') return '&amp;';
-                if (m === '<') return '&lt;';
-                if (m === '>') return '&gt;';
-                return m;
-            });
-        }
-
-        function exportToCSV() {
-            const table = document.getElementById('citySummaryTable');
-            if (!table) {
-                alert('No table to export');
-                return;
-            }
-            let csv = [];
-            table.querySelectorAll('tr').forEach(row => {
-                const cells = row.querySelectorAll('th, td');
-                const rowData = Array.from(cells).map(cell =>
-                    `"${cell.innerText.trim().replace(/[^\w\s,.-]/g, '')}"`);
-                csv.push(rowData.join(','));
-            });
-            const blob = new Blob([csv.join('\n')], {
-                type: 'text/csv'
-            });
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = `booking_report_${new Date().toISOString().split('T')[0]}.csv`;
-            a.click();
-            URL.revokeObjectURL(url);
-            alert('✅ Report exported to CSV successfully!');
-        }
-
-        function copyTableData() {
-            const table = document.getElementById('citySummaryTable');
-            if (!table) {
-                alert('No table to copy');
-                return;
-            }
-            const range = document.createRange();
-            range.selectNode(table);
-            window.getSelection().removeAllRanges();
-            window.getSelection().addRange(range);
-            document.execCommand('copy');
-            alert('✅ Summary table copied to clipboard!');
-            window.getSelection().removeAllRanges();
-        }
-
         document.addEventListener('DOMContentLoaded', () => {
-            if (document.getElementById('bookingsMap')) setTimeout(initMap, 100);
+            if (document.getElementById('bookingsMap')) {
+                setTimeout(initMap, 100);
+            }
         });
         window.addEventListener('resize', () => {
             if (map) setTimeout(() => map.invalidateSize(), 200);

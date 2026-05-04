@@ -660,7 +660,7 @@
         /* PSA Marker */
         .psa-icon-img {
             width: 44px;
-            height: 44px;
+            height: 40px;
             border-radius: 50%;
             object-fit: cover;
             border: 3px solid var(--accent);
@@ -743,5 +743,166 @@
             .custom-popup .leaflet-popup-content {
                 min-width: 260px;
                 max-width: 280px;
+            }
+        }
+
+                .ctrl-zoom-hint {
+            background: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(8px);
+            color: white;
+            padding: 8px 16px;
+            border-radius: 40px;
+            font-size: 12px;
+            font-family: monospace;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+            pointer-events: none;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .ctrl-zoom-hint kbd {
+            background: #2d2d2d;
+            border-radius: 6px;
+            padding: 3px 10px;
+            font-weight: bold;
+            color: #ffd700;
+            font-size: 11px;
+            border: 1px solid #555;
+            box-shadow: 0 1px 0 rgba(255, 255, 255, 0.2);
+        }
+
+        .reports-btn-pdf {
+            background: #dc3545;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            white-space: nowrap;
+        }
+
+        .reports-btn-pdf:hover {
+            background: #c82333;
+            color: white;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(220, 53, 69, 0.3);
+        }
+
+        .reports-btn-excel {
+            background: #28a745;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            white-space: nowrap;
+        }
+
+        .reports-btn-excel:hover {
+            background: #218838;
+            color: white;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(40, 167, 69, 0.3);
+        }
+
+        .export-buttons {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .reports-table {
+            width: 100%;
+            border-collapse: collapse;
+            background: white;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        .reports-table thead {
+            background: #0f3b6f;
+            color: white;
+        }
+
+        .reports-table th {
+            padding: 12px 15px;
+            text-align: left;
+            font-weight: 600;
+            font-size: 0.9rem;
+        }
+
+        .reports-table td {
+            padding: 10px 15px;
+            border-bottom: 1px solid #e5e7eb;
+            font-size: 0.9rem;
+        }
+
+        .reports-table tbody tr:hover {
+            background: #f9fafb;
+        }
+
+        .status-badge {
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            color: white;
+        }
+
+        .status-pending {
+            background: #f59e0b;
+        }
+
+        .status-confirmed {
+            background: #3b82f6;
+        }
+
+        .status-completed {
+            background: #10b981;
+        }
+
+        .status-cancelled {
+            background: #ef4444;
+        }
+
+        .status-no_show {
+            background: #6b7280;
+        }
+
+        @media (max-width: 768px) {
+            .reports-welcome-section {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 15px;
+            }
+
+            .export-buttons {
+                flex-direction: column;
+                width: 100%;
+            }
+
+            .reports-btn-pdf,
+            .reports-btn-excel {
+                width: 100%;
+                justify-content: center;
+            }
+
+            .reports-table {
+                display: block;
+                overflow-x: auto;
             }
         }
