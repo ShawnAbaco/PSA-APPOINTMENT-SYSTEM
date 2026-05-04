@@ -105,6 +105,7 @@ Route::get('/users/{id}/edit-data', function($id) {
         Route::get('/details/{date}', [App\Http\Controllers\Admin\SlotController::class, 'getSlotDetails'])->name('details');
         Route::get('/json', [App\Http\Controllers\Admin\SlotController::class, 'getSlotsJson'])->name('json');
         Route::post('/capacity-rules', [App\Http\Controllers\Admin\SlotController::class, 'saveCapacityRules'])->name('capacity-rules');
+        
 
 Route::get('/get-default-capacities', [App\Http\Controllers\Admin\SlotController::class, 'getDefaultCapacities'])->name('default-capacities');
 
@@ -136,6 +137,7 @@ Route::get('/get-default-capacities', [App\Http\Controllers\Admin\SlotController
     Route::post('/settings/working-days', [App\Http\Controllers\Admin\SettingsController::class, 'updateWorkingDays'])->name('settings.working-days');
     Route::post('/settings/appointment', [App\Http\Controllers\Admin\SettingsController::class, 'updateAppointmentSettings'])->name('settings.appointment');
     Route::post('/settings/appointment/reset', [App\Http\Controllers\Admin\SettingsController::class, 'resetAppointmentSettings'])->name('settings.appointment.reset');
+    Route::post('/settings/capacity-rules', [App\Http\Controllers\Admin\SettingsController::class, 'saveCapacityRules'])->name('settings.capacity-rules');
 });
 
 // Staff routes

@@ -358,45 +358,52 @@ public function updateTimeSlot(Request $request, $id)
     }
     
     /**
-     * Save default capacity rules for time slots
-     */
-    public function saveCapacityRules(Request $request)
-    {
-        try {
-            DB::beginTransaction();
-            
-            $capacities = $request->input('slot_capacities', []);
-            
-            foreach ($capacities as $timeSlotId => $services) {
-                SlotCapacityRule::updateOrCreate(
-                    [
-                        'time_slot_id' => $timeSlotId,
-                        'day_type' => 'working',
-                    ],
-                    [
-                        'reg_capacity' => $services['reg'] ?? 0,
-                        'updating_capacity' => $services['updating'] ?? 0,
-                        'inquiry_capacity' => $services['inquiry'] ?? 0,
-                    ]
-                );
-            }
-            
-            DB::commit();
-            
-            return response()->json([
-                'success' => true,
-                'message' => 'Capacity rules saved successfully!'
-            ]);
-        } catch (\Exception $e) {
-            DB::rollBack();
-            \Log::error('Save capacity rules error: ' . $e->getMessage());
-            
-            return response()->json([
-                'success' => false,
-                'message' => 'Error saving capacity rules: ' . $e->getMessage()
-            ], 500);
+ * Save default capacity rules for time slots
+ */
+public function saveCapacityRules(Request $request)
+{
+    try {
+        DB::beginTransaction();
+        
+        // Fix: Check for both possible input names
+        $capacities = $request->input('slot_capacities', []);
+        if (empty($capacities)) {
+            $capacities = $request->input('capacities', []);
         }
+        
+        \Log::info('Saving capacity rules', ['capacities' => $capacities]);
+        
+        foreach ($capacities as $timeSlotId => $services) {
+            SlotCapacityRule::updateOrCreate(
+                [
+                    'time_slot_id' => $timeSlotId,
+                    'day_type' => 'working',
+                ],
+                [
+                    'reg_capacity' => $services['reg'] ?? 4,
+                    'updating_capacity' => $services['updating'] ?? 4,
+                    'inquiry_capacity' => $services['inquiry'] ?? 4,
+                ]
+            );
+        }
+        
+        DB::commit();
+        
+        return response()->json([
+            'success' => true,
+            'message' => 'Capacity rules saved successfully!'
+        ]);
+        
+    } catch (\Exception $e) {
+        DB::rollBack();
+        \Log::error('Save capacity rules error: ' . $e->getMessage());
+        
+        return response()->json([
+            'success' => false,
+            'message' => 'Error saving capacity rules: ' . $e->getMessage()
+        ], 500);
     }
+}
 
     /**
  * Update working days independently via AJAX

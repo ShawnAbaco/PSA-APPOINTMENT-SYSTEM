@@ -135,7 +135,7 @@
                                     <td>{{ date('g:i A', strtotime($slot->end_time)) }}</td>
                                     <td>
                                         <input type="number" 
-                                               name="slot_capacities[{{ $slot->id }}][reg]"
+                                               name="capacities[{{ $slot->id }}][reg]"
                                                class="settings-capacity-input"
                                                value="{{ $rule->reg_capacity ?? 4 }}"
                                                min="0" max="100" step="1">
@@ -702,36 +702,52 @@
             });
 
             // Save Capacity Rules
-            $('#saveCapacityRulesBtn').click(function() {
-                const formData = new FormData();
-                formData.append('_token', '{{ csrf_token() }}');
+$('#saveCapacityRulesBtn').click(function() {
+    const formData = new FormData();
+    formData.append('_token', '{{ csrf_token() }}');
 
-                $('input[name^="slot_capacities"]').each(function() {
-                    const name = $(this).attr('name');
-                    const value = $(this).val();
-                    formData.append(name, value);
-                });
+    // Fix: Change the data format to match what the controller expects
+    $('input[name^="slot_capacities"]').each(function() {
+        const name = $(this).attr('name');
+        // Extract time slot ID and service type
+        // name format: slot_capacities[1][reg]
+        const matches = name.match(/slot_capacities\[(\d+)\]\[(\w+)\]/);
+        if (matches) {
+            const timeSlotId = matches[1];
+            const serviceType = matches[2];
+            const value = $(this).val();
+            
+            // Store in a different format
+            if (!formData.has(`capacities[${timeSlotId}][${serviceType}]`)) {
+                formData.append(`capacities[${timeSlotId}][${serviceType}]`, value);
+            }
+        } else {
+            // Fallback for direct names
+            formData.append(name, $(this).val());
+        }
+    });
 
-                showToast('Saving...', 'Please wait while we save your settings', 'info');
+    showToast('Saving...', 'Please wait while we save your settings', 'info');
 
-                $.ajax({
-                    url: '{{ route('admin.slots.capacity-rules') }}',
-                    method: 'POST',
-                    data: formData,
-                    processData: false,
-                    contentType: false,
-                    success: function(response) {
-                        if (response.success) {
-                            showToast('Success!', 'Capacity rules saved successfully!', 'success');
-                        } else {
-                            showToast('Error', response.message || 'Error saving capacity rules', 'error');
-                        }
-                    },
-                    error: function(xhr) {
-                        showToast('Error', xhr.responseJSON?.message || 'Failed to save capacity rules', 'error');
-                    }
-                });
-            });
+    $.ajax({
+        url: '{{ route("admin.slots.capacity-rules") }}',
+        method: 'POST',
+        data: formData,
+        processData: false,
+        contentType: false,
+        success: function(response) {
+            if (response.success) {
+                showToast('Success!', 'Capacity rules saved successfully!', 'success');
+            } else {
+                showToast('Error', response.message || 'Error saving capacity rules', 'error');
+            }
+        },
+        error: function(xhr) {
+            console.error('Error:', xhr);
+            showToast('Error', xhr.responseJSON?.message || 'Failed to save capacity rules', 'error');
+        }
+    });
+});
 
             // Reset Capacity Rules
             $('#resetCapacityRulesBtn').click(function() {
