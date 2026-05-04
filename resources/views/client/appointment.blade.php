@@ -1238,9 +1238,15 @@
 
             document.getElementById('closeReqModal').onclick = () => reqModal.style.display = 'none';
             document.getElementById('understandBtn').onclick = () => reqModal.style.display = 'none';
+            
+            // FIX: Redirect the parent window (landing page) to '/' instead of the iframe
             document.getElementById('closeSuccessModal').onclick = () => {
                 successModal.style.display = 'none';
-                window.location.href = '/';
+                if (window.parent && window.parent.location) {
+                    window.parent.location.href = '/';
+                } else {
+                    window.location.href = '/';
+                }
             };
 
             document.querySelectorAll('[data-edit]').forEach(btn => {
@@ -1260,22 +1266,35 @@
             });
 
             renderClients();
+            
+            // FIX: When clicking outside the success modal, close the modal AND redirect the parent window
             window.addEventListener('click', (e) => {
                 if (e.target === reqModal) reqModal.style.display = 'none';
                 if (e.target === successModal) {
                     successModal.style.display = 'none';
-                    window.location.href = '/';
+                    if (window.parent && window.parent.location) {
+                        window.parent.location.href = '/';
+                    } else {
+                        window.location.href = '/';
+                    }
                 }
             });
+            
+            // FIX: When pressing Escape key, close the modal AND redirect the parent window
             document.addEventListener('keydown', (e) => {
                 if (e.key === 'Escape') {
                     if (reqModal.style.display !== 'none') reqModal.style.display = 'none';
                     if (successModal.style.display !== 'none') {
                         successModal.style.display = 'none';
-                        window.location.href = '/';
+                        if (window.parent && window.parent.location) {
+                            window.parent.location.href = '/';
+                        } else {
+                            window.location.href = '/';
+                        }
                     }
                 }
             });
+            
             loadLocationFromLandingPage();
 
             // Submit button handler - with correct mobile validation for +63 format
