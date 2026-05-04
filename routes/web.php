@@ -177,8 +177,8 @@ Route::middleware(['auth', 'operator'])->prefix('operator')->name('operator.')->
     Route::get('/clients/statistics/data', [App\Http\Controllers\Operator\OClientController::class, 'statistics'])->name('clients.statistics');
 
     // Reports routes
-    Route::get('/reports', [App\Http\Controllers\Operator\ReportsController::class, 'index'])->name('reports.index');
-    Route::get('/reports/export', [App\Http\Controllers\Operator\ReportsController::class, 'export'])->name('reports.export');
+    Route::get('/reports', [App\Http\Controllers\Operator\OReportsController::class, 'index'])->name('reports.index');
+    Route::get('/reports/export', [App\Http\Controllers\Operator\OReportsController::class, 'export'])->name('reports.export');
 });
 
 // Client appointment routes

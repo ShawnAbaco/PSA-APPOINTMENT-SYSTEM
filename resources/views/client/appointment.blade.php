@@ -1378,10 +1378,10 @@
                                        </li>`;
                             });
                             clientsHtml += '</ul></div>';
-                        }
+                        }   
 
                         let locationMessage = result.appointment.location_city ?
-                            `<p><strong>Location:</strong> ${result.appointment.location_city}</p>` : '';
+                            `` : '';
 
                         document.getElementById('successDetails').innerHTML = `
                             <div style="text-align: left;">

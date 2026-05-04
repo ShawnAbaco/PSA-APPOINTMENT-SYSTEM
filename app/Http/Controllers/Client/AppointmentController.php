@@ -45,39 +45,38 @@ class AppointmentController extends Controller
             return view('client.appointment', compact('services'));
         }
     }
+    
     /**
- * Get day type for a specific date
- * Returns: 'working', 'non_working', or 'holiday'
- */
-private function getDayType($date)
-{
-    try {
-        // Check override FIRST (for holidays and special non-working days)
-        $override = WorkingDaysOverride::where('date', $date->format('Y-m-d'))->first();
-        if ($override) {
-            return $override->day_type;
-        }
-        
-        // Get day name from Carbon
-        $dayName = strtolower($date->format('l')); // monday, tuesday, etc.
-        
-        // Get from database using correct column name 'day_name'
-        $default = WorkingDaysDefault::where('day_name', $dayName)->first();
-        
-        if (!$default) {
-            \Log::warning("No working day configuration found for: {$dayName}");
+     * Get day type for a specific date
+     * Returns: 'working', 'non_working', or 'holiday'
+     */
+    private function getDayType($date)
+    {
+        try {
+            // Check override FIRST (for holidays and special non-working days)
+            $override = WorkingDaysOverride::where('date', $date->format('Y-m-d'))->first();
+            if ($override) {
+                return $override->day_type;
+            }
+            
+            // Get day name from Carbon
+            $dayName = strtolower($date->format('l')); // monday, tuesday, etc.
+            
+            // Get from database using correct column name 'day_name'
+            $default = WorkingDaysDefault::where('day_name', $dayName)->first();
+            
+            if (!$default) {
+                \Log::warning("No working day configuration found for: {$dayName}");
+                return 'non_working';
+            }
+            
+            return $default->day_type;
+            
+        } catch (\Exception $e) {
+            \Log::error('Error in getDayType: ' . $e->getMessage());
             return 'non_working';
         }
-        
-        return $default->day_type;
-        
-    } catch (\Exception $e) {
-        \Log::error('Error in getDayType: ' . $e->getMessage());
-        return 'non_working';
     }
-}
-
-
 
     /**
      * Get capacity for a specific date, time slot, and service
@@ -162,178 +161,178 @@ private function getDayType($date)
     }
 
     public function getAvailableDates(Request $request)
-{
-    try {
-        $month = (int)$request->get('month', date('n'));
-        $year = (int)$request->get('year', date('Y'));
-        $clientCount = (int)$request->get('client_count', 1);
-        $servicesParam = $request->get('services', '');
-        
-        // Get list of services to check
-        $servicesToCheck = !empty($servicesParam) ? explode(',', $servicesParam) : ['reg', 'updating', 'inquiry'];
-        
-        $advanceDays = 30;
-        $advanceSetting = Setting::where('key', 'appointment.advance_booking_days')->first();
-        if ($advanceSetting) {
-            $advanceDays = (int)$advanceSetting->value;
-        }
-        
-        $maxDate = Carbon::now()->addDays($advanceDays);
-        $dates = [];
-        $daysInMonth = Carbon::create($year, $month)->daysInMonth;
-        
-        // Get all active time slots
-        $timeSlots = TimeSlot::where('is_active', true)->get();
-        
-        for ($day = 1; $day <= $daysInMonth; $day++) {
-            $date = Carbon::create($year, $month, $day);
-            $dateKey = $date->format('Y-m-d');
+    {
+        try {
+            $month = (int)$request->get('month', date('n'));
+            $year = (int)$request->get('year', date('Y'));
+            $clientCount = (int)$request->get('client_count', 1);
+            $servicesParam = $request->get('services', '');
             
-            // Skip past dates
-            if ($date->lt(Carbon::now()->startOfDay())) {
-                continue;
+            // Get list of services to check
+            $servicesToCheck = !empty($servicesParam) ? explode(',', $servicesParam) : ['reg', 'updating', 'inquiry'];
+            
+            $advanceDays = 30;
+            $advanceSetting = Setting::where('key', 'appointment.advance_booking_days')->first();
+            if ($advanceSetting) {
+                $advanceDays = (int)$advanceSetting->value;
             }
             
-            // Skip dates beyond max booking
-            if ($date->gt($maxDate)) {
-                continue;
-            }
+            $maxDate = Carbon::now()->addDays($advanceDays);
+            $dates = [];
+            $daysInMonth = Carbon::create($year, $month)->daysInMonth;
             
-            // Check if date is a working day
-            $dayType = $this->getDayType($date);
-            if ($dayType !== 'working') {
-                continue;
-            }
+            // Get all active time slots
+            $timeSlots = TimeSlot::where('is_active', true)->get();
             
-            if ($timeSlots->isEmpty()) {
-                continue;
-            }
-            
-            // Check if there's ANY time slot that can accommodate ALL selected services
-            $hasAnyAvailableTimeSlot = false;
-            $serviceAvailability = [];
-            
-            foreach ($servicesToCheck as $service) {
-                $serviceAvailability[$service] = 0;
-            }
-            
-            foreach ($timeSlots as $timeSlot) {
-                $allServicesHaveAvailability = true;
+            for ($day = 1; $day <= $daysInMonth; $day++) {
+                $date = Carbon::create($year, $month, $day);
+                $dateKey = $date->format('Y-m-d');
+                
+                // Skip past dates
+                if ($date->lt(Carbon::now()->startOfDay())) {
+                    continue;
+                }
+                
+                // Skip dates beyond max booking
+                if ($date->gt($maxDate)) {
+                    continue;
+                }
+                
+                // Check if date is a working day
+                $dayType = $this->getDayType($date);
+                if ($dayType !== 'working') {
+                    continue;
+                }
+                
+                if ($timeSlots->isEmpty()) {
+                    continue;
+                }
+                
+                // Check if there's ANY time slot that can accommodate ALL selected services
+                $hasAnyAvailableTimeSlot = false;
+                $serviceAvailability = [];
                 
                 foreach ($servicesToCheck as $service) {
-                    $available = $this->getAvailableSlots($dateKey, $timeSlot->id, $service);
-                    if ($available <= 0) {
-                        $allServicesHaveAvailability = false;
-                        break;
-                    }
+                    $serviceAvailability[$service] = 0;
                 }
                 
-                if ($allServicesHaveAvailability) {
-                    $hasAnyAvailableTimeSlot = true;
-                    // Add to service availability totals
+                foreach ($timeSlots as $timeSlot) {
+                    $allServicesHaveAvailability = true;
+                    
                     foreach ($servicesToCheck as $service) {
                         $available = $this->getAvailableSlots($dateKey, $timeSlot->id, $service);
-                        $serviceAvailability[$service] += $available;
+                        if ($available <= 0) {
+                            $allServicesHaveAvailability = false;
+                            break;
+                        }
+                    }
+                    
+                    if ($allServicesHaveAvailability) {
+                        $hasAnyAvailableTimeSlot = true;
+                        // Add to service availability totals
+                        foreach ($servicesToCheck as $service) {
+                            $available = $this->getAvailableSlots($dateKey, $timeSlot->id, $service);
+                            $serviceAvailability[$service] += $available;
+                        }
                     }
                 }
-            }
-            
-            // Only include dates that have at least one time slot where ALL services have availability
-            if ($hasAnyAvailableTimeSlot) {
-                $totalAvailableForClientCount = min($serviceAvailability);
                 
-                $dates[] = [
-                    'date' => $dateKey,
-                    'available' => true,
-                    'available_slots' => $totalAvailableForClientCount,
-                    'service_availability' => $serviceAvailability,
-                    'day' => $date->format('l'),
-                    'display_date' => $date->format('F d, Y'),
-                    'day_type' => $dayType,
-                ];
-            }
-        }
-        
-        return response()->json([
-            'success' => true,
-            'dates' => $dates,
-            'month' => Carbon::create($year, $month)->format('F Y'),
-        ]);
-        
-    } catch (\Exception $e) {
-        Log::error('getAvailableDates error: ' . $e->getMessage());
-        Log::error($e->getTraceAsString());
-        
-        return response()->json([
-            'success' => false,
-            'message' => $e->getMessage(),
-            'dates' => []
-        ], 500);
-    }
-}
-    
-    public function getAvailableTimeSlots(Request $request)
-{
-    try {
-        $date = $request->get('date');
-        $servicesParam = $request->get('services', '');
-        $clientCount = (int)$request->get('client_count', 1);
-        
-        $servicesToCheck = !empty($servicesParam) ? explode(',', $servicesParam) : ['reg', 'updating', 'inquiry'];
-        
-        // Get all active time slots
-        $timeSlots = TimeSlot::where('is_active', true)
-            ->orderBy('display_order')
-            ->get();
-        
-        $availableTimeSlots = [];
-        
-        foreach ($timeSlots as $timeSlot) {
-            $availableForServices = [];
-            $allServicesHaveAvailability = true; // Changed from $hasAnyAvailability
-            $minAvailable = PHP_INT_MAX;
-            
-            foreach ($servicesToCheck as $service) {
-                $available = $this->getAvailableSlots($date, $timeSlot->id, $service);
-                $availableForServices[$service] = $available;
-                $minAvailable = min($minAvailable, $available);
-                
-                // If ANY service has 0 available slots, this time slot is NOT available for this client group
-                if ($available <= 0) {
-                    $allServicesHaveAvailability = false;
+                // Only include dates that have at least one time slot where ALL services have availability
+                if ($hasAnyAvailableTimeSlot) {
+                    $totalAvailableForClientCount = min($serviceAvailability);
+                    
+                    $dates[] = [
+                        'date' => $dateKey,
+                        'available' => true,
+                        'available_slots' => $totalAvailableForClientCount,
+                        'service_availability' => $serviceAvailability,
+                        'day' => $date->format('l'),
+                        'display_date' => $date->format('F d, Y'),
+                        'day_type' => $dayType,
+                    ];
                 }
             }
             
-            // Show time slot ONLY if ALL selected services have at least 1 available slot
-            if ($allServicesHaveAvailability) {
-                $availableTimeSlots[] = [
-                    'id' => $timeSlot->id,
-                    'time_slot_id' => $timeSlot->id,
-                    'slot_label' => $timeSlot->label ?? $this->formatTimeRange($timeSlot->start_time, $timeSlot->end_time),
-                    'start_time' => $timeSlot->start_time,
-                    'end_time' => $timeSlot->end_time,
-                    'is_available' => true,
-                    'available_slots' => $minAvailable,
-                    'service_availability' => $availableForServices,
-                ];
-            }
+            return response()->json([
+                'success' => true,
+                'dates' => $dates,
+                'month' => Carbon::create($year, $month)->format('F Y'),
+            ]);
+            
+        } catch (\Exception $e) {
+            Log::error('getAvailableDates error: ' . $e->getMessage());
+            Log::error($e->getTraceAsString());
+            
+            return response()->json([
+                'success' => false,
+                'message' => $e->getMessage(),
+                'dates' => []
+            ], 500);
         }
-        
-        return response()->json([
-            'success' => true,
-            'time_slots' => $availableTimeSlots,
-            'date' => $date
-        ]);
-        
-    } catch (\Exception $e) {
-        Log::error('getAvailableTimeSlots error: ' . $e->getMessage());
-        return response()->json([
-            'success' => false,
-            'message' => $e->getMessage(),
-            'time_slots' => []
-        ], 500);
     }
-}
+    
+    public function getAvailableTimeSlots(Request $request)
+    {
+        try {
+            $date = $request->get('date');
+            $servicesParam = $request->get('services', '');
+            $clientCount = (int)$request->get('client_count', 1);
+            
+            $servicesToCheck = !empty($servicesParam) ? explode(',', $servicesParam) : ['reg', 'updating', 'inquiry'];
+            
+            // Get all active time slots
+            $timeSlots = TimeSlot::where('is_active', true)
+                ->orderBy('display_order')
+                ->get();
+            
+            $availableTimeSlots = [];
+            
+            foreach ($timeSlots as $timeSlot) {
+                $availableForServices = [];
+                $allServicesHaveAvailability = true;
+                $minAvailable = PHP_INT_MAX;
+                
+                foreach ($servicesToCheck as $service) {
+                    $available = $this->getAvailableSlots($date, $timeSlot->id, $service);
+                    $availableForServices[$service] = $available;
+                    $minAvailable = min($minAvailable, $available);
+                    
+                    // If ANY service has 0 available slots, this time slot is NOT available for this client group
+                    if ($available <= 0) {
+                        $allServicesHaveAvailability = false;
+                    }
+                }
+                
+                // Show time slot ONLY if ALL selected services have at least 1 available slot
+                if ($allServicesHaveAvailability) {
+                    $availableTimeSlots[] = [
+                        'id' => $timeSlot->id,
+                        'time_slot_id' => $timeSlot->id,
+                        'slot_label' => $timeSlot->label ?? $this->formatTimeRange($timeSlot->start_time, $timeSlot->end_time),
+                        'start_time' => $timeSlot->start_time,
+                        'end_time' => $timeSlot->end_time,
+                        'is_available' => true,
+                        'available_slots' => $minAvailable,
+                        'service_availability' => $availableForServices,
+                    ];
+                }
+            }
+            
+            return response()->json([
+                'success' => true,
+                'time_slots' => $availableTimeSlots,
+                'date' => $date
+            ]);
+            
+        } catch (\Exception $e) {
+            Log::error('getAvailableTimeSlots error: ' . $e->getMessage());
+            return response()->json([
+                'success' => false,
+                'message' => $e->getMessage(),
+                'time_slots' => []
+            ], 500);
+        }
+    }
     
     private function formatTimeRange($startTime, $endTime)
     {
@@ -521,11 +520,18 @@ private function getDayType($date)
                 
                 DB::commit();
                 
-                // Send email confirmation
+                // Prepare time slot label for email
+                $timeSlotLabel = $timeSlot->label ?? $this->formatTimeRange($timeSlot->start_time, $timeSlot->end_time);
+                
+                // Send email confirmation with time slot
                 $emailSent = false;
                 if ($appointment->contact_email) {
                     try {
-                        $emailSent = $this->mailService->sendAppointmentConfirmation($appointment, $clientsData);
+                        $emailSent = $this->mailService->sendAppointmentConfirmation(
+                            $appointment, 
+                            $clientsData,
+                            $timeSlotLabel  // Pass the time slot label here
+                        );
                     } catch (\Exception $e) {
                         \Log::warning('Email sending failed but appointment was saved: ' . $e->getMessage());
                     }
@@ -546,7 +552,7 @@ private function getDayType($date)
                         'number' => $appointment->appointment_number,
                         'reference_code' => $appointment->reference_code,
                         'date' => Carbon::parse($appointment->appointment_date)->format('F d, Y'),
-                        'time' => $timeSlot->label ?? $this->formatTimeRange($timeSlot->start_time, $timeSlot->end_time),
+                        'time' => $timeSlotLabel,
                         'clients_count' => count($request->clients),
                         'type' => $appointment->type,
                         'location_city' => $appointment->user_city ?? null,

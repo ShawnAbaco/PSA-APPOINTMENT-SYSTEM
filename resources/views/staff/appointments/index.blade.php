@@ -131,7 +131,7 @@
                                         <td>
                                             <div class="appt-contact-info">
                                                 <div class="appt-contact-name">{{ $appointment->contact_name }}</div>
-                                                <div class="appt-contact-phone">{{ $appointment->contact_phone ?? '—' }}
+                                                <div class="appt-contact-phone">{{ $appointment->contact_mobile ?? '—' }}
                                                 </div>
                                             </div>
                                         </td>
@@ -542,7 +542,7 @@
         }
 
         // Confirm Appointment
-        async function completeAppointment(id) {
+        async function confirmAppointment(id) {
             const result = await Swal.fire({
                 title: 'Confirm Appointment?',
                 text: "This will change the status from Pending to Confirmed.",

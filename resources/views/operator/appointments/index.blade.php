@@ -131,7 +131,7 @@
                                         <td>
                                             <div class="appt-contact-info">
                                                 <div class="appt-contact-name">{{ $appointment->contact_name }}</div>
-                                                <div class="appt-contact-phone">{{ $appointment->contact_phone ?? '—' }}
+                                                <div class="appt-contact-phone">{{ $appointment->contact_mobile ?? '—' }}
                                                 </div>
                                             </div>
                                         </td>

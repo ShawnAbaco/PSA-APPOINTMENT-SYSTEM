@@ -66,7 +66,7 @@ class MailService
     /**
      * Send appointment confirmation email
      */
-    public function sendAppointmentConfirmation($appointment, $clients)
+    public function sendAppointmentConfirmation($appointment, $clients, $timeSlotLabel = null)
     {
         if (!$this->isEnabled || !$appointment->contact_email) {
             Log::info('Email not sent: disabled or no recipient', [
@@ -82,7 +82,7 @@ class MailService
             
             $this->mail->Subject = 'PSA National ID Appointment Confirmation - ' . $appointment->appointment_number;
             
-            $body = $this->generateConfirmationEmail($appointment, $clients);
+            $body = $this->generateConfirmationEmail($appointment, $clients, $timeSlotLabel);
             $this->mail->isHTML(true);
             $this->mail->Body = $body;
             $this->mail->AltBody = strip_tags($body);
@@ -106,85 +106,9 @@ class MailService
     }
     
     /**
-     * Send test email
-     */
-    public function sendTestEmail($recipientEmail)
-    {
-        if (!$this->isEnabled) {
-            Log::error('Test email failed: Mail service is disabled');
-            return false;
-        }
-
-        try {
-            $this->mail->clearAddresses();
-            $this->mail->addAddress($recipientEmail);
-            
-            $this->mail->Subject = 'Test Email from PSA Appointment System';
-            
-            $body = $this->generateTestEmailBody();
-            $this->mail->isHTML(true);
-            $this->mail->Body = $body;
-            $this->mail->AltBody = strip_tags($body);
-            
-            $this->mail->send();
-            
-            Log::info('Test email sent successfully to: ' . $recipientEmail);
-            return true;
-            
-        } catch (Exception $e) {
-            Log::error('Test email failed: ' . $e->getMessage());
-            return false;
-        }
-    }
-    
-    /**
-     * Generate test email body
-     */
-    protected function generateTestEmailBody()
-    {
-        return "
-        <!DOCTYPE html>
-        <html>
-        <head>
-            <title>Test Email</title>
-            <meta charset='UTF-8'>
-        </head>
-        <body style='font-family: Arial, sans-serif; line-height: 1.6; color: #333;'>
-            <div style='max-width: 600px; margin: 0 auto; padding: 20px;'>
-                <div style='text-align: center; border-bottom: 3px solid #2c5f8a; padding-bottom: 15px; margin-bottom: 20px;'>
-                    <h2 style='color: #2c5f8a; margin: 0;'>Philippine Statistics Authority</h2>
-                    <p style='margin: 5px 0;'>National ID Appointment System</p>
-                </div>
-                
-                <div style='background: #e8f5e9; padding: 15px; border-radius: 5px; margin-bottom: 20px; text-align: center;'>
-                    <h3 style='color: #2e7d32; margin: 0;'>✓ Test Email Successful!</h3>
-                </div>
-                
-                <p>Dear User,</p>
-                <p>This is a test email from the PSA Appointment System. Your email configuration is working correctly!</p>
-                
-                <div style='background: #f9f9f9; padding: 15px; border-radius: 5px; margin: 20px 0;'>
-                    <h4 style='color: #2c5f8a; margin-top: 0;'>Configuration Details:</h4>
-                    <p><strong>SMTP Host:</strong> " . env('MAIL_HOST', 'Not set') . "</p>
-                    <p><strong>SMTP Port:</strong> " . env('MAIL_PORT', 'Not set') . "</p>
-                    <p><strong>Encryption:</strong> " . env('MAIL_ENCRYPTION', 'Not set') . "</p>
-                    <p><strong>From Address:</strong> " . env('MAIL_FROM_ADDRESS', 'Not set') . "</p>
-                    <p><strong>From Name:</strong> " . env('MAIL_FROM_NAME', 'Not set') . "</p>
-                </div>
-                
-                <div style='text-align: center; font-size: 12px; color: #999; margin-top: 20px; padding-top: 15px; border-top: 1px solid #ddd;'>
-                    <p>© " . date('Y') . " Philippine Statistics Authority. All rights reserved.</p>
-                </div>
-            </div>
-        </body>
-        </html>
-        ";
-    }
-    
-    /**
      * Generate appointment confirmation email body
      */
-    protected function generateConfirmationEmail($appointment, $clients)
+    protected function generateConfirmationEmail($appointment, $clients, $timeSlotLabel = null)
     {
         $services = [
             'reg' => 'National ID Registration',
@@ -210,6 +134,9 @@ class MailService
             ";
         }
         
+        // Use the time slot label passed from controller
+        $appointmentTime = $timeSlotLabel ?? 'Not specified';
+        
         return "
         <!DOCTYPE html>
         <html>
@@ -220,9 +147,8 @@ class MailService
         <body style='font-family: Arial, sans-serif; line-height: 1.6; color: #333;'>
             <div style='max-width: 600px; margin: 0 auto; padding: 20px;'>
                 <div style='text-align: center; border-bottom: 3px solid #2c5f8a; padding-bottom: 15px; margin-bottom: 20px;'>
-                    <img src='https://psa.gov.ph/sites/default/files/psa_logo.png' alt='PSA Logo' style='width: 80px; margin-bottom: 10px;'>
                     <h2 style='color: #2c5f8a; margin: 0;'>Philippine Statistics Authority</h2>
-                    <p style='margin: 5px 0;'>National ID Appointment System</p>
+                    <p style='margin: 5px 0; text-align: center;'>National ID Appointment System</p>
                 </div>
                 
                 <div style='background: #e8f5e9; padding: 15px; border-radius: 5px; margin-bottom: 20px; text-align: center;'>
@@ -246,12 +172,16 @@ class MailService
                         <td style='padding: 10px; border: 1px solid #ddd;'>" . date('F d, Y', strtotime($appointment->appointment_date)) . "</td>
                     </tr>
                     <tr>
+                        <td style='padding: 10px; border: 1px solid #ddd; background: #f5f5f5;'><strong>Appointment Time:</strong></td>
+                        <td style='padding: 10px; border: 1px solid #ddd;'>" . htmlspecialchars($appointmentTime) . "</td>
+                    </tr>
+                    <tr>
                         <td style='padding: 10px; border: 1px solid #ddd; background: #f5f5f5;'><strong>Appointment Type:</strong></td>
                         <td style='padding: 10px; border: 1px solid #ddd;'>" . ucfirst($appointment->type) . "</td>
                     </tr>
                 </table>
                 
-                <h3 style='color: #2c5f8a;'>👥 Client Information</h3>
+                <h3 style='color: #2c5f8a;'>Client Information</h3>
                 <table style='width: 100%; border-collapse: collapse; margin-bottom: 20px;'>
                     <thead>
                         <tr style='background: #2c5f8a; color: white;'>
@@ -265,7 +195,7 @@ class MailService
                     </tbody>
                 </table>
                 
-                <h3 style='color: #2c5f8a;'>📞 Contact Information</h3>
+                <h3 style='color: #2c5f8a;'>Contact Information</h3>
                 <table style='width: 100%; border-collapse: collapse; margin-bottom: 20px; background: #f9f9f9;'>
                     <tr>
                         <td style='padding: 10px; border: 1px solid #ddd; background: #f5f5f5; width: 40%;'><strong>Contact Person:</strong></td>
@@ -279,11 +209,11 @@ class MailService
                     <tr>
                         <td style='padding: 10px; border: 1px solid #ddd; background: #f5f5f5;'><strong>Email:</strong></td>
                         <td style='padding: 10px; border: 1px solid #ddd;'>" . htmlspecialchars($appointment->contact_email) . "</td>
-                    </tr>" : "") . "
+                    <tr>" : "") . "
                 </table>
                 
                 <div style='background: #fff3e0; padding: 15px; border-radius: 5px; margin: 20px 0; border-left: 4px solid #ff9800;'>
-                    <h4 style='color: #e65100; margin-top: 0;'>📌 Important Reminders:</h4>
+                    <h4 style='color: #e65100; margin-top: 0;'>Important Reminders:</h4>
                     <ul style='margin-bottom: 0;'>
                         <li>Please bring this confirmation email and a valid government-issued ID on your appointment date.</li>
                         <li>Arrive at least 15 minutes before your scheduled time.</li>
