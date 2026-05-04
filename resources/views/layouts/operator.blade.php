@@ -18,6 +18,7 @@
     <link rel="stylesheet" href="{{ asset('css/operator/appointments/appointments.css') }}">
     <link rel="stylesheet" href="{{ asset('css/operator/appointments/show.css') }}">
     <link rel="stylesheet" href="{{ asset('css/operator/clients/client.css') }}">
+    <link rel="stylesheet" href="{{ asset('css/operator/reports/reports.css') }}">
 </head>
 
 <body>
@@ -52,7 +53,15 @@
                         <span>Clients</span>
                     </a>
                 </div>
+                <div class="nav-item">
+                    <a href="{{ route('operator.reports.index') }}"
+                        class="nav-link {{ request()->routeIs('operator.reports.*') ? 'active' : '' }}">
+                        <i class="fas fa-chart-bar"></i>
+                        <span>Reports</span>
+                    </a>
+                </div>
                 <div class="sidebar-divider"></div>
+                <div style="flex: 1;"></div>
             </nav>
             <div class="logout-wrapper">
                 <form method="POST" action="{{ route('logout') }}">

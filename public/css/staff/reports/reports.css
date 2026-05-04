@@ -1,3 +1,4 @@
+
         :root {
             --primary: #0f3b6f;
             --primary-dark: #0a2c52;
@@ -110,7 +111,7 @@
         /* Stats Grid */
         .reports-stats-grid {
             display: grid;
-            grid-template-columns: repeat(4, 1fr);
+            grid-template-columns: repeat(3, 1fr);
             gap: 20px;
             margin-bottom: 28px;
         }
@@ -166,6 +167,10 @@
             color: var(--info);
         }
 
+        .reports-text-primary {
+            color: var(--primary);
+        }
+
         .reports-stat-trend {
             font-size: 11px;
             display: flex;
@@ -191,9 +196,14 @@
             color: var(--success);
         }
 
-        .reports-stat-icon-circle.info-bg {
+        .reports-stat-icon-circle.warning-bg {
+            background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+            color: var(--warning);
+        }
+
+        .reports-stat-icon-circle.primary-bg {
             background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%);
-            color: var(--info);
+            color: var(--primary);
         }
 
         /* Cards */
@@ -202,6 +212,7 @@
             border-radius: var(--border-radius);
             border: 1px solid var(--gray-200);
             overflow: hidden;
+            margin-bottom: 28px;
         }
 
         .reports-card-header {
@@ -314,20 +325,14 @@
             justify-content: center;
         }
 
-        /* Chart Cards */
-        .reports-row-2 {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 24px;
-            margin-bottom: 28px;
-        }
-
+        /* Chart Card */
         .reports-chart-card {
             background: white;
             border-radius: var(--border-radius);
             box-shadow: var(--shadow);
             border: 1px solid var(--gray-200);
             overflow: hidden;
+            margin-bottom: 28px;
         }
 
         .reports-chart-header {
@@ -348,348 +353,147 @@
 
         .reports-chart-body {
             padding: 20px;
-            height: 320px;
+            height: 350px;
             position: relative;
         }
 
-        .reports-trend-chart {
-            height: 400px;
+        /* Table Styles */
+        .table-responsive {
+            overflow-x: auto;
         }
 
-        /* Map */
-        .reports-map-container {
-            padding: 0;
-        }
-
-        .reports-map {
-            height: 500px;
+        .reports-table {
             width: 100%;
-            border-radius: var(--border-radius-sm);
-            background: var(--gray-100);
-            z-index: 1;
+            border-collapse: collapse;
+            font-size: 13px;
         }
 
-        /* Action Buttons */
+        .reports-table th,
+        .reports-table td {
+            padding: 12px 16px;
+            text-align: left;
+            border-bottom: 1px solid var(--gray-200);
+        }
+
+        .reports-table th {
+            background: var(--gray-50);
+            font-weight: 600;
+            color: var(--gray-700);
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .reports-table tbody tr:hover {
+            background: var(--gray-50);
+        }
+
+        /* Status Badges */
+        .status-badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: 600;
+        }
+
+        .status-pending {
+            background: #fef3c7;
+            color: #d97706;
+        }
+
+        .status-confirmed {
+            background: #d1fae5;
+            color: #059669;
+        }
+
+        /* Action Buttons Container */
         .reports-action-buttons {
             display: flex;
             gap: 12px;
             flex-wrap: wrap;
         }
 
-        .reports-text-muted {
-            color: var(--gray-500);
-            font-size: 12px;
+        /* ============================================ */
+        /* PAGINATION STYLES - Matching Appointments Page */
+        /* ============================================ */
+        .reports-pagination-wrapper {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 16px;
+            padding-top: 16px;
+            border-top: 1px solid var(--gray-200);
+            margin-top: 20px;
         }
 
+        .reports-pagination-info {
+            font-size: 13px;
+            color: var(--gray-500);
+        }
+
+        .reports-simple-pagination {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .reports-pagination-btn {
+            padding: 8px 16px;
+            background: white;
+            border: 1px solid var(--gray-200);
+            border-radius: 8px;
+            text-decoration: none;
+            color: var(--gray-700);
+            font-size: 13px;
+            font-weight: 500;
+            transition: var(--transition);
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+        }
+
+        .reports-pagination-btn:hover {
+            background: var(--primary);
+            color: white;
+            border-color: var(--primary);
+            transform: translateY(-2px);
+        }
+
+        .reports-pagination-disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            pointer-events: none;
+        }
+
+        .reports-pagination-current {
+            padding: 6px 12px;
+            background: var(--primary);
+            color: white;
+            border-radius: 8px;
+            font-size: 13px;
+            font-weight: 500;
+        }
+
+        /* Utility Classes */
         .reports-mb-4 {
             margin-bottom: 28px;
         }
 
-        /* ========== CLUSTER MARKER STYLES ========== */
-        .marker-cluster {
-            background-clip: padding-box;
-            border-radius: 50%;
-            transition: all 0.3s ease;
+        .reports-mt-4 {
+            margin-top: 28px;
         }
 
-        .marker-cluster div {
-            width: 40px;
-            height: 40px;
-            margin-left: 5px;
-            margin-top: 5px;
+        .text-center {
             text-align: center;
-            border-radius: 50%;
-            font-weight: bold;
-            font-size: 14px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            box-shadow: 0 4px 14px rgba(0, 0, 0, 0.25);
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-        }
-
-        .marker-cluster-small {
-            background-color: rgba(16, 185, 129, 0.4);
-        }
-
-        .marker-cluster-small div {
-            background: linear-gradient(135deg, #10b981, #059669);
-            color: white;
-        }
-
-        .marker-cluster-medium {
-            background-color: rgba(245, 158, 11, 0.4);
-        }
-
-        .marker-cluster-medium div {
-            background: linear-gradient(135deg, #f59e0b, #d97706);
-            color: white;
-        }
-
-        .marker-cluster-large {
-            background-color: rgba(239, 68, 68, 0.4);
-        }
-
-        .marker-cluster-large div {
-            background: linear-gradient(135deg, #ef4444, #dc2626);
-            color: white;
-        }
-
-        .marker-cluster:hover {
-            transform: scale(1.05);
-            filter: brightness(1.05);
-        }
-
-        /* ========== INDIVIDUAL MARKER STYLES - NICE ICON WITH BORDER & RADIUS ========== */
-        .custom-marker-icon {
-            background: linear-gradient(135deg, #3b82f6, #2563eb);
-            width: 32px;
-            height: 32px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            border: 3px solid white;
-            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.25);
-            transition: all 0.3s ease;
-            cursor: pointer;
-        }
-
-        .custom-marker-icon i {
-            color: white;
-            font-size: 14px;
-            filter: drop-shadow(0 1px 1px rgba(0, 0, 0, 0.2));
-        }
-
-        .custom-marker-icon:hover {
-            transform: scale(1.15);
-            background: linear-gradient(135deg, #2563eb, #1d4ed8);
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.35);
-        }
-
-        /* Different colors based on status */
-        .custom-marker-icon.pending {
-            background: linear-gradient(135deg, #f59e0b, #d97706);
-        }
-
-        .custom-marker-icon.confirmed {
-            background: linear-gradient(135deg, #10b981, #059669);
-        }
-
-        .custom-marker-icon.completed {
-            background: linear-gradient(135deg, #3b82f6, #2563eb);
-        }
-
-        .custom-marker-icon.cancelled {
-            background: linear-gradient(135deg, #ef4444, #dc2626);
-        }
-
-
-        /* ========== POPUP STYLES - SMALLER & ELEGANT ========== */
-        .custom-popup .leaflet-popup-content-wrapper {
-            border-radius: 16px;
-            padding: 0;
-            overflow: hidden;
-            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
-            background: white;
-            border: 1px solid rgba(0, 0, 0, 0.05);
-        }
-
-        .custom-popup .leaflet-popup-content {
-            margin: 0;
-            min-width: 280px;
-            max-width: 320px;
-        }
-
-        .custom-popup .leaflet-popup-tip {
-            background: var(--primary);
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-        }
-
-        /* Popup Header */
-        .popup-header {
-            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
-            color: white;
-            padding: 12px 16px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            border-bottom: 2px solid var(--accent);
-        }
-
-        .popup-appointment {
-            font-weight: 700;
-            font-size: 13px;
-            letter-spacing: 0.5px;
-        }
-
-        .popup-appointment i {
-            font-size: 12px;
-            margin-right: 4px;
-        }
-
-        /* Status Badge in Popup */
-        .popup-status {
-            padding: 4px 10px;
-            border-radius: 20px;
-            font-size: 10px;
-            font-weight: 600;
-        }
-
-        .popup-status.pending {
-            background: #f59e0b;
-            color: white;
-        }
-
-        .popup-status.confirmed {
-            background: #10b981;
-            color: white;
-        }
-
-        .popup-status.completed {
-            background: #3b82f6;
-            color: white;
-        }
-
-        .popup-status.cancelled {
-            background: #ef4444;
-            color: white;
-        }
-
-        /* Popup Body */
-        .popup-body {
-            padding: 12px 16px;
-        }
-
-        .popup-location {
-            font-size: 11px;
-            color: var(--gray-500);
-            margin-bottom: 12px;
-            padding-bottom: 10px;
-            border-bottom: 1px solid var(--gray-200);
-            display: flex;
-            align-items: center;
-            gap: 6px;
-        }
-
-        .popup-info-row {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            margin-bottom: 8px;
-            font-size: 12px;
-            padding: 6px 0;
-            border-bottom: 1px dashed var(--gray-100);
-        }
-
-        .popup-info-row:last-of-type {
-            border-bottom: none;
-        }
-
-        .popup-info-row i {
-            width: 20px;
-            color: var(--primary);
-            font-size: 12px;
-        }
-
-        .popup-info-row strong {
-            color: var(--gray-800);
-        }
-
-        /* Clients Section */
-        .popup-clients {
-            margin-top: 12px;
-            background: var(--gray-50);
-            border-radius: 12px;
-            overflow: hidden;
-            border: 1px solid var(--gray-200);
-        }
-
-        .popup-clients-header {
-            background: var(--gray-100);
-            padding: 8px 12px;
-            font-size: 11px;
-            font-weight: 600;
-            color: var(--primary);
-            border-bottom: 1px solid var(--gray-200);
-        }
-
-        .popup-clients-list {
-            max-height: 150px;
-            overflow-y: auto;
-        }
-
-        .popup-client-item {
-            padding: 8px 12px;
-            border-bottom: 1px solid var(--gray-200);
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            font-size: 11px;
-            transition: background 0.2s ease;
-        }
-
-        .popup-client-item:hover {
-            background: white;
-        }
-
-        .popup-client-item:last-child {
-            border-bottom: none;
-        }
-
-        .popup-client-name {
-            font-weight: 600;
-            color: var(--gray-700);
-        }
-
-        .popup-client-service {
-            font-size: 9px;
-            color: var(--gray-500);
-            margin-top: 2px;
-        }
-
-        .popup-client-badge {
-            background: linear-gradient(135deg, #e3f2fd, #bbdef5);
-            color: #1565c0;
-            padding: 3px 8px;
-            border-radius: 12px;
-            font-size: 9px;
-            font-weight: 600;
-        }
-
-        /* PSA Marker */
-        .psa-icon-img {
-            width: 44px;
-            height: 44px;
-            border-radius: 50%;
-            object-fit: cover;
-            border: 3px solid var(--accent);
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
-            transition: all 0.3s ease;
-            background: white;
-        }
-
-        .psa-icon-img:hover {
-            transform: scale(1.1);
-            border-color: var(--accent-light);
-        }
-
-        /* Legend */
-        .map-legend {
-            background: rgba(255, 255, 255, 0.95);
-            padding: 8px 12px;
-            border-radius: 8px;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.15);
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            font-size: 12px;
         }
 
         /* Scrollbar */
         ::-webkit-scrollbar {
-            width: 4px;
-            height: 4px;
+            width: 6px;
+            height: 6px;
         }
 
         ::-webkit-scrollbar-track {
@@ -702,18 +506,78 @@
             border-radius: 4px;
         }
 
-        /* Responsive */
-        @media (max-width: 1200px) {
-            .reports-stats-grid {
-                grid-template-columns: repeat(2, 1fr);
+        ::-webkit-scrollbar-thumb:hover {
+            background: var(--gray-500);
+        }
+
+        /* Print Styles */
+        @media print {
+            .reports-welcome-section {
+                background: var(--gray-100);
+                color: black;
+                padding: 20px;
             }
 
-            .reports-row-2 {
-                grid-template-columns: 1fr;
+            .reports-welcome-section::before {
+                display: none;
+            }
+
+            .reports-date-display {
+                background: var(--gray-200);
+                color: black;
+            }
+
+            .reports-btn,
+            .reports-action-buttons,
+            .reports-form-group-btn,
+            .reports-pagination-wrapper,
+            .reports-card-header .reports-action-buttons {
+                display: none;
+            }
+
+            .reports-card {
+                box-shadow: none;
+                border: 1px solid #ddd;
+                page-break-inside: avoid;
+            }
+
+            .reports-stat-card {
+                box-shadow: none;
+                border: 1px solid #ddd;
+            }
+
+            .reports-chart-body {
+                break-inside: avoid;
+            }
+
+            .reports-table th,
+            .reports-table td {
+                border: 1px solid #ddd;
+            }
+        }
+
+        /* Responsive Design */
+        @media (max-width: 1200px) {
+            .reports-stats-grid {
+                gap: 16px;
+            }
+
+            .reports-stat-value {
+                font-size: 28px;
+            }
+        }
+
+        @media (max-width: 992px) {
+            .reports-form-row {
+                grid-template-columns: repeat(2, 1fr);
             }
         }
 
         @media (max-width: 768px) {
+            .reports-container {
+                padding: 0 0.75rem;
+            }
+
             .reports-welcome-section {
                 flex-direction: column;
                 text-align: center;
@@ -721,27 +585,108 @@
             }
 
             .reports-title {
-                font-size: 24px;
+                font-size: 22px;
+            }
+
+            .reports-subtitle {
+                font-size: 12px;
+            }
+
+            .reports-stats-grid {
+                grid-template-columns: 1fr;
+                gap: 12px;
+            }
+
+            .reports-stat-card {
+                padding: 16px;
+            }
+
+            .reports-stat-value {
+                font-size: 28px;
+            }
+
+            .reports-chart-body {
+                height: 280px;
+            }
+
+            .reports-card-header {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+
+            .reports-action-buttons {
+                width: 100%;
+                justify-content: stretch;
+            }
+
+            .reports-action-buttons .reports-btn {
+                flex: 1;
+                justify-content: center;
+            }
+
+            .reports-table th,
+            .reports-table td {
+                padding: 10px 12px;
+                font-size: 12px;
             }
 
             .reports-form-row {
                 grid-template-columns: 1fr;
             }
 
-            .reports-stats-grid {
-                grid-template-columns: 1fr;
+            .reports-pagination-wrapper {
+                flex-direction: column;
+                text-align: center;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .reports-title {
+                font-size: 20px;
+            }
+
+            .reports-date-display {
+                font-size: 12px;
+                padding: 6px 12px;
+            }
+
+            .reports-stat-label {
+                font-size: 10px;
+            }
+
+            .reports-stat-value {
+                font-size: 24px;
+            }
+
+            .reports-stat-icon-circle {
+                width: 44px;
+                height: 44px;
+                font-size: 20px;
             }
 
             .reports-chart-body {
-                height: 260px;
+                height: 240px;
+                padding: 12px;
             }
 
-            .reports-map {
-                height: 350px;
+            .reports-table th,
+            .reports-table td {
+                padding: 8px 10px;
+                font-size: 11px;
             }
 
-            .custom-popup .leaflet-popup-content {
-                min-width: 260px;
-                max-width: 280px;
+            .status-badge {
+                padding: 2px 8px;
+                font-size: 10px;
+            }
+
+            .reports-pagination-btn {
+                padding: 6px 12px;
+                font-size: 12px;
+            }
+
+            .reports-pagination-current {
+                padding: 4px 8px;
+                font-size: 12px;
             }
         }

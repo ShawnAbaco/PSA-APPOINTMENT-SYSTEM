@@ -8,10 +8,6 @@ use App\Models\Appointment;
 use App\Models\AppointmentClient;
 use App\Models\User;
 use App\Models\TimeSlot;
-use App\Models\SlotCapacityRule;
-use App\Models\SlotCapacityOverride;
-use App\Models\WorkingDaysDefault;
-use App\Models\WorkingDaysOverride;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -19,8 +15,8 @@ use Illuminate\Support\Facades\DB;
 class ReportController extends Controller
 {
 
-    const PSA_LAT = 8.4815315;
-    const PSA_LNG = 124.6549067;
+    const PSA_LAT = 8.482432;
+    const PSA_LNG = 124.655153;
 
     public function index(Request $request)
     {
@@ -28,12 +24,22 @@ class ReportController extends Controller
         $startDate = $request->get('start_date', Carbon::now()->startOfMonth()->toDateString());
         $endDate = $request->get('end_date', Carbon::now()->endOfMonth()->toDateString());
         
+        // Get status filter
+        $statusFilter = $request->get('status', '');
+        
         // Convert to Carbon instances for query
         $startDateCarbon = Carbon::parse($startDate)->startOfDay();
         $endDateCarbon = Carbon::parse($endDate)->endOfDay();
         
+        // Build appointment query with filters
+        $appointmentQuery = Appointment::whereBetween('appointment_date', [$startDateCarbon, $endDateCarbon]);
+        
+        if ($statusFilter) {
+            $appointmentQuery->where('status', $statusFilter);
+        }
+        
         // Get appointments within date range
-        $appointments = Appointment::whereBetween('appointment_date', [$startDateCarbon, $endDateCarbon])->get();
+        $appointments = $appointmentQuery->get();
         
         // Summary statistics
         $summary = [
@@ -46,21 +52,30 @@ class ReportController extends Controller
         ];
         
         // Get appointments by service (from appointment_clients)
-        $byService = AppointmentClient::whereBetween('created_at', [$startDateCarbon, $endDateCarbon])
-            ->select('service', DB::raw('COUNT(*) as count'))
+        $clientQuery = AppointmentClient::whereBetween('created_at', [$startDateCarbon, $endDateCarbon]);
+        
+        $byService = $clientQuery->select('service', DB::raw('COUNT(*) as count'))
             ->groupBy('service')
             ->get();
         
         // Get appointments by day of week
-        $byDay = Appointment::whereBetween('appointment_date', [$startDateCarbon, $endDateCarbon])
-            ->select(DB::raw('DAYNAME(appointment_date) as day'), DB::raw('COUNT(*) as count'))
+        $dayQuery = Appointment::whereBetween('appointment_date', [$startDateCarbon, $endDateCarbon]);
+        if ($statusFilter) {
+            $dayQuery->where('status', $statusFilter);
+        }
+        
+        $byDay = $dayQuery->select(DB::raw('DAYNAME(appointment_date) as day'), DB::raw('COUNT(*) as count'))
             ->groupBy('day')
             ->orderBy(DB::raw('FIELD(day, "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday")'))
             ->get();
         
         // Get appointments by time slot (using time_slot_id)
-        $byTimeSlot = Appointment::whereBetween('appointment_date', [$startDateCarbon, $endDateCarbon])
-            ->with('timeSlot')
+        $timeSlotQuery = Appointment::whereBetween('appointment_date', [$startDateCarbon, $endDateCarbon]);
+        if ($statusFilter) {
+            $timeSlotQuery->where('status', $statusFilter);
+        }
+        
+        $byTimeSlot = $timeSlotQuery->with('timeSlot')
             ->get()
             ->groupBy('timeSlot.slot_label')
             ->map(function($items) {
@@ -79,9 +94,65 @@ class ReportController extends Controller
             ->limit(10)
             ->get();
         
-        // ========== LOCATION-BASED ANALYTICS ==========
+        // ========== LOCATION-BASED BOOKINGS DETAILS ==========
         
-        // 1. City Summary with status breakdown
+        // Get detailed bookings grouped by city with client counts
+        $bookingsQuery = Appointment::with(['clients', 'timeSlot'])
+            ->whereBetween('appointment_date', [$startDateCarbon, $endDateCarbon])
+            ->whereNotNull('user_city');
+        
+        if ($statusFilter) {
+            $bookingsQuery->where('status', $statusFilter);
+        }
+        
+        $allBookings = $bookingsQuery->orderBy('appointment_date', 'desc')->get();
+        
+        // Group by city and add clients count
+        $bookingsByLocation = [];
+        foreach ($allBookings as $booking) {
+            $city = $booking->user_city;
+            if (!isset($bookingsByLocation[$city])) {
+                $bookingsByLocation[$city] = [];
+            }
+            $booking->clients_count = $booking->clients->count();
+            $bookingsByLocation[$city][] = $booking;
+        }
+        
+        // ========== INDIVIDUAL BOOKINGS FOR MAP (IMPORTANT!) ==========
+        // Get INDIVIDUAL bookings (not grouped by city) for map markers
+        $individualBookings = Appointment::with(['clients'])
+            ->whereBetween('appointment_date', [$startDateCarbon, $endDateCarbon])
+            ->whereNotNull('user_lat')
+            ->whereNotNull('user_lng')
+            ->get()
+            ->map(function($booking) {
+                return [
+                    'id' => $booking->id,
+                    'appointment_number' => $booking->appointment_number,
+                    'contact_name' => $booking->contact_name,
+                    'contact_mobile' => $booking->contact_mobile,
+                    'status' => $booking->status,
+                    'appointment_date' => $booking->appointment_date,
+                    'user_city' => $booking->user_city,
+                    'lat' => $booking->user_lat,
+                    'lng' => $booking->user_lng,
+                    'clients_count' => $booking->clients->count(),
+                    'clients' => $booking->clients->map(function($client) {
+                        return [
+                            'first_name' => $client->first_name,
+                            'last_name' => $client->last_name,
+                            'middle_name' => $client->middle_name,
+                            'suffix' => $client->suffix,
+                            'service' => $client->service,
+                            'sex' => $client->sex,
+                            'birthdate' => $client->birthdate,
+                            'trn_number' => $client->trn_number,
+                        ];
+                    })
+                ];
+            });
+        
+        // City Summary with status breakdown (for statistics)
         $citySummary = Appointment::whereBetween('appointment_date', [$startDateCarbon, $endDateCarbon])
             ->whereNotNull('user_city')
             ->select(
@@ -119,7 +190,7 @@ class ReportController extends Controller
         $topCityCount = $citySummary->isNotEmpty() ? $citySummary->first()->total_bookings : 0;
         $completionRate = $summary['total'] > 0 ? round(($summary['completed'] / $summary['total']) * 100, 1) : 0;
         
-        // 3. Location data for map
+        // 3. Location data for map (aggregated - used for legend/stats only)
         $bookingLocations = Appointment::whereBetween('appointment_date', [$startDateCarbon, $endDateCarbon])
             ->whereNotNull('user_lat')
             ->whereNotNull('user_lng')
@@ -171,7 +242,7 @@ class ReportController extends Controller
             ];
         }
         
-        // Get service labels and data for chart (updated service codes)
+        // Get service labels and data for chart
         $serviceLabels = [];
         $serviceData = [];
         $serviceNames = [
@@ -261,7 +332,10 @@ class ReportController extends Controller
             'cancelledAppointments',
             'totalBookings',
             'psaLat',
-            'psaLng'
+            'psaLng',
+            'bookingsByLocation',
+            'statusFilter',
+            'individualBookings'  // <-- ADD THIS!
         ));
     }
     
@@ -286,7 +360,6 @@ class ReportController extends Controller
             function() use ($appointments) {
                 $handle = fopen('php://output', 'w');
                 
-                // Add CSV headers with location fields and time slot
                 fputcsv($handle, [
                     'Appointment #',
                     'Date',
@@ -304,7 +377,6 @@ class ReportController extends Controller
                     'Created At'
                 ]);
                 
-                // Add data rows
                 foreach ($appointments as $appointment) {
                     $clientNames = $appointment->clients->map(function($client) {
                         return $client->first_name . ' ' . $client->last_name;
@@ -350,7 +422,7 @@ class ReportController extends Controller
     }
     
     /**
-     * NEW: Export location summary to CSV
+     * Export location summary to CSV
      */
     public function exportLocationSummary(Request $request)
     {

@@ -19,6 +19,20 @@
         <div class="reports-card reports-mb-4">
             <div class="reports-card-header">
                 <h5 class="reports-card-title"><i class="fas fa-filter"></i> Filter Reports</h5>
+                <!-- Export Buttons -->
+                <div class="reports-card">
+                    <div class="reports-card-body reports-action-buttons">
+                        <button onclick="exportToCSV()" class="reports-btn reports-btn-success"><i
+                                class="fas fa-file-csv"></i>
+                            Export to CSV</button>
+                        <button onclick="window.print()" class="reports-btn reports-btn-secondary"><i
+                                class="fas fa-print"></i>
+                            Print Report</button>
+                        <button onclick="copyTableData()" class="reports-btn reports-btn-info"><i class="fas fa-copy"></i>
+                            Copy
+                            Summary</button>
+                    </div>
+                </div>
             </div>
             <div class="reports-card-body">
                 <form method="GET" action="{{ route('admin.reports.index') }}">
@@ -44,6 +58,8 @@
                                 <option value="completed" {{ request('status') == 'completed' ? 'selected' : '' }}>Completed
                                 </option>
                                 <option value="cancelled" {{ request('status') == 'cancelled' ? 'selected' : '' }}>Cancelled
+                                </option>
+                                <option value="no_show" {{ request('status') == 'no_show' ? 'selected' : '' }}>No Show
                                 </option>
                             </select>
                         </div>
@@ -83,10 +99,13 @@
             <div class="reports-stat-card">
                 <div class="reports-stat-card-content">
                     <div class="reports-stat-info">
-                        <h6 class="reports-stat-label">Most Active City</h6>
+                        <h6 class="reports-stat-label">Most Book Place</h6>
                         <h2 class="reports-stat-value reports-text-warning">{{ $topCity ?? 'N/A' }}</h2>
                         <p class="reports-stat-trend"> {{ $topCityCount ?? 0 }} bookings</p>
                     </div>
+                    <div class="custom-marker-icon"
+                        style="width: 50px; height: 50px; background: linear-gradient(135deg, #f59e0b, #d97706); "><i
+                            class="fas fa-calendar-check" style="font-size:30px;"></i></div>
                 </div>
             </div>
 
@@ -104,7 +123,6 @@
 
         <!-- Charts Row -->
         <div class="reports-row-2">
-            <!-- Appointment Status Chart -->
             <div class="reports-chart-card">
                 <div class="reports-chart-header">
                     <h5 class="reports-chart-title"><i class="fas fa-chart-bar"></i> Appointment Status Summary</h5>
@@ -114,7 +132,6 @@
                 </div>
             </div>
 
-            <!-- Services Distribution Chart -->
             <div class="reports-chart-card">
                 <div class="reports-chart-header">
                     <h5 class="reports-chart-title"><i class="fas fa-chart-pie"></i> Services Distribution</h5>
@@ -125,96 +142,18 @@
             </div>
         </div>
 
-        <!-- Booking Location Summary -->
-        <div class="reports-card reports-mb-4">
-            <div class="reports-card-header">
-                <h5 class="reports-card-title"><i class="fas fa-map-marker-alt"></i> Booking Summary by City / Location</h5>
-                <button onclick="exportToCSV()" class="reports-view-link"><i class="fas fa-download"></i> Export
-                    CSV</button>
-            </div>
-            <div class="reports-card-body reports-table-responsive">
-                <table class="reports-table" id="citySummaryTable">
-                    <thead>
-                        <tr>
-                            <th>Rank</th>
-                            <th>City / Place</th>
-                            <th>Total Bookings</th>
-                            <th>Percentage</th>
-                            <th>Status Breakdown</th>
-                            <th>Trend</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @php $grandTotal = $citySummary->sum('total_bookings'); @endphp
-                        @forelse($citySummary as $index => $summary)
-                            <tr>
-                                <td><strong>{{ $index + 1 }}</strong></td>
-                                <td>
-                                    {{ $summary->user_city }}
-                                    @if ($index == 0)
-                                        <span class="reports-badge reports-badge-warning reports-badge-sm">Top
-                                            Location</span>
-                                    @endif
-                                </td>
-                                <td><span class="reports-stat-number">{{ $summary->total_bookings }}</span></td>
-                                <td>
-                                    <div class="reports-progress-wrapper">
-                                        <div class="reports-progress">
-                                            <div class="reports-progress-bar reports-progress-bar-info"
-                                                style="width: {{ ($summary->total_bookings / $grandTotal) * 100 }}%">
-                                            </div>
-                                        </div>
-                                        <span
-                                            class="reports-progress-percent">{{ round(($summary->total_bookings / $grandTotal) * 100, 1) }}%</span>
-                                    </div>
-                                </td>
-                                <td>
-                                    <div class="reports-status-badges">
-                                        <span class="reports-badge reports-badge-warning">P:
-                                            {{ $summary->pending ?? 0 }}</span>
-                                        <span class="reports-badge reports-badge-success">C:
-                                            {{ $summary->confirmed ?? 0 }}</span>
-                                        <span class="reports-badge reports-badge-info">COM:
-                                            {{ $summary->completed ?? 0 }}</span>
-                                        <span class="reports-badge reports-badge-danger">CAN:
-                                            {{ $summary->cancelled ?? 0 }}</span>
-                                    </div>
-                                </td>
-                                <td>
-                                    @if ($summary->trend > 0)
-                                        <span class="reports-trend-up">↑ +{{ $summary->trend }}%</span>
-                                    @elseif($summary->trend < 0)
-                                        <span class="reports-trend-down">↓ {{ $summary->trend }}%</span>
-                                    @else
-                                        <span class="reports-trend-neutral">→ 0%</span>
-                                    @endif
-                                </td>
-                            </tr>
-                        @empty
-                            <tr>
-                                <td colspan="6" class="reports-empty-state">No booking data available for the selected
-                                    filters</td>
-                            </tr>
-                        @endforelse
-                    </tbody>
-                    <tfoot>
-                        <tr>
-                            <th colspan="2">Grand Total</th>
-                            <th class="reports-stat-number">{{ $grandTotal }}</th>
-                            <th>100%</th>
-                            <th colspan="2"></th>
-                        </tr>
-                    </tfoot>
-                </table>
-            </div>
-        </div>
-
         <!-- Map View -->
         <div class="reports-card reports-mb-4">
             <div class="reports-card-header">
                 <h5 class="reports-card-title"><i class="fas fa-map"></i> Geographic Distribution of Bookings</h5>
-                <small class="reports-text-muted">📍 Each marker represents bookings from that location. Click marker for
-                    details.</small>
+                <small>
+                    <div style="display:flex; align-items:center; gap:8px;">
+                        <div class="custom-marker-icon"
+                            style="width:24px; height:24px; background: linear-gradient(135deg, #f59e0b, #d97706); "><i
+                                class="fas fa-calendar-check" style="font-size:10px;"></i></div>
+                        <span>Click on markers to view appointment details</span>
+                    </div>
+                </small>
             </div>
             <div class="reports-card-body reports-map-container">
                 <div id="bookingsMap" class="reports-map"></div>
@@ -230,28 +169,26 @@
                 <canvas id="cityTrendChart"></canvas>
             </div>
         </div>
-
-        <!-- Export Buttons -->
-        <div class="reports-card">
-            <div class="reports-card-body reports-action-buttons">
-                <button onclick="exportToCSV()" class="reports-btn reports-btn-success"><i class="fas fa-file-csv"></i>
-                    Export to CSV</button>
-                <button onclick="window.print()" class="reports-btn reports-btn-secondary"><i class="fas fa-print"></i>
-                    Print Report</button>
-                <button onclick="copyTableData()" class="reports-btn reports-btn-info"><i class="fas fa-copy"></i> Copy
-                    Summary</button>
-            </div>
-        </div>
     </div>
 
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css" />
     <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css" />
 
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-    <script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
+    <style>
+        .leaflet-bottom {
+            bottom: -30px;
+        }
+
+        .leaflet-right {
+            right: -10px;
+        }
+    </style>
+
 
     <script>
         // Appointment Status Chart
@@ -259,13 +196,14 @@
         new Chart(ctx1, {
             type: 'bar',
             data: {
-                labels: ['Pending', 'Confirmed', 'Completed', 'Cancelled'],
+                labels: ['Pending', 'Confirmed', 'Completed', 'Cancelled', 'No Show'],
                 datasets: [{
                     label: 'Number of Appointments',
                     data: [{{ $pendingAppointments ?? 0 }}, {{ $confirmedAppointments ?? 0 }},
-                        {{ $completedAppointments ?? 0 }}, {{ $cancelledAppointments ?? 0 }}
+                        {{ $completedAppointments ?? 0 }}, {{ $cancelledAppointments ?? 0 }},
+                        {{ $summary['no_show'] ?? 0 }}
                     ],
-                    backgroundColor: ['#f59e0b', '#10b981', '#3b82f6', '#ef4444'],
+                    backgroundColor: ['#f59e0b', '#10b981', '#3b82f6', '#ef4444', '#6c757d'],
                     borderRadius: 8,
                     barPercentage: 0.7
                 }]
@@ -275,7 +213,7 @@
                 maintainAspectRatio: false,
                 plugins: {
                     legend: {
-                        position: 'top',
+                        position: 'top'
                     }
                 },
                 scales: {
@@ -334,12 +272,12 @@
 
         // City Trend Chart
         const cityTrendData = @json($cityTrendData ?? []);
-        const cityLabels = @json($cityTrendLabels ?? []);
-        if (cityTrendData && cityLabels.length > 0) {
+        const cityTrendLabels = @json($cityTrendLabels ?? []);
+        if (cityTrendData && cityTrendLabels.length > 0) {
             new Chart(document.getElementById('cityTrendChart'), {
                 type: 'line',
                 data: {
-                    labels: cityLabels,
+                    labels: cityTrendLabels,
                     datasets: cityTrendData
                 },
                 options: {
@@ -376,13 +314,28 @@
 
         // Initialize Leaflet Map
         let map, markersLayer;
-        const bookingsLocations = @json($bookingLocations ?? []);
+        const individualBookings = @json($individualBookings ?? []);
         const psaLat = @json($psaLat ?? 8.4815315);
         const psaLng = @json($psaLng ?? 124.6549067);
         const psaCenter = [psaLat, psaLng];
 
+        function getMarkerColor(status) {
+            switch (status) {
+                case 'pending':
+                    return 'pending';
+                case 'confirmed':
+                    return 'confirmed';
+                case 'completed':
+                    return 'completed';
+                case 'cancelled':
+                    return 'cancelled';
+                default:
+                    return '';
+            }
+        }
+
         function initMap() {
-            map = L.map('bookingsMap').setView(psaCenter, 14);
+            map = L.map('bookingsMap').setView(psaCenter, 13);
 
             // Google Hybrid layer
             const googleHybrid = L.tileLayer('https://{s}.google.com/vt/lyrs=y&x={x}&y={y}&z={z}', {
@@ -412,35 +365,15 @@
 
             // PSA Marker
             const psaIconCustom = L.divIcon({
-                html: '<div style="background: linear-gradient(135deg, #0f3b6f, #0a2c52); width: 44px; height: 44px; border-radius: 50%; display: flex; align-items: center; justify-content: center; border: 3px solid #c49a2c; box-shadow: 0 4px 12px rgba(0,0,0,0.3);"><img src="/images/psa.png" style="width: 32px; height: 32px; border-radius: 50%;"></div>',
+                html: '<img src="{{ asset('images/psa.png') }}" class="psa-icon-img" alt="PSA">',
                 iconSize: [44, 44],
                 popupAnchor: [0, -22],
                 className: 'psa-marker-container'
             });
 
-            const psaMarker = L.marker(psaCenter, {
+            L.marker(psaCenter, {
                 icon: psaIconCustom
             }).addTo(map);
-            psaMarker.bindPopup(`
-            <div style="min-width: 240px;">
-                <div style="background: linear-gradient(135deg, #0f3b6f, #0a2c52); color: white; padding: 10px 12px; border-radius: 10px 10px 0 0; margin: -12px -12px 0 -12px;">
-                    <strong>PSA Misamis Oriental</strong><br>
-                    <small>National ID Registration Center</small>
-                </div>
-                <div style="padding: 12px;">
-                    <div style="background: #f0f4fa; padding: 8px; border-radius: 8px; margin-bottom: 8px;">
-                        <strong>📍 Address</strong><br>
-                        Capt. Vicente Roa Street, Brgy. 31,<br>Cagayan de Oro City, 9000 Misamis Oriental
-                    </div>
-                    <div style="display: flex; gap: 10px; font-size: 0.75rem; color: #475569;">
-                        <span>📞 0956 576 6106</span>
-                        <span>🕒 Mon-Fri 8AM-5PM</span>
-                    </div>
-                </div>
-            </div>
-        `, {
-                maxWidth: 280
-            });
 
             // Add circles around PSA
             L.circle(psaCenter, {
@@ -450,7 +383,6 @@
                 radius: 120,
                 weight: 3
             }).addTo(map);
-
             L.circle(psaCenter, {
                 color: '#0f3b6f',
                 fillColor: '#0f3b6f',
@@ -470,46 +402,120 @@
             // Marker Cluster Group
             markersLayer = L.markerClusterGroup({
                 chunkedLoading: true,
-                maxClusterRadius: 60
+                maxClusterRadius: 60,
+                showCoverageOnHover: false,
+                zoomToBoundsOnClick: true,
+                spiderfyOnMaxZoom: true,
+                removeOutsideVisibleBounds: true
             });
 
-            bookingsLocations.forEach(location => {
-                if (location.lat && location.lng) {
-                    let markerColor = '#28a745';
-                    if (location.count >= 30) markerColor = '#dc3545';
-                    else if (location.count >= 10) markerColor = '#ffc107';
+            // Create markers for each booking with NICE ICONS
+            individualBookings.forEach(booking => {
+                if (booking.lat && booking.lng) {
+                    const statusClass = getMarkerColor(booking.status);
+
+                    // Create custom HTML for marker with nice icon
+                    const markerHtml = `
+                        <div class="custom-marker-icon ${statusClass}">
+                            <i class="fas fa-calendar-check"></i>
+                        </div>
+                    `;
 
                     const icon = L.divIcon({
-                        html: `<div style="background:${markerColor};width:30px;height:30px;border-radius:50%;display:flex;align-items:center;justify-content:center;border:2px solid white;font-weight:bold;color:white;font-size:12px;box-shadow:0 2px 6px rgba(0,0,0,0.2);">${location.count}</div>`,
-                        iconSize: [30, 30],
-                        popupAnchor: [0, -15]
+                        html: markerHtml,
+                        iconSize: [32, 32],
+                        popupAnchor: [0, -16],
+                        className: 'marker-container'
                     });
 
-                    const marker = L.marker([parseFloat(location.lat), parseFloat(location.lng)], {
+                    const marker = L.marker([parseFloat(booking.lat), parseFloat(booking.lng)], {
                         icon
                     });
-                    marker.bindPopup(`
-                    <div>
-                        <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 8px 12px; border-radius: 8px 8px 0 0; margin: -12px -12px 0 -12px;">
-                            <strong>📍 ${escapeHtml(location.city)}</strong>
-                        </div>
-                        <div style="padding: 10px;">
-                            <div style="display: flex; justify-content: space-between; margin-bottom: 5px;"><span>Total Bookings:</span><strong>${location.count}</strong></div>
-                            <div style="display: flex; justify-content: space-between; margin-bottom: 5px;"><span>Pending:</span><strong style="color:#f59e0b;">${location.pending || 0}</strong></div>
-                            <div style="display: flex; justify-content: space-between; margin-bottom: 5px;"><span>Confirmed:</span><strong style="color:#10b981;">${location.confirmed || 0}</strong></div>
-                            <div style="display: flex; justify-content: space-between; margin-bottom: 5px;"><span>Completed:</span><strong style="color:#3b82f6;">${location.completed || 0}</strong></div>
-                            <div style="display: flex; justify-content: space-between;"><span>Cancelled:</span><strong style="color:#ef4444;">${location.cancelled || 0}</strong></div>
-                        </div>
-                        <div style="padding: 8px 12px; background: #f8f9fa; border-radius: 0 0 8px 8px; text-align: center;">
-                            <button class="reports-btn reports-btn-sm reports-btn-primary" onclick="window.location.href='/admin/appointments?city=${encodeURIComponent(location.city)}'">View Bookings →</button>
-                        </div>
-                    </div>
-                `, {
-                        maxWidth: 300
+
+                    const clients = booking.clients || [];
+                    const clientsCount = clients.length;
+
+                    // Build clients HTML
+                    let clientsHtml = '';
+                    if (clients.length > 0) {
+                        clientsHtml = '<div class="popup-clients-list">';
+                        clients.forEach(client => {
+                            let serviceName = '';
+                            switch (client.service) {
+                                case 'reg':
+                                    serviceName = 'National ID Registration';
+                                    break;
+                                case 'updating':
+                                    serviceName = 'Updating';
+                                    break;
+                                case 'inquiry':
+                                    serviceName = 'Status Inquiry';
+                                    break;
+                                default:
+                                    serviceName = client.service;
+                            }
+                            clientsHtml += `
+                                <div class="popup-client-item">
+                                    <div>
+                                        <div class="popup-client-name">${escapeHtml(client.first_name)} ${escapeHtml(client.last_name)}</div>
+                                        <div class="popup-client-service">${serviceName}</div>
+                                    </div>
+                                    <span class="popup-client-badge">${client.sex || 'N/A'}</span>
+                                </div>
+                            `;
+                        });
+                        clientsHtml += '</div>';
+                    } else {
+                        clientsHtml =
+                            '<div class="popup-client-item" style="text-align:center; color:#999;">No clients</div>';
+                    }
+
+                    const statusText = booking.status.charAt(0).toUpperCase() + booking.status.slice(1);
+                    const appointmentDate = new Date(booking.appointment_date).toLocaleDateString('en-US', {
+                        month: 'short',
+                        day: 'numeric',
+                        year: 'numeric'
                     });
+
+                    const popupContent = `
+                        <div>
+                            <div class="popup-header">
+                                <span class="popup-appointment"><i class="fas fa-hashtag"></i> ${escapeHtml(booking.appointment_number)}</span>
+                                <span class="popup-status ${booking.status}">${statusText}</span>
+                            </div>
+                            <div class="popup-body">
+                                <div class="popup-location">
+                                    <i class="fas fa-map-marker-alt"></i> ${escapeHtml(booking.user_city || 'Unknown Location')}
+                                </div>
+                                <div class="popup-info-row">
+                                    <i class="fas fa-calendar-alt"></i> <strong>${appointmentDate}</strong>
+                                </div>
+                                <div class="popup-info-row">
+                                    <i class="fas fa-user-circle"></i> ${escapeHtml(booking.contact_name)}
+                                </div>
+                                <div class="popup-info-row">
+                                    <i class="fas fa-phone-alt"></i> ${escapeHtml(booking.contact_mobile)}
+                                </div>
+                                <div class="popup-clients">
+                                    <div class="popup-clients-header">
+                                        <i class="fas fa-users"></i> Clients (${clientsCount})
+                                    </div>
+                                    ${clientsHtml}
+                                </div>
+                            </div>
+                        </div>
+                    `;
+
+                    marker.bindPopup(popupContent, {
+                        maxWidth: 320,
+                        minWidth: 280,
+                        className: 'custom-popup'
+                    });
+
                     markersLayer.addLayer(marker);
                 }
             });
+
             map.addLayer(markersLayer);
 
             // Legend
@@ -519,12 +525,15 @@
             legend.onAdd = function() {
                 const div = L.DomUtil.create('div', 'map-legend');
                 div.innerHTML = `
-                <h6 style="margin:0 0 8px 0;font-size:12px;">📊 Booking Density</h6>
-                <div style="display:flex;align-items:center;margin-bottom:5px;"><div style="width:16px;height:16px;border-radius:50%;background:#28a745;margin-right:8px;"></div><span>Low (1-9)</span></div>
-                <div style="display:flex;align-items:center;margin-bottom:5px;"><div style="width:16px;height:16px;border-radius:50%;background:#ffc107;margin-right:8px;"></div><span>Medium (10-29)</span></div>
-                <div style="display:flex;align-items:center;margin-bottom:5px;"><div style="width:16px;height:16px;border-radius:50%;background:#dc3545;margin-right:8px;"></div><span>High (30+)</span></div>
-                <div style="display:flex;align-items:center;margin-top:8px;padding-top:5px;border-top:1px solid #ddd;"><div style="width:16px;height:16px;border-radius:50%;background:#0f3b6f;margin-right:8px;border:2px solid #c49a2c;"></div><span>PSA Center</span></div>
-            `;
+                    <div style="display:flex; align-items:center; gap:8px;">
+                        <div class="custom-marker-icon" style="width:24px; height:24px; background: linear-gradient(135deg, #f59e0b, #d97706); "><i class="fas fa-calendar-check" style="font-size:10px;"></i></div>
+                        <span>Appointment</span>
+                    </div>
+                    <div style="display:flex; align-items:center; gap:8px; margin-left:12px;">
+                        <img src="{{ asset('images/psa.png') }}" style="width:24px;height:24px;border-radius:50%;border:2px solid #c49a2c;">
+                        <span>PSA Center</span>
+                    </div>
+                `;
                 return div;
             };
             legend.addTo(map);
@@ -542,6 +551,10 @@
 
         function exportToCSV() {
             const table = document.getElementById('citySummaryTable');
+            if (!table) {
+                alert('No table to export');
+                return;
+            }
             let csv = [];
             table.querySelectorAll('tr').forEach(row => {
                 const cells = row.querySelectorAll('th, td');
@@ -563,6 +576,10 @@
 
         function copyTableData() {
             const table = document.getElementById('citySummaryTable');
+            if (!table) {
+                alert('No table to copy');
+                return;
+            }
             const range = document.createRange();
             range.selectNode(table);
             window.getSelection().removeAllRanges();

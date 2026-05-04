@@ -16,6 +16,7 @@
     <link rel="stylesheet" href="{{ asset('css/staff/appointments/appointments.css') }}">
     <link rel="stylesheet" href="{{ asset('css/staff/appointments/show.css') }}">
     <link rel="stylesheet" href="{{ asset('css/staff/clients/client.css') }}">
+    <link rel="stylesheet" href="{{ asset('css/staff/reports/reports.css') }}">
 
 </head>
 
@@ -49,6 +50,13 @@
                         class="nav-link {{ request()->routeIs('staff.clients.*') ? 'active' : '' }}">
                         <i class="fas fa-users"></i>
                         <span>Clients</span>
+                    </a>
+                </div>
+                <div class="nav-item">
+                    <a href="{{ route('staff.reports.index') }}"
+                        class="nav-link {{ request()->routeIs('staff.reports.*') ? 'active' : '' }}">
+                        <i class="fas fa-chart-bar"></i>
+                        <span>Reports</span>
                     </a>
                 </div>
                 <div class="sidebar-divider"></div>

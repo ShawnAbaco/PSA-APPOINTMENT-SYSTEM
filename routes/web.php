@@ -144,6 +144,10 @@ Route::middleware(['auth', 'staff'])->prefix('staff')->name('staff.')->group(fun
     Route::get('/clients/export/csv', [App\Http\Controllers\Staff\ClientController::class, 'export'])->name('clients.export');
     Route::get('/clients/search/ajax', [App\Http\Controllers\Staff\ClientController::class, 'search'])->name('clients.search');
     Route::get('/clients/statistics/data', [App\Http\Controllers\Staff\ClientController::class, 'statistics'])->name('clients.statistics');
+
+    // Reports routes
+    Route::get('/reports', [App\Http\Controllers\Staff\ReportsController::class, 'index'])->name('reports.index');
+    Route::get('/reports/export', [App\Http\Controllers\Staff\ReportsController::class, 'export'])->name('reports.export');
 });
 
 // Operator routes
@@ -171,6 +175,10 @@ Route::middleware(['auth', 'operator'])->prefix('operator')->name('operator.')->
     Route::get('/clients/export/csv', [App\Http\Controllers\Operator\OClientController::class, 'export'])->name('clients.export');
     Route::get('/clients/search/ajax', [App\Http\Controllers\Operator\OClientController::class, 'search'])->name('clients.search');
     Route::get('/clients/statistics/data', [App\Http\Controllers\Operator\OClientController::class, 'statistics'])->name('clients.statistics');
+
+    // Reports routes
+    Route::get('/reports', [App\Http\Controllers\Operator\ReportsController::class, 'index'])->name('reports.index');
+    Route::get('/reports/export', [App\Http\Controllers\Operator\ReportsController::class, 'export'])->name('reports.export');
 });
 
 // Client appointment routes
