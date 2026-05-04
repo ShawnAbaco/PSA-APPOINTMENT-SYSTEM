@@ -318,18 +318,5 @@ class AppointmentController extends Controller
     return view('admin.appointments.index', compact('appointments', 'timeSlots', 'cities'));
 }
     
-    public function getJson($id)
-    {
-        $appointment = Appointment::with(['timeSlot', 'clients'])->find($id);
-        
-        if (!$appointment) {
-            return response()->json(['success' => false, 'message' => 'Appointment not found']);
-        }
-        
-        return response()->json([
-            'success' => true,
-            'appointment' => $appointment
-        ]);
-    }
-    
+
 }

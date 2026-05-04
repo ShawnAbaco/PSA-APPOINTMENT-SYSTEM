@@ -53,14 +53,28 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
     Route::get('/appointments/{id}', [App\Http\Controllers\Admin\AppointmentController::class, 'show'])->name('appointments.show');
     Route::put('/appointments/{id}/status', [App\Http\Controllers\Admin\AppointmentController::class, 'updateStatus'])->name('appointments.status');
     Route::delete('/appointments/{id}', [App\Http\Controllers\Admin\AppointmentController::class, 'destroy'])->name('appointments.destroy');
-    Route::get('/calendar', [App\Http\Controllers\Admin\AppointmentController::class, 'calendar'])->name('calendar');
+    Route::get('/calendar', [App\Http\Controllers\Admin\CalendarController::class, 'index'])->name('calendar'); 
+    Route::get('/calendar/time-slots', [App\Http\Controllers\Admin\CalendarController::class, 'getTimeSlotsByDate'])->name('appointments.time-slots');
+Route::get('/calendar/by-time-slot', [App\Http\Controllers\Admin\CalendarController::class, 'getAppointmentsByTimeSlot'])->name('appointments.by-time-slot');
+Route::get('/calendar/slot-data', [App\Http\Controllers\Admin\CalendarController::class, 'getSlotData'])->name('calendar.slot-data');
+Route::get('/calendar/stats', [App\Http\Controllers\Admin\CalendarController::class, 'getStats'])->name('calendar.stats');
+
+
+ Route::get('/calendar/{id}/full-details', [App\Http\Controllers\Admin\CalendarController::class, 'getFullDetails'])->name('calendar.full-details');
+    Route::get('/calendar/{id}/json', [App\Http\Controllers\Admin\CalendarController::class, 'getJson'])->name('calendar.json');
+    // Add these to your admin routes group
+
+
+
+
+
     Route::get('/appointment-places', [App\Http\Controllers\Admin\DashboardController::class, 'getAppointmentPlacesAjax']);
     Route::get('/location-map-data', [App\Http\Controllers\Admin\DashboardController::class, 'getLocationMapDataAjax']);
     Route::get('/summary-stats', [App\Http\Controllers\Admin\DashboardController::class, 'getSummaryStats']);
     Route::get('/calendar-data', [App\Http\Controllers\Admin\DashboardController::class, 'getCalendarData'])->name('calendar-data');    
         
     Route::get('/appointments/{id}/modal', [App\Http\Controllers\Admin\AppointmentController::class, 'showModal'])->name('admin.appointments.modal');
-    Route::get('/appointments/{id}/json', [App\Http\Controllers\Admin\AppointmentController::class, 'getJson'])->name('admin.appointments.json');
+    Route::get('/appointments/{id}/json', [App\Http\Controllers\Admin\CalendarController::class, 'getJson'])->name('admin.appointments.json');
     
     Route::get('/appointments/locations', [App\Http\Controllers\Admin\AppointmentController::class, 'getByLocation'])->name('appointments.locations');
     Route::get('/appointments/city-stats', [App\Http\Controllers\Admin\AppointmentController::class, 'cityStatistics'])->name('appointments.city-stats');
