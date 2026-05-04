@@ -323,7 +323,7 @@
         </div>
     </div>
 
-    <!-- Slot Detail Modal -->
+    <!-- Slot Detail Modal (ORIGINAL - UNCHANGED) -->
     <div class="slots-modal" id="slotsSlotDetailModal">
         <div class="slots-modal-dialog slots-modal-lg">
             <div class="slots-modal-content">
@@ -341,204 +341,686 @@
         </div>
     </div>
 
+    <!-- ============================================ -->
+    <!-- EDIT SLOT MODAL - NEW WITH UNIQUE CLASS NAMES -->
+    <!-- ============================================ -->
+    <div class="edit-slot-modal" id="editSlotModal">
+        <div class="edit-slot-modal-dialog edit-slot-modal-lg">
+            <div class="edit-slot-modal-content">
+                <div class="edit-slot-modal-header edit-slot-modal-header-primary">
+                    <h5 class="edit-slot-modal-title"><i class="fas fa-edit"></i> Edit Appointment Slot</h5>
+                    <span class="edit-slot-modal-close" data-dismiss="modal">&times;</span>
+                </div>
+                <div class="edit-slot-modal-body">
+                    <form id="editSlotForm">
+                        @csrf
+                        @method('PUT')
+                        <input type="hidden" name="slot_id" id="edit_slot_id">
+                        
+                        <div class="edit-slot-alert edit-slot-alert-info" id="editSlotInfo">
+                            <i class="fas fa-info-circle"></i>
+                            <strong>Date:</strong> <span id="edit_slot_date"></span><br>
+                            <strong>Currently Booked:</strong> <span id="edit_booked_count">0</span> clients<br>
+                            <small>Note: Capacity cannot be reduced below currently booked numbers.</small>
+                        </div>
+
+                        <div class="edit-slot-form-row">
+                            <div class="edit-slot-form-group">
+                                <label class="edit-slot-form-label">Time Slot *</label>
+                                <select name="time_slot_id" id="edit_time_slot_id" class="edit-slot-form-control" required>
+                                    <option value="">Select Time Slot</option>
+                                    @foreach ($timeSlots as $timeSlot)
+                                        <option value="{{ $timeSlot->id }}">{{ $timeSlot->label }}</option>
+                                    @endforeach
+                                </select>
+                            </div>
+                            <div class="edit-slot-form-group">
+                                <label class="edit-slot-form-label">Day Type *</label>
+                                <select name="day_type" id="edit_day_type" class="edit-slot-form-control" required>
+                                    <option value="working">Working Day</option>
+                                    <option value="half_day">Half Day (50% Capacity)</option>
+                                    <option value="holiday">Holiday (No Appointments)</option>
+                                    <option value="special">Special Day</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="edit-slot-form-row" id="editCapacityFields">
+                            <div class="edit-slot-form-group">
+                                <label class="edit-slot-form-label">Registration (R) Capacity *</label>
+                                <input type="number" name="reg_capacity" id="edit_reg_capacity" class="edit-slot-form-control" min="0" max="100" required>
+                                <small class="edit-slot-form-help">Available: <span id="edit_reg_available">0</span></small>
+                            </div>
+                            <div class="edit-slot-form-group">
+                                <label class="edit-slot-form-label">Updating (U) Capacity *</label>
+                                <input type="number" name="updating_capacity" id="edit_updating_capacity" class="edit-slot-form-control" min="0" max="100" required>
+                                <small class="edit-slot-form-help">Available: <span id="edit_updating_available">0</span></small>
+                            </div>
+                            <div class="edit-slot-form-group">
+                                <label class="edit-slot-form-label">Inquiry (S) Capacity *</label>
+                                <input type="number" name="inquiry_capacity" id="edit_inquiry_capacity" class="edit-slot-form-control" min="0" max="100" required>
+                                <small class="edit-slot-form-help">Available: <span id="edit_inquiry_available">0</span></small>
+                            </div>
+                        </div>
+
+                        <div class="edit-slot-form-group">
+                            <label class="edit-slot-form-label">Notes</label>
+                            <textarea name="notes" id="edit_notes" class="edit-slot-form-control" rows="3" placeholder="Optional notes about this slot"></textarea>
+                        </div>
+
+                        <div class="edit-slot-modal-footer">
+                          
+                            <button type="button" class="edit-slot-btn edit-slot-btn-secondary" data-dismiss="modal">Cancel</button>
+                            <button type="submit" class="edit-slot-btn edit-slot-btn-primary">Update Slot</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<script>
+    let slotsCurrentDate = new Date();
+    let slotsData = {};
 
-    <script>
-        let slotsCurrentDate = new Date();
-        let slotsData = {};
+    // Display working days
+    const workingDaysMeta = document.querySelector('meta[name="slots-working-days"]');
+    const workingDays = workingDaysMeta ? workingDaysMeta.getAttribute('content').split(',').map(Number) : [1,2,3,4,5];
+    const dayNames = {1:'Monday',2:'Tuesday',3:'Wednesday',4:'Thursday',5:'Friday',6:'Saturday',7:'Sunday'};
+    const workingDaysText = workingDays.map(d => dayNames[d]).join(', ');
+    if(document.getElementById('workingDaysDisplay')) {
+        document.getElementById('workingDaysDisplay').textContent = workingDaysText;
+    }
 
-        // Display working days
-        const workingDaysMeta = document.querySelector('meta[name="slots-working-days"]');
-        const workingDays = workingDaysMeta ? workingDaysMeta.getAttribute('content').split(',').map(Number) : [1,2,3,4,5];
-        const dayNames = {1:'Monday',2:'Tuesday',3:'Wednesday',4:'Thursday',5:'Friday',6:'Saturday',7:'Sunday'};
-        const workingDaysText = workingDays.map(d => dayNames[d]).join(', ');
-        document.getElementById('workingDaysDisplay') && (document.getElementById('workingDaysDisplay').textContent = workingDaysText);
+    function slotsFormatDate(date) {
+        let d = new Date(date);
+        let month = String(d.getMonth() + 1).padStart(2, '0');
+        let day = String(d.getDate()).padStart(2, '0');
+        return `${d.getFullYear()}-${month}-${day}`;
+    }
 
-        function slotsFormatDate(date) {
-            let d = new Date(date);
-            let month = String(d.getMonth() + 1).padStart(2, '0');
-            let day = String(d.getDate()).padStart(2, '0');
-            return `${d.getFullYear()}-${month}-${day}`;
-        }
+    function formatDateDisplay(dateString) {
+        const date = new Date(dateString);
+        return date.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric', weekday: 'long' });
+    }
 
-        async function slotsLoadSlots() {
-            const year = slotsCurrentDate.getFullYear();
-            const month = slotsCurrentDate.getMonth() + 1;
+    function slotsLoadSlots() {
+        const year = slotsCurrentDate.getFullYear();
+        const month = slotsCurrentDate.getMonth() + 1;
+        const monthNames = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+        const monthNameElem = document.getElementById('slotsCalendarMonthYear');
+        if(monthNameElem) monthNameElem.textContent = `${monthNames[slotsCurrentDate.getMonth()]} ${year}`;
 
-            try {
-                const response = await fetch(`/admin/slots/json?month=${month}&year=${year}`);
-                const data = await response.json();
+        fetch(`/admin/slots/json?month=${month}&year=${year}`)
+            .then(response => response.json())
+            .then(data => {
                 slotsData = data.slots || {};
                 slotsRenderCalendar();
-            } catch (error) {
+            })
+            .catch(error => {
                 console.error('Error loading slots:', error);
-                document.getElementById('slotsCalendarDays').innerHTML = '<div class="slots-loading-state"><i class="fas fa-exclamation-triangle"></i><p>Failed to load slots.</p></div>';
-            }
+                const calendarDays = document.getElementById('slotsCalendarDays');
+                if(calendarDays) {
+                    calendarDays.innerHTML = '<div class="slots-loading-state"><i class="fas fa-exclamation-triangle"></i><p>Failed to load slots.</p></div>';
+                }
+            });
+    }
+
+    function slotsRenderCalendar() {
+        const year = slotsCurrentDate.getFullYear();
+        const month = slotsCurrentDate.getMonth();
+        const monthNames = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+        const monthNameElem = document.getElementById('slotsCalendarMonthYear');
+        if(monthNameElem) monthNameElem.textContent = `${monthNames[month]} ${year}`;
+
+        const firstDay = new Date(year, month, 1);
+        const startOffset = (firstDay.getDay() || 7) - 1;
+        const daysInMonth = new Date(year, month + 1, 0).getDate();
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+
+        let html = '';
+
+        for (let i = 0; i < startOffset; i++) {
+            html += '<div class="slots-calendar-day slots-empty"></div>';
         }
 
-        function slotsRenderCalendar() {
-            const year = slotsCurrentDate.getFullYear();
-            const month = slotsCurrentDate.getMonth();
-            const monthNames = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
-            document.getElementById('slotsCalendarMonthYear').textContent = `${monthNames[month]} ${year}`;
+        for (let d = 1; d <= daysInMonth; d++) {
+            const date = new Date(year, month, d);
+            const dateKey = slotsFormatDate(date);
+            const slot = slotsData[dateKey];
+            const isPast = date < today;
+            const isToday = slotsFormatDate(date) === slotsFormatDate(new Date());
 
-            const firstDay = new Date(year, month, 1);
-            const startOffset = (firstDay.getDay() || 7) - 1;
-            const daysInMonth = new Date(year, month + 1, 0).getDate();
-            const today = new Date();
-            today.setHours(0, 0, 0, 0);
+            let dayOfWeek = date.getDay();
+            let dayNumber = dayOfWeek === 0 ? 7 : dayOfWeek;
+            const isWorkingDay = workingDays.includes(dayNumber);
 
-            let html = '';
+            let dayClass = 'slots-calendar-day';
+            if (isPast) dayClass += ' slots-past';
+            if (isToday) dayClass += ' slots-today';
+            if (!isWorkingDay) dayClass += ' slots-non-working';
 
-            for (let i = 0; i < startOffset; i++) {
-                html += '<div class="slots-calendar-day slots-empty"></div>';
-            }
+            let content = `<div class="slots-day-number">${d}</div>`;
 
-            for (let d = 1; d <= daysInMonth; d++) {
-                const date = new Date(year, month, d);
-                const dateKey = slotsFormatDate(date);
-                const slot = slotsData[dateKey];
-                const isPast = date < today;
-                const isToday = slotsFormatDate(date) === slotsFormatDate(new Date());
-
-                let dayOfWeek = date.getDay();
-                let dayNumber = dayOfWeek === 0 ? 7 : dayOfWeek;
-                const isWorkingDay = workingDays.includes(dayNumber);
-
-                let dayClass = 'slots-calendar-day';
-                if (isPast) dayClass += ' slots-past';
-                if (isToday) dayClass += ' slots-today';
-                if (!isWorkingDay) dayClass += ' slots-non-working';
-
-                let content = `<div class="slots-day-number">${d}</div>`;
-
-                if (!isWorkingDay && !slot) {
-                    content += '<div class="slots-badge-icon" style="background:#6c757d; color:white;">🔒 Non-working</div>';
-                } else if (slot && Object.keys(slot).length > 0) {
-                    const firstSlot = Object.values(slot)[0];
-                    
-                    if (firstSlot.day_type === 'holiday') {
-                        dayClass += ' slots-holiday';
-                        content = `<div class="slots-day-number">${d}</div><div class="slots-badge-icon" style="background:#dc3545; color:white;">🎄 Holiday</div>`;
-                    } else if (firstSlot.day_type === 'half_day') {
-                        dayClass += ' slots-half-day';
-                        content = `<div class="slots-day-number">${d}</div><div class="slots-badge-icon" style="background:#ffc107;">🌙 Half Day</div>`;
-                    }
-
-                    let totalRegAvailable = 0, totalUpdatingAvailable = 0, totalInquiryAvailable = 0;
-                    let totalRegCapacity = 0, totalUpdatingCapacity = 0, totalInquiryCapacity = 0;
-
-                    for (const timeSlotData of Object.values(slot)) {
-                        totalRegAvailable += timeSlotData.reg_available || 0;
-                        totalUpdatingAvailable += timeSlotData.updating_available || 0;
-                        totalInquiryAvailable += timeSlotData.inquiry_available || 0;
-                        totalRegCapacity += timeSlotData.reg_capacity || 0;
-                        totalUpdatingCapacity += timeSlotData.updating_capacity || 0;
-                        totalInquiryCapacity += timeSlotData.inquiry_capacity || 0;
-                    }
-
-                    let badgesHtml = '<div class="slots-service-badges">';
-                    if (totalRegCapacity > 0) {
-                        let percent = totalRegCapacity > 0 ? (totalRegAvailable / totalRegCapacity) * 100 : 0;
-                        let statusClass = totalRegAvailable === 0 ? 'slots-full' : (percent < 30 ? 'slots-limited' : 'slots-available');
-                        badgesHtml += `<span class="slots-service-badge ${statusClass}">R${totalRegAvailable}</span>`;
-                    }
-                    if (totalUpdatingCapacity > 0) {
-                        let percent = totalUpdatingCapacity > 0 ? (totalUpdatingAvailable / totalUpdatingCapacity) * 100 : 0;
-                        let statusClass = totalUpdatingAvailable === 0 ? 'slots-full' : (percent < 30 ? 'slots-limited' : 'slots-available');
-                        badgesHtml += `<span class="slots-service-badge ${statusClass}">U${totalUpdatingAvailable}</span>`;
-                    }
-                    if (totalInquiryCapacity > 0) {
-                        let percent = totalInquiryCapacity > 0 ? (totalInquiryAvailable / totalInquiryCapacity) * 100 : 0;
-                        let statusClass = totalInquiryAvailable === 0 ? 'slots-full' : (percent < 30 ? 'slots-limited' : 'slots-available');
-                        badgesHtml += `<span class="slots-service-badge ${statusClass}">S${totalInquiryAvailable}</span>`;
-                    }
-                    badgesHtml += '</div>';
-                    content += badgesHtml;
-                } else if (isWorkingDay && !isPast) {
-                    content += '<div class="slots-badge-icon" style="background:#6c757d; color:white;">⚙️ Not set</div>';
+            if (!isWorkingDay && !slot) {
+                content += '<div class="slots-badge-icon" style="background:#6c757d; color:white;">🔒 Non-working</div>';
+            } else if (slot && Object.keys(slot).length > 0) {
+                const firstSlot = Object.values(slot)[0];
+                
+                if (firstSlot.day_type === 'holiday') {
+                    dayClass += ' slots-holiday';
+                    content = `<div class="slots-day-number">${d}</div><div class="slots-badge-icon" style="background:#dc3545; color:white;">🎄 Holiday</div>`;
+                } else if (firstSlot.day_type === 'half_day') {
+                    dayClass += ' slots-half-day';
+                    content = `<div class="slots-day-number">${d}</div><div class="slots-badge-icon" style="background:#ffc107;">🌙 Half Day</div>`;
                 }
 
-                html += `<div class="${dayClass}" onclick="slotsShowSlotDetails('${dateKey}')">${content}</div>`;
+                let totalRegAvailable = 0, totalUpdatingAvailable = 0, totalInquiryAvailable = 0;
+                let totalRegCapacity = 0, totalUpdatingCapacity = 0, totalInquiryCapacity = 0;
+
+                for (const timeSlotData of Object.values(slot)) {
+                    totalRegAvailable += timeSlotData.reg_available || 0;
+                    totalUpdatingAvailable += timeSlotData.updating_available || 0;
+                    totalInquiryAvailable += timeSlotData.inquiry_available || 0;
+                    totalRegCapacity += timeSlotData.reg_capacity || 0;
+                    totalUpdatingCapacity += timeSlotData.updating_capacity || 0;
+                    totalInquiryCapacity += timeSlotData.inquiry_capacity || 0;
+                }
+
+                let badgesHtml = '<div class="slots-service-badges">';
+                if (totalRegCapacity > 0) {
+                    let percent = totalRegCapacity > 0 ? (totalRegAvailable / totalRegCapacity) * 100 : 0;
+                    let statusClass = totalRegAvailable === 0 ? 'slots-full' : (percent < 30 ? 'slots-limited' : 'slots-available');
+                    badgesHtml += `<span class="slots-service-badge ${statusClass}">R${totalRegAvailable}</span>`;
+                }
+                if (totalUpdatingCapacity > 0) {
+                    let percent = totalUpdatingCapacity > 0 ? (totalUpdatingAvailable / totalUpdatingCapacity) * 100 : 0;
+                    let statusClass = totalUpdatingAvailable === 0 ? 'slots-full' : (percent < 30 ? 'slots-limited' : 'slots-available');
+                    badgesHtml += `<span class="slots-service-badge ${statusClass}">U${totalUpdatingAvailable}</span>`;
+                }
+                if (totalInquiryCapacity > 0) {
+                    let percent = totalInquiryCapacity > 0 ? (totalInquiryAvailable / totalInquiryCapacity) * 100 : 0;
+                    let statusClass = totalInquiryAvailable === 0 ? 'slots-full' : (percent < 30 ? 'slots-limited' : 'slots-available');
+                    badgesHtml += `<span class="slots-service-badge ${statusClass}">S${totalInquiryAvailable}</span>`;
+                }
+                badgesHtml += '</div>';
+                content += badgesHtml;
+            } else if (isWorkingDay && !isPast) {
+                content += '<div class="slots-badge-icon" style="background:#6c757d; color:white;">⚙️ Not set</div>';
             }
 
-            document.getElementById('slotsCalendarDays').innerHTML = html;
+            html += `<div class="${dayClass}" onclick="slotsShowSlotDetails('${dateKey}')">${content}</div>`;
         }
 
-        window.slotsShowSlotDetails = async function(dateKey) {
-            const modal = document.getElementById('slotsSlotDetailModal');
-            const modalBody = document.getElementById('slotsSlotDetailBody');
-            modal.classList.add('show');
-            modalBody.innerHTML = '<div class="slots-loading-state"><i class="fas fa-spinner fa-pulse"></i><p>Loading...</p></div>';
+        const calendarDays = document.getElementById('slotsCalendarDays');
+        if(calendarDays) calendarDays.innerHTML = html;
+    }
 
-            try {
-                const response = await fetch(`/admin/slots/details/${dateKey}`);
-                const data = await response.json();
-
+    // Function to open edit modal with slot data
+    window.openEditSlotModal = function(slotId, dateKey) {
+        const editModal = document.getElementById('editSlotModal');
+        if(!editModal) return;
+        
+        // Reset form
+        const editForm = document.getElementById('editSlotForm');
+        if(editForm) editForm.reset();
+        
+        // Fetch slot details from the API
+        fetch(`/admin/slots/details/${dateKey}`)
+            .then(response => response.json())
+            .then(data => {
                 if (data.success && data.slots.length > 0) {
-                    let html = '<div class="slots-table-responsive"><table class="slots-table"><thead><tr><th>Time Slot</th><th>Day Type</th><th>R</th><th>U</th><th>S</th><th>Booked</th><th>Available</th><th>Actions</th></tr></thead><tbody>';
-                    for (const slot of data.slots) {
-                        const total = (slot.reg_capacity || 0) + (slot.updating_capacity || 0) + (slot.inquiry_capacity || 0);
-                        const booked = (slot.reg_booked || 0) + (slot.updating_booked || 0) + (slot.inquiry_booked || 0);
-                        html += `<tr>
-                            <td><strong>${slot.time_slot_label}</strong></td>
+                    const slot = data.slots.find(s => s.id == slotId);
+                    if (slot) {
+                        document.getElementById('edit_slot_id').value = slot.id;
+                        document.getElementById('edit_time_slot_id').value = slot.time_slot_id;
+                        document.getElementById('edit_day_type').value = slot.day_type;
+                        document.getElementById('edit_reg_capacity').value = slot.reg_capacity;
+                        document.getElementById('edit_updating_capacity').value = slot.updating_capacity;
+                        document.getElementById('edit_inquiry_capacity').value = slot.inquiry_capacity;
+                        document.getElementById('edit_notes').value = slot.notes || '';
+                        document.getElementById('edit_slot_date').innerHTML = formatDateDisplay(dateKey);
+                        
+                        const totalBooked = (slot.reg_booked || 0) + (slot.updating_booked || 0) + (slot.inquiry_booked || 0);
+                        document.getElementById('edit_booked_count').innerHTML = totalBooked;
+                        
+                        document.getElementById('edit_reg_available').innerHTML = (slot.reg_capacity - (slot.reg_booked || 0));
+                        document.getElementById('edit_updating_available').innerHTML = (slot.updating_capacity - (slot.updating_booked || 0));
+                        document.getElementById('edit_inquiry_available').innerHTML = (slot.inquiry_capacity - (slot.inquiry_booked || 0));
+                        
+                        window.currentBooked = {
+                            reg: slot.reg_booked || 0,
+                            updating: slot.updating_booked || 0,
+                            inquiry: slot.inquiry_booked || 0,
+                            total: totalBooked
+                        };
+                        
+                        updateEditCapacityFields();
+                        editModal.classList.add('show');
+                    } else {
+                        alert('Slot not found');
+                    }
+                } else {
+                    alert('Error loading slot data');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Error loading slot data');
+            });
+    };
+
+    function updateEditCapacityFields() {
+        const dayTypeElem = document.getElementById('edit_day_type');
+        if(!dayTypeElem) return;
+        
+        const dayType = dayTypeElem.value;
+        const regInput = document.getElementById('edit_reg_capacity');
+        const updatingInput = document.getElementById('edit_updating_capacity');
+        const inquiryInput = document.getElementById('edit_inquiry_capacity');
+        
+        if (!regInput) return;
+        
+        if (dayType === 'holiday') {
+            regInput.disabled = true;
+            updatingInput.disabled = true;
+            inquiryInput.disabled = true;
+            regInput.value = 0;
+            updatingInput.value = 0;
+            inquiryInput.value = 0;
+        } else {
+            regInput.disabled = false;
+            updatingInput.disabled = false;
+            inquiryInput.disabled = false;
+        }
+    }
+
+    window.slotsShowSlotDetails = async function(dateKey) {
+    const modal = document.getElementById('slotsSlotDetailModal');
+    const modalBody = document.getElementById('slotsSlotDetailBody');
+    if(!modal || !modalBody) return;
+    
+    modal.classList.add('show');
+    modalBody.innerHTML = '<div class="slots-loading-state"><i class="fas fa-spinner fa-pulse"></i><p>Loading...</p></div>';
+
+    try {
+        const response = await fetch(`/admin/slots/details/${dateKey}`);
+        const data = await response.json();
+
+        if (data.success && data.slots.length > 0) {
+            let html = '<div class="slots-table-responsive"><table class="slots-table"><thead><tr><th>Time Slot</th><th>Day Type</th><th>R</th><th>U</th><th>S</th><th>Booked</th><th>Available</th><th>Actions</th></tr></thead><tbody>';
+            for (const slot of data.slots) {
+                const total = (slot.reg_capacity || 0) + (slot.updating_capacity || 0) + (slot.inquiry_capacity || 0);
+                const booked = (slot.reg_booked || 0) + (slot.updating_booked || 0) + (slot.inquiry_booked || 0);
+                html += `<tr>
+                            <td><strong>${escapeHtml(slot.time_slot_label)}</strong></td>
                             <td><span class="slots-day-type-badge ${slot.day_type}">${slot.day_type}</span></td>
                             <td>${slot.reg_capacity || 0}</td>
                             <td>${slot.updating_capacity || 0}</td>
                             <td>${slot.inquiry_capacity || 0}</td>
                             <td>${booked}</td>
                             <td>${total - booked}</td>
-                            <td><a href="/admin/slots/${slot.id}/edit" class="slots-btn slots-btn-sm slots-btn-outline-primary"><i class="fas fa-edit"></i></a></td>
+                            <td><button type="button" class="slots-btn slots-btn-sm slots-btn-outline-primary" onclick="openEditSlotModal(${slot.id}, '${dateKey}')"><i class="fas fa-edit"></i> Edit</button></td>
                         </tr>`;
-                    }
-                    html += '</tbody></table></div>';
-                    modalBody.innerHTML = html;
-                } else {
-                    modalBody.innerHTML = '<div class="slots-alert slots-alert-info">No slots configured for this date.</div>';
-                }
-            } catch (error) {
-                modalBody.innerHTML = '<div class="slots-alert" style="background:#fee2e2; color:#991b1b;">Error loading details.</div>';
             }
-        };
+            html += '</tbody></table></div>';
+            modalBody.innerHTML = html;
+        } else {
+            modalBody.innerHTML = '<div class="slots-alert slots-alert-info">No slots configured for this date.</div>';
+        }
+    } catch (error) {
+        console.error('Error:', error);
+        modalBody.innerHTML = '<div class="slots-alert" style="background:#fee2e2; color:#991b1b;">Error loading details.</div>';
+    }
+};
+    
+    function escapeHtml(text) {
+        if (!text) return '';
+        const div = document.createElement('div');
+        div.textContent = text;
+        return div.innerHTML;
+    }
 
-        // Modal functions
-        function openModal(modalId) { document.getElementById(modalId).classList.add('show'); }
-        function closeModal(modalId) { document.getElementById(modalId).classList.remove('show'); }
-
-        document.querySelectorAll('.slots-modal-close, [data-dismiss="modal"]').forEach(btn => {
-            btn.addEventListener('click', function() {
-                document.querySelectorAll('.slots-modal.show').forEach(modal => modal.classList.remove('show'));
+    // ============================================
+    // CREATE SLOT MODAL - Close handlers
+    // ============================================
+    const createSlotModal = document.getElementById('slotsCreateSlotModal');
+    if (createSlotModal) {
+        // Close button (X)
+        const createCloseBtn = createSlotModal.querySelector('.slots-modal-close');
+        if (createCloseBtn) {
+            createCloseBtn.addEventListener('click', function() {
+                createSlotModal.classList.remove('show');
             });
-        });
+        }
+        // Cancel button
+        const createCancelBtn = createSlotModal.querySelector('.slots-btn-secondary');
+        if (createCancelBtn) {
+            createCancelBtn.addEventListener('click', function() {
+                createSlotModal.classList.remove('show');
+            });
+        }
+    }
 
-        window.addEventListener('click', function(event) {
-            if (event.target.classList.contains('slots-modal')) event.target.classList.remove('show');
-        });
+    // ============================================
+    // CAPACITY RULES MODAL - Close handlers
+    // ============================================
+    const capacityRulesModal = document.getElementById('slotsCapacityRulesModal');
+    if (capacityRulesModal) {
+        const capacityCloseBtn = capacityRulesModal.querySelector('.slots-modal-close');
+        if (capacityCloseBtn) {
+            capacityCloseBtn.addEventListener('click', function() {
+                capacityRulesModal.classList.remove('show');
+            });
+        }
+        const capacityCancelBtn = capacityRulesModal.querySelector('.slots-btn-secondary');
+        if (capacityCancelBtn) {
+            capacityCancelBtn.addEventListener('click', function() {
+                capacityRulesModal.classList.remove('show');
+            });
+        }
+    }
 
-        // Create Slot Form
-        document.getElementById('slotsAddSingleSlotBtn')?.addEventListener('click', () => openModal('slotsCreateSlotModal'));
-        
-        document.getElementById('slotsCreateForm')?.addEventListener('submit', async function(e) {
+    // ============================================
+    // BULK GENERATE MODAL - Close handlers
+    // ============================================
+    const bulkModal = document.getElementById('slotsBulkGenerateModal');
+    if (bulkModal) {
+        const bulkCloseBtn = bulkModal.querySelector('.slots-modal-close');
+        if (bulkCloseBtn) {
+            bulkCloseBtn.addEventListener('click', function() {
+                bulkModal.classList.remove('show');
+            });
+        }
+        const bulkCancelBtn = bulkModal.querySelector('.slots-btn-secondary');
+        if (bulkCancelBtn) {
+            bulkCancelBtn.addEventListener('click', function() {
+                bulkModal.classList.remove('show');
+            });
+        }
+    }
+
+    // ============================================
+    // SLOT DETAIL MODAL - Close handlers (ONLY close this modal)
+    // ============================================
+    const slotDetailModal = document.getElementById('slotsSlotDetailModal');
+    if (slotDetailModal) {
+        const detailCloseBtn = slotDetailModal.querySelector('.slots-modal-close');
+        if (detailCloseBtn) {
+            detailCloseBtn.addEventListener('click', function() {
+                slotDetailModal.classList.remove('show');
+            });
+        }
+    }
+
+    // ============================================
+    // EDIT SLOT MODAL - Close handlers (ONLY close this modal)
+    // ============================================
+    const editModal = document.getElementById('editSlotModal');
+    if (editModal) {
+        // Close button (X)
+        const editCloseBtn = editModal.querySelector('.edit-slot-modal-close');
+        if (editCloseBtn) {
+            editCloseBtn.addEventListener('click', function() {
+                editModal.classList.remove('show');
+            });
+        }
+        // Cancel button
+        const editCancelBtn = editModal.querySelector('.edit-slot-btn-secondary');
+        if (editCancelBtn) {
+            editCancelBtn.addEventListener('click', function(e) {
+                e.preventDefault();
+                editModal.classList.remove('show');
+            });
+        }
+    }
+
+    // Close modal when clicking outside
+    window.addEventListener('click', function(event) {
+        if (event.target.classList.contains('slots-modal')) {
+            event.target.classList.remove('show');
+        }
+        if (event.target.classList.contains('edit-slot-modal')) {
+            event.target.classList.remove('show');
+        }
+    });
+
+    // ============================================
+    // OPEN MODAL FUNCTIONS
+    // ============================================
+    function openModal(modalId) { 
+        const modal = document.getElementById(modalId);
+        if(modal) modal.classList.add('show'); 
+    }
+    
+    function closeModal(modalId) { 
+        const modal = document.getElementById(modalId);
+        if(modal) modal.classList.remove('show'); 
+    }
+
+    // Create Slot Form
+    const addSlotBtn = document.getElementById('slotsAddSingleSlotBtn');
+    if(addSlotBtn) {
+        addSlotBtn.addEventListener('click', () => openModal('slotsCreateSlotModal'));
+    }
+    
+    const createForm = document.getElementById('slotsCreateForm');
+    if(createForm) {
+        createForm.addEventListener('submit', async function(e) {
             e.preventDefault();
             const formData = new FormData(this);
             formData.append('_token', document.querySelector('meta[name="slots-csrf-token"]').content);
 
+            const submitBtn = this.querySelector('button[type="submit"]');
+            const originalHtml = submitBtn.innerHTML;
+            submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Creating...';
+            submitBtn.disabled = true;
+
             try {
-                const response = await fetch('{{ route("admin.slots.store") }}', { method: 'POST', body: formData });
+                const response = await fetch('{{ route("admin.slots.store") }}', { 
+                    method: 'POST', 
+                    body: formData,
+                    headers: { 'X-Requested-With': 'XMLHttpRequest' }
+                });
                 const data = await response.json();
-                alert(data.message || (data.success ? 'Slot created successfully!' : 'Error creating slot'));
                 if (data.success) {
+                    alert('Slot created successfully!');
                     closeModal('slotsCreateSlotModal');
-                    slotsLoadSlots();
-                    this.reset();
+                    location.reload();
+                } else {
+                    alert(data.message || 'Error creating slot');
                 }
             } catch (error) {
-                alert('Error creating slot');
+                console.error('Error:', error);
+                alert('Error connecting to server');
+            } finally {
+                submitBtn.innerHTML = originalHtml;
+                submitBtn.disabled = false;
             }
         });
+    }
 
-        // Day type change handler for create form
-        document.getElementById('create_day_type')?.addEventListener('change', function() {
+    // Edit Slot Form Submission
+    const editForm = document.getElementById('editSlotForm');
+    if(editForm) {
+        editForm.addEventListener('submit', async function(e) {
+            e.preventDefault();
+            const slotId = document.getElementById('edit_slot_id').value;
+            const formData = new FormData(this);
+            formData.append('_token', document.querySelector('meta[name="slots-csrf-token"]').content);
+            formData.append('_method', 'PUT');
+
+            const submitBtn = this.querySelector('button[type="submit"]');
+            const originalHtml = submitBtn.innerHTML;
+            submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Updating...';
+            submitBtn.disabled = true;
+
+            try {
+                const response = await fetch(`/admin/slots/${slotId}`, { 
+                    method: 'POST', 
+                    body: formData,
+                    headers: { 'X-Requested-With': 'XMLHttpRequest' }
+                });
+                const data = await response.json();
+                if (data.success) {
+                    alert('Slot updated successfully!');
+                    if(editModal) editModal.classList.remove('show');
+                    location.reload();
+                } else {
+                    alert(data.message || 'Error updating slot');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                alert('Error connecting to server');
+            } finally {
+                submitBtn.innerHTML = originalHtml;
+                submitBtn.disabled = false;
+            }
+        });
+    }
+
+    // Capacity Rules Modal
+    const capacityRulesBtn = document.getElementById('slotsCapacityRulesBtn');
+    if(capacityRulesBtn) {
+        capacityRulesBtn.addEventListener('click', () => openModal('slotsCapacityRulesModal'));
+    }
+    
+    const capacityRulesForm = document.getElementById('slotsCapacityRulesForm');
+    if(capacityRulesForm) {
+        capacityRulesForm.addEventListener('submit', async function(e) {
+            e.preventDefault();
+            const formData = new FormData(this);
+            formData.append('_token', document.querySelector('meta[name="slots-csrf-token"]').content);
+
+            const submitBtn = this.querySelector('button[type="submit"]');
+            const originalHtml = submitBtn.innerHTML;
+            submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving...';
+            submitBtn.disabled = true;
+
+            try {
+                const response = await fetch('{{ route("admin.slots.capacity-rules") }}', { 
+                    method: 'POST', 
+                    body: formData,
+                    headers: { 'X-Requested-With': 'XMLHttpRequest' }
+                });
+                const data = await response.json();
+                if (data.success) {
+                    alert('Capacity rules saved successfully!');
+                    closeModal('slotsCapacityRulesModal');
+                    location.reload();
+                } else {
+                    alert(data.message || 'Error saving rules');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                alert('Error connecting to server');
+            } finally {
+                submitBtn.innerHTML = originalHtml;
+                submitBtn.disabled = false;
+            }
+        });
+    }
+
+    // Bulk Generate Modal
+    const bulkGenerateBtn = document.getElementById('slotsBulkGenerateBtn');
+    if(bulkGenerateBtn) {
+        bulkGenerateBtn.addEventListener('click', () => openModal('slotsBulkGenerateModal'));
+    }
+    
+    const bulkGenerateForm = document.getElementById('slotsBulkGenerateForm');
+    if(bulkGenerateForm) {
+        bulkGenerateForm.addEventListener('submit', async function(e) {
+            e.preventDefault();
+            const formData = new FormData(this);
+            formData.append('_token', document.querySelector('meta[name="slots-csrf-token"]').content);
+
+            const submitBtn = this.querySelector('button[type="submit"]');
+            const originalHtml = submitBtn.innerHTML;
+            submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Generating...';
+            submitBtn.disabled = true;
+
+            try {
+                const response = await fetch('{{ route("admin.slots.bulk-generate") }}', { 
+                    method: 'POST', 
+                    body: formData,
+                    headers: { 'X-Requested-With': 'XMLHttpRequest' }
+                });
+                const data = await response.json();
+                if (data.success) {
+                    alert(data.message || 'Slots generated successfully!');
+                    closeModal('slotsBulkGenerateModal');
+                    location.reload();
+                } else {
+                    alert(data.message || 'Error generating slots');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                alert('Error connecting to server');
+            } finally {
+                submitBtn.innerHTML = originalHtml;
+                submitBtn.disabled = false;
+            }
+        });
+    }
+
+    // Delete Slot from Edit Modal
+    const deleteSlotBtn = document.getElementById('deleteSlotBtn');
+    if(deleteSlotBtn) {
+        deleteSlotBtn.addEventListener('click', async function() {
+            const slotId = document.getElementById('edit_slot_id').value;
+            const totalBooked = window.currentBooked?.total || 0;
+            
+            if (totalBooked > 0) {
+                alert('Cannot delete slot with existing appointments.');
+                return;
+            }
+            
+            if (!confirm('Are you sure you want to delete this slot? This action cannot be undone.')) return;
+            
+            const deleteBtn = this;
+            const originalText = deleteBtn.innerHTML;
+            deleteBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Deleting...';
+            deleteBtn.disabled = true;
+            
+            try {
+                const response = await fetch(`/admin/slots/${slotId}`, {
+                    method: 'DELETE',
+                    headers: {
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="slots-csrf-token"]').content,
+                        'Accept': 'application/json',
+                        'X-Requested-With': 'XMLHttpRequest'
+                    }
+                });
+                const data = await response.json();
+                if (data.success) {
+                    alert('Slot deleted successfully!');
+                    if(editModal) editModal.classList.remove('show');
+                    location.reload();
+                } else {
+                    alert(data.message || 'Error deleting slot');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                alert('Error connecting to server');
+            } finally {
+                deleteBtn.innerHTML = originalText;
+                deleteBtn.disabled = false;
+            }
+        });
+    }
+
+    // Day type change handler for edit form
+    const editDayType = document.getElementById('edit_day_type');
+    if(editDayType) {
+        editDayType.addEventListener('change', updateEditCapacityFields);
+    }
+
+    // Create form day type handler
+    const createDayType = document.getElementById('create_day_type');
+    if(createDayType) {
+        createDayType.addEventListener('change', function() {
             const capacityFields = document.getElementById('createCapacityFields');
             if (this.value === 'holiday') {
                 capacityFields.style.display = 'none';
@@ -558,9 +1040,12 @@
                 }
             }
         });
+    }
 
-        // Check if date is working day
-        document.getElementById('create_date')?.addEventListener('change', function() {
+    // Check if date is working day
+    const createDate = document.getElementById('create_date');
+    if(createDate) {
+        createDate.addEventListener('change', function() {
             const selectedDate = new Date(this.value);
             const dayOfWeek = selectedDate.getDay();
             let dayNumber = dayOfWeek === 0 ? 7 : dayOfWeek;
@@ -572,55 +1057,30 @@
                 }
             }
         });
+    }
 
-        // Capacity Rules Modal
-        document.getElementById('slotsCapacityRulesBtn')?.addEventListener('click', () => openModal('slotsCapacityRulesModal'));
-        
-        document.getElementById('slotsCapacityRulesForm')?.addEventListener('submit', async function(e) {
-            e.preventDefault();
-            const formData = new FormData(this);
-            formData.append('_token', document.querySelector('meta[name="slots-csrf-token"]').content);
+    // Calendar navigation
+    const prevMonthBtn = document.getElementById('slotsPrevMonth');
+    const nextMonthBtn = document.getElementById('slotsNextMonth');
+    const todayBtn = document.getElementById('slotsTodayBtn');
+    
+    if(prevMonthBtn) {
+        prevMonthBtn.addEventListener('click', () => { slotsCurrentDate.setMonth(slotsCurrentDate.getMonth() - 1); slotsLoadSlots(); });
+    }
+    if(nextMonthBtn) {
+        nextMonthBtn.addEventListener('click', () => { slotsCurrentDate.setMonth(slotsCurrentDate.getMonth() + 1); slotsLoadSlots(); });
+    }
+    if(todayBtn) {
+        todayBtn.addEventListener('click', () => { slotsCurrentDate = new Date(); slotsLoadSlots(); });
+    }
 
-            try {
-                const response = await fetch('{{ route("admin.slots.capacity-rules") }}', { method: 'POST', body: formData });
-                const data = await response.json();
-                alert(data.message || (data.success ? 'Rules saved!' : 'Error saving rules'));
-                if (data.success) closeModal('slotsCapacityRulesModal');
-            } catch (error) {
-                alert('Error saving rules');
-            }
-        });
+    // Initialize
+    slotsLoadSlots();
+</script>
 
-        // Bulk Generate Modal
-        document.getElementById('slotsBulkGenerateBtn')?.addEventListener('click', () => openModal('slotsBulkGenerateModal'));
-        
-        document.getElementById('slotsBulkGenerateForm')?.addEventListener('submit', async function(e) {
-            e.preventDefault();
-            const formData = new FormData(this);
-            formData.append('_token', document.querySelector('meta[name="slots-csrf-token"]').content);
-
-            try {
-                const response = await fetch('{{ route("admin.slots.bulk-generate") }}', { method: 'POST', body: formData });
-                const data = await response.json();
-                alert(data.message || (data.success ? 'Slots generated!' : 'Error generating slots'));
-                if (data.success) {
-                    closeModal('slotsBulkGenerateModal');
-                    slotsLoadSlots();
-                }
-            } catch (error) {
-                alert('Error generating slots');
-            }
-        });
-
-        // Calendar navigation
-        document.getElementById('slotsPrevMonth')?.addEventListener('click', () => { slotsCurrentDate.setMonth(slotsCurrentDate.getMonth() - 1); slotsLoadSlots(); });
-        document.getElementById('slotsNextMonth')?.addEventListener('click', () => { slotsCurrentDate.setMonth(slotsCurrentDate.getMonth() + 1); slotsLoadSlots(); });
-        document.getElementById('slotsTodayBtn')?.addEventListener('click', () => { slotsCurrentDate = new Date(); slotsLoadSlots(); });
-
-        // Initialize
-        slotsLoadSlots();
-    </script>
-
+    <!-- ============================================ -->
+    <!-- ORIGINAL SLOTS MODAL CSS (UNCHANGED) -->
+    <!-- ============================================ -->
     <style>
         .slots-title { font-size: 28px; font-weight: 600; margin: 0 0 5px 0; }
         .slots-subtitle { font-size: 14px; opacity: 0.9; margin: 0; }
@@ -671,8 +1131,8 @@
         .slots-modal-dialog.slots-modal-lg { max-width: 900px; }
         .slots-modal-dialog.slots-modal-xl { max-width: 1100px; }
         .slots-modal-content { background: white; border-radius: 12px; overflow: hidden; }
-        .slots-modal-header { padding: 15px 20px; border-bottom: 1px solid #e9ecef; display: flex; justify-content: space-between; align-items: center; }
-        .slots-modal-header-primary { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; }
+        .slots-modal-header { background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%); color: white; padding: 15px 20px; border-bottom: 1px solid #e9ecef; display: flex; justify-content: space-between; align-items: center; }
+        .slots-modal-header-primary { background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%); color: white; }
         .slots-modal-header-success { background: linear-gradient(135deg, #28a745 0%, #20c997 100%); color: white; }
         .slots-modal-title { margin: 0; font-size: 18px; }
         .slots-modal-close { font-size: 24px; cursor: pointer; opacity: 0.7; }
@@ -703,5 +1163,244 @@
         .warning-bg { background: #fff3cd; color: #856404; }
         .danger-bg { background: #f8d7da; color: #dc3545; }
         .success-bg { background: #d4edda; color: #28a745; }
+    </style>
+
+    <!-- ============================================ -->
+    <!-- EDIT SLOT MODAL CSS - NEW WITH UNIQUE CLASS NAMES -->
+    <!-- ============================================ -->
+    <style>
+        /* Edit Modal Overlay */
+        .edit-slot-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.6);
+            backdrop-filter: blur(4px);
+            z-index: 1001;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .edit-slot-modal.show {
+            display: flex;
+        }
+
+        /* Edit Modal Dialog */
+        .edit-slot-modal-dialog {
+            max-width: 600px;
+            width: 90%;
+            animation: editSlotSlideIn 0.3s ease;
+        }
+
+        .edit-slot-modal-lg {
+            max-width: 800px;
+        }
+
+        @keyframes editSlotSlideIn {
+            from {
+                transform: translateY(-30px);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        /* Edit Modal Content */
+        .edit-slot-modal-content {
+            background: white;
+            border-radius: 16px;
+            overflow: hidden;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
+        }
+
+        /* Edit Modal Header */
+        .edit-slot-modal-header {
+            padding: 20px 24px;
+            background: linear-gradient(135deg, #4361ee 0%, #667eea 100%);
+            color: white;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: none;
+        }
+
+        .edit-slot-modal-header-primary {
+            background: linear-gradient(135deg, #4361ee 0%, #667eea 100%);
+        }
+
+        .edit-slot-modal-title {
+            margin: 0;
+            font-size: 20px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .edit-slot-modal-close {
+            font-size: 28px;
+            cursor: pointer;
+            opacity: 0.8;
+            transition: all 0.3s;
+            line-height: 1;
+        }
+
+        .edit-slot-modal-close:hover {
+            opacity: 1;
+            transform: rotate(90deg);
+        }
+
+        /* Edit Modal Body */
+        .edit-slot-modal-body {
+            padding: 24px;
+            max-height: 70vh;
+            overflow-y: auto;
+        }
+
+        /* Edit Modal Footer */
+        .edit-slot-modal-footer {
+            padding: 16px 24px;
+            border-top: 1px solid #e9ecef;
+            display: flex;
+            justify-content: flex-end;
+            gap: 12px;
+            background: #f8f9fa;
+        }
+
+        /* Edit Form Elements */
+        .edit-slot-form-row {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        .edit-slot-form-group {
+            margin-bottom: 20px;
+        }
+
+        .edit-slot-form-label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            font-size: 13px;
+            color: #495057;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .edit-slot-form-control {
+            width: 100%;
+            padding: 10px 14px;
+            border: 2px solid #e2e8f0;
+            border-radius: 10px;
+            font-size: 14px;
+            transition: all 0.3s;
+        }
+
+        .edit-slot-form-control:focus {
+            outline: none;
+            border-color: #4361ee;
+            box-shadow: 0 0 0 3px rgba(67, 97, 238, 0.1);
+        }
+
+        .edit-slot-form-control:disabled {
+            background: #f1f5f9;
+            cursor: not-allowed;
+            color: #64748b;
+        }
+
+        .edit-slot-form-help {
+            font-size: 12px;
+            color: #6c757d;
+            margin-top: 6px;
+            display: block;
+        }
+
+        /* Edit Alert */
+        .edit-slot-alert {
+            padding: 14px 18px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .edit-slot-alert-info {
+            background: #e7f3ff;
+            color: #004085;
+            border: 1px solid #b8daff;
+        }
+
+        .edit-slot-alert-info i {
+            font-size: 20px;
+        }
+
+        /* Edit Buttons */
+        .edit-slot-btn {
+            padding: 10px 24px;
+            border-radius: 50px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            border: none;
+            transition: all 0.3s;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .edit-slot-btn-primary {
+            background: linear-gradient(135deg, #4361ee 0%, #667eea 100%);
+            color: white;
+        }
+
+        .edit-slot-btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(67, 97, 238, 0.3);
+        }
+
+        .edit-slot-btn-secondary {
+            background: #6c757d;
+            color: white;
+        }
+
+        .edit-slot-btn-secondary:hover {
+            background: #5a6268;
+            transform: translateY(-2px);
+        }
+
+        .edit-slot-btn-danger {
+            background: linear-gradient(135deg, #dc3545 0%, #ef4444 100%);
+            color: white;
+        }
+
+        .edit-slot-btn-danger:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(220, 53, 69, 0.3);
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .edit-slot-form-row {
+                grid-template-columns: 1fr;
+                gap: 15px;
+            }
+            
+            .edit-slot-modal-footer {
+                flex-direction: column;
+            }
+            
+            .edit-slot-modal-footer .edit-slot-btn {
+                width: 100%;
+                justify-content: center;
+            }
+        }
     </style>
 @endsection
