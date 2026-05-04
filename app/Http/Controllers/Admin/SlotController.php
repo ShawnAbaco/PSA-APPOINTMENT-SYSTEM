@@ -13,7 +13,6 @@ use App\Models\SlotCapacityOverride;
 use App\Models\TimeSlot;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
-use App\Models\Setting;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 
@@ -25,7 +24,6 @@ class SlotController extends Controller
             return $this->getSlotsJson($request);
         }
         
-        // Get all appointment slots (date + time_slot instances)
         $query = AppointmentSlot::orderBy('date', 'desc');
         
         if ($request->filled('month')) {
@@ -38,24 +36,25 @@ class SlotController extends Controller
         
         $slots = $query->paginate(30);
         
-        // Calculate stats based on appointment_slots (existence only)
         $totalSlots = AppointmentSlot::count();
-        
-        // For day types, we need to check working_days_overrides and appointment_slots day_type
         $totalHolidays = AppointmentSlot::where('day_type', 'holiday')->count();
         $totalSpecialDays = AppointmentSlot::where('day_type', 'special')->count();
         $totalHalfDays = AppointmentSlot::where('day_type', 'half_day')->count();
-        
-        // Total booked from actual appointments
         $totalBooked = Appointment::count();
         
         $currentMonth = $request->get('month', date('m'));
         $currentYear = $request->get('year', date('Y'));
         
-        // Get working days for meta tag (0=Sunday, 1=Monday, etc.)
-        $workingDaysArray = [1, 2, 3, 4, 5]; // Monday to Friday
+        $workingDaysArray = [1, 2, 3, 4, 5];
         try {
-            $workingDaysArray = WorkingDaysDefault::where('is_working', true)->pluck('day_of_week')->toArray();
+            $workingDaysRecords = WorkingDaysDefault::where('day_type', 'working')->get();
+            $workingDaysArray = [];
+            foreach ($workingDaysRecords as $record) {
+                $dayNumber = $this->getDayNumber($record->day_name);
+                if ($dayNumber) {
+                    $workingDaysArray[] = $dayNumber;
+                }
+            }
             if (empty($workingDaysArray)) {
                 $workingDaysArray = [1, 2, 3, 4, 5];
             }
@@ -64,12 +63,28 @@ class SlotController extends Controller
         }
         $workingDays = implode(',', $workingDaysArray);
         
-        // Get time slots for bulk generate modal
         $timeSlots = TimeSlot::where('is_active', true)->orderBy('display_order')->get();
         $capacityRules = SlotCapacityRule::all()->groupBy('time_slot_id');
-
         
         return view('admin.slots.index', compact('slots', 'totalSlots', 'totalHolidays', 'totalSpecialDays', 'totalHalfDays', 'totalBooked', 'currentMonth', 'currentYear', 'workingDays', 'timeSlots', 'capacityRules'));
+    }
+    
+    private function getDayNumber($dayName)
+    {
+        $days = [
+            'monday' => 1, 'tuesday' => 2, 'wednesday' => 3, 'thursday' => 4,
+            'friday' => 5, 'saturday' => 6, 'sunday' => 7,
+        ];
+        return $days[strtolower($dayName)] ?? null;
+    }
+    
+    private function getDayName($dayNumber)
+    {
+        $days = [
+            1 => 'monday', 2 => 'tuesday', 3 => 'wednesday', 4 => 'thursday',
+            5 => 'friday', 6 => 'saturday', 7 => 'sunday',
+        ];
+        return $days[$dayNumber] ?? null;
     }
     
     public function create()
@@ -78,78 +93,123 @@ class SlotController extends Controller
         return view('admin.slots.create', compact('timeSlots'));
     }
     
+    /**
+     * Store or UPDATE a slot (UPSERT logic)
+     * If slot exists, update it. If not, create new.
+     */
     public function store(Request $request)
     {
-        $validated = $request->validate([
-            'date' => 'required|date',
-            'time_slot_id' => 'required|exists:time_slots,id',
-            'day_type' => 'required|in:working,half_day,holiday,special',
-            'reg_capacity' => 'required|integer|min:0|max:100',
-            'updating_capacity' => 'required|integer|min:0|max:100',
-            'inquiry_capacity' => 'required|integer|min:0|max:100',
-            'notes' => 'nullable|string',
-        ]);
-        
-        $date = Carbon::parse($request->date);
-        
-        // Check if slot already exists (date + time_slot_id)
-        $existingSlot = AppointmentSlot::where('date', $request->date)
-            ->where('time_slot_id', $request->time_slot_id)
-            ->first();
-        
-        if ($existingSlot) {
-            return redirect()->back()
-                ->with('error', 'A slot already exists for this date and time slot.')
-                ->withInput();
+        try {
+            $validated = $request->validate([
+                'date' => 'required|date',
+                'time_slot_id' => 'required|exists:time_slots,id',
+                'day_type' => 'required|in:working,half_day,holiday,special',
+                'reg_capacity' => 'required|integer|min:0|max:100',
+                'updating_capacity' => 'required|integer|min:0|max:100',
+                'inquiry_capacity' => 'required|integer|min:0|max:100',
+                'notes' => 'nullable|string',
+            ]);
+            
+            DB::beginTransaction();
+            
+            // Check if slot already exists
+            $existingSlot = AppointmentSlot::where('date', $request->date)
+                ->where('time_slot_id', $request->time_slot_id)
+                ->first();
+            
+            $isUpdate = false;
+            $slot = null;
+            
+            if ($existingSlot) {
+                // UPDATE existing slot
+                $isUpdate = true;
+                $existingSlot->day_type = $request->day_type;
+                $existingSlot->notes = $validated['notes'] ?? null;
+                $existingSlot->updated_at = now();
+                $existingSlot->save();
+                $slot = $existingSlot;
+                
+                // Update or create capacity override
+                SlotCapacityOverride::updateOrCreate(
+                    [
+                        'date' => $request->date,
+                        'time_slot_id' => $request->time_slot_id,
+                    ],
+                    [
+                        'reg_capacity' => $request->reg_capacity,
+                        'updating_capacity' => $request->updating_capacity,
+                        'inquiry_capacity' => $request->inquiry_capacity,
+                        'reason' => $validated['notes'] ?? ($request->day_type === 'holiday' ? 'Holiday' : 'Manual override'),
+                        'updated_at' => now(),
+                    ]
+                );
+            } else {
+                // CREATE new slot
+                $slot = AppointmentSlot::create([
+                    'date' => $request->date,
+                    'time_slot_id' => $request->time_slot_id,
+                    'day_type' => $request->day_type,
+                    'notes' => $validated['notes'] ?? null,
+                    'created_by' => auth()->id(),
+                    'created_at' => now(),
+                    'updated_at' => now(),
+                ]);
+                
+                // Create capacity override
+                SlotCapacityOverride::create([
+                    'date' => $request->date,
+                    'time_slot_id' => $request->time_slot_id,
+                    'reg_capacity' => $request->reg_capacity,
+                    'updating_capacity' => $request->updating_capacity,
+                    'inquiry_capacity' => $request->inquiry_capacity,
+                    'reason' => $validated['notes'] ?? ($request->day_type === 'holiday' ? 'Holiday' : 'Manual override'),
+                    'created_at' => now(),
+                    'updated_at' => now(),
+                ]);
+            }
+            
+            // Handle working days override for holidays
+            if ($request->day_type === 'holiday') {
+                WorkingDaysOverride::updateOrCreate(
+                    ['date' => $request->date],
+                    [
+                        'day_type' => 'holiday',
+                        'reason' => $validated['notes'] ?? 'Holiday',
+                        'updated_at' => now(),
+                    ]
+                );
+            } else {
+                // If not holiday, remove any existing override for this date
+                WorkingDaysOverride::where('date', $request->date)->delete();
+            }
+            
+            DB::commit();
+            
+            $message = $isUpdate ? 'Slot updated successfully!' : 'Slot created successfully!';
+            
+            return response()->json([
+                'success' => true,
+                'message' => $message,
+                'slot' => $slot,
+                'is_update' => $isUpdate
+            ]);
+            
+        } catch (\Exception $e) {
+            DB::rollBack();
+            Log::error('Error creating/updating slot: ' . $e->getMessage());
+            return response()->json([
+                'success' => false,
+                'message' => 'Error: ' . $e->getMessage()
+            ], 500);
         }
-        
-        // Create the appointment slot (just the existence record)
-        $slot = AppointmentSlot::create([
-            'date' => $request->date,
-            'time_slot_id' => $request->time_slot_id,
-            'day_type' => $request->day_type,
-            'notes' => $validated['notes'] ?? null,
-            'created_by' => auth()->id(),
-        ]);
-        
-        // Create capacity rule for this specific date and time slot (override)
-        SlotCapacityOverride::updateOrCreate(
-            [
-                'date' => $request->date,
-                'time_slot_id' => $request->time_slot_id,
-            ],
-            [
-                'reg_capacity' => $request->reg_capacity,
-                'updating_capacity' => $request->updating_capacity,
-                'inquiry_capacity' => $request->inquiry_capacity,
-                'reason' => $validated['notes'] ?? ($request->day_type === 'holiday' ? 'Holiday' : 'Manual override'),
-            ]
-        );
-        
-        // Also create an entry in working_days_overrides for holidays
-        if ($request->day_type === 'holiday') {
-            WorkingDaysOverride::updateOrCreate(
-                ['date' => $request->date],
-                [
-                    'is_working' => false,
-                    'reason' => $validated['notes'] ?? 'Holiday',
-                ]
-            );
-        }
-        
-        return redirect()->route('admin.slots.index')
-            ->with('success', 'Slot created successfully with capacity settings.');
     }
     
     public function edit($id)
     {
         $slot = AppointmentSlot::findOrFail($id);
-        
-        // Get the override for this slot if exists
         $override = SlotCapacityOverride::where('date', $slot->date)
             ->where('time_slot_id', $slot->time_slot_id)
             ->first();
-        
         $timeSlots = TimeSlot::where('is_active', true)->orderBy('display_order')->get();
         
         return view('admin.slots.edit', compact('slot', 'override', 'timeSlots'));
@@ -157,145 +217,217 @@ class SlotController extends Controller
     
     public function update(Request $request, $id)
     {
-        $slot = AppointmentSlot::findOrFail($id);
-        
-        $validated = $request->validate([
-            'time_slot_id' => 'required|exists:time_slots,id',
-            'day_type' => 'required|in:working,half_day,holiday,special',
-            'reg_capacity' => 'required|integer|min:0|max:100',
-            'updating_capacity' => 'required|integer|min:0|max:100',
-            'inquiry_capacity' => 'required|integer|min:0|max:100',
-            'notes' => 'nullable|string',
-        ]);
-        
-        // Update the slot existence record
-        $slot->time_slot_id = $validated['time_slot_id'];
-        $slot->day_type = $validated['day_type'];
-        $slot->notes = $validated['notes'] ?? null;
-        $slot->save();
-        
-        // Update or create capacity override
-        SlotCapacityOverride::updateOrCreate(
-            [
-                'date' => $slot->date,
-                'time_slot_id' => $slot->time_slot_id,
-            ],
-            [
-                'reg_capacity' => $request->reg_capacity,
-                'updating_capacity' => $request->updating_capacity,
-                'inquiry_capacity' => $request->inquiry_capacity,
-                'reason' => $validated['notes'] ?? ($slot->day_type === 'holiday' ? 'Holiday' : 'Manual override'),
-            ]
-        );
-        
-        // Update working days override for holidays
-        if ($slot->day_type === 'holiday') {
-            WorkingDaysOverride::updateOrCreate(
-                ['date' => $slot->date],
+        try {
+            $slot = AppointmentSlot::findOrFail($id);
+            
+            $validated = $request->validate([
+                'time_slot_id' => 'required|exists:time_slots,id',
+                'day_type' => 'required|in:working,half_day,holiday,special',
+                'reg_capacity' => 'required|integer|min:0|max:100',
+                'updating_capacity' => 'required|integer|min:0|max:100',
+                'inquiry_capacity' => 'required|integer|min:0|max:100',
+                'notes' => 'nullable|string',
+            ]);
+            
+            DB::beginTransaction();
+            
+            $slot->time_slot_id = $validated['time_slot_id'];
+            $slot->day_type = $validated['day_type'];
+            $slot->notes = $validated['notes'] ?? null;
+            $slot->updated_at = now();
+            $slot->save();
+            
+            SlotCapacityOverride::updateOrCreate(
                 [
-                    'is_working' => false,
-                    'reason' => $validated['notes'] ?? 'Holiday',
+                    'date' => $slot->date,
+                    'time_slot_id' => $slot->time_slot_id,
+                ],
+                [
+                    'reg_capacity' => $request->reg_capacity,
+                    'updating_capacity' => $request->updating_capacity,
+                    'inquiry_capacity' => $request->inquiry_capacity,
+                    'reason' => $validated['notes'] ?? ($slot->day_type === 'holiday' ? 'Holiday' : 'Manual override'),
+                    'updated_at' => now(),
                 ]
             );
-        } else {
-            // If it's not a holiday, remove from working days overrides if exists
-            WorkingDaysOverride::where('date', $slot->date)->delete();
+            
+            if ($slot->day_type === 'holiday') {
+                WorkingDaysOverride::updateOrCreate(
+                    ['date' => $slot->date],
+                    [
+                        'day_type' => 'holiday',
+                        'reason' => $validated['notes'] ?? 'Holiday',
+                        'updated_at' => now(),
+                    ]
+                );
+            } else {
+                WorkingDaysOverride::where('date', $slot->date)->delete();
+            }
+            
+            DB::commit();
+            
+            return response()->json([
+                'success' => true,
+                'message' => 'Slot updated successfully!'
+            ]);
+            
+        } catch (\Exception $e) {
+            DB::rollBack();
+            Log::error('Error updating slot: ' . $e->getMessage());
+            return response()->json([
+                'success' => false,
+                'message' => 'Error updating slot: ' . $e->getMessage()
+            ], 500);
         }
-        
-        return redirect()->route('admin.slots.index')->with('success', 'Slot updated successfully.');
     }
     
     public function destroy($id)
     {
-        $slot = AppointmentSlot::findOrFail($id);
-        
-        // Check if there are appointments for this slot
-        $hasAppointments = Appointment::whereDate('appointment_date', $slot->date)
-            ->where('time_slot_id', $slot->time_slot_id)
-            ->exists();
-        
-        if ($hasAppointments) {
-            return response()->json(['success' => false, 'message' => 'Cannot delete slot with existing appointments.'], 400);
+        try {
+            $slot = AppointmentSlot::findOrFail($id);
+            
+            $hasAppointments = Appointment::whereDate('appointment_date', $slot->date)
+                ->where('time_slot_id', $slot->time_slot_id)
+                ->exists();
+            
+            if ($hasAppointments) {
+                return response()->json([
+                    'success' => false, 
+                    'message' => 'Cannot delete slot with existing appointments.'
+                ], 400);
+            }
+            
+            DB::beginTransaction();
+            
+            $slot->delete();
+            
+            SlotCapacityOverride::where('date', $slot->date)
+                ->where('time_slot_id', $slot->time_slot_id)
+                ->delete();
+            
+            DB::commit();
+            
+            return response()->json([
+                'success' => true, 
+                'message' => 'Slot deleted successfully.'
+            ]);
+            
+        } catch (\Exception $e) {
+            DB::rollBack();
+            Log::error('Error deleting slot: ' . $e->getMessage());
+            return response()->json([
+                'success' => false, 
+                'message' => 'Error deleting slot: ' . $e->getMessage()
+            ], 500);
         }
-        
-        // Delete the slot existence record
-        $slot->delete();
-        
-        // Delete associated capacity override
-        SlotCapacityOverride::where('date', $slot->date)
-            ->where('time_slot_id', $slot->time_slot_id)
-            ->delete();
-        
-        return response()->json(['success' => true, 'message' => 'Slot deleted successfully.']);
     }
     
     public function bulkGenerate(Request $request)
     {
-        $request->validate([
-            'start_date' => 'required|date|after_or_equal:today',
-            'end_date' => 'required|date|after_or_equal:start_date',
-            'time_slot_id' => 'required|exists:time_slots,id',
-            'reg_capacity' => 'required|integer|min:0|max:100',
-            'updating_capacity' => 'required|integer|min:0|max:100',
-            'inquiry_capacity' => 'required|integer|min:0|max:100',
-            'days' => 'nullable|array',
-            'days.*' => 'integer|between:1,7',
-        ]);
-        
-        $startDate = Carbon::parse($request->start_date);
-        $endDate = Carbon::parse($request->end_date);
-        $selectedDays = $request->days;
-        $created = 0;
-        $skipped = 0;
-        
-        for ($date = $startDate->copy(); $date <= $endDate; $date->addDay()) {
-            $dayOfWeek = $date->dayOfWeek;
-            // Convert to database format (1=Monday, 7=Sunday)
-            $dbDayOfWeek = $dayOfWeek == 0 ? 7 : $dayOfWeek;
-            
-            if (!empty($selectedDays) && !in_array($dbDayOfWeek, $selectedDays)) {
-                $skipped++;
-                continue;
-            }
-            
-            // Check if slot already exists
-            $existing = AppointmentSlot::where('date', $date->format('Y-m-d'))
-                ->where('time_slot_id', $request->time_slot_id)
-                ->first();
-            
-            if ($existing) {
-                $skipped++;
-                continue;
-            }
-            
-            // Create the appointment slot
-            AppointmentSlot::create([
-                'date' => $date->format('Y-m-d'),
-                'time_slot_id' => $request->time_slot_id,
-                'day_type' => 'working',
-                'notes' => null,
-                'created_by' => auth()->id(),
+        try {
+            $validated = $request->validate([
+                'start_date' => 'required|date|after_or_equal:today',
+                'end_date' => 'required|date|after_or_equal:start_date',
+                'time_slot_id' => 'required|exists:time_slots,id',
+                'reg_capacity' => 'required|integer|min:0|max:100',
+                'updating_capacity' => 'required|integer|min:0|max:100',
+                'inquiry_capacity' => 'required|integer|min:0|max:100',
+                'days' => 'nullable|array',
+                'days.*' => 'integer|between:1,7',
             ]);
             
-            // Create capacity override for this slot
-            SlotCapacityOverride::create([
-                'date' => $date->format('Y-m-d'),
-                'time_slot_id' => $request->time_slot_id,
-                'reg_capacity' => $request->reg_capacity,
-                'updating_capacity' => $request->updating_capacity,
-                'inquiry_capacity' => $request->inquiry_capacity,
-                'reason' => 'Bulk generated',
+            $startDate = Carbon::parse($request->start_date);
+            $endDate = Carbon::parse($request->end_date);
+            $selectedDays = $request->days ?? [1, 2, 3, 4, 5];
+            $created = 0;
+            $updated = 0;
+            $skipped = 0;
+            
+            DB::beginTransaction();
+            
+            for ($date = $startDate->copy(); $date <= $endDate; $date->addDay()) {
+                $dayOfWeek = $date->dayOfWeek;
+                $dbDayOfWeek = $dayOfWeek == 0 ? 7 : $dayOfWeek;
+                
+                if (!in_array($dbDayOfWeek, $selectedDays)) {
+                    $skipped++;
+                    continue;
+                }
+                
+                $existing = AppointmentSlot::where('date', $date->format('Y-m-d'))
+                    ->where('time_slot_id', $request->time_slot_id)
+                    ->first();
+                
+                if ($existing) {
+                    // Update existing slot
+                    $existing->day_type = 'working';
+                    $existing->notes = null;
+                    $existing->updated_at = now();
+                    $existing->save();
+                    
+                    SlotCapacityOverride::updateOrCreate(
+                        [
+                            'date' => $date->format('Y-m-d'),
+                            'time_slot_id' => $request->time_slot_id,
+                        ],
+                        [
+                            'reg_capacity' => $request->reg_capacity,
+                            'updating_capacity' => $request->updating_capacity,
+                            'inquiry_capacity' => $request->inquiry_capacity,
+                            'reason' => 'Bulk generated',
+                            'updated_at' => now(),
+                        ]
+                    );
+                    $updated++;
+                } else {
+                    // Create new slot
+                    AppointmentSlot::create([
+                        'date' => $date->format('Y-m-d'),
+                        'time_slot_id' => $request->time_slot_id,
+                        'day_type' => 'working',
+                        'notes' => null,
+                        'created_by' => auth()->id(),
+                        'created_at' => now(),
+                        'updated_at' => now(),
+                    ]);
+                    
+                    SlotCapacityOverride::create([
+                        'date' => $date->format('Y-m-d'),
+                        'time_slot_id' => $request->time_slot_id,
+                        'reg_capacity' => $request->reg_capacity,
+                        'updating_capacity' => $request->updating_capacity,
+                        'inquiry_capacity' => $request->inquiry_capacity,
+                        'reason' => 'Bulk generated',
+                        'created_at' => now(),
+                        'updated_at' => now(),
+                    ]);
+                    $created++;
+                }
+            }
+            
+            DB::commit();
+            
+            $message = "Generated {$created} new slots, updated {$updated} existing slots.";
+            if ($skipped > 0) {
+                $message .= " Skipped {$skipped} slots.";
+            }
+            
+            return response()->json([
+                'success' => true,
+                'message' => $message,
+                'created' => $created,
+                'updated' => $updated,
+                'skipped' => $skipped
             ]);
             
-            $created++;
+        } catch (\Exception $e) {
+            DB::rollBack();
+            Log::error('Error in bulk generate: ' . $e->getMessage());
+            return response()->json([
+                'success' => false,
+                'message' => 'Error generating slots: ' . $e->getMessage()
+            ], 500);
         }
-        
-        $message = "Generated {$created} slots.";
-        if ($skipped > 0) {
-            $message .= " Skipped {$skipped} slots (existing or excluded by day filter).";
-        }
-        
-        return redirect()->route('admin.slots.index')->with('success', $message);
     }
     
     public function getSlotsJson(Request $request)
@@ -304,14 +436,24 @@ class SlotController extends Controller
             $month = $request->get('month', date('m'));
             $year = $request->get('year', date('Y'));
             
-            // Get all appointment slots for the month
+            $workingDaysList = [];
+            $workingDaysRecords = WorkingDaysDefault::where('day_type', 'working')->get();
+            foreach ($workingDaysRecords as $record) {
+                $dayNumber = $this->getDayNumber($record->day_name);
+                if ($dayNumber) {
+                    $workingDaysList[] = $dayNumber;
+                }
+            }
+            if (empty($workingDaysList)) {
+                $workingDaysList = [1, 2, 3, 4, 5];
+            }
+            
             $slots = AppointmentSlot::whereMonth('date', $month)
                 ->whereYear('date', $year)
                 ->with('timeSlot')
                 ->get()
                 ->groupBy('date');
             
-            // Get all overrides for these dates
             $dates = AppointmentSlot::whereMonth('date', $month)
                 ->whereYear('date', $year)
                 ->pluck('date')
@@ -319,7 +461,7 @@ class SlotController extends Controller
             
             $overrides = SlotCapacityOverride::whereIn('date', $dates)
                 ->get()
-                ->groupBy(function($item) {
+                ->keyBy(function($item) {
                     return $item->date . '_' . $item->time_slot_id;
                 });
             
@@ -335,19 +477,15 @@ class SlotController extends Controller
                     
                     foreach ($dateSlots as $slot) {
                         $overrideKey = $slot->date . '_' . $slot->time_slot_id;
-                        $override = $overrides->get($overrideKey);
-                        $capacity = $override && $override->isNotEmpty() ? $override->first() : null;
+                        $capacity = $overrides->get($overrideKey);
                         
-                        // Get capacity from override or default from rules
                         if ($capacity) {
                             $regCapacity = $capacity->reg_capacity ?? 0;
                             $updatingCapacity = $capacity->updating_capacity ?? 0;
                             $inquiryCapacity = $capacity->inquiry_capacity ?? 0;
                         } else {
-                            // Get default capacity from rules based on day type
-                            $dayType = $this->getDayTypeForDate(Carbon::parse($date));
                             $rule = SlotCapacityRule::where('time_slot_id', $slot->time_slot_id)
-                                ->where('day_type', $dayType)
+                                ->where('day_type', 'working')
                                 ->first();
                             
                             $regCapacity = $rule->reg_capacity ?? 0;
@@ -355,11 +493,9 @@ class SlotController extends Controller
                             $inquiryCapacity = $rule->inquiry_capacity ?? 0;
                         }
                         
-                        // Get actual booked counts
                         $bookedCounts = AppointmentClient::whereHas('appointment', function($query) use ($slot) {
                             $query->whereDate('appointment_date', $slot->date)
-                                  ->where('time_slot_id', $slot->time_slot_id)
-                                  ->whereIn('status', ['pending', 'confirmed']);
+                                  ->where('time_slot_id', $slot->time_slot_id);
                         })
                         ->selectRaw('service, COUNT(*) as count')
                         ->groupBy('service')
@@ -371,13 +507,16 @@ class SlotController extends Controller
                         $inquiryBooked = $bookedCounts['inquiry'] ?? 0;
                         
                         $aggregated[$slot->time_slot_id] = [
-                            'time_slot_label' => $slot->timeSlot->slot_label,
+                            'time_slot_label' => $slot->timeSlot->label,
                             'reg_available' => max(0, $regCapacity - $regBooked),
                             'updating_available' => max(0, $updatingCapacity - $updatingBooked),
                             'inquiry_available' => max(0, $inquiryCapacity - $inquiryBooked),
                             'reg_capacity' => $regCapacity,
                             'updating_capacity' => $updatingCapacity,
                             'inquiry_capacity' => $inquiryCapacity,
+                            'reg_booked' => $regBooked,
+                            'updating_booked' => $updatingBooked,
+                            'inquiry_booked' => $inquiryBooked,
                             'day_type' => $slot->day_type,
                             'notes' => $slot->notes,
                         ];
@@ -389,157 +528,226 @@ class SlotController extends Controller
                 }
             }
             
-            return response()->json(['slots' => $result]);
+            return response()->json([
+                'slots' => $result,
+                'working_days' => $workingDaysList
+            ]);
             
         } catch (\Exception $e) {
             Log::error('Error in getSlotsJson: ' . $e->getMessage());
-            return response()->json(['slots' => [], 'error' => $e->getMessage()], 500);
+            return response()->json([
+                'slots' => [], 
+                'error' => $e->getMessage()
+            ], 500);
         }
-    }
-    
-    private function getDayTypeForDate($date)
-    {
-        // Check override first
-        $override = WorkingDaysOverride::where('date', $date->format('Y-m-d'))->first();
-        if ($override) {
-            return $override->is_working ? 'weekday' : 'holiday';
-        }
-        
-        // Check default
-        $dayOfWeek = $date->dayOfWeek; // 0=Sunday, 1=Monday, etc.
-        $default = WorkingDaysDefault::where('day_of_week', $dayOfWeek)->first();
-        
-        if (!$default || !$default->is_working) {
-            if ($dayOfWeek == 6) return 'saturday';
-            if ($dayOfWeek == 0) return 'sunday';
-            return 'holiday';
-        }
-        
-        return 'weekday';
     }
     
     public function toggleHoliday($id)
     {
-        $slot = AppointmentSlot::findOrFail($id);
-        
-        if ($slot->day_type === 'holiday') {
-            // Remove holiday status
-            $slot->day_type = 'working';
-            $slot->notes = null;
-            $slot->save();
+        try {
+            $slot = AppointmentSlot::findOrFail($id);
             
-            // Remove from working days overrides
-            WorkingDaysOverride::where('date', $slot->date)->delete();
+            DB::beginTransaction();
             
-            // Delete capacity override or set to default
-            SlotCapacityOverride::where('date', $slot->date)
-                ->where('time_slot_id', $slot->time_slot_id)
-                ->delete();
+            if ($slot->day_type === 'holiday') {
+                $slot->day_type = 'working';
+                $slot->notes = null;
+                $slot->updated_at = now();
+                $slot->save();
+                
+                WorkingDaysOverride::where('date', $slot->date)->delete();
+                
+                SlotCapacityOverride::where('date', $slot->date)
+                    ->where('time_slot_id', $slot->time_slot_id)
+                    ->delete();
+                
+                $message = 'Slot converted back to working day.';
+            } else {
+                $slot->day_type = 'holiday';
+                $slot->notes = 'Marked as holiday';
+                $slot->updated_at = now();
+                $slot->save();
+                
+                WorkingDaysOverride::updateOrCreate(
+                    ['date' => $slot->date],
+                    [
+                        'day_type' => 'holiday',
+                        'reason' => 'Holiday',
+                        'updated_at' => now(),
+                    ]
+                );
+                
+                SlotCapacityOverride::updateOrCreate(
+                    [
+                        'date' => $slot->date,
+                        'time_slot_id' => $slot->time_slot_id,
+                    ],
+                    [
+                        'reg_capacity' => 0,
+                        'updating_capacity' => 0,
+                        'inquiry_capacity' => 0,
+                        'reason' => 'Holiday - No appointments',
+                        'updated_at' => now(),
+                    ]
+                );
+                
+                $message = 'Slot marked as holiday.';
+            }
             
-            $message = 'Slot converted back to working day.';
-        } else {
-            // Mark as holiday
-            $slot->day_type = 'holiday';
-            $slot->notes = 'Marked as holiday';
-            $slot->save();
+            DB::commit();
             
-            // Add to working days overrides
-            WorkingDaysOverride::updateOrCreate(
-                ['date' => $slot->date],
-                ['is_working' => false, 'reason' => 'Holiday']
-            );
+            return response()->json(['success' => true, 'message' => $message]);
             
-            // Set capacity override to zero
-            SlotCapacityOverride::updateOrCreate(
-                [
-                    'date' => $slot->date,
-                    'time_slot_id' => $slot->time_slot_id,
-                ],
-                [
-                    'reg_capacity' => 0,
-                    'updating_capacity' => 0,
-                    'inquiry_capacity' => 0,
-                    'reason' => 'Holiday - No appointments',
-                ]
-            );
-            
-            $message = 'Slot marked as holiday.';
+        } catch (\Exception $e) {
+            DB::rollBack();
+            Log::error('Error toggling holiday: ' . $e->getMessage());
+            return response()->json([
+                'success' => false, 
+                'message' => 'Error: ' . $e->getMessage()
+            ], 500);
         }
-        
-        return response()->json(['success' => true, 'message' => $message]);
     }
     
     public function getSlotDetails($date)
     {
-        $slots = AppointmentSlot::where('date', $date)->with('timeSlot')->get();
-        
-        $slotDetails = [];
-        foreach ($slots as $slot) {
-            $override = SlotCapacityOverride::where('date', $slot->date)
-                ->where('time_slot_id', $slot->time_slot_id)
-                ->first();
+        try {
+            $slots = AppointmentSlot::where('date', $date)->with('timeSlot')->get();
             
-            // Get actual booked counts
-            $bookedCounts = AppointmentClient::whereHas('appointment', function($query) use ($slot) {
-                $query->whereDate('appointment_date', $slot->date)
-                      ->where('time_slot_id', $slot->time_slot_id)
-                      ->whereIn('status', ['pending', 'confirmed']);
-            })
-            ->selectRaw('service, COUNT(*) as count')
-            ->groupBy('service')
-            ->pluck('count', 'service')
-            ->toArray();
+            $slotDetails = [];
+            foreach ($slots as $slot) {
+                $override = SlotCapacityOverride::where('date', $slot->date)
+                    ->where('time_slot_id', $slot->time_slot_id)
+                    ->first();
+                
+                $bookedCounts = AppointmentClient::whereHas('appointment', function($query) use ($slot) {
+                    $query->whereDate('appointment_date', $slot->date)
+                          ->where('time_slot_id', $slot->time_slot_id);
+                })
+                ->selectRaw('service, COUNT(*) as count')
+                ->groupBy('service')
+                ->pluck('count', 'service')
+                ->toArray();
+                
+                $slotDetails[] = [
+                    'id' => $slot->id,
+                    'time_slot_id' => $slot->time_slot_id,
+                    'time_slot_label' => $slot->timeSlot->label,
+                    'day_type' => $slot->day_type,
+                    'reg_capacity' => $override->reg_capacity ?? 0,
+                    'updating_capacity' => $override->updating_capacity ?? 0,
+                    'inquiry_capacity' => $override->inquiry_capacity ?? 0,
+                    'reg_booked' => $bookedCounts['reg'] ?? 0,
+                    'updating_booked' => $bookedCounts['updating'] ?? 0,
+                    'inquiry_booked' => $bookedCounts['inquiry'] ?? 0,
+                    'notes' => $slot->notes,
+                ];
+            }
             
-            $slotDetails[] = [
-                'id' => $slot->id,
-                'time_slot_id' => $slot->time_slot_id,
-                'time_slot_label' => $slot->timeSlot->slot_label,
-                'day_type' => $slot->day_type,
-                'reg_capacity' => $override->reg_capacity ?? 0,
-                'updating_capacity' => $override->updating_capacity ?? 0,
-                'inquiry_capacity' => $override->inquiry_capacity ?? 0,
-                'reg_booked' => $bookedCounts['reg'] ?? 0,
-                'updating_booked' => $bookedCounts['updating'] ?? 0,
-                'inquiry_booked' => $bookedCounts['inquiry'] ?? 0,
-                'notes' => $slot->notes,
-            ];
+            return response()->json([
+                'success' => true,
+                'date' => $date,
+                'slots' => $slotDetails
+            ]);
+            
+        } catch (\Exception $e) {
+            Log::error('Error getting slot details: ' . $e->getMessage());
+            return response()->json([
+                'success' => false,
+                'message' => 'Error loading slot details'
+            ], 500);
         }
-        
-        return response()->json([
-            'success' => true,
-            'date' => $date,
-            'slots' => $slotDetails
-        ]);
     }
-    /**
- * Save default capacity rules for all time slots
- */
-public function saveCapacityRules(Request $request)
-{
-    try {
-        $capacities = $request->input('capacities', []);
-        
-        foreach ($capacities as $timeSlotId => $dayTypes) {
-            foreach ($dayTypes as $dayType => $services) {
+    
+    public function saveCapacityRules(Request $request)
+    {
+        try {
+            $capacities = $request->input('capacities', []);
+            
+            DB::beginTransaction();
+            
+            foreach ($capacities as $timeSlotId => $services) {
                 SlotCapacityRule::updateOrCreate(
                     [
                         'time_slot_id' => $timeSlotId,
-                        'day_type' => $dayType,
+                        'day_type' => 'working',
                     ],
                     [
-                        'reg_capacity' => $services['reg'] ?? 0,
-                        'updating_capacity' => $services['updating'] ?? 0,
-                        'inquiry_capacity' => $services['inquiry'] ?? 0,
+                        'reg_capacity' => $services['reg'] ?? 4,
+                        'updating_capacity' => $services['updating'] ?? 4,
+                        'inquiry_capacity' => $services['inquiry'] ?? 4,
+                        'updated_at' => now(),
                     ]
                 );
             }
+            
+            DB::commit();
+            
+            return response()->json([
+                'success' => true,
+                'message' => 'Capacity rules saved successfully.'
+            ]);
+            
+        } catch (\Exception $e) {
+            DB::rollBack();
+            Log::error('Error saving capacity rules: ' . $e->getMessage());
+            return response()->json([
+                'success' => false,
+                'message' => 'Error saving capacity rules: ' . $e->getMessage()
+            ], 500);
         }
-        
-        return response()->json(['success' => true, 'message' => 'Capacity rules saved successfully.']);
-    } catch (\Exception $e) {
-        Log::error('Error saving capacity rules: ' . $e->getMessage());
-        return response()->json(['success' => false, 'message' => $e->getMessage()], 500);
     }
-}
-
+    
+    public function checkExisting(Request $request)
+    {
+        try {
+            $slot = AppointmentSlot::where('date', $request->date)
+                ->where('time_slot_id', $request->time_slot_id)
+                ->first();
+            
+            $exists = !is_null($slot);
+            $hasOverride = false;
+            $timeSlot = null;
+            
+            if ($exists) {
+                $timeSlot = TimeSlot::find($slot->time_slot_id);
+                $override = SlotCapacityOverride::where('date', $slot->date)
+                    ->where('time_slot_id', $slot->time_slot_id)
+                    ->first();
+                $hasOverride = !is_null($override);
+            }
+            
+            return response()->json([
+                'exists' => $exists,
+                'has_override' => $hasOverride,
+                'time_slot_label' => $timeSlot ? $timeSlot->label : null,
+                'message' => $exists ? 'A slot already exists. It will be updated with the new settings.' : null
+            ]);
+            
+        } catch (\Exception $e) {
+            return response()->json(['exists' => false, 'error' => $e->getMessage()], 500);
+        }
+    }
+    
+    public function getDefaultCapacities(Request $request)
+    {
+        try {
+            $timeSlotId = $request->time_slot_id;
+            
+            $rule = SlotCapacityRule::where('time_slot_id', $timeSlotId)
+                ->where('day_type', 'working')
+                ->first();
+            
+            return response()->json([
+                'success' => true,
+                'reg_capacity' => $rule->reg_capacity ?? 4,
+                'updating_capacity' => $rule->updating_capacity ?? 4,
+                'inquiry_capacity' => $rule->inquiry_capacity ?? 4,
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => $e->getMessage()
+            ], 500);
+        }
+    }
 }

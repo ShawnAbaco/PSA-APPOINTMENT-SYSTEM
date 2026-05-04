@@ -86,6 +86,9 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
         Route::get('/details/{date}', [App\Http\Controllers\Admin\SlotController::class, 'getSlotDetails'])->name('details');
         Route::get('/json', [App\Http\Controllers\Admin\SlotController::class, 'getSlotsJson'])->name('json');
         Route::post('/capacity-rules', [App\Http\Controllers\Admin\SlotController::class, 'saveCapacityRules'])->name('capacity-rules');
+
+Route::get('/get-default-capacities', [App\Http\Controllers\Admin\SlotController::class, 'getDefaultCapacities'])->name('default-capacities');
+
     });
 
     // Time Slots routes (for the settings page)
