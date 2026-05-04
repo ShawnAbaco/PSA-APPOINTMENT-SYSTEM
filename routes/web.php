@@ -6,6 +6,8 @@ use Illuminate\Support\Facades\Session;
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Auth\RegisterController;
 use App\Http\Controllers\Web\PageController;
+use App\Models\User;
+
 use App\Http\Controllers\Client\AppointmentController;
 
 // FORCE LOGOUT - Complete session and cookie cleanup
@@ -64,7 +66,10 @@ Route::get('/calendar/stats', [App\Http\Controllers\Admin\CalendarController::cl
     Route::get('/calendar/{id}/json', [App\Http\Controllers\Admin\CalendarController::class, 'getJson'])->name('calendar.json');
     // Add these to your admin routes group
 
-
+Route::get('/users/{id}/edit-data', function($id) {
+    $user = User::findOrFail($id);
+    return response()->json($user);
+})->name('users.edit-data');
 
 
 

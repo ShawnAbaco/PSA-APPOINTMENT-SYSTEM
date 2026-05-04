@@ -28,6 +28,8 @@
     {{-- settings css link --}}
     <link rel="stylesheet" href="{{ asset('css/admin/settings/setting.css') }}">
 
+    <meta name="csrf-token" content="{{ csrf_token() }}">
+
 </head>
 
 <body>
