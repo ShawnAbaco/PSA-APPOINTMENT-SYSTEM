@@ -177,6 +177,8 @@ Route::middleware(['auth', 'staff'])->prefix('staff')->name('staff.')->group(fun
     // Reports routes
     Route::get('/reports', [App\Http\Controllers\Staff\ReportsController::class, 'index'])->name('reports.index');
     Route::get('/reports/export', [App\Http\Controllers\Staff\ReportsController::class, 'export'])->name('reports.export');
+    Route::get('/export/pdf', [App\Http\Controllers\Staff\ReportsController::class, 'exportPdf'])->name('reports.export.pdf');
+    Route::get('/export/excel', [App\Http\Controllers\Staff\ReportsController::class, 'exportExcel'])->name('reports.export.excel');
 });
 
 // Operator routes
@@ -208,6 +210,8 @@ Route::middleware(['auth', 'operator'])->prefix('operator')->name('operator.')->
     // Reports routes
     Route::get('/reports', [App\Http\Controllers\Operator\OReportsController::class, 'index'])->name('reports.index');
     Route::get('/reports/export', [App\Http\Controllers\Operator\OReportsController::class, 'export'])->name('reports.export');
+    Route::get('/export/pdf', [App\Http\Controllers\Operator\OReportsController::class, 'exportPdf'])->name('reports.export.pdf');
+    Route::get('/export/excel', [App\Http\Controllers\Operator\OReportsController::class, 'exportExcel'])->name('reports.export.excel');
 });
 
 // Client appointment routes

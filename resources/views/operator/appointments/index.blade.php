@@ -113,7 +113,8 @@
                             @forelse($appointments as $appointment)
                                 @if (in_array($appointment->status, ['confirmed', 'completed']))
                                     <tr class="appt-table-row" data-status="{{ $appointment->status }}"
-                                        data-date="{{ $appointment->appointment_date }}" data-id="{{ $appointment->id }}">
+                                        data-date="{{ \Carbon\Carbon::parse($appointment->appointment_date)->format('Y-m-d') }}"
+                                        data-id="{{ $appointment->id }}">
                                         <td>
                                             <input type="checkbox" class="appt-checkbox" value="{{ $appointment->id }}">
                                         </td>
@@ -312,81 +313,58 @@
             if (loader) loader.classList.remove('show');
         }
 
-        // Filter functionality
-        let filterTimeout;
+        // ============================================================
+        // FILTER FUNCTIONALITY WITH PAGE RESET
+        // ============================================================
 
-        function filterTable() {
-            clearTimeout(filterTimeout);
-            filterTimeout = setTimeout(() => {
-                const searchTerm = document.getElementById('searchAppointment')?.value.toLowerCase() || '';
-                const statusFilter = document.getElementById('statusFilter')?.value || '';
-                const dateFilter = document.getElementById('dateFilter')?.value || '';
-                const weekFilter = document.getElementById('weekFilter')?.value || '';
+        // Function to apply filters and reset to page 1
+        function applyFiltersAndReset() {
+            // Get filter values
+            const searchTerm = document.getElementById('searchAppointment')?.value || '';
+            const statusFilter = document.getElementById('statusFilter')?.value || '';
+            const dateFilter = document.getElementById('dateFilter')?.value || '';
+            const weekFilter = document.getElementById('weekFilter')?.value || '';
 
-                const rows = document.querySelectorAll('.appt-table-row');
-                let visibleCount = 0;
+            // Build URL with filters and page=1
+            const params = new URLSearchParams();
+            if (searchTerm) params.set('search', searchTerm);
+            if (statusFilter) params.set('status', statusFilter);
+            if (dateFilter) params.set('date', dateFilter);
+            if (weekFilter) params.set('week_filter', weekFilter);
+            params.set('page', '1'); // Reset to page 1
 
-                rows.forEach(row => {
-                    const appointmentNumber = row.querySelector('.appt-number-badge')?.textContent
-                        .toLowerCase() || '';
-                    const contactName = row.querySelector('.appt-contact-name')?.textContent
-                        .toLowerCase() || '';
-                    const rowStatus = row.getAttribute('data-status') || '';
-                    const rowDate = row.getAttribute('data-date') || '';
-
-                    let matchesWeek = true;
-                    if (weekFilter) {
-                        const date = new Date(rowDate);
-                        const today = new Date();
-                        const weekStart = new Date(today);
-                        weekStart.setDate(today.getDate() - today.getDay());
-                        const weekEnd = new Date(weekStart);
-                        weekEnd.setDate(weekStart.getDate() + 6);
-
-                        switch (weekFilter) {
-                            case 'today':
-                                matchesWeek = date.toDateString() === today.toDateString();
-                                break;
-                            case 'tomorrow':
-                                const tomorrow = new Date(today);
-                                tomorrow.setDate(today.getDate() + 1);
-                                matchesWeek = date.toDateString() === tomorrow.toDateString();
-                                break;
-                            case 'this_week':
-                                matchesWeek = date >= weekStart && date <= weekEnd;
-                                break;
-                            case 'next_week':
-                                const nextWeekStart = new Date(weekEnd);
-                                nextWeekStart.setDate(weekEnd.getDate() + 1);
-                                const nextWeekEnd = new Date(nextWeekStart);
-                                nextWeekEnd.setDate(nextWeekStart.getDate() + 6);
-                                matchesWeek = date >= nextWeekStart && date <= nextWeekEnd;
-                                break;
-                            case 'this_month':
-                                matchesWeek = date.getMonth() === today.getMonth() && date.getFullYear() ===
-                                    today.getFullYear();
-                                break;
-                        }
-                    }
-
-                    const matchesSearch = !searchTerm || appointmentNumber.includes(searchTerm) ||
-                        contactName.includes(searchTerm);
-                    const matchesStatus = !statusFilter || rowStatus === statusFilter;
-                    const matchesDate = !dateFilter || rowDate === dateFilter;
-
-                    const shouldShow = matchesSearch && matchesStatus && matchesDate && matchesWeek;
-                    row.style.display = shouldShow ? '' : 'none';
-                    if (shouldShow) visibleCount++;
-                });
-
-                const recordCountSpan = document.getElementById('recordCount');
-                if (recordCountSpan) {
-                    recordCountSpan.textContent = visibleCount + ' record' + (visibleCount !== 1 ? 's' : '');
-                }
-
-                updateStats();
-            }, 300);
+            // Reload page with filters
+            window.location.href = window.location.pathname + '?' + params.toString();
         }
+
+        // Load filters from URL on page load
+        function loadFiltersFromURL() {
+            const params = new URLSearchParams(window.location.search);
+            if (params.get('search')) document.getElementById('searchAppointment').value = params.get('search');
+            if (params.get('status')) document.getElementById('statusFilter').value = params.get('status');
+            if (params.get('date')) document.getElementById('dateFilter').value = params.get('date');
+            if (params.get('week_filter')) document.getElementById('weekFilter').value = params.get('week_filter');
+        }
+
+        // Update event listeners to use the new function
+        document.getElementById('searchAppointment')?.addEventListener('keyup', function(e) {
+            if (e.key === 'Enter') {
+                applyFiltersAndReset();
+            }
+        });
+
+        document.getElementById('statusFilter')?.addEventListener('change', () => applyFiltersAndReset());
+        document.getElementById('dateFilter')?.addEventListener('change', () => applyFiltersAndReset());
+        document.getElementById('weekFilter')?.addEventListener('change', () => applyFiltersAndReset());
+
+        document.getElementById('resetFilters')?.addEventListener('click', () => {
+            window.location.href = window.location.pathname;
+        });
+
+        // Initialize filters from URL on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            loadFiltersFromURL();
+        });
 
         // Helper function to get current page
         function getCurrentPage() {

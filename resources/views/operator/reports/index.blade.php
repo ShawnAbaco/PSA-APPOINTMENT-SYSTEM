@@ -20,12 +20,14 @@
             <div class="reports-card-header">
                 <h5 class="reports-card-title"><i class="fas fa-filter"></i> Filter Reports</h5>
                 <div class="reports-action-buttons">
-                    <button onclick="exportToPDF()" class="reports-btn reports-btn-danger">
+                    <a href="{{ route('operator.reports.export.pdf', request()->query()) }}"
+                        class="reports-btn reports-btn-pdf">
                         <i class="fas fa-file-pdf"></i> Export PDF
-                    </button>
-                    <button onclick="exportToExcel()" class="reports-btn reports-btn-success">
+                    </a>
+                    <a href="{{ route('operator.reports.export.excel', request()->query()) }}"
+                        class="reports-btn reports-btn-excel">
                         <i class="fas fa-file-excel"></i> Export Excel
-                    </button>
+                    </a>
                 </div>
             </div>
             <div class="reports-card-body">
@@ -201,462 +203,13 @@
                 @endif
             </div>
         </div>
-
-        <!-- City Summary Table -->
-        <div class="reports-card reports-mt-4">
-            <div class="reports-card-header">
-                <h5 class="reports-card-title"><i class="fas fa-chart-simple"></i> Summary by City</h5>
-            </div>
-            <div class="reports-card-body">
-                <div class="table-responsive">
-                    <table class="reports-table" id="citySummaryTable">
-                        <thead>
-                            <tr>
-                                <th>City</th>
-                                <th>Confirmed</th>
-                                <th>Completed</th>
-                                <th>Total</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            @forelse($citySummary ?? [] as $city)
-                                <tr>
-                                    <td>{{ $city->user_city }}</td>
-                                    <td>{{ $city->confirmed ?? 0 }}</td>
-                                    <td>{{ $city->completed ?? 0 }}</td>
-                                    <td><strong>{{ ($city->confirmed ?? 0) + ($city->completed ?? 0) }}</strong></td>
-                                </tr>
-                            @empty
-                                <tr>
-                                    <td colspan="4" class="text-center">No city data available.</td>
-                                </tr>
-                            @endforelse
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-        </div>
     </div>
 
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
-    <script src="https://cdn.sheetjs.com/xlsx-0.20.2/package/dist/xlsx.full.min.js"></script>
 
     <script>
-        // Get current filter values for export
-        function getCurrentFilters() {
-            const startDate = document.querySelector('input[name="start_date"]')?.value || '';
-            const endDate = document.querySelector('input[name="end_date"]')?.value || '';
-            const status = document.querySelector('select[name="status"]')?.value || '';
-            return {
-                startDate,
-                endDate,
-                status
-            };
-        }
-
-        // Convert date to readable format
-        function formatDate(dateString) {
-            const date = new Date(dateString);
-            const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-            return `${months[date.getMonth()]} ${date.getDate()}, ${date.getFullYear()}`;
-        }
-
-        // Export to PDF with PSA style
-        async function exportToPDF() {
-            const table = document.getElementById('appointmentsTable');
-            const cityTable = document.getElementById('citySummaryTable');
-
-            if (!table || table.querySelectorAll('tbody tr').length === 0) {
-                alert('No data to export');
-                return;
-            }
-
-            const filters = getCurrentFilters();
-            const confirmedCount = {{ $confirmedAppointments ?? 0 }};
-            const completedCount = {{ $completedAppointments ?? 0 }};
-            const totalCount = confirmedCount + completedCount;
-
-            // Create report wrapper
-            const pdfContent = document.createElement('div');
-            pdfContent.style.cssText = `
-                margin: 0;
-                padding: 0;
-                background: white;
-                font-family: 'Arial', 'Helvetica', sans-serif;
-                line-height: 1.3;
-            `;
-
-            // Inner container with margins
-            const inner = document.createElement('div');
-            inner.style.cssText = `
-                margin: 0 auto;
-                padding: 50px 60px 50px 60px;
-                max-width: 1200px;
-                box-sizing: border-box;
-            `;
-            pdfContent.appendChild(inner);
-
-            // === HEADER: Philippine Statistics Authority ===
-            const header = document.createElement('div');
-            header.style.cssText = `
-                text-align: center;
-                margin-bottom: 30px;
-            `;
-            header.innerHTML = `
-                <div style="display: flex; align-items: center; justify-content: center; gap: 15px; margin-bottom: 10px;">
-                    <div style="width: 60px; height: 60px; display: flex; align-items: center; justify-content: center;">
-                        <img src="/images/psa.png" alt="PSA Logo" style="max-width: 100%; max-height: 100%;" onerror="this.style.display='none'">
-                    </div>
-                    <div>
-                        <div style="font-size: 22px; font-weight: bold; letter-spacing: 1px;">PHILIPPINE STATISTICS AUTHORITY</div>
-                        <div style="font-size: 11px; margin-top: 5px;">Civil Registration</div>
-                    </div>
-                    <div style="width: 60px;"></div>
-                </div>
-                <div style="border-bottom: 2px solid #000; margin-top: 10px;"></div>
-            `;
-            inner.appendChild(header);
-
-            // Report Title with Date Range
-            const title = document.createElement('div');
-            title.style.cssText = `
-                text-align: center;
-                margin: 25px 0 20px 0;
-            `;
-            title.innerHTML = `
-                <h2 style="margin: 0; font-size: 16px; font-weight: bold; text-transform: uppercase;">APPOINTMENTS REPORT</h2>
-                <p style="margin: 5px 0 0 0; font-size: 12px;">Period: ${filters.startDate || 'N/A'} — ${filters.endDate || 'N/A'}</p>
-            `;
-            inner.appendChild(title);
-
-            // === SUMMARY BY CITY / DISTRICT and SUMMARY STATISTICS side by side ===
-            const summaryFlex = document.createElement('div');
-            summaryFlex.style.cssText = `
-                display: flex;
-                gap: 40px;
-                margin: 25px 0 30px 0;
-            `;
-
-            // Left side: Summary by City / District Table
-            const cityDiv = document.createElement('div');
-            cityDiv.style.cssText = `
-                flex: 1.5;
-            `;
-
-            if (cityTable && cityTable.querySelectorAll('tbody tr').length > 0) {
-                const cityTitle = document.createElement('div');
-                cityTitle.style.cssText = `
-                    font-size: 13px;
-                    font-weight: bold;
-                    margin-bottom: 10px;
-                    text-transform: uppercase;
-                `;
-                cityTitle.innerHTML = `SUMMARY BY CITY / DISTRICT`;
-                cityDiv.appendChild(cityTitle);
-
-                const cloneCityTable = cityTable.cloneNode(true);
-                cloneCityTable.style.cssText = `
-                    width: 100%;
-                    border-collapse: collapse;
-                    font-size: 11px;
-                `;
-
-                const cityThCells = cloneCityTable.querySelectorAll('th');
-                cityThCells.forEach(th => {
-                    th.style.cssText = `
-                        background: #f2f2f2;
-                        padding: 8px 10px;
-                        text-align: left;
-                        font-weight: bold;
-                        border: 1px solid #000;
-                    `;
-                });
-
-                const cityTdCells = cloneCityTable.querySelectorAll('td');
-                cityTdCells.forEach(td => {
-                    td.style.cssText = `
-                        padding: 6px 10px;
-                        border: 1px solid #000;
-                    `;
-                });
-
-                cityDiv.appendChild(cloneCityTable);
-            } else {
-                cityDiv.innerHTML = `<p style="font-size: 11px; color: #999;">No city data available.</p>`;
-            }
-            summaryFlex.appendChild(cityDiv);
-
-            // Right side: Summary Statistics
-            const statsDiv = document.createElement('div');
-            statsDiv.style.cssText = `
-                flex: 1;
-            `;
-
-            const statsTitle = document.createElement('div');
-            statsTitle.style.cssText = `
-                font-size: 13px;
-                font-weight: bold;
-                margin-bottom: 10px;
-                text-transform: uppercase;
-            `;
-            statsTitle.innerHTML = `SUMMARY STATISTICS`;
-            statsDiv.appendChild(statsTitle);
-
-            const statsTable = document.createElement('table');
-            statsTable.style.cssText = `
-                width: 100%;
-                border-collapse: collapse;
-                font-size: 11px;
-            `;
-            statsTable.innerHTML = `
-                <tr>
-                    <td style="border: 1px solid #000; padding: 8px 10px; font-weight: bold;">Confirmed:</td>
-                    <td style="border: 1px solid #000; padding: 8px 10px; text-align: right;">${confirmedCount}</td>
-                </tr>
-                <tr>
-                    <td style="border: 1px solid #000; padding: 8px 10px; font-weight: bold;">Completed:</td>
-                    <td style="border: 1px solid #000; padding: 8px 10px; text-align: right;">${completedCount}</td>
-                </tr>
-                <tr style="background: #f9f9f9;">
-                    <td style="border: 1px solid #000; padding: 8px 10px; font-weight: bold;">TOTAL:</td>
-                    <td style="border: 1px solid #000; padding: 8px 10px; text-align: right; font-weight: bold;">${totalCount}</td>
-                </tr>
-            `;
-            statsDiv.appendChild(statsTable);
-            summaryFlex.appendChild(statsDiv);
-
-            inner.appendChild(summaryFlex);
-
-            // === APPOINTMENT DETAILS TABLE ===
-            const tableTitle = document.createElement('div');
-            tableTitle.style.cssText = `
-                font-size: 13px;
-                font-weight: bold;
-                margin: 20px 0 10px 0;
-                text-transform: uppercase;
-            `;
-            tableTitle.innerHTML = `APPOINTMENT DETAILS`;
-            inner.appendChild(tableTitle);
-
-            // Clone and style table
-            const cloneTable = table.cloneNode(true);
-            cloneTable.style.cssText = `
-                width: 100%;
-                border-collapse: collapse;
-                font-size: 10px;
-                margin-bottom: 20px;
-            `;
-
-            // Style headers
-            const thCells = cloneTable.querySelectorAll('th');
-            thCells.forEach(th => {
-                th.style.cssText = `
-                    background: #f2f2f2;
-                    padding: 8px 6px;
-                    text-align: left;
-                    font-weight: bold;
-                    border: 1px solid #000;
-                    font-size: 10px;
-                `;
-            });
-
-            // Style cells
-            const tdCells = cloneTable.querySelectorAll('td');
-            tdCells.forEach(td => {
-                td.style.cssText = `
-                    padding: 6px;
-                    border: 1px solid #000;
-                    color: #000;
-                    font-size: 9px;
-                `;
-            });
-
-            // Process status badges
-            cloneTable.querySelectorAll('.status-badge').forEach(badge => {
-                const statusText = badge.innerText;
-                const parent = badge.parentNode;
-                parent.textContent = statusText;
-            });
-
-            inner.appendChild(cloneTable);
-
-            // Footer with generation info
-            const footer = document.createElement('div');
-            footer.style.cssText = `
-                margin-top: 25px;
-                padding-top: 10px;
-                border-top: 1px solid #ccc;
-                font-size: 8px;
-                color: #666;
-                text-align: center;
-            `;
-            footer.innerHTML = `
-                <p style="margin: 2px 0;">Philippine Statistics Authority | Civil Registration</p>
-                <p style="margin: 2px 0;">Generated: ${new Date().toLocaleString()} | Page 1 of 1</p>
-            `;
-            inner.appendChild(footer);
-
-            // PDF configuration
-            const opt = {
-                margin: [0.5, 0.5, 0.5, 0.5],
-                filename: `appointment_report_${filters.startDate || 'all'}_to_${filters.endDate || 'all'}.pdf`,
-                image: {
-                    type: 'jpeg',
-                    quality: 0.98
-                },
-                html2canvas: {
-                    scale: 2,
-                    letterRendering: true,
-                    useCORS: true
-                },
-                jsPDF: {
-                    unit: 'in',
-                    format: 'letter',
-                    orientation: 'portrait'
-                }
-            };
-
-            html2pdf().set(opt).from(pdfContent).save();
-        }
-
-        // Export to Excel with PSA style
-        function exportToExcel() {
-            const table = document.getElementById('appointmentsTable');
-            const cityTable = document.getElementById('citySummaryTable');
-
-            if (!table || table.querySelectorAll('tbody tr').length === 0) {
-                alert('No data to export');
-                return;
-            }
-
-            const filters = getCurrentFilters();
-            const confirmedCount = {{ $confirmedAppointments ?? 0 }};
-            const completedCount = {{ $completedAppointments ?? 0 }};
-            const totalCount = confirmedCount + completedCount;
-
-            // Get table data
-            const headers = [];
-            table.querySelectorAll('thead th').forEach(th => {
-                headers.push(th.innerText.trim());
-            });
-
-            const rows = [];
-            table.querySelectorAll('tbody tr').forEach(row => {
-                const rowData = [];
-                row.querySelectorAll('td').forEach(cell => {
-                    const badge = cell.querySelector('.status-badge');
-                    let text = badge ? badge.innerText.trim() : cell.innerText.trim();
-                    rowData.push(text);
-                });
-                rows.push(rowData);
-            });
-
-            // Get city data
-            const cityHeaders = [];
-            const cityRows = [];
-            if (cityTable && cityTable.querySelectorAll('tbody tr').length > 0) {
-                cityTable.querySelectorAll('thead th').forEach(th => {
-                    cityHeaders.push(th.innerText.trim());
-                });
-                cityTable.querySelectorAll('tbody tr').forEach(row => {
-                    const rowData = [];
-                    row.querySelectorAll('td').forEach(cell => {
-                        rowData.push(cell.innerText.trim());
-                    });
-                    cityRows.push(rowData);
-                });
-            }
-
-            // Build Excel data
-            const wsData = [];
-
-            // Header
-            wsData.push(['PHILIPPINE STATISTICS AUTHORITY']);
-            wsData.push(['Civil Registration and Vital Statistics Division']);
-            wsData.push([]);
-            wsData.push(['CONFIRMED AND COMPLETED APPOINTMENTS REPORT']);
-            wsData.push([`Period: ${filters.startDate || 'N/A'} — ${filters.endDate || 'N/A'}`]);
-            wsData.push([]);
-            wsData.push([]);
-
-            // Summary by City and Summary Statistics side by side
-            // Row with two sections
-            if (cityRows.length > 0) {
-                wsData.push(['SUMMARY BY CITY / DISTRICT', '', '', '', 'SUMMARY STATISTICS', '', '', '']);
-                wsData.push([...cityHeaders, '', '', 'Metric', 'Count', '', '']);
-                for (let i = 0; i < Math.max(cityRows.length, 3); i++) {
-                    const cityRow = i < cityRows.length ? cityRows[i] : ['', '', '', ''];
-                    if (i === 0) {
-                        wsData.push([...cityRow, '', '', 'Confirmed Appointments:', confirmedCount, '', '']);
-                    } else if (i === 1) {
-                        wsData.push([...cityRow, '', '', 'Completed Appointments:', completedCount, '', '']);
-                    } else if (i === 2) {
-                        wsData.push([...cityRow, '', '', 'TOTAL:', totalCount, '', '']);
-                    } else {
-                        wsData.push([...cityRow, '', '', '', '', '', '']);
-                    }
-                }
-            } else {
-                wsData.push(['SUMMARY STATISTICS']);
-                wsData.push(['Confirmed Appointments:', confirmedCount]);
-                wsData.push(['Completed Appointments:', completedCount]);
-                wsData.push(['TOTAL:', totalCount]);
-            }
-            wsData.push([]);
-            wsData.push([]);
-
-            // Appointment Details
-            wsData.push(['APPOINTMENT DETAILS']);
-            wsData.push(headers);
-            rows.forEach(row => wsData.push(row));
-            wsData.push([]);
-            wsData.push([]);
-
-            // Footer
-            wsData.push(['Philippine Statistics Authority | Civil Registration and Vital Statistics Division']);
-            wsData.push([`Generated: ${new Date().toLocaleString()}`]);
-
-            // Create worksheet
-            const ws = XLSX.utils.aoa_to_sheet(wsData);
-
-            // Set column widths
-            ws['!cols'] = [{
-                    wch: 20
-                }, // Column A
-                {
-                    wch: 14
-                }, // Column B
-                {
-                    wch: 18
-                }, // Column C
-                {
-                    wch: 20
-                }, // Column D
-                {
-                    wch: 18
-                }, // Column E
-                {
-                    wch: 12
-                }, // Column F
-                {
-                    wch: 12
-                }, // Column G
-                {
-                    wch: 18
-                } // Column H
-            ];
-
-            // Create workbook
-            const wb = XLSX.utils.book_new();
-            XLSX.utils.book_append_sheet(wb, ws, 'Appointments Report');
-
-            const fileName = `appointment_report_${filters.startDate || 'start'}_to_${filters.endDate || 'end'}.xlsx`;
-            XLSX.writeFile(wb, fileName);
-        }
-
-        // Appointment Status Chart
+        // Appointment Status Chart - Confirmed and Completed
         const ctx1 = document.getElementById('appointmentChart').getContext('2d');
         new Chart(ctx1, {
             type: 'bar',
@@ -708,5 +261,67 @@
                 }
             }
         });
+
+        // Export to CSV
+        function exportToCSV() {
+            const table = document.getElementById('appointmentsTable');
+            if (!table) {
+                alert('No data to export');
+                return;
+            }
+
+            let csv = [];
+            // Get headers
+            const headers = [];
+            table.querySelectorAll('thead th').forEach(th => {
+                headers.push(`"${th.innerText.trim()}"`);
+            });
+            csv.push(headers.join(','));
+
+            // Get rows
+            table.querySelectorAll('tbody tr').forEach(row => {
+                const cells = row.querySelectorAll('td');
+                const rowData = Array.from(cells).map(cell => {
+                    const badge = cell.querySelector('.status-badge');
+                    let text = badge ? badge.innerText.trim() : cell.innerText.trim();
+                    return `"${text.replace(/[^\w\s,.-]/g, '')}"`;
+                });
+                csv.push(rowData.join(','));
+            });
+
+            const blob = new Blob([csv.join('\n')], {
+                type: 'text/csv'
+            });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `confirmed_completed_report_${new Date().toISOString().split('T')[0]}.csv`;
+            a.click();
+            URL.revokeObjectURL(url);
+            alert('✅ Report exported to CSV successfully!');
+        }
+
+        // Copy Table Data
+        function copyTableData() {
+            const table = document.getElementById('appointmentsTable');
+            if (!table) {
+                alert('No table to copy');
+                return;
+            }
+
+            const range = document.createRange();
+            range.selectNode(table);
+            window.getSelection().removeAllRanges();
+            window.getSelection().addRange(range);
+
+            try {
+                document.execCommand('copy');
+                alert('✅ Appointment table copied to clipboard!');
+            } catch (err) {
+                alert('Failed to copy table data');
+            }
+
+            window.getSelection().removeAllRanges();
+        }
     </script>
 @endsection

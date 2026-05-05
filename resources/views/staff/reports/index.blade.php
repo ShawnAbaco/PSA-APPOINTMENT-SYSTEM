@@ -20,15 +20,14 @@
             <div class="reports-card-header">
                 <h5 class="reports-card-title"><i class="fas fa-filter"></i> Filter Reports</h5>
                 <div class="reports-action-buttons">
-                    <button onclick="exportToCSV()" class="reports-btn reports-btn-success">
-                        <i class="fas fa-file-csv"></i> Export to CSV
-                    </button>
-                    <button onclick="window.print()" class="reports-btn reports-btn-secondary">
-                        <i class="fas fa-print"></i> Print Report
-                    </button>
-                    <button onclick="copyTableData()" class="reports-btn reports-btn-info">
-                        <i class="fas fa-copy"></i> Copy Summary
-                    </button>
+                    <a href="{{ route('staff.reports.export.pdf', request()->query()) }}"
+                        class="reports-btn reports-btn-pdf">
+                        <i class="fas fa-file-pdf"></i> Export PDF
+                    </a>
+                    <a href="{{ route('staff.reports.export.excel', request()->query()) }}"
+                        class="reports-btn reports-btn-excel">
+                        <i class="fas fa-file-excel"></i> Export Excel
+                    </a>
                 </div>
             </div>
             <div class="reports-card-body">
@@ -47,7 +46,7 @@
                         <div class="reports-form-group">
                             <label class="reports-form-label">Status</label>
                             <select name="status" class="reports-form-control">
-                                <option value="">All Status (Pending & Confirmed)</option>
+                                <option value="">All Status</option>
                                 <option value="pending" {{ request('status') == 'pending' ? 'selected' : '' }}>Pending
                                 </option>
                                 <option value="confirmed" {{ request('status') == 'confirmed' ? 'selected' : '' }}>Confirmed
@@ -166,7 +165,7 @@
                     </table>
                 </div>
 
-                <!-- Pagination - Styled like appointments page -->
+                <!-- Pagination -->
                 @if (isset($appointments) && method_exists($appointments, 'links') && $appointments->total() > 0)
                     <div class="reports-pagination-wrapper">
                         <div class="reports-pagination-info">
@@ -202,41 +201,6 @@
                         </div>
                     </div>
                 @endif
-            </div>
-        </div>
-
-        <!-- City Summary Table -->
-        <div class="reports-card reports-mt-4">
-            <div class="reports-card-header">
-                <h5 class="reports-card-title"><i class="fas fa-chart-simple"></i> Summary by City</h5>
-            </div>
-            <div class="reports-card-body">
-                <div class="table-responsive">
-                    <table class="reports-table" id="citySummaryTable">
-                        <thead>
-                            <tr>
-                                <th>City</th>
-                                <th>Pending</th>
-                                <th>Confirmed</th>
-                                <th>Total</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            @forelse($citySummary ?? [] as $city)
-                                <tr>
-                                    <td>{{ $city->user_city }}</td>
-                                    <td>{{ $city->pending ?? 0 }}</td>
-                                    <td>{{ $city->confirmed ?? 0 }}</td>
-                                    <td><strong>{{ ($city->pending ?? 0) + ($city->confirmed ?? 0) }}</strong></td>
-                                </tr>
-                            @empty
-                                <tr>
-                                    <td colspan="4" class="text-center">No city data available.</td>
-                                </tr>
-                            @endforelse
-                        </tbody>
-                    </table>
-                </div>
             </div>
         </div>
     </div>
@@ -339,7 +303,7 @@
 
         // Copy Table Data
         function copyTableData() {
-            const table = document.getElementById('citySummaryTable');
+            const table = document.getElementById('appointmentsTable');
             if (!table) {
                 alert('No table to copy');
                 return;
@@ -352,7 +316,7 @@
 
             try {
                 document.execCommand('copy');
-                alert('✅ Summary table copied to clipboard!');
+                alert('✅ Appointment table copied to clipboard!');
             } catch (err) {
                 alert('Failed to copy table data');
             }

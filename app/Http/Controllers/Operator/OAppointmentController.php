@@ -20,8 +20,12 @@ class OAppointmentController extends Controller
 {
     $query = Appointment::with('clients', 'timeSlot')
         ->whereIn('status', ['confirmed', 'completed']);
-
+    
     // Apply filters
+    if ($request->filled('status')) {
+        $query->where('status', $request->status);
+    }
+    
     if ($request->filled('date')) {
         $query->whereDate('appointment_date', $request->date);
     }
@@ -58,21 +62,14 @@ class OAppointmentController extends Controller
         }
     }
     
-    $appointments = $query->orderBy('appointment_date', 'desc')
+    // Order by status (completed last, confirmed first), then by date
+    $appointments = $query->orderByRaw("FIELD(status, 'confirmed', 'completed')")
+        ->orderBy('appointment_date', 'desc')
         ->orderBy('time_slot_id', 'asc')
         ->paginate($request->get('per_page', 15));
     
     return view('operator.appointments.index', compact('appointments'));
 }
-    
-    public function create()
-    {
-        $timeSlots = TimeSlot::where('is_active', true)
-            ->orderBy('display_order')
-            ->get();
-        
-        return view('operator.appointments.create', compact('timeSlots'));
-    }
     
     public function store(Request $request)
     {
