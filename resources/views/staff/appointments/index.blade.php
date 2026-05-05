@@ -113,7 +113,8 @@
                             @forelse($appointments as $appointment)
                                 @if (in_array($appointment->status, ['pending', 'confirmed']))
                                     <tr class="appt-table-row" data-status="{{ $appointment->status }}"
-                                        data-date="{{ $appointment->appointment_date }}" data-id="{{ $appointment->id }}">
+                                        data-date="{{ \Carbon\Carbon::parse($appointment->appointment_date)->format('Y-m-d') }}"
+                                        data-id="{{ $appointment->id }}">
                                         <td>
                                             <input type="checkbox" class="appt-checkbox" value="{{ $appointment->id }}">
                                         </td>
@@ -306,6 +307,55 @@
             const loader = document.getElementById('psaLoaderModal');
             if (loader) loader.classList.remove('show');
         }
+
+        // Function to apply filters and reset to page 1
+        function applyFiltersAndReset() {
+            // Get filter values
+            const searchTerm = document.getElementById('searchAppointment')?.value || '';
+            const statusFilter = document.getElementById('statusFilter')?.value || '';
+            const dateFilter = document.getElementById('dateFilter')?.value || '';
+            const weekFilter = document.getElementById('weekFilter')?.value || '';
+
+            // Build URL with filters and page=1
+            const params = new URLSearchParams();
+            if (searchTerm) params.set('search', searchTerm);
+            if (statusFilter) params.set('status', statusFilter);
+            if (dateFilter) params.set('date', dateFilter);
+            if (weekFilter) params.set('week_filter', weekFilter);
+            params.set('page', '1'); // Reset to page 1
+
+            // Reload page with filters
+            window.location.href = window.location.pathname + '?' + params.toString();
+        }
+
+        // Update event listeners to use the new function
+        document.getElementById('searchAppointment')?.addEventListener('keyup', function(e) {
+            if (e.key === 'Enter') {
+                applyFiltersAndReset();
+            }
+        });
+
+        document.getElementById('statusFilter')?.addEventListener('change', () => applyFiltersAndReset());
+        document.getElementById('dateFilter')?.addEventListener('change', () => applyFiltersAndReset());
+        document.getElementById('weekFilter')?.addEventListener('change', () => applyFiltersAndReset());
+
+        document.getElementById('resetFilters')?.addEventListener('click', () => {
+            window.location.href = window.location.pathname;
+        });
+
+        // Load filters from URL on page load
+        function loadFiltersFromURL() {
+            const params = new URLSearchParams(window.location.search);
+            if (params.get('search')) document.getElementById('searchAppointment').value = params.get('search');
+            if (params.get('status')) document.getElementById('statusFilter').value = params.get('status');
+            if (params.get('date')) document.getElementById('dateFilter').value = params.get('date');
+            if (params.get('week_filter')) document.getElementById('weekFilter').value = params.get('week_filter');
+        }
+
+        // Initialize on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            loadFiltersFromURL();
+        });
 
         // Filter functionality
         let filterTimeout;

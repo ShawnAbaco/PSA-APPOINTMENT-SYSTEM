@@ -18,86 +18,13 @@ class AppointmentController extends Controller
 {
     public function index(Request $request)
 {
-    $perPage = $request->get('per_page', 15);
-    $page = $request->get('page', 1);
+    $perPage = $request->get('per_page', 10);
     
-    // Check if filters are applied
-    $hasFilters = $request->filled('status') || $request->filled('date') || $request->filled('search') || $request->filled('week_filter');
+    // Start query with only pending and confirmed appointments
+    $query = Appointment::with('clients', 'timeSlot')
+        ->whereIn('status', ['pending', 'confirmed']);
     
-    if (!$hasFilters) {
-        // Get all pending appointments first (ordered by date)
-        $pendingQuery = Appointment::with('clients', 'timeSlot')
-            ->where('status', 'pending')
-            ->orderBy('appointment_date', 'asc')
-            ->orderBy('time_slot_id', 'asc');
-        
-        // Get all confirmed appointments (ordered by date)
-        $confirmedQuery = Appointment::with('clients', 'timeSlot')
-            ->where('status', 'confirmed')
-            ->orderBy('appointment_date', 'asc')
-            ->orderBy('time_slot_id', 'asc');
-        
-        // Get counts
-        $pendingCount = $pendingQuery->count();
-        $confirmedCount = $confirmedQuery->count();
-        $totalCount = $pendingCount + $confirmedCount;
-        
-        // Calculate how many pending appointments to show on this page
-        $pendingOffset = ($page - 1) * $perPage;
-        $pendingToShow = max(0, min($perPage, $pendingCount - $pendingOffset));
-        $confirmedToShow = $perPage - $pendingToShow;
-        
-        // Get the appointments
-        $appointments = collect();
-        
-        // Add pending appointments for this page
-        if ($pendingToShow > 0) {
-            $pendingAppointments = $pendingQuery
-                ->skip($pendingOffset)
-                ->take($pendingToShow)
-                ->get();
-            $appointments = $appointments->concat($pendingAppointments);
-        }
-        
-        // Add confirmed appointments if needed
-        if ($confirmedToShow > 0) {
-            $confirmedOffset = max(0, ($page * $perPage) - $pendingCount - $perPage);
-            if ($confirmedOffset < 0) $confirmedOffset = 0;
-            
-            $confirmedAppointments = $confirmedQuery
-                ->skip($confirmedOffset)
-                ->take($confirmedToShow)
-                ->get();
-            $appointments = $appointments->concat($confirmedAppointments);
-        }
-        
-        // Create a custom paginator
-        $appointments = new \Illuminate\Pagination\LengthAwarePaginator(
-            $appointments,
-            $totalCount,
-            $perPage,
-            $page,
-            ['path' => $request->url(), 'query' => $request->query()]
-        );
-        
-        if ($request->ajax()) {
-            $html = view('staff.appointments.partials.table', compact('appointments'))->render();
-            return response()->json([
-                'html' => $html,
-                'total' => $appointments->total(),
-                'current_page' => $appointments->currentPage(),
-                'last_page' => $appointments->lastPage(),
-                'pending_count' => $pendingCount,
-                'confirmed_count' => $confirmedCount,
-            ]);
-        }
-        
-        return view('staff.appointments.index', compact('appointments'));
-    }
-    
-    // With filters applied - use normal query
-    $query = Appointment::with('clients', 'timeSlot');
-    
+    // Apply filters if present
     if ($request->filled('status')) {
         $query->where('status', $request->status);
     }
@@ -125,10 +52,16 @@ class AppointmentController extends Controller
                 $query->whereDate('appointment_date', $today->copy()->addDay());
                 break;
             case 'this_week':
-                $query->whereBetween('appointment_date', [$today->copy()->startOfWeek(), $today->copy()->endOfWeek()]);
+                $query->whereBetween('appointment_date', [
+                    $today->copy()->startOfWeek(), 
+                    $today->copy()->endOfWeek()
+                ]);
                 break;
             case 'next_week':
-                $query->whereBetween('appointment_date', [$today->copy()->addWeek()->startOfWeek(), $today->copy()->addWeek()->endOfWeek()]);
+                $query->whereBetween('appointment_date', [
+                    $today->copy()->addWeek()->startOfWeek(), 
+                    $today->copy()->addWeek()->endOfWeek()
+                ]);
                 break;
             case 'this_month':
                 $query->whereMonth('appointment_date', $today->month)
@@ -137,19 +70,11 @@ class AppointmentController extends Controller
         }
     }
     
+    // Order by date and time
     $appointments = $query->orderByRaw("FIELD(status, 'pending', 'confirmed')")
-        ->orderBy('appointment_date', 'asc')
-        ->orderBy('time_slot_id', 'asc')
-        ->paginate($perPage);
-    
-    if ($request->ajax()) {
-        return response()->json([
-            'html' => view('staff.appointments.partials.table', compact('appointments'))->render(),
-            'total' => $appointments->total(),
-            'current_page' => $appointments->currentPage(),
-            'last_page' => $appointments->lastPage(),
-        ]);
-    }
+    ->orderBy('appointment_date', 'asc')
+    ->orderBy('time_slot_id', 'asc')
+    ->paginate($perPage);
     
     return view('staff.appointments.index', compact('appointments'));
 }
