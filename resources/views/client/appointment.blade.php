@@ -440,6 +440,7 @@
             <li><strong>SECONDARY DOCUMENTS:</strong>
                 <ol style="margin-top: 5px; margin-left: 20px; list-style: decimal; max-height: 200px; overflow-y: auto;">
                     <li>PSA-issued Certificate of Live Birth/National Statistics Office (NSO)-issued Certificate of Live Birth with Birth Reference Number (BreN);</li>
+                    <li>Barangay Certificate - Must contain full name, birthdate, father's full name, mother's maiden name, address, front facing photograph and applicant signature/thumbmark.</li>
                     <li>Local Civil Registry Office (LCRO)-issued Certificate of Live Birth;</li>
                     <li>PSA-issued Report of Birth;</li>
                     <li>PSA-issued Certificate of Foundling;</li>
