@@ -19,6 +19,115 @@
     <link rel="stylesheet" href="{{ asset('css/operator/appointments/show.css') }}">
     <link rel="stylesheet" href="{{ asset('css/operator/clients/client.css') }}">
     <link rel="stylesheet" href="{{ asset('css/operator/reports/reports.css') }}">
+
+    <style>
+        /* Footer Styles */
+        .operator-footer {
+            background: white;
+            border-top: 1px solid #e4e7eb;
+            padding: 20px 30px;
+            margin-top: auto;
+        }
+
+        .footer-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 20px;
+        }
+
+        .footer-copyright {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            color: #6c757d;
+            font-size: 13px;
+        }
+
+        .footer-copyright i {
+            color: #CE1126;
+            font-size: 16px;
+        }
+
+        .footer-links {
+            display: flex;
+            align-items: center;
+            gap: 24px;
+            flex-wrap: wrap;
+        }
+
+        .footer-links a {
+            color: #6c757d;
+            text-decoration: none;
+            font-size: 13px;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .footer-links a:hover {
+            color: #0f3b6f;
+        }
+
+        .footer-datetime {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            color: #6c757d;
+            font-size: 13px;
+        }
+
+        .footer-datetime div {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .footer-datetime i {
+            color: #0f3b6f;
+            font-size: 12px;
+        }
+
+        .footer-version {
+            background: #f5f6f8;
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 11px;
+            color: #6c757d;
+        }
+
+        @media (max-width: 768px) {
+            .footer-content {
+                flex-direction: column;
+                text-align: center;
+            }
+            
+            .footer-links {
+                justify-content: center;
+            }
+            
+            .footer-datetime {
+                justify-content: center;
+            }
+            
+            .operator-footer {
+                padding: 16px 20px;
+            }
+        }
+
+        /* Ensure operator-main takes full height to push footer down */
+        .operator-main {
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+
+        .operator-content {
+            flex: 1;
+        }
+    </style>
 </head>
 
 <body>
@@ -127,6 +236,48 @@
                 @endif
                 @yield('content')
             </div>
+
+            <!-- Footer -->
+            <footer class="operator-footer">
+                <div class="footer-content">
+                    <div class="footer-copyright">
+                        <i class="fas fa-copyright"></i>
+                        <span>{{ date('Y') }} Philippine Statistics Authority. All rights reserved.</span>
+                    </div>
+                    <div class="footer-links">
+                        <a href="#" id="aboutLink">
+                            <i class="fas fa-info-circle"></i>
+                            About
+                        </a>
+                        <a href="#" id="helpLink">
+                            <i class="fas fa-question-circle"></i>
+                            Help
+                        </a>
+                        <a href="#" id="privacyLink">
+                            <i class="fas fa-shield-alt"></i>
+                            Privacy Policy
+                        </a>
+                        <a href="#" id="contactLink">
+                            <i class="fas fa-envelope"></i>
+                            Contact
+                        </a>
+                    </div>
+                    <div class="footer-datetime">
+                        <div class="footer-date">
+                            <i class="fas fa-calendar-day"></i>
+                            <span id="currentDate"></span>
+                        </div>
+                        <div class="footer-time">
+                            <i class="fas fa-clock"></i>
+                            <span id="currentTime"></span>
+                        </div>
+                        <div class="footer-version">
+                            <i class="fas fa-code-branch"></i>
+                            v1.0.0
+                        </div>
+                    </div>
+                </div>
+            </footer>
         </div>
     </div>
 
@@ -143,6 +294,31 @@
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 
     <script>
+        // ========================
+        // DATE & TIME UPDATE
+        // ========================
+        function updateDateTime() {
+            const now = new Date();
+            
+            // Format date: Thursday, May 5, 2026
+            const dateOptions = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+            const dateElement = document.getElementById('currentDate');
+            if (dateElement) {
+                dateElement.textContent = now.toLocaleDateString('en-US', dateOptions);
+            }
+            
+            // Format time: 2:30:45 PM
+            const timeOptions = { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true };
+            const timeElement = document.getElementById('currentTime');
+            if (timeElement) {
+                timeElement.textContent = now.toLocaleTimeString('en-US', timeOptions);
+            }
+        }
+        
+        // Update immediately and then every second
+        updateDateTime();
+        setInterval(updateDateTime, 1000);
+
         // ========================
         // NOTIFICATION MANAGER
         // ========================
@@ -299,6 +475,44 @@
             }
         }
 
+        // ========================
+        // FOOTER LINK HANDLERS
+        // ========================
+        function initFooterLinks() {
+            const aboutLink = document.getElementById('aboutLink');
+            const helpLink = document.getElementById('helpLink');
+            const privacyLink = document.getElementById('privacyLink');
+            const contactLink = document.getElementById('contactLink');
+            
+            if (aboutLink) {
+                aboutLink.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    showToast('About', 'PSA Appointment System v1.0.0<br>Developed for Philippine Statistics Authority', 'info');
+                });
+            }
+            
+            if (helpLink) {
+                helpLink.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    showToast('Help', 'For assistance, contact your system administrator or refer to the user manual.', 'info');
+                });
+            }
+            
+            if (privacyLink) {
+                privacyLink.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    showToast('Privacy Policy', 'All data is handled in accordance with Data Privacy Act of 2012 (RA 10173).', 'info');
+                });
+            }
+            
+            if (contactLink) {
+                contactLink.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    showToast('Contact', 'Email: support@psa.gov.ph<br>Phone: (088) 856-1234', 'info');
+                });
+            }
+        }
+
         // Toast
         window.showToast = function(title, message, type = 'info') {
             const container = document.getElementById('toastContainer');
@@ -347,6 +561,7 @@
         document.addEventListener('DOMContentLoaded', function() {
             window.notificationManager = new NotificationManager();
             initMobileSidebar();
+            initFooterLinks();
 
             // Auto dismiss alerts after 4 sec
             setTimeout(() => {

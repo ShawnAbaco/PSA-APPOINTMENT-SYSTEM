@@ -8,6 +8,9 @@
                 <h1 class="appt-page-title">Appointments Management</h1>
                 <p class="appt-page-subtitle">Manage and track all client appointments</p>
             </div>
+            <div class="appt-header-right">
+                
+            </div>
         </div>
 
         <!-- Filters Bar -->
@@ -89,6 +92,10 @@
                     <span class="appt-appointment-count">{{ $appointments->total() }} total</span>
                 </div>
                 <div class="appt-card-header-right">
+                    <button class="appt-btn appt-btn-primary" id="createAppointmentBtn">
+                    <i class="fas fa-plus"></i>
+                    Create Appointment
+                </button>
                     <button class="appt-icon-btn" id="refreshBtn" title="Refresh">
                         <i class="fas fa-sync-alt"></i>
                     </button>
@@ -230,6 +237,206 @@
         </div>
     </div>
 
+    <!-- Create Appointment Modal -->
+    <div class="appt-modal" id="createAppointmentModal">
+        <div class="appt-modal-dialog appt-modal-lg">
+            <div class="appt-modal-content">
+                <div class="appt-modal-header appt-modal-header-success">
+                    <h5 class="appt-modal-title">
+                        <i class="fas fa-plus-circle"></i>
+                        Create New Appointment
+                    </h5>
+                    <button type="button" class="appt-modal-close" data-modal="close">&times;</button>
+                </div>
+                <div class="appt-modal-body" style="max-height: 70vh; overflow-y: auto;">
+                    <form id="createAppointmentForm">
+                        @csrf
+                        
+                        <!-- Contact Information Section -->
+                        <div class="appt-form-section">
+                            <h6 class="appt-section-title">
+                                <i class="fas fa-user"></i>
+                                Contact Information
+                            </h6>
+                            <div class="appt-form-row">
+                                <div class="appt-form-group">
+                                    <label class="appt-form-label">Contact Name *</label>
+                                    <input type="text" name="contact_name" class="appt-form-input" required>
+                                </div>
+                                <div class="appt-form-group">
+                                    <label class="appt-form-label">Contact Mobile *</label>
+                                    <input type="text" name="contact_mobile" class="appt-form-input" required>
+                                </div>
+                            </div>
+                            <div class="appt-form-row">
+                                <div class="appt-form-group">
+                                    <label class="appt-form-label">Contact Email</label>
+                                    <input type="email" name="contact_email" class="appt-form-input">
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Appointment Details Section -->
+                        <div class="appt-form-section">
+                            <h6 class="appt-section-title">
+                                <i class="fas fa-calendar-alt"></i>
+                                Appointment Details
+                            </h6>
+                            <div class="appt-form-row">
+                                <div class="appt-form-group">
+                                    <label class="appt-form-label">Appointment Date *</label>
+                                    <input type="date" name="appointment_date" class="appt-form-input" required>
+                                </div>
+                                <div class="appt-form-group">
+                                    <label class="appt-form-label">Time Slot *</label>
+                                    <select name="appointment_time_slot_id" class="appt-form-input" required>
+                                        <option value="">Select Time Slot</option>
+                                        @foreach($timeSlots ?? [] as $slot)
+                                            <option value="{{ $slot->id }}">
+                                                {{ date('h:i A', strtotime($slot->start_time)) }} - 
+                                                {{ date('h:i A', strtotime($slot->end_time)) }}
+                                            </option>
+                                        @endforeach
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Location Section -->
+                        <div class="appt-form-section">
+                            <h6 class="appt-section-title">
+                                <i class="fas fa-map-marker-alt"></i>
+                                Location (Optional)
+                            </h6>
+                            <div class="appt-form-row">
+                                <div class="appt-form-group">
+                                    <label class="appt-form-label">City</label>
+                                    <input type="text" name="user_city" class="appt-form-input">
+                                </div>
+                                <div class="appt-form-group">
+                                    <label class="appt-form-label">Zip Code</label>
+                                    <input type="text" name="user_zipcode" class="appt-form-input">
+                                </div>
+                            </div>
+                            <div class="appt-form-group">
+                                <label class="appt-form-label">Address</label>
+                                <textarea name="user_address" class="appt-form-textarea" rows="2"></textarea>
+                            </div>
+                            <div class="appt-form-row">
+                                <div class="appt-form-group">
+                                    <label class="appt-form-label">Latitude</label>
+                                    <input type="number" step="any" name="user_lat" class="appt-form-input">
+                                </div>
+                                <div class="appt-form-group">
+                                    <label class="appt-form-label">Longitude</label>
+                                    <input type="number" step="any" name="user_lng" class="appt-form-input">
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Notes Section -->
+                        <div class="appt-form-section">
+                            <h6 class="appt-section-title">
+                                <i class="fas fa-sticky-note"></i>
+                                Additional Notes
+                            </h6>
+                            <div class="appt-form-group">
+                                <textarea name="notes" class="appt-form-textarea" rows="3" placeholder="Any additional notes about this appointment..."></textarea>
+                            </div>
+                        </div>
+
+                        <!-- Clients Section -->
+                        <div class="appt-form-section">
+                            <h6 class="appt-section-title">
+                                <i class="fas fa-users"></i>
+                                Clients
+                                <button type="button" class="appt-add-client-btn" id="addClientBtn">
+                                    <i class="fas fa-plus"></i> Add Client
+                                </button>
+                            </h6>
+                            <div id="clientsContainer">
+                                <div class="client-card" data-client-index="0">
+                                    <div class="client-card-header">
+                                        <span class="client-number">Client #1</span>
+                                        <button type="button" class="remove-client-btn" style="display: none;">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    </div>
+                                    <div class="appt-form-row">
+                                        <div class="appt-form-group">
+                                            <label class="appt-form-label">First Name *</label>
+                                            <input type="text" name="clients[0][first_name]" class="appt-form-input" required>
+                                        </div>
+                                        <div class="appt-form-group">
+                                            <label class="appt-form-label">Middle Name</label>
+                                            <input type="text" name="clients[0][middle_name]" class="appt-form-input">
+                                        </div>
+                                    </div>
+                                    <div class="appt-form-row">
+                                        <div class="appt-form-group">
+                                            <label class="appt-form-label">Last Name *</label>
+                                            <input type="text" name="clients[0][last_name]" class="appt-form-input" required>
+                                        </div>
+                                        <div class="appt-form-group">
+                                            <label class="appt-form-label">Suffix</label>
+                                            <input type="text" name="clients[0][suffix]" class="appt-form-input" placeholder="Jr., Sr., III">
+                                        </div>
+                                    </div>
+                                    <div class="appt-form-row">
+                                        <div class="appt-form-group">
+                                            <label class="appt-form-label">Sex *</label>
+                                            <select name="clients[0][sex]" class="appt-form-input" required>
+                                                <option value="">Select</option>
+                                                <option value="Male">Male</option>
+                                                <option value="Female">Female</option>
+                                            </select>
+                                        </div>
+                                        <div class="appt-form-group">
+                                            <label class="appt-form-label">Birthdate *</label>
+                                            <input type="date" name="clients[0][birthdate]" class="appt-form-input" required>
+                                        </div>
+                                    </div>
+                                    <div class="appt-form-group">
+                                        <label class="appt-form-label">Service Type *</label>
+                                        <select name="clients[0][service]" class="appt-form-input service-select" required>
+                                            <option value="">Select Service</option>
+                                            <option value="reg">Registration</option>
+                                            <option value="updating">Correction/Updating</option>
+                                            <option value="inquiry">Status Inquiry</option>
+                                        </select>
+                                    </div>
+                                    <div class="inquiry-fields-0" style="display: none;">
+                                        <div class="appt-form-group">
+                                            <label class="appt-form-label">
+                                                <input type="checkbox" name="clients[0][has_trn]" value="1">
+                                                Has TRN Number?
+                                            </label>
+                                        </div>
+                                        <div class="appt-form-group">
+                                            <label class="appt-form-label">TRN Number</label>
+                                            <input type="text" name="clients[0][trn_number]" class="appt-form-input" placeholder="29-digit TRN number">
+                                            <small class="appt-form-hint">Required if has TRN is checked</small>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="appt-form-hint" style="margin-top: 12px;">
+                                <i class="fas fa-info-circle"></i> Maximum of 4 clients per appointment
+                            </div>
+                        </div>
+                    </form>
+                </div>
+                <div class="appt-modal-footer">
+                    <button type="button" class="appt-btn appt-btn-outline" data-modal="close">Cancel</button>
+                    <button type="button" class="appt-btn appt-btn-primary" id="submitAppointmentBtn">
+                        <i class="fas fa-save"></i>
+                        Create Appointment
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- View Appointment Modal -->
     <div class="appt-modal" id="viewAppointmentModal">
         <div class="appt-modal-dialog appt-modal-lg">
@@ -316,6 +523,134 @@
             padding: 0 8px;
         }
 
+        /* Create Appointment Modal Styles */
+        .appt-modal-header-success {
+            background: linear-gradient(135deg, #10b981, #059669);
+        }
+
+        .appt-form-section {
+            margin-bottom: 24px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid var(--gray-200);
+        }
+
+        .appt-form-section:last-child {
+            border-bottom: none;
+            margin-bottom: 0;
+            padding-bottom: 0;
+        }
+
+        .appt-section-title {
+            font-size: 16px;
+            font-weight: 600;
+            color: var(--gray-800);
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .appt-section-title i {
+            color: var(--primary);
+        }
+
+        .appt-form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+            margin-bottom: 16px;
+        }
+
+        .appt-form-group {
+            margin-bottom: 16px;
+        }
+
+        .appt-form-label {
+            display: block;
+            font-size: 13px;
+            font-weight: 500;
+            color: var(--gray-700);
+            margin-bottom: 6px;
+        }
+
+        .appt-form-input, .appt-form-textarea {
+            width: 100%;
+            padding: 10px 12px;
+            border: 1px solid var(--gray-300);
+            border-radius: var(--border-radius-sm);
+            font-size: 14px;
+            transition: var(--transition);
+        }
+
+        .appt-form-input:focus, .appt-form-textarea:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(15, 59, 111, 0.1);
+        }
+
+        .appt-form-textarea {
+            resize: vertical;
+            font-family: inherit;
+        }
+
+        .appt-form-hint {
+            font-size: 12px;
+            color: var(--gray-500);
+            margin-top: 4px;
+        }
+
+        .appt-add-client-btn {
+            margin-left: auto;
+            background: var(--primary);
+            color: white;
+            border: none;
+            padding: 4px 12px;
+            border-radius: 6px;
+            font-size: 12px;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .appt-add-client-btn:hover {
+            background: var(--primary-dark);
+        }
+
+        .client-card {
+            background: var(--gray-50);
+            border: 1px solid var(--gray-200);
+            border-radius: var(--border-radius);
+            padding: 16px;
+            margin-bottom: 16px;
+        }
+
+        .client-card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+            padding-bottom: 8px;
+            border-bottom: 1px solid var(--gray-200);
+        }
+
+        .client-number {
+            font-weight: 600;
+            color: var(--primary);
+        }
+
+        .remove-client-btn {
+            background: none;
+            border: none;
+            color: #ef4444;
+            cursor: pointer;
+            font-size: 14px;
+            transition: var(--transition);
+        }
+
+        .remove-client-btn:hover {
+            color: #dc2626;
+            transform: scale(1.1);
+        }
+
         @media (max-width: 768px) {
             .pagination-wrapper {
                 flex-direction: column;
@@ -327,10 +662,17 @@
                 width: 100%;
                 justify-content: center;
             }
+
+            .appt-form-row {
+                grid-template-columns: 1fr;
+                gap: 12px;
+            }
         }
     </style>
 
     <script>
+        let clientCounter = 1;
+
         // Show toast notification
         function showToast(message, type = 'success') {
             const toast = document.createElement('div');
@@ -403,6 +745,314 @@
             overlay.style.display = show ? 'flex' : 'none';
         }
 
+        // Add client to form
+        function addClient() {
+            if (clientCounter >= 4) {
+                showToast('Maximum of 4 clients per appointment', 'error');
+                return;
+            }
+
+            const clientsContainer = document.getElementById('clientsContainer');
+            const newClient = document.createElement('div');
+            newClient.className = 'client-card';
+            newClient.setAttribute('data-client-index', clientCounter);
+            newClient.innerHTML = `
+                <div class="client-card-header">
+                    <span class="client-number">Client #${clientCounter + 1}</span>
+                    <button type="button" class="remove-client-btn">
+                        <i class="fas fa-trash"></i>
+                    </button>
+                </div>
+                <div class="appt-form-row">
+                    <div class="appt-form-group">
+                        <label class="appt-form-label">First Name *</label>
+                        <input type="text" name="clients[${clientCounter}][first_name]" class="appt-form-input" required>
+                    </div>
+                    <div class="appt-form-group">
+                        <label class="appt-form-label">Middle Name</label>
+                        <input type="text" name="clients[${clientCounter}][middle_name]" class="appt-form-input">
+                    </div>
+                </div>
+                <div class="appt-form-row">
+                    <div class="appt-form-group">
+                        <label class="appt-form-label">Last Name *</label>
+                        <input type="text" name="clients[${clientCounter}][last_name]" class="appt-form-input" required>
+                    </div>
+                    <div class="appt-form-group">
+                        <label class="appt-form-label">Suffix</label>
+                        <input type="text" name="clients[${clientCounter}][suffix]" class="appt-form-input" placeholder="Jr., Sr., III">
+                    </div>
+                </div>
+                <div class="appt-form-row">
+                    <div class="appt-form-group">
+                        <label class="appt-form-label">Sex *</label>
+                        <select name="clients[${clientCounter}][sex]" class="appt-form-input" required>
+                            <option value="">Select</option>
+                            <option value="Male">Male</option>
+                            <option value="Female">Female</option>
+                        </select>
+                    </div>
+                    <div class="appt-form-group">
+                        <label class="appt-form-label">Birthdate *</label>
+                        <input type="date" name="clients[${clientCounter}][birthdate]" class="appt-form-input" required>
+                    </div>
+                </div>
+                <div class="appt-form-group">
+                    <label class="appt-form-label">Service Type *</label>
+                    <select name="clients[${clientCounter}][service]" class="appt-form-input service-select" required>
+                        <option value="">Select Service</option>
+                        <option value="reg">Registration</option>
+                        <option value="updating">Correction/Updating</option>
+                        <option value="inquiry">Status Inquiry</option>
+                    </select>
+                </div>
+                <div class="inquiry-fields-${clientCounter}" style="display: none;">
+                    <div class="appt-form-group">
+                        <label class="appt-form-label">
+                            <input type="checkbox" name="clients[${clientCounter}][has_trn]" value="1">
+                            Has TRN Number?
+                        </label>
+                    </div>
+                    <div class="appt-form-group">
+                        <label class="appt-form-label">TRN Number</label>
+                        <input type="text" name="clients[${clientCounter}][trn_number]" class="appt-form-input" placeholder="29-digit TRN number">
+                        <small class="appt-form-hint">Required if has TRN is checked</small>
+                    </div>
+                </div>
+            `;
+
+            clientsContainer.appendChild(newClient);
+            clientCounter++;
+
+            // Attach remove client event
+            newClient.querySelector('.remove-client-btn').addEventListener('click', function() {
+                newClient.remove();
+                updateClientNumbers();
+            });
+
+            // Attach service select change event for new client
+            const serviceSelect = newClient.querySelector('.service-select');
+            const inquiryFields = newClient.querySelector(`[class^="inquiry-fields-"]`);
+            serviceSelect.addEventListener('change', function() {
+                if (this.value === 'inquiry') {
+                    inquiryFields.style.display = 'block';
+                } else {
+                    inquiryFields.style.display = 'none';
+                }
+            });
+        }
+
+        // Update client numbers after removal
+        function updateClientNumbers() {
+            const clients = document.querySelectorAll('.client-card');
+            clients.forEach((client, index) => {
+                const clientNumberSpan = client.querySelector('.client-number');
+                clientNumberSpan.textContent = `Client #${index + 1}`;
+                
+                // Update all input names
+                const inputs = client.querySelectorAll('input, select');
+                inputs.forEach(input => {
+                    const name = input.getAttribute('name');
+                    if (name) {
+                        const newName = name.replace(/clients\[\d+\]/, `clients[${index}]`);
+                        input.setAttribute('name', newName);
+                    }
+                });
+                
+                client.setAttribute('data-client-index', index);
+                
+                // Show remove button for all except first client
+                const removeBtn = client.querySelector('.remove-client-btn');
+                if (removeBtn) {
+                    removeBtn.style.display = index === 0 ? 'none' : 'block';
+                }
+            });
+            clientCounter = clients.length;
+        }
+
+        // Submit appointment
+        function submitAppointment() {
+            const form = document.getElementById('createAppointmentForm');
+            const formData = new FormData(form);
+            
+            // Validate at least one client
+            const clients = document.querySelectorAll('.client-card');
+            if (clients.length === 0) {
+                showToast('Please add at least one client', 'error');
+                return;
+            }
+            
+            showLoading(true);
+            
+            fetch('{{ route("admin.appointments.store") }}', {
+                method: 'POST',
+                headers: {
+                    'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                    'Accept': 'application/json'
+                },
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                showLoading(false);
+                if (data.success) {
+                    showToast(data.message, 'success');
+                    closeCreateModal();
+                    setTimeout(() => location.reload(), 1500);
+                } else {
+                    showToast(data.message || 'Error creating appointment', 'error');
+                }
+            })
+            .catch(error => {
+                showLoading(false);
+                console.error('Error:', error);
+                showToast('Error creating appointment', 'error');
+            });
+        }
+
+        // Create modal functions
+        const createModal = document.getElementById('createAppointmentModal');
+        
+        function openCreateModal() {
+            createModal.classList.add('show');
+        }
+        
+        function closeCreateModal() {
+            createModal.classList.remove('show');
+            document.getElementById('createAppointmentForm').reset();
+            // Reset clients to just one
+            const clientsContainer = document.getElementById('clientsContainer');
+            clientsContainer.innerHTML = `
+                <div class="client-card" data-client-index="0">
+                    <div class="client-card-header">
+                        <span class="client-number">Client #1</span>
+                        <button type="button" class="remove-client-btn" style="display: none;">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </div>
+                    <div class="appt-form-row">
+                        <div class="appt-form-group">
+                            <label class="appt-form-label">First Name *</label>
+                            <input type="text" name="clients[0][first_name]" class="appt-form-input" required>
+                        </div>
+                        <div class="appt-form-group">
+                            <label class="appt-form-label">Middle Name</label>
+                            <input type="text" name="clients[0][middle_name]" class="appt-form-input">
+                        </div>
+                    </div>
+                    <div class="appt-form-row">
+                        <div class="appt-form-group">
+                            <label class="appt-form-label">Last Name *</label>
+                            <input type="text" name="clients[0][last_name]" class="appt-form-input" required>
+                        </div>
+                        <div class="appt-form-group">
+                            <label class="appt-form-label">Suffix</label>
+                            <input type="text" name="clients[0][suffix]" class="appt-form-input" placeholder="Jr., Sr., III">
+                        </div>
+                    </div>
+                    <div class="appt-form-row">
+                        <div class="appt-form-group">
+                            <label class="appt-form-label">Sex *</label>
+                            <select name="clients[0][sex]" class="appt-form-input" required>
+                                <option value="">Select</option>
+                                <option value="Male">Male</option>
+                                <option value="Female">Female</option>
+                            </select>
+                        </div>
+                        <div class="appt-form-group">
+                            <label class="appt-form-label">Birthdate *</label>
+                            <input type="date" name="clients[0][birthdate]" class="appt-form-input" required>
+                        </div>
+                    </div>
+                    <div class="appt-form-group">
+                        <label class="appt-form-label">Service Type *</label>
+                        <select name="clients[0][service]" class="appt-form-input service-select" required>
+                            <option value="">Select Service</option>
+                            <option value="reg">Registration</option>
+                            <option value="updating">Correction/Updating</option>
+                            <option value="inquiry">Status Inquiry</option>
+                        </select>
+                    </div>
+                    <div class="inquiry-fields-0" style="display: none;">
+                        <div class="appt-form-group">
+                            <label class="appt-form-label">
+                                <input type="checkbox" name="clients[0][has_trn]" value="1">
+                                Has TRN Number?
+                            </label>
+                        </div>
+                        <div class="appt-form-group">
+                            <label class="appt-form-label">TRN Number</label>
+                            <input type="text" name="clients[0][trn_number]" class="appt-form-input" placeholder="29-digit TRN number">
+                            <small class="appt-form-hint">Required if has TRN is checked</small>
+                        </div>
+                    </div>
+                </div>
+            `;
+            clientCounter = 1;
+            
+            // Re-attach service select event for the reset client
+            const firstServiceSelect = document.querySelector('.service-select');
+            const firstInquiryFields = document.querySelector('[class^="inquiry-fields-"]');
+            if (firstServiceSelect) {
+                firstServiceSelect.addEventListener('change', function() {
+                    if (this.value === 'inquiry') {
+                        firstInquiryFields.style.display = 'block';
+                    } else {
+                        firstInquiryFields.style.display = 'none';
+                    }
+                });
+            }
+        }
+
+        // View modal functions
+        const viewModal = document.getElementById('viewAppointmentModal');
+        const modalLoading = document.getElementById('modalLoading');
+        const modalContent = document.getElementById('modalContent');
+        const modalAppointmentNumber = document.getElementById('modalAppointmentNumber');
+
+        function openViewModal(appointmentId, appointmentNumber) {
+            viewModal.classList.add('show');
+            modalAppointmentNumber.textContent = `#${appointmentNumber}`;
+            modalLoading.style.display = 'block';
+            modalContent.style.display = 'none';
+            modalContent.innerHTML = '';
+
+            fetch(`/admin/appointments/${appointmentId}/modal`, {
+                    method: 'GET',
+                    headers: {
+                        'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                        'Accept': 'text/html'
+                    }
+                })
+                .then(response => response.text())
+                .then(html => {
+                    modalLoading.style.display = 'none';
+                    modalContent.innerHTML = html;
+                    modalContent.style.display = 'block';
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    modalLoading.innerHTML = `
+                        <i class="fas fa-exclamation-triangle" style="font-size: 48px; color: #ef4444;"></i>
+                        <p>Error loading appointment details.</p>
+                        <button class="appt-btn appt-btn-outline" onclick="location.reload()">Reload</button>
+                    `;
+                });
+        }
+
+        function closeModal(modalElement) {
+            modalElement.classList.remove('show');
+            if (modalElement.id === 'viewAppointmentModal') {
+                modalContent.innerHTML = '';
+                modalContent.style.display = 'none';
+                modalLoading.style.display = 'block';
+                modalLoading.innerHTML = `
+                    <i class="fas fa-spinner fa-spin"></i>
+                    <p>Loading appointment details...</p>
+                `;
+            }
+        }
+
         // Attach all event listeners
         function attachEventListeners() {
             // View buttons
@@ -411,7 +1061,7 @@
                 btn._listener = function() {
                     const appointmentId = this.dataset.id;
                     const appointmentNumber = this.dataset.appointmentNumber;
-                    openModal(appointmentId, appointmentNumber);
+                    openViewModal(appointmentId, appointmentNumber);
                 };
                 btn.addEventListener('click', btn._listener);
             });
@@ -504,71 +1154,56 @@
             });
         }
 
-        // Modal functions
-        const modal = document.getElementById('viewAppointmentModal');
-        const modalLoading = document.getElementById('modalLoading');
-        const modalContent = document.getElementById('modalContent');
-        const modalAppointmentNumber = document.getElementById('modalAppointmentNumber');
-
-        function openModal(appointmentId, appointmentNumber) {
-            modal.classList.add('show');
-            modalAppointmentNumber.textContent = `#${appointmentNumber}`;
-            modalLoading.style.display = 'block';
-            modalContent.style.display = 'none';
-            modalContent.innerHTML = '';
-
-            fetch(`/admin/appointments/${appointmentId}/modal`, {
-                    method: 'GET',
-                    headers: {
-                        'X-CSRF-TOKEN': '{{ csrf_token() }}',
-                        'Accept': 'text/html'
-                    }
-                })
-                .then(response => response.text())
-                .then(html => {
-                    modalLoading.style.display = 'none';
-                    modalContent.innerHTML = html;
-                    modalContent.style.display = 'block';
-                })
-                .catch(error => {
-                    console.error('Error:', error);
-                    modalLoading.innerHTML = `
-                        <i class="fas fa-exclamation-triangle" style="font-size: 48px; color: #ef4444;"></i>
-                        <p>Error loading appointment details.</p>
-                        <button class="appt-btn appt-btn-outline" onclick="location.reload()">Reload</button>
-                    `;
-                });
-        }
-
-        function closeModal() {
-            modal.classList.remove('show');
-            modalContent.innerHTML = '';
-            modalContent.style.display = 'none';
-            modalLoading.style.display = 'block';
-            modalLoading.innerHTML = `
-                <i class="fas fa-spinner fa-spin"></i>
-                <p>Loading appointment details...</p>
-            `;
-        }
-
-        // Refresh button
-        document.getElementById('refreshBtn')?.addEventListener('click', function() {
-            location.reload();
-        });
+        // Create Appointment Button
+        document.getElementById('createAppointmentBtn')?.addEventListener('click', openCreateModal);
+        
+        // Submit Appointment Button
+        document.getElementById('submitAppointmentBtn')?.addEventListener('click', submitAppointment);
+        
+        // Add Client Button
+        document.getElementById('addClientBtn')?.addEventListener('click', addClient);
 
         // Close modal buttons
         document.querySelectorAll('[data-modal="close"]').forEach(btn => {
-            btn.addEventListener('click', closeModal);
+            btn.addEventListener('click', function() {
+                const modal = this.closest('.appt-modal');
+                if (modal) closeModal(modal);
+            });
         });
 
         // Close modal on outside click
-        modal.addEventListener('click', function(e) {
-            if (e.target === modal) closeModal();
+        document.querySelectorAll('.appt-modal').forEach(modal => {
+            modal.addEventListener('click', function(e) {
+                if (e.target === modal) closeModal(modal);
+            });
         });
 
         // Close modal on Escape key
         document.addEventListener('keydown', function(e) {
-            if (e.key === 'Escape' && modal.classList.contains('show')) closeModal();
+            if (e.key === 'Escape') {
+                document.querySelectorAll('.appt-modal.show').forEach(modal => {
+                    closeModal(modal);
+                });
+            }
+        });
+
+        // Initialize service select listeners for existing clients
+        document.querySelectorAll('.service-select').forEach((select, index) => {
+            const inquiryFields = document.querySelector(`.inquiry-fields-${index}`);
+            if (inquiryFields) {
+                select.addEventListener('change', function() {
+                    if (this.value === 'inquiry') {
+                        inquiryFields.style.display = 'block';
+                    } else {
+                        inquiryFields.style.display = 'none';
+                    }
+                });
+            }
+        });
+
+        // Refresh button
+        document.getElementById('refreshBtn')?.addEventListener('click', function() {
+            location.reload();
         });
 
         // Initialize

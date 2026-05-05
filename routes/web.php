@@ -64,6 +64,9 @@ Route::get('/calendar/stats', [App\Http\Controllers\Admin\CalendarController::cl
 
  Route::get('/calendar/{id}/full-details', [App\Http\Controllers\Admin\CalendarController::class, 'getFullDetails'])->name('calendar.full-details');
     Route::get('/calendar/{id}/json', [App\Http\Controllers\Admin\CalendarController::class, 'getJson'])->name('calendar.json');
+
+    Route::post('/appointments/store', [App\Http\Controllers\Admin\AppointmentController::class, 'store'])->name('appointments.store');
+
     // Add these to your admin routes group
 
 Route::get('/users/{id}/edit-data', function($id) {
