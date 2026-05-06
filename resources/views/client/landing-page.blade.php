@@ -80,7 +80,7 @@
                             <i class="fas fa-user-plus"></i>
                         </div>
                         <span class="howto-step">STEP 1</span>
-                        <h3>Add Clients</h3>
+                        <h3>Add Applicants</h3>
                         <p>Add the person/s who will attend the appointment. Maximum of <strong>4 persons</strong> per
                             booking.</p>
                         <small>Each person can select their own service type</small>

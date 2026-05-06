@@ -637,7 +637,7 @@ class AppointmentController extends Controller
         ]);
     }
 
-    /**
+   /**
  * Get requirements for a specific service and birthdate
  * This ensures the logic is handled on the backend
  */
@@ -660,13 +660,29 @@ public function getRequirements(Request $request)
         $service = $request->service;
         $birthdate = $request->birthdate;
         
-        // Determine age group
+        // Determine age group - FIXED LOGIC
         $ageGroup = 'adult';
         if ($birthdate) {
             $birthDate = Carbon::parse($birthdate);
             $today = Carbon::now();
-            $age = $today->diffInYears($birthDate);
-            $ageGroup = ($age >= 1 && $age <= 4) ? 'child' : 'adult';
+            
+            // Calculate exact age in years
+            $age = $birthDate->diffInYears($today);
+            
+            // If birthdate is in the future or invalid, treat as child (0-4 years old)
+            if ($birthDate->greaterThan($today)) {
+                $age = 0;
+            }
+            
+            // Child: 0-4 years old (including infants)
+            // Adult: 5 years old and above
+            if ($age >= 0 && $age <= 4) {
+                $ageGroup = 'child';
+            } else {
+                $ageGroup = 'adult';
+            }
+            
+            Log::info("Age calculation: Birthdate={$birthdate}, Age={$age}, Group={$ageGroup}");
         }
         
         // Fetch requirements from database
@@ -684,6 +700,7 @@ public function getRequirements(Request $request)
             'html' => $html,
             'service' => $service,
             'age_group' => $ageGroup,
+            'age' => $age ?? null,
             'requirements_count' => $requirements->count()
         ]);
         
@@ -697,7 +714,7 @@ public function getRequirements(Request $request)
 }
 
 /**
- * Build HTML for requirements display with checkboxes
+ * Build HTML for requirements display - simple list without checkboxes
  */
 private function buildRequirementsHtml($service, $ageGroup, $requirements)
 {
@@ -708,27 +725,33 @@ private function buildRequirementsHtml($service, $ageGroup, $requirements)
     ];
     
     $serviceName = $serviceNames[$service] ?? $service;
-    $ageGroupLabel = $ageGroup === 'child' ? 'Child (1-4 years old)' : 'Adult (5 years old and above)';
+    
+    // Update the age group label to be more clear
+    if ($ageGroup === 'child') {
+        $ageGroupLabel = 'Child (0-4 years old)';
+    } else {
+        $ageGroupLabel = 'Adult (5 years old and above)';
+    }
+    
     $serviceIcon = $this->getServiceIcon($service);
     
     $html = '<div class="requirements-container">';
     $html .= '<div class="requirements-header">';
     $html .= '<h4><i class="fas ' . $serviceIcon . '"></i> ' . e($serviceName) . ' - ' . e($ageGroupLabel) . '</h4>';
-    $html .= '<p class="requirements-note"><i class="fas fa-info-circle"></i> Please confirm that you have the following documents ready:</p>';
     $html .= '</div>';
     
-    $html .= '<div class="requirements-checklist">';
+    $html .= '<div class="requirements-simple-list">';
+    $html .= '<ul>';
     
-    foreach ($requirements as $index => $req) {
-        $html .= '<div class="requirement-item" data-requirement-id="' . $req->id . '">';
-        $html .= '<label class="requirement-checkbox-label">';
-        $html .= '<input type="checkbox" class="requirement-checkbox" data-requirement="' . e($req->requirement) . '">';
-        $html .= '<span class="checkmark"></span>';
-        $html .= '<span class="requirement-text">' . e($req->requirement) . '</span>';
-        $html .= '</label>';
-        $html .= '</div>';
+    if ($requirements->count() > 0) {
+        foreach ($requirements as $req) {
+            $html .= '<li>' . e($req->requirement) . '</li>';
+        }
+    } else {
+        $html .= '<li>No specific requirements found. Please contact PSA for more information.</li>';
     }
     
+    $html .= '</ul>';
     $html .= '</div>';
     
     // Add warning note
@@ -739,25 +762,21 @@ private function buildRequirementsHtml($service, $ageGroup, $requirements)
     // Special note for child registration
     if ($service === 'reg' && $ageGroup === 'child') {
         $html .= '<div class="info-note">';
-        $html .= '<i class="fas fa-child"></i> <strong>Note for Children:</strong> Parent or legal guardian must accompany the child during the appointment.';
+        $html .= '<i class="fas fa-child"></i> <strong>Note for Children (0-4 years old):</strong> Parent or legal guardian must accompany the child during the appointment. The guardian must bring a valid ID.';
         $html .= '</div>';
     }
     
-    // Add progress indicator
-    $html .= '<div class="requirements-progress">';
-    $html .= '<div class="progress-text">';
-    $html .= '<span id="checkedCount">0</span> of <span id="totalCount">' . $requirements->count() . '</span> requirements confirmed';
-    $html .= '</div>';
-    $html .= '<div class="progress-bar-container">';
-    $html .= '<div class="progress-bar-fill" id="progressBarFill" style="width: 0%;"></div>';
-    $html .= '</div>';
-    $html .= '</div>';
+    // Special note for infants
+    if ($service === 'reg' && $ageGroup === 'child') {
+        $html .= '<div class="info-note">';
+        $html .= '<i class="fas fa-baby"></i> <strong>For Infants:</strong> If the child is below 1 year old, please bring the child\'s Birth Certificate and the parent\'s valid ID.';
+        $html .= '</div>';
+    }
     
     $html .= '</div>';
     
     return $html;
 }
-
 private function getServiceIcon($service)
 {
     $icons = [

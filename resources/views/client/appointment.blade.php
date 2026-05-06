@@ -11,10 +11,11 @@
     <link rel="icon" type="image/png" sizes="32x32" href="{{ asset('images/psa.png') }}">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <link rel="stylesheet" href="{{ asset('css/appointment.css') }}">
+    <!-- SweetAlert2 CSS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
 
-    <!-- Pass requirements data from controller to JavaScript -->
+    <!-- Pass service options from controller to JavaScript -->
     <script>
-        window.documentRequirements = @json($requirements ?? []);
         window.serviceOptions = {
             'reg': 'National ID Registration',
             'updating': 'Correction/Updating',
@@ -110,7 +111,7 @@
 
         <div class="stepper">
             <div class="step active" id="step1"><span class="step-num">1</span> Guide</div>
-            <div class="step" id="step2"><span class="step-num">2</span> Clients</div>
+            <div class="step" id="step2"><span class="step-num">2</span> Applicants</div>
             <div class="step" id="step3"><span class="step-num">3</span> Schedule</div>
             <div class="step" id="step4"><span class="step-num">4</span> Contact</div>
             <div class="step" id="step5"><span class="step-num">5</span> Review</div>
@@ -135,7 +136,7 @@
                             <i class="fas fa-user-plus"></i>
                         </div>
                         <span class="howto-step">STEP 1</span>
-                        <h3>Add Clients</h3>
+                        <h3>Add Applicants</h3>
                         <p>Add the person/s who will attend the appointment. Maximum of <strong>4 persons</strong> per
                             booking.</p>
                         <small>Each person can select their own service type</small>
@@ -187,15 +188,12 @@
 
             <!-- STEP 2: CLIENTS -->
             <div id="sectionClients" class="hidden">
-                <div class="section-title">Client Information</div>
+                <div class="section-title">Applicant Information</div>
                 <p style="color: var(--gray-500); margin-bottom: 20px;">
                     <i class="fas fa-users"></i> Add the persons who will attend (Maximum 4 persons)
                 </p>
 
-                <div class="req-summary-banner" id="reqSummaryBanner">
-                    <strong><i class="fas fa-clipboard-list"></i> Requirements Status</strong>
-                    <div id="reqSummaryList"></div>
-                </div>
+                
 
                 <div class="clients-list" id="clientsList"></div>
 
@@ -404,6 +402,65 @@
     <input type="hidden" id="userZipcode" value="">
 
     <style>
+        /* Style for view requirements button - Red outline (not clicked yet) */
+        .btn-view-req {
+            background-color: transparent !important;
+            color: #dc3545 !important;
+            border: 2px solid #dc3545 !important;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+        
+        .btn-view-req:hover {
+            background-color: #dc3545 !important;
+            color: white !important;
+            transform: translateY(-1px);
+        }
+        
+        /* Style for view requirements button - Green (clicked/read) */
+        .btn-view-req.requirements-read {
+            background-color: #28a745 !important;
+            color: white !important;
+            border: 2px solid #28a745 !important;
+        }
+        
+        .btn-view-req.requirements-read:hover {
+            background-color: #218838 !important;
+            border-color: #218838 !important;
+        }
+        
+        .btn-view-req:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        .btn-view-req:disabled:hover {
+            background-color: transparent !important;
+            color: #dc3545 !important;
+        }
+
+        /* Style for disabled acknowledgment checkbox */
+        .req-ack-row input:disabled {
+            cursor: not-allowed;
+            opacity: 0.5;
+        }
+        
+        .req-ack-row.disabled-checkbox {
+            opacity: 0.6;
+        }
+        
+        .req-ack-row .helper-text {
+            display: block;
+            font-size: 0.75rem;
+            color: #dc3545;
+            margin-top: 5px;
+            font-style: italic;
+        }
+
         /* Style for disabled view requirements button */
         .btn-view-req:disabled {
             background-color: #cccccc !important;
@@ -414,946 +471,1198 @@
         
         /* Style for enabled view requirements button */
         .btn-view-req:enabled {
-            background-color: #28a745 !important;
-            color: white !important;
+            background-color: #white !important;
+            color: black !important;
             cursor: pointer !important;
         }
         
         .btn-view-req:enabled:hover {
-            background-color: #218838 !important;
+            background-color: lightgray !important;
             transform: translateY(-1px);
+        }
+
+        /* Loading spinner for modal */
+        .loading-spinner {
+            text-align: center;
+            padding: 40px;
+        }
+        
+        .loading-spinner i {
+            font-size: 2rem;
+            color: var(--primary);
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* Requirements list styles - simple list without checkboxes */
+        .requirements-simple-list {
+            max-height: 400px;
+            overflow-y: auto;
+            padding: 10px;
+        }
+        .requirements-simple-list ul {
+            margin: 0;
+            padding-left: 20px;
+        }
+        .requirements-simple-list li {
+            margin-bottom: 10px;
+            line-height: 1.4;
+        }
+        .warning-note {
+            background: #fff3cd;
+            border-left: 4px solid #ffc107;
+            padding: 12px;
+            margin-top: 15px;
+            border-radius: 6px;
+            font-size: 0.85rem;
+            color: #856404;
+        }
+        .info-note {
+            background: #d1ecf1;
+            border-left: 4px solid #17a2b8;
+            padding: 12px;
+            margin-top: 15px;
+            border-radius: 6px;
+            font-size: 0.85rem;
+            color: #0c5460;
+        }
+        .requirements-header h4 {
+            margin-bottom: 10px;
+            color: var(--primary);
+        }
+        
+        /* Guide note styles */
+        .guide-note {
+            background: #e7f3ff;
+            border-left: 4px solid #2196F3;
+            padding: 12px;
+            margin-bottom: 20px;
+            border-radius: 6px;
+            font-size: 0.85rem;
+            color: #0c5460;
+        }
+        
+        .guide-note i {
+            margin-right: 8px;
+            color: #2196F3;
+        }
+        
+        .step-instruction {
+            font-size: 0.8rem;
+            color: #666;
+            margin-top: 5px;
         }
     </style>
 
     <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
+    <!-- SweetAlert2 JS -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script>
-        (function() {
-            'use strict';
+    (function() {
+        'use strict';
 
-            let selectedDate = null;
-            let selectedTimeSlot = null;
-            let selectedTimeSlotLabel = null;
-            let availableDatesData = [];
-            let availableTimeSlots = [];
-            let clientTrnData = {};
-            let userLocation = {
-                lat: null,
-                lng: null,
-                city: null,
-                address: null,
-                zipcode: null
-            };
-            let html5QrCode = null;
-            let currentQrClientId = null;
+        let selectedDate = null;
+        let selectedTimeSlot = null;
+        let selectedTimeSlotLabel = null;
+        let availableDatesData = [];
+        let availableTimeSlots = [];
+        let clientTrnData = {};
+        let userLocation = {
+            lat: null,
+            lng: null,
+            city: null,
+            address: null,
+            zipcode: null
+        };
+        let html5QrCode = null;
+        let currentQrClientId = null;
+        let currentRequirementsClientId = null;
 
-            // Document requirements from the database (passed from controller)
-            let documentRequirements = window.documentRequirements || {};
-            let serviceOptions = window.serviceOptions || {};
-            let identityReminders = window.identityReminders || {};
+        let serviceOptions = window.serviceOptions || {};
+        let identityReminders = window.identityReminders || {};
 
-            // Helper function to check if client has all required fields filled
-            function isClientFieldsComplete(client) {
-                return client.firstName && client.firstName.trim() !== '' &&
-                       client.lastName && client.lastName.trim() !== '' &&
-                       client.birthdate && client.birthdate !== '' &&
-                       client.sex && client.sex !== '' &&
-                       client.service && client.service !== '';
+        const TRN_LENGTH = 29;
+        const MAX_CLIENTS = 4;
+
+        function isValidTrn(trnValue) {
+            if (!trnValue) return false;
+            const cleanTrn = trnValue.replace(/\s/g, '');
+            return /^\d{29}$/.test(cleanTrn);
+        }
+
+        function getServiceName(code) {
+            return serviceOptions[code] || code;
+        }
+
+        function getFullName(c) {
+            const parts = [c.firstName, c.middleName, c.lastName].filter(p => p && p.trim());
+            let fullName = parts.join(' ') || '(No name)';
+            if (c.suffix) fullName += ' ' + c.suffix;
+            return fullName;
+        }
+
+        function allRequirementsAcknowledged() {
+            return clients.every(c => c.reqAcknowledged);
+        }
+
+        async function loadAvailableDates() {
+            const clientCount = clients.length;
+            const services = [...new Set(clients.map(c => c.service))];
+            let url =
+                `{{ route('client.appointment.available-dates') }}?month=${currentMonth + 1}&year=${currentYear}&client_count=${clientCount}&services=${services.join(',')}`;
+            try {
+                const response = await fetch(url);
+                if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+                const data = await response.json();
+                if (data.success) {
+                    availableDatesData = data.dates;
+                    renderCalendar();
+                } else {
+                    document.getElementById('calendarDays').innerHTML = '<div class="error">' + (data.message ||
+                        'Failed to load available dates') + '</div>';
+                }
+            } catch (error) {
+                console.error('Error loading dates:', error);
+                document.getElementById('calendarDays').innerHTML =
+                    '<div class="error">Failed to load available dates. Please try again later.</div>';
+            }
+        }
+
+        function renderTimeSlots(timeSlots) {
+            const timeSlotsGrid = document.getElementById('timeSlotsGrid');
+
+            if (!timeSlots || timeSlots.length === 0) {
+                timeSlotsGrid.innerHTML =
+                    '<div class="time-slots-loading"><i class="fas fa-info-circle"></i> No available time slots for your selected services on this date.</div>';
+                return;
             }
 
-            // Helper function to get requirements HTML for a specific service and client birthdate
-            function getRequirementsHtml(serviceCode, clientBirthdate = null) {
-                // Determine age group based on birthdate
-                let ageGroup = 'adult';
-                if (clientBirthdate) {
-                    const birthDate = new Date(clientBirthdate);
-                    const today = new Date();
-                    let age = today.getFullYear() - birthDate.getFullYear();
-                    const monthDiff = today.getMonth() - birthDate.getMonth();
-                    if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
-                        age--;
+            const selectedServices = [...new Set(clients.map(c => c.service))];
+
+            let html = '';
+            timeSlots.forEach(slot => {
+                const isSelected = selectedTimeSlot === slot.id;
+                let allServicesAvailable = true;
+
+                if (slot.service_availability) {
+                    for (const service of selectedServices) {
+                        const availableSlots = slot.service_availability[service] || 0;
+                        if (availableSlots <= 0) {
+                            allServicesAvailable = false;
+                            break;
+                        }
                     }
-                    ageGroup = (age >= 1 && age <= 4) ? 'child' : 'adult';
                 }
-                
-                // Get requirements for the given service and age group
-                const serviceReqs = documentRequirements[serviceCode] || {};
-                const requirementsList = serviceReqs[ageGroup] || [];
-                
-                if (requirementsList.length === 0) {
-                    return `<div class="requirements-grid">
-                        <div class="req-card">
-                            <p>No specific requirements found for this service. Please contact PSA for more information.</p>
-                        </div>
-                    </div>`;
+
+                if (allServicesAvailable) {
+                    html += `
+                        <div class="time-slot-card ${isSelected ? 'selected' : ''}" 
+                             data-slot-id="${slot.id}" data-slot-label="${slot.slot_label}" data-available="true">
+                            <div class="time-slot-time">${slot.slot_label}</div>
+                        </div>`;
                 }
-                
-                // Build HTML output
-                let html = `<div class="requirements-grid"><div class="req-card">`;
-                html += `<h4><i class="fas ${getServiceIcon(serviceCode)}"></i> ${getServiceName(serviceCode)} - ${ageGroup === 'child' ? 'Child (1-4 years old)' : 'Adult (5 years old and above)'}</h4>`;
-                html += `<ul class="req-docs">`;
-                
-                requirementsList.forEach(req => {
-                    html += `<li>${escapeHtml(req.requirement)}</li>`;
+            });
+
+            if (html === '') {
+                timeSlotsGrid.innerHTML =
+                    '<div class="time-slots-loading"><i class="fas fa-info-circle"></i> No available time slots for your selected services on this date.</div>';
+            } else {
+                timeSlotsGrid.innerHTML = html;
+
+                document.querySelectorAll('.time-slot-card').forEach(card => {
+                    card.addEventListener('click', () => {
+                        if (card.dataset.available !== 'true') return;
+                        document.querySelectorAll('.time-slot-card').forEach(c => c.classList
+                            .remove('selected'));
+                        card.classList.add('selected');
+                        selectedTimeSlot = parseInt(card.dataset.slotId);
+                        selectedTimeSlotLabel = card.dataset.slotLabel;
+                    });
                 });
-                
-                html += `</ul>`;
-                
-                // Add special note for child registration
-                if (serviceCode === 'reg' && ageGroup === 'child') {
-                    html += `<div class="warning-note"><i class="fas fa-child"></i> <strong>Note for Children (1-4 years old):</strong> Parent or legal guardian must accompany the child during the appointment. The guardian must bring a valid ID.</div>`;
+            }
+        }
+
+        function renderCalendar() {
+            const monthNames = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August',
+                'September', 'October', 'November', 'December'
+            ];
+            document.getElementById('calendarMonthYear').textContent = `${monthNames[currentMonth]} ${currentYear}`;
+            const firstDay = new Date(currentYear, currentMonth, 1);
+            const startDayOfWeek = firstDay.getDay() || 7;
+            const startOffset = startDayOfWeek === 7 ? 0 : startDayOfWeek - 1;
+            const daysInMonth = new Date(currentYear, currentMonth + 1, 0).getDate();
+            let html = '';
+            for (let i = 0; i < startOffset; i++) html += '<div class="calendar-day empty"></div>';
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+            for (let d = 1; d <= daysInMonth; d++) {
+                const date = new Date(currentYear, currentMonth, d);
+                const dateKey =
+                    `${currentYear}-${String(currentMonth + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
+                const dateData = availableDatesData ? availableDatesData.find(item => item.date === dateKey) : null;
+                const isPast = date < today;
+                const isSelected = selectedDate === dateKey;
+                let cls = 'calendar-day';
+                if (isPast) cls += ' disabled';
+                else if (dateData && dateData.available) cls += ' available';
+                else if (!dateData) cls += ' disabled';
+                if (isSelected) cls += ' selected';
+                html += `<div class="${cls}" data-date="${dateKey}" onclick="window.selectDate('${dateKey}')">`;
+                html += `<div class="day-number">${d}</div></div>`;
+            }
+            document.getElementById('calendarDays').innerHTML = html;
+        }
+
+        window.selectDate = function(dateKey) {
+            selectedDate = dateKey;
+            selectedTimeSlot = null;
+            selectedTimeSlotLabel = null;
+            document.getElementById('selectedDateText').textContent = formatDisplayDate(dateKey);
+            document.getElementById('slotInfoText').innerHTML = `✓ Date selected. Please choose a time slot.`;
+            renderCalendar();
+            loadTimeSlots(dateKey);
+        };
+
+        async function loadTimeSlots(date) {
+            const timeSlotsGrid = document.getElementById('timeSlotsGrid');
+            const timeSlotsContainer = document.getElementById('timeSlotsContainer');
+            if (!date) {
+                timeSlotsContainer.style.display = 'none';
+                return;
+            }
+            timeSlotsContainer.style.display = 'block';
+            timeSlotsGrid.innerHTML =
+                '<div class="time-slots-loading"><i class="fas fa-spinner fa-spin"></i> Loading available time slots...</div>';
+            try {
+                const selectedServices = [...new Set(clients.map(c => c.service))];
+                const url =
+                    `{{ route('client.appointment.available-time-slots') }}?date=${date}&services=${selectedServices.join(',')}&client_count=${clients.length}`;
+                const response = await fetch(url);
+                const data = await response.json();
+                if (data.success && data.time_slots && data.time_slots.length > 0) {
+                    availableTimeSlots = data.time_slots;
+                    renderTimeSlots(availableTimeSlots);
+                } else {
+                    timeSlotsGrid.innerHTML =
+                        '<div class="time-slots-loading"><i class="fas fa-info-circle"></i> No available time slots for this date.</div>';
+                }
+            } catch (error) {
+                console.error('Error loading time slots:', error);
+                timeSlotsGrid.innerHTML =
+                    '<div class="time-slots-loading"><i class="fas fa-exclamation-triangle"></i> Failed to load time slots.</div>';
+            }
+        }
+
+        // TRN Functions
+        function validateAndStyleTrnInput(clientId) {
+            const trnInput = document.getElementById(`trnNumber_${clientId}`);
+            const charCounter = document.getElementById(`trnCharCounter_${clientId}`);
+            if (!trnInput) return false;
+            const trnValue = trnInput.value;
+            const cleanValue = trnValue.replace(/\s/g, '');
+            const isValid = isValidTrn(cleanValue);
+            const currentLength = cleanValue.length;
+            if (isValid) {
+                trnInput.classList.remove('trn-invalid');
+                trnInput.classList.add('trn-valid');
+                if (charCounter) {
+                    charCounter.classList.remove('invalid');
+                    charCounter.classList.add('valid');
+                    charCounter.innerHTML =
+                        `<i class="fas fa-check-circle"></i> ${currentLength}/${TRN_LENGTH} digits - Valid TRN`;
+                }
+                clientTrnData[clientId].trnNumber = cleanValue;
+                clientTrnData[clientId].isValid = true;
+                return true;
+            } else {
+                trnInput.classList.remove('trn-valid');
+                trnInput.classList.add('trn-invalid');
+                if (charCounter) {
+                    charCounter.classList.remove('valid');
+                    charCounter.classList.add('invalid');
+                    if (currentLength > 0 && currentLength < TRN_LENGTH) {
+                        charCounter.innerHTML =
+                            `<i class="fas fa-exclamation-triangle"></i> ${currentLength}/${TRN_LENGTH} digits - TRN must be exactly 29 digits`;
+                    } else if (currentLength > TRN_LENGTH) {
+                        charCounter.innerHTML =
+                            `<i class="fas fa-exclamation-triangle"></i> ${currentLength}/${TRN_LENGTH} digits - Too many digits (max ${TRN_LENGTH})`;
+                    } else {
+                        charCounter.innerHTML =
+                            `<i class="fas fa-info-circle"></i> TRN must be exactly 29 digits (0-9 only)`;
+                    }
+                }
+                clientTrnData[clientId].trnNumber = trnValue;
+                clientTrnData[clientId].isValid = false;
+                return false;
+            }
+        }
+
+        function createTrnHtml(clientId, hasTrnValue, trnNumberValue) {
+            const isValid = trnNumberValue && isValidTrn(trnNumberValue);
+            const validClass = isValid ? 'trn-valid' : '';
+            const currentLength = trnNumberValue ? trnNumberValue.replace(/\s/g, '').length : 0;
+            return `
+                <div class="trn-field-group" data-client-id="${clientId}">
+                    <div class="trn-question"><i class="fas fa-question-circle"></i> DO YOU HAVE A TRN (TRANSACTION REFERENCE NUMBER)?</div>
+                    <div class="trn-checkbox-group">
+                        <label><input type="radio" name="hasTrn_${clientId}" value="yes" ${hasTrnValue === true ? 'checked' : ''}> YES</label>
+                        <label><input type="radio" name="hasTrn_${clientId}" value="no" ${hasTrnValue === false ? 'checked' : ''}> NO</label>
+                    </div>
+                    <div id="trnInputArea_${clientId}" style="display: ${hasTrnValue === true ? 'block' : 'none'};">
+                        <div class="trn-input-group">
+                            <label>TRN NUMBER (29 DIGITS) <span style="color: var(--danger);">*</span></label>
+                            <input type="text" id="trnNumber_${clientId}" placeholder="Enter 29-digit TRN number" class="trn-input ${validClass}" value="${trnNumberValue || ''}" maxlength="29" inputmode="numeric">
+                            <span id="trnCharCounter_${clientId}" class="trn-char-counter ${isValid ? 'valid' : (currentLength > 0 ? 'invalid' : '')}">
+                                ${currentLength > 0 ? (isValid ? `<i class="fas fa-check-circle"></i> ${currentLength}/29 digits - Valid TRN` : `<i class="fas fa-exclamation-triangle"></i> ${currentLength}/29 digits - TRN must be exactly 29 digits`) : `<i class="fas fa-info-circle"></i> TRN must be exactly 29 digits (0-9 only)`}
+                            </span>
+                        </div>
+                        <div class="qr-scan-area">
+                            <p><i class="fas fa-qrcode"></i> OR SCAN QR CODE</p>
+                            <button type="button" class="qr-scan-btn" data-client-id="${clientId}"><i class="fas fa-camera"></i> SCAN QR CODE</button>
+                            <div id="qr-reader_${clientId}" class="qr-reader-container" style="display: none;"></div>
+                        </div>
+                    </div>
+                </div>`;
+        }
+
+        function attachTrnEvents(clientId) {
+            const radioYes = document.querySelector(`input[name="hasTrn_${clientId}"][value="yes"]`);
+            const radioNo = document.querySelector(`input[name="hasTrn_${clientId}"][value="no"]`);
+            const trnInputArea = document.getElementById(`trnInputArea_${clientId}`);
+            const trnNumberInput = document.getElementById(`trnNumber_${clientId}`);
+            const scanBtn = document.querySelector(`.qr-scan-btn[data-client-id="${clientId}"]`);
+            if (!clientTrnData[clientId]) clientTrnData[clientId] = {
+                hasTrn: null,
+                trnNumber: '',
+                isValid: false
+            };
+            if (radioYes) radioYes.addEventListener('change', function() {
+                if (this.checked) {
+                    clientTrnData[clientId].hasTrn = true;
+                    if (trnInputArea) trnInputArea.style.display = 'block';
+                    setTimeout(() => validateAndStyleTrnInput(clientId), 10);
+                }
+            });
+            if (radioNo) radioNo.addEventListener('change', function() {
+                if (this.checked) {
+                    clientTrnData[clientId].hasTrn = false;
+                    clientTrnData[clientId].trnNumber = '';
+                    clientTrnData[clientId].isValid = false;
+                    if (trnInputArea) trnInputArea.style.display = 'none';
+                    if (trnNumberInput) trnNumberInput.value = '';
+                }
+            });
+            if (trnNumberInput) trnNumberInput.addEventListener('input', function(e) {
+                this.value = this.value.replace(/[^0-9]/g, '');
+                if (this.value.length > TRN_LENGTH) this.value = this.value.slice(0, TRN_LENGTH);
+                clientTrnData[clientId].trnNumber = this.value;
+                validateAndStyleTrnInput(clientId);
+            });
+            if (scanBtn) scanBtn.addEventListener('click', () => startQrScanner(clientId));
+        }
+
+        async function startQrScanner(clientId) {
+            const qrReaderDiv = document.getElementById(`qr-reader_${clientId}`);
+            if (!qrReaderDiv) return;
+            if (html5QrCode && html5QrCode.isScanning) await html5QrCode.stop();
+            qrReaderDiv.style.display = 'block';
+            currentQrClientId = clientId;
+            html5QrCode = new Html5Qrcode(`qr-reader_${clientId}`);
+            try {
+                await html5QrCode.start({
+                        facingMode: "environment"
+                    }, {
+                        fps: 10,
+                        qrbox: {
+                            width: 250,
+                            height: 250
+                        }
+                    },
+                    (decodedText) => {
+                        const trnInput = document.getElementById(`trnNumber_${clientId}`);
+                        if (trnInput) {
+                            const digitsOnly = decodedText.replace(/[^0-9]/g, '');
+                            const finalTrn = digitsOnly.slice(0, TRN_LENGTH);
+                            trnInput.value = finalTrn;
+                            clientTrnData[clientId].trnNumber = finalTrn;
+                            validateAndStyleTrnInput(clientId);
+                        }
+                        if (html5QrCode && html5QrCode.isScanning) html5QrCode.stop();
+                        qrReaderDiv.style.display = 'none';
+                        alert(clientTrnData[clientId].isValid ? 'QR Code scanned successfully!' :
+                            'QR Code scanned. Please ensure TRN is exactly 29 digits.');
+                    },
+                    (errorMessage) => console.log(`QR Scan error: ${errorMessage}`)
+                );
+            } catch (err) {
+                console.error(`Failed to start QR scanner: ${err}`);
+                alert('Could not access camera. Please grant camera permissions.');
+                qrReaderDiv.style.display = 'none';
+            }
+        }
+
+        function shouldShowTrnForClient(client) {
+            return client.service === 'inquiry';
+        }
+
+        function validateTrnForClient(client) {
+            if (!shouldShowTrnForClient(client)) return true;
+            const trnData = clientTrnData[client.id];
+            if (!trnData || trnData.hasTrn === null) return false;
+            if (trnData.hasTrn === true && (!trnData.trnNumber || !trnData.isValid)) return false;
+            return true;
+        }
+
+        let clients = [{
+            id: 1,
+            firstName: '',
+            middleName: '',
+            lastName: '',
+            suffix: '',
+            sex: 'Male',
+            birthdate: '',
+            service: '',
+            reqAcknowledged: false,
+            requirementsRead: false
+        }];
+        let nextClientId = 2;
+
+        let currentMonth = new Date().getMonth();
+        let currentYear = new Date().getFullYear();
+
+        const privacyModal = document.getElementById('privacyModal');
+        const reqModal = document.getElementById('reqModal');
+        const successModal = document.getElementById('successModal');
+        const modalTitle = document.getElementById('modalServiceTitle');
+        const modalBody = document.getElementById('modalBodyContent');
+
+        const sections = {
+            guide: document.getElementById('sectionGuide'),
+            clients: document.getElementById('sectionClients'),
+            schedule: document.getElementById('sectionSchedule'),
+            contact: document.getElementById('sectionContact'),
+            review: document.getElementById('sectionReview'),
+            confirm: document.getElementById('sectionConfirm')
+        };
+
+        // Birthdate validation function
+        function validateBirthdate(input) {
+            if (input.value) {
+                const year = input.value.split('-')[0];
+                if (year && year.length !== 4) {
+                    input.setCustomValidity('Year must be 4 digits (e.g., 1990)');
+                    input.reportValidity();
+                    input.value = '';
+                } else {
+                    input.setCustomValidity('');
+                }
+            }
+        }
+
+        function loadLocationFromLandingPage() {
+            const stored = localStorage.getItem('userLocation');
+            if (stored) {
+                try {
+                    const locationData = JSON.parse(stored);
+                    if (locationData.detected === true && locationData.lat && locationData.lng) {
+                        userLocation.lat = locationData.lat;
+                        userLocation.lng = locationData.lng;
+                        userLocation.city = locationData.city || '';
+                        userLocation.address = locationData.address || '';
+                        userLocation.zipcode = locationData.zipcode || '';
+
+                        document.getElementById('userLat').value = userLocation.lat;
+                        document.getElementById('userLng').value = userLocation.lng;
+                        document.getElementById('userCity').value = userLocation.city;
+                        document.getElementById('userAddress').value = userLocation.address;
+                        document.getElementById('userZipcode').value = userLocation.zipcode;
+                        return true;
+                    }
+                } catch (e) {
+                    console.error('Error parsing location data:', e);
+                }
+            }
+            return false;
+        }
+
+        function showLoading() {
+            document.getElementById('loadingOverlay').style.display = 'flex';
+        }
+
+        function hideLoading() {
+            document.getElementById('loadingOverlay').style.display = 'none';
+        }
+
+        function formatDisplayDate(d) {
+            if (!d) return 'No date selected';
+            return new Date(d).toLocaleDateString('en-US', {
+                weekday: 'long',
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric'
+            });
+        }
+
+        function formatDisplayDateTime(date, timeSlotLabel) {
+            if (!date) return 'No date selected';
+            if (!timeSlotLabel) return formatDisplayDate(date);
+            return `${formatDisplayDate(date)} at ${timeSlotLabel}`;
+        }
+
+        // Helper function to check if client has all required fields filled
+        function isClientFieldsComplete(client) {
+            return client.firstName && client.firstName.trim() !== '' &&
+                   client.lastName && client.lastName.trim() !== '' &&
+                   client.birthdate && client.birthdate !== '' &&
+                   client.sex && client.sex !== '' &&
+                   client.service && client.service !== '';
+        }
+
+        // Function to update the state of view requirements button for a specific client
+        function updateViewRequirementsButton(clientId) {
+            const client = clients.find(c => c.id == clientId);
+            if (!client) return;
+            
+            const button = document.querySelector(`.btn-view-req[data-id="${clientId}"]`);
+            if (button) {
+                const isComplete = isClientFieldsComplete(client);
+                if (isComplete) {
+                    button.disabled = false;
+                    button.style.opacity = '1';
+                } else {
+                    button.disabled = true;
+                    button.style.opacity = '0.6';
                 }
                 
-                // Add general reminder
-                html += `<div class="warning-note"><i class="fas fa-exclamation-triangle"></i> <strong>Important:</strong> Bring <strong>original documents</strong>. No photocopies accepted for primary validation. All documents must be valid and current.</div>`;
-                html += `</div></div>`;
-                
-                return html;
+                // Apply requirements-read class if requirements have been read
+                if (client.requirementsRead) {
+                    button.classList.add('requirements-read');
+                } else {
+                    button.classList.remove('requirements-read');
+                }
             }
             
-            function getServiceIcon(serviceCode) {
-                const icons = {
-                    'reg': 'fa-id-card',
-                    'updating': 'fa-pen',
-                    'inquiry': 'fa-question-circle'
-                };
-                return icons[serviceCode] || 'fa-file-alt';
-            }
-
-            const TRN_LENGTH = 29;
-            const MAX_CLIENTS = 4;
-
-            function isValidTrn(trnValue) {
-                if (!trnValue) return false;
-                const cleanTrn = trnValue.replace(/\s/g, '');
-                return /^\d{29}$/.test(cleanTrn);
-            }
-
-            function getServiceName(code) {
-                return serviceOptions[code] || code;
-            }
-
-            function getFullName(c) {
-                const parts = [c.firstName, c.middleName, c.lastName].filter(p => p && p.trim());
-                let fullName = parts.join(' ') || '(No name)';
-                if (c.suffix) fullName += ' ' + c.suffix;
-                return fullName;
-            }
-
-            function allRequirementsAcknowledged() {
-                return clients.every(c => c.reqAcknowledged);
-            }
-
-            function updateReqSummary() {
-                const list = document.getElementById('reqSummaryList');
-                const banner = document.getElementById('reqSummaryBanner');
-                let html = '';
-                let allAcked = true;
-                clients.forEach((c, i) => {
-                    const svc = c.service;
-                    const acked = c.reqAcknowledged;
-                    if (!acked) allAcked = false;
-                    const displayName = getFullName(c);
-                    html +=
-                        `<div class="req-item"><i class="fas ${acked ? 'fa-check-circle' : 'fa-exclamation-circle'}" style="color:${acked ? 'var(--success)' : 'var(--warning)'};"></i> ${displayName || 'Person ' + (i + 1)} - ${getServiceName(svc)} ${acked ? '✓' : '(Pending)'}</div>`;
-                });
-                list.innerHTML = html;
-                banner.classList.toggle('complete', allAcked);
-                const nextBtn = document.getElementById('nextToSchedule');
-                if (nextBtn) nextBtn.disabled = !allAcked;
-            }
-
-            async function loadAvailableDates() {
-                const clientCount = clients.length;
-                const services = [...new Set(clients.map(c => c.service))];
-                let url =
-                    `{{ route('client.appointment.available-dates') }}?month=${currentMonth + 1}&year=${currentYear}&client_count=${clientCount}&services=${services.join(',')}`;
-                try {
-                    const response = await fetch(url);
-                    if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
-                    const data = await response.json();
-                    if (data.success) {
-                        availableDatesData = data.dates;
-                        renderCalendar();
+            // Update acknowledgment checkbox state
+            updateAcknowledgmentCheckbox(clientId);
+        }
+        
+        // Function to update acknowledgment checkbox state
+        function updateAcknowledgmentCheckbox(clientId) {
+            const client = clients.find(c => c.id == clientId);
+            if (!client) return;
+            
+            const checkbox = document.querySelector(`.req-ack[data-id="${clientId}"]`);
+            const ackRow = document.querySelector(`.req-ack-row[data-client-id="${clientId}"]`);
+            
+            if (checkbox && ackRow) {
+                const canCheck = isClientFieldsComplete(client) && client.requirementsRead === true;
+                
+                if (canCheck) {
+                    checkbox.disabled = false;
+                    ackRow.classList.remove('disabled-checkbox');
+                    // Remove helper text if exists
+                    const existingHelper = ackRow.querySelector('.helper-text');
+                    if (existingHelper) existingHelper.remove();
+                } else {
+                    checkbox.disabled = true;
+                    ackRow.classList.add('disabled-checkbox');
+                    
+                    // Add helper text if not exists
+                    if (!ackRow.querySelector('.helper-text')) {
+                        const helperText = document.createElement('small');
+                        helperText.className = 'helper-text';
+                        if (!isClientFieldsComplete(client)) {
+                            helperText.innerHTML = '<i class="fas fa-info-circle"></i> Please fill in all required fields first.';
+                        } else if (!client.requirementsRead) {
+                            helperText.innerHTML = '<i class="fas fa-info-circle"></i> Please click "View Requirements" and read the requirements first.';
+                        }
+                        ackRow.appendChild(helperText);
                     } else {
-                        document.getElementById('calendarDays').innerHTML = '<div class="error">' + (data.message ||
-                            'Failed to load available dates') + '</div>';
-                    }
-                } catch (error) {
-                    console.error('Error loading dates:', error);
-                    document.getElementById('calendarDays').innerHTML =
-                        '<div class="error">Failed to load available dates. Please try again later.</div>';
-                }
-            }
-
-            function renderTimeSlots(timeSlots) {
-                const timeSlotsGrid = document.getElementById('timeSlotsGrid');
-
-                if (!timeSlots || timeSlots.length === 0) {
-                    timeSlotsGrid.innerHTML =
-                        '<div class="time-slots-loading"><i class="fas fa-info-circle"></i> No available time slots for your selected services on this date.</div>';
-                    return;
-                }
-
-                const selectedServices = [...new Set(clients.map(c => c.service))];
-
-                let html = '';
-                timeSlots.forEach(slot => {
-                    const isSelected = selectedTimeSlot === slot.id;
-                    let allServicesAvailable = true;
-
-                    if (slot.service_availability) {
-                        for (const service of selectedServices) {
-                            const availableSlots = slot.service_availability[service] || 0;
-                            if (availableSlots <= 0) {
-                                allServicesAvailable = false;
-                                break;
-                            }
+                        const helper = ackRow.querySelector('.helper-text');
+                        if (!isClientFieldsComplete(client)) {
+                            helper.innerHTML = '<i class="fas fa-info-circle"></i> Please fill in all required fields first.';
+                        } else if (!client.requirementsRead) {
+                            helper.innerHTML = '<i class="fas fa-info-circle"></i> Please click "View Requirements" and read the requirements first.';
                         }
                     }
+                }
+            }
+        }
 
-                    if (allServicesAvailable) {
-                        html += `
-                            <div class="time-slot-card ${isSelected ? 'selected' : ''}" 
-                                 data-slot-id="${slot.id}" data-slot-label="${slot.slot_label}" data-available="true">
-                                <div class="time-slot-time">${slot.slot_label}</div>
-                            </div>`;
+        // Fetch requirements from backend API based on service and birthdate
+        async function fetchRequirementsFromBackend(serviceCode, birthdate) {
+            try {
+                let url = `{{ route('client.appointment.get-requirements') }}?service=${serviceCode}`;
+                if (birthdate) {
+                    url += `&birthdate=${birthdate}`;
+                }
+                
+                const response = await fetch(url, {
+                    method: 'GET',
+                    headers: {
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+                        'Accept': 'application/json'
                     }
                 });
-
-                if (html === '') {
-                    timeSlotsGrid.innerHTML =
-                        '<div class="time-slots-loading"><i class="fas fa-info-circle"></i> No available time slots for your selected services on this date.</div>';
-                } else {
-                    timeSlotsGrid.innerHTML = html;
-
-                    document.querySelectorAll('.time-slot-card').forEach(card => {
-                        card.addEventListener('click', () => {
-                            if (card.dataset.available !== 'true') return;
-                            document.querySelectorAll('.time-slot-card').forEach(c => c.classList
-                                .remove('selected'));
-                            card.classList.add('selected');
-                            selectedTimeSlot = parseInt(card.dataset.slotId);
-                            selectedTimeSlotLabel = card.dataset.slotLabel;
-                        });
-                    });
-                }
+                
+                const data = await response.json();
+                return data;
+            } catch (error) {
+                console.error('Error fetching requirements:', error);
+                return { success: false, message: 'Failed to load requirements' };
             }
+        }
 
-            function renderCalendar() {
-                const monthNames = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August',
-                    'September', 'October', 'November', 'December'
-                ];
-                document.getElementById('calendarMonthYear').textContent = `${monthNames[currentMonth]} ${currentYear}`;
-                const firstDay = new Date(currentYear, currentMonth, 1);
-                const startDayOfWeek = firstDay.getDay() || 7;
-                const startOffset = startDayOfWeek === 7 ? 0 : startDayOfWeek - 1;
-                const daysInMonth = new Date(currentYear, currentMonth + 1, 0).getDate();
-                let html = '';
-                for (let i = 0; i < startOffset; i++) html += '<div class="calendar-day empty"></div>';
-                const today = new Date();
-                today.setHours(0, 0, 0, 0);
-                for (let d = 1; d <= daysInMonth; d++) {
-                    const date = new Date(currentYear, currentMonth, d);
-                    const dateKey =
-                        `${currentYear}-${String(currentMonth + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
-                    const dateData = availableDatesData ? availableDatesData.find(item => item.date === dateKey) : null;
-                    const isPast = date < today;
-                    const isSelected = selectedDate === dateKey;
-                    let cls = 'calendar-day';
-                    if (isPast) cls += ' disabled';
-                    else if (dateData && dateData.available) cls += ' available';
-                    else if (!dateData) cls += ' disabled';
-                    if (isSelected) cls += ' selected';
-                    html += `<div class="${cls}" data-date="${dateKey}" onclick="window.selectDate('${dateKey}')">`;
-                    html += `<div class="day-number">${d}</div></div>`;
-                }
-                document.getElementById('calendarDays').innerHTML = html;
+        // Show requirements modal with backend data
+        async function showRequirementsModal(clientId) {
+            const client = clients.find(c => c.id == clientId);
+            if (!client) return;
+            
+            // Validate fields are complete
+            if (!isClientFieldsComplete(client)) {
+                await Swal.fire({
+                    icon: 'warning',
+                    title: 'Incomplete Information',
+                    text: 'Please fill in all required fields (First Name, Last Name, Birthdate, Sex, and Service) before viewing requirements.',
+                    confirmButtonColor: '#dc3545'
+                });
+                return;
             }
-
-            window.selectDate = function(dateKey) {
-                selectedDate = dateKey;
-                selectedTimeSlot = null;
-                selectedTimeSlotLabel = null;
-                document.getElementById('selectedDateText').textContent = formatDisplayDate(dateKey);
-                document.getElementById('slotInfoText').innerHTML = `✓ Date selected. Please choose a time slot.`;
-                renderCalendar();
-                loadTimeSlots(dateKey);
-            };
-
-            async function loadTimeSlots(date) {
-                const timeSlotsGrid = document.getElementById('timeSlotsGrid');
-                const timeSlotsContainer = document.getElementById('timeSlotsContainer');
-                if (!date) {
-                    timeSlotsContainer.style.display = 'none';
-                    return;
-                }
-                timeSlotsContainer.style.display = 'block';
-                timeSlotsGrid.innerHTML =
-                    '<div class="time-slots-loading"><i class="fas fa-spinner fa-spin"></i> Loading available time slots...</div>';
-                try {
-                    const selectedServices = [...new Set(clients.map(c => c.service))];
-                    const url =
-                        `{{ route('client.appointment.available-time-slots') }}?date=${date}&services=${selectedServices.join(',')}&client_count=${clients.length}`;
-                    const response = await fetch(url);
-                    const data = await response.json();
-                    if (data.success && data.time_slots && data.time_slots.length > 0) {
-                        availableTimeSlots = data.time_slots;
-                        renderTimeSlots(availableTimeSlots);
-                    } else {
-                        timeSlotsGrid.innerHTML =
-                            '<div class="time-slots-loading"><i class="fas fa-info-circle"></i> No available time slots for this date.</div>';
-                    }
-                } catch (error) {
-                    console.error('Error loading time slots:', error);
-                    timeSlotsGrid.innerHTML =
-                        '<div class="time-slots-loading"><i class="fas fa-exclamation-triangle"></i> Failed to load time slots.</div>';
-                }
+            
+            // Show loading state
+            modalTitle.textContent = 'Loading Requirements...';
+            modalBody.innerHTML = '<div class="loading-spinner"><i class="fas fa-spinner fa-spin"></i> Loading requirements...</div>';
+            reqModal.style.display = 'flex';
+            currentRequirementsClientId = clientId;
+            
+            // Fetch requirements from backend (age calculation happens on server)
+            const result = await fetchRequirementsFromBackend(client.service, client.birthdate);
+            
+            if (result.success && result.html) {
+                modalTitle.textContent = `${getServiceName(client.service)} Requirements`;
+                modalBody.innerHTML = result.html;
+            } else {
+                modalBody.innerHTML = `<div class="error-message">${result.message || 'Failed to load requirements. Please try again.'}</div>`;
             }
+        }
 
-            // TRN Functions
-            function validateAndStyleTrnInput(clientId) {
-                const trnInput = document.getElementById(`trnNumber_${clientId}`);
-                const charCounter = document.getElementById(`trnCharCounter_${clientId}`);
-                if (!trnInput) return false;
-                const trnValue = trnInput.value;
-                const cleanValue = trnValue.replace(/\s/g, '');
-                const isValid = isValidTrn(cleanValue);
-                const currentLength = cleanValue.length;
-                if (isValid) {
-                    trnInput.classList.remove('trn-invalid');
-                    trnInput.classList.add('trn-valid');
-                    if (charCounter) {
-                        charCounter.classList.remove('invalid');
-                        charCounter.classList.add('valid');
-                        charCounter.innerHTML =
-                            `<i class="fas fa-check-circle"></i> ${currentLength}/${TRN_LENGTH} digits - Valid TRN`;
-                    }
-                    clientTrnData[clientId].trnNumber = cleanValue;
-                    clientTrnData[clientId].isValid = true;
-                    return true;
-                } else {
-                    trnInput.classList.remove('trn-valid');
-                    trnInput.classList.add('trn-invalid');
-                    if (charCounter) {
-                        charCounter.classList.remove('valid');
-                        charCounter.classList.add('invalid');
-                        if (currentLength > 0 && currentLength < TRN_LENGTH) {
-                            charCounter.innerHTML =
-                                `<i class="fas fa-exclamation-triangle"></i> ${currentLength}/${TRN_LENGTH} digits - TRN must be exactly 29 digits`;
-                        } else if (currentLength > TRN_LENGTH) {
-                            charCounter.innerHTML =
-                                `<i class="fas fa-exclamation-triangle"></i> ${currentLength}/${TRN_LENGTH} digits - Too many digits (max ${TRN_LENGTH})`;
-                        } else {
-                            charCounter.innerHTML =
-                                `<i class="fas fa-info-circle"></i> TRN must be exactly 29 digits (0-9 only)`;
-                        }
-                    }
-                    clientTrnData[clientId].trnNumber = trnValue;
-                    clientTrnData[clientId].isValid = false;
-                    return false;
-                }
-            }
-
-            function createTrnHtml(clientId, hasTrnValue, trnNumberValue) {
-                const isValid = trnNumberValue && isValidTrn(trnNumberValue);
-                const validClass = isValid ? 'trn-valid' : '';
-                const currentLength = trnNumberValue ? trnNumberValue.replace(/\s/g, '').length : 0;
-                return `
-                    <div class="trn-field-group" data-client-id="${clientId}">
-                        <div class="trn-question"><i class="fas fa-question-circle"></i> DO YOU HAVE A TRN (TRANSACTION REFERENCE NUMBER)?</div>
-                        <div class="trn-checkbox-group">
-                            <label><input type="radio" name="hasTrn_${clientId}" value="yes" ${hasTrnValue === true ? 'checked' : ''}> YES</label>
-                            <label><input type="radio" name="hasTrn_${clientId}" value="no" ${hasTrnValue === false ? 'checked' : ''}> NO</label>
-                        </div>
-                        <div id="trnInputArea_${clientId}" style="display: ${hasTrnValue === true ? 'block' : 'none'};">
-                            <div class="trn-input-group">
-                                <label>TRN NUMBER (29 DIGITS) <span style="color: var(--danger);">*</span></label>
-                                <input type="text" id="trnNumber_${clientId}" placeholder="Enter 29-digit TRN number" class="trn-input ${validClass}" value="${trnNumberValue || ''}" maxlength="29" inputmode="numeric">
-                                <span id="trnCharCounter_${clientId}" class="trn-char-counter ${isValid ? 'valid' : (currentLength > 0 ? 'invalid' : '')}">
-                                    ${currentLength > 0 ? (isValid ? `<i class="fas fa-check-circle"></i> ${currentLength}/29 digits - Valid TRN` : `<i class="fas fa-exclamation-triangle"></i> ${currentLength}/29 digits - TRN must be exactly 29 digits`) : `<i class="fas fa-info-circle"></i> TRN must be exactly 29 digits (0-9 only)`}
-                                </span>
-                            </div>
-                            <div class="qr-scan-area">
-                                <p><i class="fas fa-qrcode"></i> OR SCAN QR CODE</p>
-                                <button type="button" class="qr-scan-btn" data-client-id="${clientId}"><i class="fas fa-camera"></i> SCAN QR CODE</button>
-                                <div id="qr-reader_${clientId}" class="qr-reader-container" style="display: none;"></div>
-                            </div>
-                        </div>
-                    </div>`;
-            }
-
-            function attachTrnEvents(clientId) {
-                const radioYes = document.querySelector(`input[name="hasTrn_${clientId}"][value="yes"]`);
-                const radioNo = document.querySelector(`input[name="hasTrn_${clientId}"][value="no"]`);
-                const trnInputArea = document.getElementById(`trnInputArea_${clientId}`);
-                const trnNumberInput = document.getElementById(`trnNumber_${clientId}`);
-                const scanBtn = document.querySelector(`.qr-scan-btn[data-client-id="${clientId}"]`);
-                if (!clientTrnData[clientId]) clientTrnData[clientId] = {
+        function renderClients() {
+            const container = document.getElementById('clientsList');
+            container.innerHTML = '';
+            clients.forEach((c, i) => {
+                const svc = c.service;
+                const reminder = identityReminders[svc] || 'Please ensure the information is accurate. The person named below must be the one requesting the appointment for National ID services (registration, update, or inquiry).';
+                const showTrn = shouldShowTrnForClient(c);
+                const trnData = clientTrnData[c.id] || {
                     hasTrn: null,
                     trnNumber: '',
                     isValid: false
                 };
-                if (radioYes) radioYes.addEventListener('change', function() {
-                    if (this.checked) {
-                        clientTrnData[clientId].hasTrn = true;
-                        if (trnInputArea) trnInputArea.style.display = 'block';
-                        setTimeout(() => validateAndStyleTrnInput(clientId), 10);
-                    }
-                });
-                if (radioNo) radioNo.addEventListener('change', function() {
-                    if (this.checked) {
-                        clientTrnData[clientId].hasTrn = false;
-                        clientTrnData[clientId].trnNumber = '';
-                        clientTrnData[clientId].isValid = false;
-                        if (trnInputArea) trnInputArea.style.display = 'none';
-                        if (trnNumberInput) trnNumberInput.value = '';
-                    }
-                });
-                if (trnNumberInput) trnNumberInput.addEventListener('input', function(e) {
-                    this.value = this.value.replace(/[^0-9]/g, '');
-                    if (this.value.length > TRN_LENGTH) this.value = this.value.slice(0, TRN_LENGTH);
-                    clientTrnData[clientId].trnNumber = this.value;
-                    validateAndStyleTrnInput(clientId);
-                });
-                if (scanBtn) scanBtn.addEventListener('click', () => startQrScanner(clientId));
-            }
+                const isComplete = isClientFieldsComplete(c);
+                const card = document.createElement('div');
+                card.className = 'client-card';
+                card.innerHTML = `
+                    <div class="client-header">
+                        <span class="client-title"><i class="fas fa-user-circle"></i> Person ${i + 1}</span>
+                        <div style="display: flex; gap: 8px;">
+                            ${clients.length > 1 ? `<button class="btn-remove-client" data-id="${c.id}"><i class="fas fa-trash-alt"></i></button>` : ''}
+                        </div>
+                    </div>
+                    <div class="identity-reminder"><i class="fas fa-id-card"></i> <strong>Important:</strong> ${reminder}</div>
+                    <div class="form-row">
+                        <div class="form-col"><label>First Name <span style="color: var(--danger);">*</span></label><input class="client-firstname" data-id="${c.id}" value="${escapeHtml(c.firstName) || ''}" placeholder="First Name"></div>
+                        <div class="form-col"><label>Middle Name</label><input class="client-middlename" data-id="${c.id}" value="${escapeHtml(c.middleName) || ''}" placeholder="Middle Name"></div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-col"><label>Last Name <span style="color: var(--danger);">*</span></label><input class="client-lastname" data-id="${c.id}" value="${escapeHtml(c.lastName) || ''}" placeholder="Last Name"></div>
+                        <div class="form-col"><label>Suffix</label><select class="client-suffix" data-id="${c.id}"><option value=""> None </option><option value="Jr." ${c.suffix === 'Jr.' ? 'selected' : ''}>Jr.</option><option value="Sr." ${c.suffix === 'Sr.' ? 'selected' : ''}>Sr.</option><option value="I" ${c.suffix === 'I' ? 'selected' : ''}>I</option><option value="II" ${c.suffix === 'II' ? 'selected' : ''}>II</option><option value="III" ${c.suffix === 'III' ? 'selected' : ''}>III</option><option value="IV" ${c.suffix === 'IV' ? 'selected' : ''}>IV</option><option value="V" ${c.suffix === 'V' ? 'selected' : ''}>V</option></select></div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-col"><label>Sex <span style="color: var(--danger);">*</span></label><select class="client-sex" data-id="${c.id}"><option value="Male" ${c.sex === 'Male' ? 'selected' : ''}>Male</option><option value="Female" ${c.sex === 'Female' ? 'selected' : ''}>Female</option></select></div>
+                        <div class="form-col"><label>Birthdate <span style="color: var(--danger);">*</span></label>
+                        <input type="date" class="client-birthdate" data-id="${c.id}" value="${c.birthdate || ''}" 
+                            oninput="validateBirthdate(this)" 
+                            onchange="validateBirthdate(this)">
+                        </div>
+                    </div>
+                    <div class="form-col" style="margin-top: 12px;">
+                        <label>Service <span style="color: var(--danger);">*</span></label>
+                        <select class="client-service" data-id="${c.id}">
+                            <option value="" disabled ${c.service === '' ? 'selected' : ''}>-- Select Service --</option>
+                            <option value="reg" ${c.service === 'reg' ? 'selected' : ''}>National ID Registration</option>
+                            <option value="updating" ${c.service === 'updating' ? 'selected' : ''}>Correction/Updating</option>
+                            <option value="inquiry" ${c.service === 'inquiry' ? 'selected' : ''}>Status Inquiry / Retrieval Of TRN / Other Concern</option>
+                        </select>
+                    </div>
+                    ${showTrn ? createTrnHtml(c.id, trnData.hasTrn, trnData.trnNumber) : ''}
+                    
+                    <!-- Guide Note -->
+                    <div class="guide-note" style="margin: 15px 0 10px 0;">
+                        <i class="fas fa-info-circle"></i> 
+                        <strong>How to complete this section:</strong>
+                        <ol style="margin: 5px 0 0 20px; padding: 0;">
+                            <li>Fill out all the fields above (First Name, Last Name, Birthdate, Sex, Service)</li>
+                            <li>Click the <strong>"View Requirements"</strong> button below to see the required documents for this applicant</li>
+                            <li>After reviewing the requirements, check the acknowledgment box below</li>
+                        </ol>
+                    </div>
+                    
+                    <!-- View Requirements Button -->
+                    <div style="margin: 15px 0 10px 0;">
+                        <button class="btn-view-req ${c.requirementsRead ? 'requirements-read' : ''}" data-id="${c.id}" ${!isComplete ? 'disabled' : ''}><i class="fas fa-book"></i> ${c.requirementsRead ? 'Requirements Viewed ✓' : 'View Requirements'}</button>
+                        ${!isComplete ? '<div class="step-instruction"><i class="fas fa-arrow-up"></i> Fill in all fields above first</div>' : (c.requirementsRead ? '<div class="step-instruction" style="color: #28a745;"><i class="fas fa-check-circle"></i> Requirements have been read</div>' : '<div class="step-instruction"><i class="fas fa-arrow-up"></i> Click to view requirements for this applicant</div>')}
+                    </div>
+                    
+                    <!-- Acknowledgment Checkbox Row -->
+                    <div class="req-ack-row ${c.reqAcknowledged ? 'acknowledged' : ''} ${!c.requirementsRead ? 'disabled-checkbox' : ''}" data-client-id="${c.id}">
+                        <input type="checkbox" class="req-ack" data-id="${c.id}" ${c.reqAcknowledged ? 'checked' : ''} ${!c.requirementsRead ? 'disabled' : ''}>
+                        <label>I have read and understood the requirements for <strong>${getServiceName(svc)}</strong>. I will bring all necessary documents.</label>
+                        ${!c.requirementsRead ? '<small class="helper-text"><i class="fas fa-info-circle"></i> Please click "View Requirements" and read the requirements first.</small>' : ''}
+                    </div>
+                `;
+                container.appendChild(card);
+            });
+            attachClientEvents();
+            document.getElementById('clientCount').textContent = clients.length;
+        }
 
-            async function startQrScanner(clientId) {
-                const qrReaderDiv = document.getElementById(`qr-reader_${clientId}`);
-                if (!qrReaderDiv) return;
-                if (html5QrCode && html5QrCode.isScanning) await html5QrCode.stop();
-                qrReaderDiv.style.display = 'block';
-                currentQrClientId = clientId;
-                html5QrCode = new Html5Qrcode(`qr-reader_${clientId}`);
-                try {
-                    await html5QrCode.start({
-                            facingMode: "environment"
-                        }, {
-                            fps: 10,
-                            qrbox: {
-                                width: 250,
-                                height: 250
-                            }
-                        },
-                        (decodedText) => {
-                            const trnInput = document.getElementById(`trnNumber_${clientId}`);
-                            if (trnInput) {
-                                const digitsOnly = decodedText.replace(/[^0-9]/g, '');
-                                const finalTrn = digitsOnly.slice(0, TRN_LENGTH);
-                                trnInput.value = finalTrn;
-                                clientTrnData[clientId].trnNumber = finalTrn;
-                                validateAndStyleTrnInput(clientId);
-                            }
-                            if (html5QrCode && html5QrCode.isScanning) html5QrCode.stop();
-                            qrReaderDiv.style.display = 'none';
-                            alert(clientTrnData[clientId].isValid ? 'QR Code scanned successfully!' :
-                                'QR Code scanned. Please ensure TRN is exactly 29 digits.');
-                        },
-                        (errorMessage) => console.log(`QR Scan error: ${errorMessage}`)
-                    );
-                } catch (err) {
-                    console.error(`Failed to start QR scanner: ${err}`);
-                    alert('Could not access camera. Please grant camera permissions.');
-                    qrReaderDiv.style.display = 'none';
+        function escapeHtml(str) {
+            if (!str) return '';
+            return str.replace(/[&<>]/g, function(m) {
+                if (m === '&') return '&amp;';
+                if (m === '<') return '&lt;';
+                if (m === '>') return '&gt;';
+                return m;
+            });
+        }
+
+        function attachClientEvents() {
+            document.querySelectorAll('.client-firstname').forEach(e => e.addEventListener('input', (ev) => {
+                const c = clients.find(x => x.id == ev.target.dataset.id);
+                if (c) {
+                    c.firstName = ev.target.value;
+                    updateViewRequirementsButton(c.id);
                 }
-            }
+            }));
+            document.querySelectorAll('.client-middlename').forEach(e => e.addEventListener('input', (ev) => {
+                const c = clients.find(x => x.id == ev.target.dataset.id);
+                if (c) c.middleName = ev.target.value;
+            }));
+            document.querySelectorAll('.client-lastname').forEach(e => e.addEventListener('input', (ev) => {
+                const c = clients.find(x => x.id == ev.target.dataset.id);
+                if (c) {
+                    c.lastName = ev.target.value;
+                    updateViewRequirementsButton(c.id);
+                }
+            }));
+            document.querySelectorAll('.client-suffix').forEach(e => e.addEventListener('change', (ev) => {
+                const c = clients.find(x => x.id == ev.target.dataset.id);
+                if (c) c.suffix = ev.target.value;
+            }));
+            document.querySelectorAll('.client-sex').forEach(e => e.addEventListener('change', (ev) => {
+                const c = clients.find(x => x.id == ev.target.dataset.id);
+                if (c) {
+                    c.sex = ev.target.value;
+                    updateViewRequirementsButton(c.id);
+                }
+            }));
+            document.querySelectorAll('.client-birthdate').forEach(e => e.addEventListener('input', (ev) => {
+                const c = clients.find(x => x.id == ev.target.dataset.id);
+                if (c) {
+                    if (ev.target.value) {
+                        const year = ev.target.value.split('-')[0];
+                        if (year && year.length !== 4) {
+                            Swal.fire({
+                                icon: 'error',
+                                title: 'Invalid Date',
+                                text: 'Please enter a valid year (YYYY format, e.g., 1990)',
+                                confirmButtonColor: '#dc3545'
+                            });
+                            ev.target.value = '';
+                            return;
+                        }
+                    }
+                    c.birthdate = ev.target.value;
+                    updateViewRequirementsButton(c.id);
+                }
+            }));
+            document.querySelectorAll('.client-service').forEach(e => e.addEventListener('change', (ev) => {
+                const c = clients.find(x => x.id == ev.target.dataset.id);
+                if (c) {
+                    c.service = ev.target.value;
+                    c.reqAcknowledged = false;
+                    c.requirementsRead = false;
+                    if (c.service !== 'inquiry') delete clientTrnData[c.id];
+                    else if (!clientTrnData[c.id]) clientTrnData[c.id] = {
+                        hasTrn: null,
+                        trnNumber: '',
+                        isValid: false
+                    };
+                    renderClients();
+                }
+            }));
+            document.querySelectorAll('.req-ack').forEach(e => e.addEventListener('change', async (ev) => {
+                const c = clients.find(x => x.id == ev.target.dataset.id);
+                if (c) {
+                    const canCheck = isClientFieldsComplete(c) && c.requirementsRead === true;
+                    
+                    if (ev.target.checked && !canCheck) {
+                        ev.target.checked = false;
+                        if (!isClientFieldsComplete(c)) {
+                            await Swal.fire({
+                                icon: 'warning',
+                                title: 'Cannot Acknowledge',
+                                text: 'Please fill in all required fields (First Name, Last Name, Birthdate, Sex, and Service) first.',
+                                confirmButtonColor: '#dc3545'
+                            });
+                        } else if (!c.requirementsRead) {
+                            await Swal.fire({
+                                icon: 'info',
+                                title: 'Requirements Not Read',
+                                text: 'Please click the "View Requirements" button and review all the requirements before acknowledging.',
+                                confirmButtonColor: '#28a745',
+                                confirmButtonText: 'View Requirements Now'
+                            }).then((result) => {
+                                if (result.isConfirmed) {
+                                    const button = document.querySelector(`.btn-view-req[data-id="${c.id}"]`);
+                                    if (button && !button.disabled) {
+                                        button.click();
+                                    }
+                                }
+                            });
+                        }
+                        return;
+                    }
+                    
+                    c.reqAcknowledged = ev.target.checked;
+                    renderClients();
+                }
+            }));
+            document.querySelectorAll('.btn-view-req').forEach(b => b.addEventListener('click', async (ev) => {
+                const id = ev.target.closest('.btn-view-req').dataset.id;
+                const client = clients.find(c => c.id == id);
+                
+                if (!client) return;
+                
+                if (!isClientFieldsComplete(client)) {
+                    await Swal.fire({
+                        icon: 'warning',
+                        title: 'Incomplete Information',
+                        text: 'Please fill in all required fields (First Name, Last Name, Birthdate, Sex, and Service) before viewing requirements.',
+                        confirmButtonColor: '#dc3545'
+                    });
+                    return;
+                }
+                
+                await showRequirementsModal(parseInt(id));
+            }));
+            document.querySelectorAll('.btn-remove-client').forEach(b => b.addEventListener('click', (ev) => {
+                const id = ev.target.closest('.btn-remove-client').dataset.id;
+                clients = clients.filter(c => c.id != id);
+                delete clientTrnData[id];
+                renderClients();
+            }));
+            clients.forEach(client => {
+                if (shouldShowTrnForClient(client)) attachTrnEvents(client.id);
+            });
+        }
 
-            function shouldShowTrnForClient(client) {
-                return client.service === 'inquiry';
-            }
+        function setActiveStep(s) {
+            document.querySelectorAll('.step').forEach((e, i) => e.classList.toggle('active', i + 1 === s));
+        }
 
-            function validateTrnForClient(client) {
-                if (!shouldShowTrnForClient(client)) return true;
-                const trnData = clientTrnData[client.id];
-                if (!trnData || trnData.hasTrn === null) return false;
-                if (trnData.hasTrn === true && (!trnData.trnNumber || !trnData.isValid)) return false;
-                return true;
-            }
+        function showSection(s) {
+            Object.values(sections).forEach(x => x.classList.add('hidden'));
+            s.classList.remove('hidden');
+        }
 
-            let clients = [{
-                id: 1,
+        // ==================== EVENT LISTENERS ====================
+
+        document.getElementById('agreePrivacyBtn').onclick = () => privacyModal.style.display = 'none';
+        document.getElementById('startBookingBtn').onclick = () => {
+            showSection(sections.clients);
+            setActiveStep(2);
+        };
+        document.getElementById('addClientBtn').onclick = () => {
+            if (clients.length >= MAX_CLIENTS) {
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Maximum Reached',
+                    text: `Maximum ${MAX_CLIENTS} persons only.`,
+                    confirmButtonColor: '#dc3545'
+                });
+                return;
+            }
+            const newId = nextClientId++;
+            clients.push({
+                id: newId,
                 firstName: '',
                 middleName: '',
                 lastName: '',
                 suffix: '',
                 sex: 'Male',
                 birthdate: '',
-                service: 'reg',
-                reqAcknowledged: false
-            }];
-            let nextClientId = 2;
-
-            let currentMonth = new Date().getMonth();
-            let currentYear = new Date().getFullYear();
-
-            const privacyModal = document.getElementById('privacyModal');
-            const reqModal = document.getElementById('reqModal');
-            const successModal = document.getElementById('successModal');
-            const modalTitle = document.getElementById('modalServiceTitle');
-            const modalBody = document.getElementById('modalBodyContent');
-
-            const sections = {
-                guide: document.getElementById('sectionGuide'),
-                clients: document.getElementById('sectionClients'),
-                schedule: document.getElementById('sectionSchedule'),
-                contact: document.getElementById('sectionContact'),
-                review: document.getElementById('sectionReview'),
-                confirm: document.getElementById('sectionConfirm')
-            };
-
-            // Birthdate validation function
-            function validateBirthdate(input) {
-                if (input.value) {
-                    const year = input.value.split('-')[0];
-                    if (year && year.length !== 4) {
-                        input.setCustomValidity('Year must be 4 digits (e.g., 1990)');
-                        input.reportValidity();
-                        input.value = '';
-                    } else {
-                        input.setCustomValidity('');
-                    }
+                service: '',
+                reqAcknowledged: false,
+                requirementsRead: false
+            });
+            renderClients();
+        };
+        document.getElementById('nextToSchedule').onclick = () => {
+            for (let c of clients) {
+                if (!c.firstName?.trim() || !c.lastName?.trim()) {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Missing Information',
+                        text: 'First Name and Last Name are required for all clients',
+                        confirmButtonColor: '#dc3545'
+                    });
+                    return;
+                }
+                if (!c.sex) {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Missing Information',
+                        text: 'Please select sex for all clients',
+                        confirmButtonColor: '#dc3545'
+                    });
+                    return;
+                }
+                if (!c.birthdate) {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Missing Information',
+                        text: 'Please enter birthdate for all clients',
+                        confirmButtonColor: '#dc3545'
+                    });
+                    return;
+                }
+                if (!c.service) {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Missing Information',
+                        text: 'Please select service for all clients',
+                        confirmButtonColor: '#dc3545'
+                    });
+                    return;
+                }
+                if (!validateTrnForClient(c)) {
+                    const clientName = getFullName(c) || `Person ${clients.indexOf(c) + 1}`;
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Missing TRN Information',
+                        text: `${clientName}: Please indicate whether you have a TRN. If YES, please enter the exact 29-digit TRN number or scan the QR code.`,
+                        confirmButtonColor: '#dc3545'
+                    });
+                    return;
+                }
+                if (!c.reqAcknowledged) {
+                    Swal.fire({
+                        icon: 'warning',
+                        title: 'Requirements Not Acknowledged',
+                        text: `Please acknowledge the requirements for ${getFullName(c) || `Person ${clients.indexOf(c) + 1}`} before proceeding.`,
+                        confirmButtonColor: '#dc3545'
+                    });
+                    return;
                 }
             }
-
-            function loadLocationFromLandingPage() {
-                const stored = localStorage.getItem('userLocation');
-                if (stored) {
-                    try {
-                        const locationData = JSON.parse(stored);
-                        if (locationData.detected === true && locationData.lat && locationData.lng) {
-                            userLocation.lat = locationData.lat;
-                            userLocation.lng = locationData.lng;
-                            userLocation.city = locationData.city || '';
-                            userLocation.address = locationData.address || '';
-                            userLocation.zipcode = locationData.zipcode || '';
-
-                            document.getElementById('userLat').value = userLocation.lat;
-                            document.getElementById('userLng').value = userLocation.lng;
-                            document.getElementById('userCity').value = userLocation.city;
-                            document.getElementById('userAddress').value = userLocation.address;
-                            document.getElementById('userZipcode').value = userLocation.zipcode;
-                            return true;
-                        }
-                    } catch (e) {
-                        console.error('Error parsing location data:', e);
-                    }
-                }
-                return false;
+            loadAvailableDates();
+            showSection(sections.schedule);
+            setActiveStep(3);
+        };
+        document.getElementById('backToClients').onclick = () => {
+            showSection(sections.clients);
+            setActiveStep(2);
+        };
+        document.getElementById('prevMonthBtn').onclick = () => {
+            currentMonth--;
+            if (currentMonth < 0) {
+                currentMonth = 11;
+                currentYear--;
             }
-
-            function showLoading() {
-                document.getElementById('loadingOverlay').style.display = 'flex';
+            loadAvailableDates();
+        };
+        document.getElementById('nextMonthBtn').onclick = () => {
+            currentMonth++;
+            if (currentMonth > 11) {
+                currentMonth = 0;
+                currentYear++;
             }
-
-            function hideLoading() {
-                document.getElementById('loadingOverlay').style.display = 'none';
-            }
-
-            function formatDisplayDate(d) {
-                if (!d) return 'No date selected';
-                return new Date(d).toLocaleDateString('en-US', {
-                    weekday: 'long',
-                    year: 'numeric',
-                    month: 'long',
-                    day: 'numeric'
+            loadAvailableDates();
+        };
+        document.getElementById('nextToContact').onclick = () => {
+            if (!selectedDate) {
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'No Date Selected',
+                    text: 'Please select an appointment date.',
+                    confirmButtonColor: '#dc3545'
                 });
+                return;
             }
-
-            function formatDisplayDateTime(date, timeSlotLabel) {
-                if (!date) return 'No date selected';
-                if (!timeSlotLabel) return formatDisplayDate(date);
-                return `${formatDisplayDate(date)} at ${timeSlotLabel}`;
-            }
-
-            // Function to update the state of view requirements button for a specific client
-            function updateViewRequirementsButton(clientId) {
-                const client = clients.find(c => c.id == clientId);
-                if (!client) return;
-                
-                const button = document.querySelector(`.btn-view-req[data-id="${clientId}"]`);
-                if (button) {
-                    const isComplete = isClientFieldsComplete(client);
-                    if (isComplete) {
-                        button.disabled = false;
-                        button.style.opacity = '1';
-                    } else {
-                        button.disabled = true;
-                        button.style.opacity = '0.6';
-                    }
-                }
-            }
-
-            function renderClients() {
-                const container = document.getElementById('clientsList');
-                container.innerHTML = '';
-                clients.forEach((c, i) => {
-                    const svc = c.service;
-                    const reminder = identityReminders[svc] || 'Please ensure the information is accurate.';
-                    const showTrn = shouldShowTrnForClient(c);
-                    const trnData = clientTrnData[c.id] || {
-                        hasTrn: null,
-                        trnNumber: '',
-                        isValid: false
-                    };
-                    const isComplete = isClientFieldsComplete(c);
-                    const card = document.createElement('div');
-                    card.className = 'client-card';
-                    card.innerHTML = `
-                        <div class="client-header">
-                            <span class="client-title"><i class="fas fa-user-circle"></i> Person ${i + 1}</span>
-                            <div style="display: flex; gap: 8px;">
-                                <button class="btn-view-req" data-id="${c.id}" ${!isComplete ? 'disabled' : ''} style="${!isComplete ? 'opacity: 0.6; background-color: #cccccc;' : 'background-color: #28a745; color: white;'}"><i class="fas fa-book"></i> View Requirements</button>
-                                ${clients.length > 1 ? `<button class="btn-remove-client" data-id="${c.id}"><i class="fas fa-trash-alt"></i></button>` : ''}
-                            </div>
-                        </div>
-                        <div class="identity-reminder"><i class="fas fa-id-card"></i> <strong>Important:</strong> ${reminder}</div>
-                        <div class="form-row">
-                            <div class="form-col"><label>First Name <span style="color: var(--danger);">*</span></label><input class="client-firstname" data-id="${c.id}" value="${escapeHtml(c.firstName) || ''}" placeholder="First Name"></div>
-                            <div class="form-col"><label>Middle Name</label><input class="client-middlename" data-id="${c.id}" value="${escapeHtml(c.middleName) || ''}" placeholder="Middle Name"></div>
-                        </div>
-                        <div class="form-row">
-                            <div class="form-col"><label>Last Name <span style="color: var(--danger);">*</span></label><input class="client-lastname" data-id="${c.id}" value="${escapeHtml(c.lastName) || ''}" placeholder="Last Name"></div>
-                            <div class="form-col"><label>Suffix</label><select class="client-suffix" data-id="${c.id}"><option value=""> None </option><option value="Jr." ${c.suffix === 'Jr.' ? 'selected' : ''}>Jr.</option><option value="Sr." ${c.suffix === 'Sr.' ? 'selected' : ''}>Sr.</option><option value="I" ${c.suffix === 'I' ? 'selected' : ''}>I</option><option value="II" ${c.suffix === 'II' ? 'selected' : ''}>II</option><option value="III" ${c.suffix === 'III' ? 'selected' : ''}>III</option><option value="IV" ${c.suffix === 'IV' ? 'selected' : ''}>IV</option><option value="V" ${c.suffix === 'V' ? 'selected' : ''}>V</option></select></div>
-                        </div>
-                        <div class="form-row">
-                            <div class="form-col"><label>Sex <span style="color: var(--danger);">*</span></label><select class="client-sex" data-id="${c.id}"><option value="Male" ${c.sex === 'Male' ? 'selected' : ''}>Male</option><option value="Female" ${c.sex === 'Female' ? 'selected' : ''}>Female</option></select></div>
-                            <div class="form-col"><label>Birthdate <span style="color: var(--danger);">*</span></label>
-                            <input type="date" class="client-birthdate" data-id="${c.id}" value="${c.birthdate || ''}" 
-                                oninput="validateBirthdate(this)" 
-                                onchange="validateBirthdate(this)">
-                            </div>
-                        </div>
-                        <div class="form-col" style="margin-top: 12px;">
-                            <label>Service <span style="color: var(--danger);">*</span></label>
-                            <select class="client-service" data-id="${c.id}">
-                                <option value="reg" ${c.service === 'reg' ? 'selected' : ''}>National ID Registration</option>
-                                <option value="updating" ${c.service === 'updating' ? 'selected' : ''}>Correction/Updating</option>
-                                <option value="inquiry" ${c.service === 'inquiry' ? 'selected' : ''}>Status Inquiry / Retrieval Of TRN / Other Concern</option>
-                            </select>
-                        </div>
-                        ${showTrn ? createTrnHtml(c.id, trnData.hasTrn, trnData.trnNumber) : ''}
-                        <div class="req-ack-row ${c.reqAcknowledged ? 'acknowledged' : ''}">
-                            <input type="checkbox" class="req-ack" data-id="${c.id}" ${c.reqAcknowledged ? 'checked' : ''}>
-                            <label>I have read and understood the requirements for <strong>${getServiceName(svc)}</strong>. I will bring all necessary documents.</label>
-                        </div>
-                    `;
-                    container.appendChild(card);
+            if (!selectedTimeSlot) {
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'No Time Slot Selected',
+                    text: 'Please select a preferred time slot.',
+                    confirmButtonColor: '#dc3545'
                 });
-                attachClientEvents();
-                document.getElementById('clientCount').textContent = clients.length;
-                updateReqSummary();
+                return;
             }
+            showSection(sections.contact);
+            setActiveStep(4);
+        };
+        document.getElementById('backToScheduleFromContact').onclick = () => {
+            showSection(sections.schedule);
+            setActiveStep(3);
+        };
+        document.getElementById('nextToReview').onclick = () => {
+            const name = document.getElementById('contactName').value;
+            const mobileSuffix = document.getElementById('contactMobile').value;
 
-            function escapeHtml(str) {
-                if (!str) return '';
-                return str.replace(/[&<>]/g, function(m) {
-                    if (m === '&') return '&amp;';
-                    if (m === '<') return '&lt;';
-                    if (m === '>') return '&gt;';
-                    return m;
+            if (!name || !mobileSuffix) {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Missing Information',
+                    text: 'Contact name and mobile number are required.',
+                    confirmButtonColor: '#dc3545'
                 });
+                return;
             }
 
-            function attachClientEvents() {
-                document.querySelectorAll('.client-firstname').forEach(e => e.addEventListener('input', (ev) => {
-                    const c = clients.find(x => x.id == ev.target.dataset.id);
-                    if (c) {
-                        c.firstName = ev.target.value;
-                        updateViewRequirementsButton(c.id);
-                    }
-                }));
-                document.querySelectorAll('.client-middlename').forEach(e => e.addEventListener('input', (ev) => {
-                    const c = clients.find(x => x.id == ev.target.dataset.id);
-                    if (c) c.middleName = ev.target.value;
-                }));
-                document.querySelectorAll('.client-lastname').forEach(e => e.addEventListener('input', (ev) => {
-                    const c = clients.find(x => x.id == ev.target.dataset.id);
-                    if (c) {
-                        c.lastName = ev.target.value;
-                        updateViewRequirementsButton(c.id);
-                    }
-                }));
-                document.querySelectorAll('.client-suffix').forEach(e => e.addEventListener('change', (ev) => {
-                    const c = clients.find(x => x.id == ev.target.dataset.id);
-                    if (c) c.suffix = ev.target.value;
-                }));
-                document.querySelectorAll('.client-sex').forEach(e => e.addEventListener('change', (ev) => {
-                    const c = clients.find(x => x.id == ev.target.dataset.id);
-                    if (c) {
-                        c.sex = ev.target.value;
-                        updateViewRequirementsButton(c.id);
-                    }
-                }));
-                document.querySelectorAll('.client-birthdate').forEach(e => e.addEventListener('input', (ev) => {
-                    const c = clients.find(x => x.id == ev.target.dataset.id);
-                    if (c) {
-                        if (ev.target.value) {
-                            const year = ev.target.value.split('-')[0];
-                            if (year && year.length !== 4) {
-                                alert('Please enter a valid year (YYYY format, e.g., 1990)');
-                                ev.target.value = '';
-                                return;
-                            }
-                        }
-                        c.birthdate = ev.target.value;
-                        updateViewRequirementsButton(c.id);
-                    }
-                }));
-                document.querySelectorAll('.client-service').forEach(e => e.addEventListener('change', (ev) => {
-                    const c = clients.find(x => x.id == ev.target.dataset.id);
-                    if (c) {
-                        c.service = ev.target.value;
-                        c.reqAcknowledged = false;
-                        if (c.service !== 'inquiry') delete clientTrnData[c.id];
-                        else if (!clientTrnData[c.id]) clientTrnData[c.id] = {
-                            hasTrn: null,
-                            trnNumber: '',
-                            isValid: false
-                        };
-                        renderClients();
-                        updateReqSummary();
-                    }
-                }));
-                document.querySelectorAll('.req-ack').forEach(e => e.addEventListener('change', (ev) => {
-                    const c = clients.find(x => x.id == ev.target.dataset.id);
-                    if (c) {
-                        c.reqAcknowledged = ev.target.checked;
-                        renderClients();
-                        updateReqSummary();
-                    }
-                }));
-                document.querySelectorAll('.btn-view-req').forEach(b => b.addEventListener('click', (ev) => {
-                    const id = ev.target.closest('.btn-view-req').dataset.id;
-                    const client = clients.find(c => c.id == id);
-                    const svc = client.service;
-                    
-                    // Double-check that all fields are complete before showing requirements
-                    if (!isClientFieldsComplete(client)) {
-                        alert('Please fill in all required fields (First Name, Last Name, Birthdate, Sex, and Service) before viewing requirements.');
-                        return;
-                    }
-                    
-                    modalTitle.textContent = `${getServiceName(svc)} Requirements`;
-                    // Use database-driven requirements with client birthdate
-                    modalBody.innerHTML = getRequirementsHtml(svc, client.birthdate);
-                    reqModal.style.display = 'flex';
-                }));
-                document.querySelectorAll('.btn-remove-client').forEach(b => b.addEventListener('click', (ev) => {
-                    const id = ev.target.closest('.btn-remove-client').dataset.id;
-                    clients = clients.filter(c => c.id != id);
-                    delete clientTrnData[id];
+            if (mobileSuffix.length !== 10 || !mobileSuffix.startsWith('9')) {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Invalid Mobile Number',
+                    text: 'Please enter a valid mobile number. Format: 9XXXXXXXXX (10 digits starting with 9, e.g., 9123456789)',
+                    confirmButtonColor: '#dc3545'
+                });
+                return;
+            }
+
+            const fullMobile = '+63' + mobileSuffix;
+
+            document.getElementById('reviewClientCount').textContent = clients.length;
+            document.getElementById('reviewClientsList').innerHTML = clients.map((c, i) =>
+                `<div class="client-summary-item"><strong>${i + 1}. ${escapeHtml(getFullName(c))}</strong> - ${getServiceName(c.service)}</div>`
+            ).join('');
+            document.getElementById('reviewDateTime').textContent = formatDisplayDateTime(selectedDate,
+                selectedTimeSlotLabel);
+            document.getElementById('reviewContactName').textContent = escapeHtml(name);
+            document.getElementById('reviewContactEmail').textContent = document.getElementById('contactEmail')
+                .value || 'Not provided';
+            document.getElementById('reviewContactMobile').textContent = fullMobile;
+            showSection(sections.review);
+            setActiveStep(5);
+        };
+        document.getElementById('backToContact').onclick = () => {
+            showSection(sections.contact);
+            setActiveStep(4);
+        };
+        document.getElementById('nextToConfirm').onclick = () => {
+            const mobileSuffix = document.getElementById('contactMobile').value;
+            const fullMobile = mobileSuffix ? '+63' + mobileSuffix : '';
+
+            document.getElementById('sumClients').textContent = clients.length + ' person(s)';
+            document.getElementById('sumDateTime').textContent = formatDisplayDateTime(selectedDate,
+                selectedTimeSlotLabel);
+            document.getElementById('sumContact').textContent = document.getElementById('contactName').value +
+                ' / ' + fullMobile;
+            showSection(sections.confirm);
+            setActiveStep(6);
+        };
+        document.getElementById('backToReview').onclick = () => {
+            showSection(sections.review);
+            setActiveStep(5);
+        };
+
+        const confirmCheckbox = document.getElementById('confirmCheckbox');
+        const submitBtn = document.getElementById('submitRequestBtn');
+
+        if (confirmCheckbox && submitBtn) {
+            confirmCheckbox.addEventListener('change', function(e) {
+                submitBtn.disabled = !e.target.checked;
+            });
+        }
+
+        document.getElementById('closeReqModal').onclick = () => {
+            reqModal.style.display = 'none';
+            currentRequirementsClientId = null;
+        };
+        
+        document.getElementById('understandBtn').onclick = () => {
+            if (currentRequirementsClientId) {
+                const client = clients.find(c => c.id == currentRequirementsClientId);
+                if (client && !client.reqAcknowledged) {
+                    client.requirementsRead = true;
                     renderClients();
-                    updateReqSummary();
-                }));
-                clients.forEach(client => {
-                    if (shouldShowTrnForClient(client)) attachTrnEvents(client.id);
-                });
+                    
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Requirements Reviewed',
+                        text: 'You have reviewed the requirements. You may now check the acknowledgment box.',
+                        confirmButtonColor: '#28a745',
+                        timer: 3000
+                    });
+                }
+                currentRequirementsClientId = null;
             }
+            reqModal.style.display = 'none';
+        };
 
-            function setActiveStep(s) {
-                document.querySelectorAll('.step').forEach((e, i) => e.classList.toggle('active', i + 1 === s));
+        document.getElementById('closeSuccessModal').onclick = () => {
+            successModal.style.display = 'none';
+            if (window.parent && window.parent.location) {
+                window.parent.location.href = '/';
+            } else {
+                window.location.href = '/';
             }
+        };
 
-            function showSection(s) {
-                Object.values(sections).forEach(x => x.classList.add('hidden'));
-                s.classList.remove('hidden');
+        document.querySelectorAll('[data-edit]').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                const target = e.target.closest('[data-edit]').dataset.edit;
+                if (target === 'clients') {
+                    showSection(sections.clients);
+                    setActiveStep(2);
+                } else if (target === 'schedule') {
+                    showSection(sections.schedule);
+                    setActiveStep(3);
+                } else if (target === 'contact') {
+                    showSection(sections.contact);
+                    setActiveStep(4);
+                }
+            });
+        });
+
+        renderClients();
+
+        window.addEventListener('click', (e) => {
+            if (e.target === reqModal) {
+                reqModal.style.display = 'none';
+                currentRequirementsClientId = null;
             }
-
-            // ==================== EVENT LISTENERS ====================
-
-            document.getElementById('agreePrivacyBtn').onclick = () => privacyModal.style.display = 'none';
-            document.getElementById('startBookingBtn').onclick = () => {
-                showSection(sections.clients);
-                setActiveStep(2);
-            };
-            document.getElementById('addClientBtn').onclick = () => {
-                if (clients.length >= MAX_CLIENTS) {
-                    alert(`Maximum ${MAX_CLIENTS} persons only.`);
-                    return;
-                }
-                const newId = nextClientId++;
-                clients.push({
-                    id: newId,
-                    firstName: '',
-                    middleName: '',
-                    lastName: '',
-                    suffix: '',
-                    sex: 'Male',
-                    birthdate: '',
-                    service: 'reg',
-                    reqAcknowledged: false
-                });
-                renderClients();
-            };
-            document.getElementById('nextToSchedule').onclick = () => {
-                for (let c of clients) {
-                    if (!c.firstName?.trim() || !c.lastName?.trim()) {
-                        alert('First Name and Last Name are required for all clients');
-                        return;
-                    }
-                    if (!c.sex) {
-                        alert('Please select sex for all clients');
-                        return;
-                    }
-                    if (!c.birthdate) {
-                        alert('Please enter birthdate for all clients');
-                        return;
-                    }
-                    if (!c.service) {
-                        alert('Please select service for all clients');
-                        return;
-                    }
-                    if (!validateTrnForClient(c)) {
-                        const clientName = getFullName(c) || `Person ${clients.indexOf(c) + 1}`;
-                        alert(
-                            `${clientName}: Please indicate whether you have a TRN. If YES, please enter the exact 29-digit TRN number or scan the QR code.`
-                        );
-                        return;
-                    }
-                }
-                if (!allRequirementsAcknowledged()) {
-                    alert('Please acknowledge all requirements.');
-                    return;
-                }
-                loadAvailableDates();
-                showSection(sections.schedule);
-                setActiveStep(3);
-            };
-            document.getElementById('backToClients').onclick = () => {
-                showSection(sections.clients);
-                setActiveStep(2);
-            };
-            document.getElementById('prevMonthBtn').onclick = () => {
-                currentMonth--;
-                if (currentMonth < 0) {
-                    currentMonth = 11;
-                    currentYear--;
-                }
-                loadAvailableDates();
-            };
-            document.getElementById('nextMonthBtn').onclick = () => {
-                currentMonth++;
-                if (currentMonth > 11) {
-                    currentMonth = 0;
-                    currentYear++;
-                }
-                loadAvailableDates();
-            };
-            document.getElementById('nextToContact').onclick = () => {
-                if (!selectedDate) {
-                    alert('Please select an appointment date.');
-                    return;
-                }
-                if (!selectedTimeSlot) {
-                    alert('Please select a preferred time slot.');
-                    return;
-                }
-                showSection(sections.contact);
-                setActiveStep(4);
-            };
-            document.getElementById('backToScheduleFromContact').onclick = () => {
-                showSection(sections.schedule);
-                setActiveStep(3);
-            };
-            document.getElementById('nextToReview').onclick = () => {
-                const name = document.getElementById('contactName').value;
-                const mobileSuffix = document.getElementById('contactMobile').value;
-
-                if (!name || !mobileSuffix) {
-                    alert('Contact name and mobile number are required.');
-                    return;
-                }
-
-                // Validate mobile suffix format (10 digits starting with 9)
-                if (mobileSuffix.length !== 10 || !mobileSuffix.startsWith('9')) {
-                    alert(
-                        'Please enter a valid mobile number. Format: 9XXXXXXXXX (10 digits starting with 9, e.g., 9123456789)'
-                    );
-                    return;
-                }
-
-                const fullMobile = '+63' + mobileSuffix;
-
-                document.getElementById('reviewClientCount').textContent = clients.length;
-                document.getElementById('reviewClientsList').innerHTML = clients.map((c, i) =>
-                    `<div class="client-summary-item"><strong>${i + 1}. ${escapeHtml(getFullName(c))}</strong> - ${getServiceName(c.service)}</div>`
-                ).join('');
-                document.getElementById('reviewDateTime').textContent = formatDisplayDateTime(selectedDate,
-                    selectedTimeSlotLabel);
-                document.getElementById('reviewContactName').textContent = escapeHtml(name);
-                document.getElementById('reviewContactEmail').textContent = document.getElementById('contactEmail')
-                    .value || 'Not provided';
-                document.getElementById('reviewContactMobile').textContent = fullMobile;
-                showSection(sections.review);
-                setActiveStep(5);
-            };
-            document.getElementById('backToContact').onclick = () => {
-                showSection(sections.contact);
-                setActiveStep(4);
-            };
-            document.getElementById('nextToConfirm').onclick = () => {
-                const mobileSuffix = document.getElementById('contactMobile').value;
-                const fullMobile = mobileSuffix ? '+63' + mobileSuffix : '';
-
-                document.getElementById('sumClients').textContent = clients.length + ' person(s)';
-                document.getElementById('sumDateTime').textContent = formatDisplayDateTime(selectedDate,
-                    selectedTimeSlotLabel);
-                document.getElementById('sumContact').textContent = document.getElementById('contactName').value +
-                    ' / ' + fullMobile;
-                showSection(sections.confirm);
-                setActiveStep(6);
-            };
-            document.getElementById('backToReview').onclick = () => {
-                showSection(sections.review);
-                setActiveStep(5);
-            };
-
-            // Checkbox event listener - enable/disable submit button
-            const confirmCheckbox = document.getElementById('confirmCheckbox');
-            const submitBtn = document.getElementById('submitRequestBtn');
-
-            if (confirmCheckbox && submitBtn) {
-                confirmCheckbox.addEventListener('change', function(e) {
-                    submitBtn.disabled = !e.target.checked;
-                    console.log('Checkbox checked:', e.target.checked, 'Button disabled:', submitBtn.disabled);
-                });
-            }
-
-            document.getElementById('closeReqModal').onclick = () => reqModal.style.display = 'none';
-            document.getElementById('understandBtn').onclick = () => reqModal.style.display = 'none';
-            
-            // FIX: Redirect the parent window (landing page) to '/' instead of the iframe
-            document.getElementById('closeSuccessModal').onclick = () => {
+            if (e.target === successModal) {
                 successModal.style.display = 'none';
                 if (window.parent && window.parent.location) {
                     window.parent.location.href = '/';
                 } else {
                     window.location.href = '/';
                 }
-            };
+            }
+        });
 
-            document.querySelectorAll('[data-edit]').forEach(btn => {
-                btn.addEventListener('click', (e) => {
-                    const target = e.target.closest('[data-edit]').dataset.edit;
-                    if (target === 'clients') {
-                        showSection(sections.clients);
-                        setActiveStep(2);
-                    } else if (target === 'schedule') {
-                        showSection(sections.schedule);
-                        setActiveStep(3);
-                    } else if (target === 'contact') {
-                        showSection(sections.contact);
-                        setActiveStep(4);
-                    }
-                });
-            });
-
-            renderClients();
-            
-            // FIX: When clicking outside the success modal, close the modal AND redirect the parent window
-            window.addEventListener('click', (e) => {
-                if (e.target === reqModal) reqModal.style.display = 'none';
-                if (e.target === successModal) {
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') {
+                if (reqModal.style.display !== 'none') {
+                    reqModal.style.display = 'none';
+                    currentRequirementsClientId = null;
+                }
+                if (successModal.style.display !== 'none') {
                     successModal.style.display = 'none';
                     if (window.parent && window.parent.location) {
                         window.parent.location.href = '/';
@@ -1361,302 +1670,315 @@
                         window.location.href = '/';
                     }
                 }
-            });
-            
-            // FIX: When pressing Escape key, close the modal AND redirect the parent window
-            document.addEventListener('keydown', (e) => {
-                if (e.key === 'Escape') {
-                    if (reqModal.style.display !== 'none') reqModal.style.display = 'none';
-                    if (successModal.style.display !== 'none') {
-                        successModal.style.display = 'none';
-                        if (window.parent && window.parent.location) {
-                            window.parent.location.href = '/';
-                        } else {
-                            window.location.href = '/';
-                        }
+            }
+        });
+
+        loadLocationFromLandingPage();
+
+        submitBtn.onclick = async () => {
+            const locationData = {
+                user_lat: document.getElementById('userLat').value || null,
+                user_lng: document.getElementById('userLng').value || null,
+                user_city: document.getElementById('userCity').value || null,
+                user_address: document.getElementById('userAddress').value || null,
+                user_zipcode: document.getElementById('userZipcode').value || null
+            };
+
+            const clientsData = clients.map(c => {
+                const clientInfo = {
+                    first_name: c.firstName,
+                    middle_name: c.middleName || null,
+                    last_name: c.lastName,
+                    suffix: c.suffix || null,
+                    sex: c.sex,
+                    birthdate: c.birthdate,
+                    service: c.service
+                };
+                if (shouldShowTrnForClient(c)) {
+                    const trnData = clientTrnData[c.id];
+                    if (trnData) {
+                        clientInfo.has_trn = trnData.hasTrn;
+                        clientInfo.trn_number = trnData.hasTrn && trnData.isValid ? trnData
+                            .trnNumber : null;
                     }
                 }
+                return clientInfo;
             });
-            
-            loadLocationFromLandingPage();
 
-            // Submit button handler - with correct mobile validation for +63 format
-            submitBtn.onclick = async () => {
-                const locationData = {
-                    user_lat: document.getElementById('userLat').value || null,
-                    user_lng: document.getElementById('userLng').value || null,
-                    user_city: document.getElementById('userCity').value || null,
-                    user_address: document.getElementById('userAddress').value || null,
-                    user_zipcode: document.getElementById('userZipcode').value || null
-                };
+            const mobileSuffix = document.getElementById('contactMobile').value;
+            let fullMobileNumber = '';
 
-                const clientsData = clients.map(c => {
-                    const clientInfo = {
-                        first_name: c.firstName,
-                        middle_name: c.middleName || null,
-                        last_name: c.lastName,
-                        suffix: c.suffix || null,
-                        sex: c.sex,
-                        birthdate: c.birthdate,
-                        service: c.service
-                    };
-                    if (shouldShowTrnForClient(c)) {
-                        const trnData = clientTrnData[c.id];
-                        if (trnData) {
-                            clientInfo.has_trn = trnData.hasTrn;
-                            clientInfo.trn_number = trnData.hasTrn && trnData.isValid ? trnData
-                                .trnNumber : null;
-                        }
-                    }
-                    return clientInfo;
+            if (!mobileSuffix || mobileSuffix.length !== 10 || !mobileSuffix.startsWith('9')) {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Invalid Mobile Number',
+                    text: 'Please enter a valid mobile number. Format: 9XXXXXXXXX (10 digits starting with 9, e.g., 9123456789)',
+                    confirmButtonColor: '#dc3545'
                 });
+                return;
+            }
 
-                // Get and validate mobile number with +63 format
-                const mobileSuffix = document.getElementById('contactMobile').value;
-                let fullMobileNumber = '';
+            fullMobileNumber = '+63' + mobileSuffix;
 
-                if (!mobileSuffix || mobileSuffix.length !== 10 || !mobileSuffix.startsWith('9')) {
-                    alert(
-                        'Please enter a valid mobile number. Format: 9XXXXXXXXX (10 digits starting with 9, e.g., 9123456789)'
-                    );
-                    return;
-                }
+            const formData = {
+                appointment_type: 'multiple',
+                appointment_date: selectedDate,
+                appointment_time_slot_id: selectedTimeSlot,
+                contact_name: document.getElementById('contactName').value,
+                contact_email: document.getElementById('contactEmail').value || null,
+                contact_mobile: fullMobileNumber,
+                user_lat: locationData.user_lat,
+                user_lng: locationData.user_lng,
+                user_city: locationData.user_city,
+                user_address: locationData.user_address,
+                user_zipcode: locationData.user_zipcode,
+                clients: clientsData
+            };
 
-                fullMobileNumber = '+63' + mobileSuffix;
+            if (!formData.contact_name) {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Missing Information',
+                    text: 'Please enter contact name',
+                    confirmButtonColor: '#dc3545'
+                });
+                return;
+            }
+            if (!formData.contact_mobile) {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Missing Information',
+                    text: 'Please enter mobile number',
+                    confirmButtonColor: '#dc3545'
+                });
+                return;
+            }
+            if (!formData.appointment_date) {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Missing Information',
+                    text: 'Please select an appointment date',
+                    confirmButtonColor: '#dc3545'
+                });
+                return;
+            }
+            if (!formData.appointment_time_slot_id) {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Missing Information',
+                    text: 'Please select a preferred time slot',
+                    confirmButtonColor: '#dc3545'
+                });
+                return;
+            }
 
-                const formData = {
-                    appointment_type: 'multiple',
-                    appointment_date: selectedDate,
-                    appointment_time_slot_id: selectedTimeSlot,
-                    contact_name: document.getElementById('contactName').value,
-                    contact_email: document.getElementById('contactEmail').value || null,
-                    contact_mobile: fullMobileNumber,
-                    user_lat: locationData.user_lat,
-                    user_lng: locationData.user_lng,
-                    user_city: locationData.user_city,
-                    user_address: locationData.user_address,
-                    user_zipcode: locationData.user_zipcode,
-                    clients: clientsData
-                };
+            showLoading();
+            try {
+                const response = await fetch('{{ route('client.appointment.store') }}', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+                        'Accept': 'application/json'
+                    },
+                    body: JSON.stringify(formData)
+                });
+                const result = await response.json();
+                if (result.success) {
+                    let clientsHtml = '';
+                    if (result.appointment.clients_list && result.appointment.clients_list.length > 0) {
+                        clientsHtml =
+                            '<div style="text-align: left; margin-top: 10px;"><strong>Client Details:</strong><ul style="margin-top: 5px;">';
+                        result.appointment.clients_list.forEach(client => {
+                            clientsHtml += `<li><strong>${escapeHtml(client.name)}</strong><br>
+                                    <small>Client Number: ${client.client_number}</small><br>
+                                    <small>Service: ${client.service_name}</small>
+                                   </li>`;
+                        });
+                        clientsHtml += '</ul></div>';
+                    }   
 
-                if (!formData.contact_name) {
-                    alert('Please enter contact name');
-                    return;
-                }
-                if (!formData.contact_mobile) {
-                    alert('Please enter mobile number');
-                    return;
-                }
-                if (!formData.appointment_date) {
-                    alert('Please select an appointment date');
-                    return;
-                }
-                if (!formData.appointment_time_slot_id) {
-                    alert('Please select a preferred time slot');
-                    return;
-                }
-
-                showLoading();
-                try {
-                    const response = await fetch('{{ route('client.appointment.store') }}', {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
-                            'Accept': 'application/json'
-                        },
-                        body: JSON.stringify(formData)
+                    document.getElementById('successDetails').innerHTML = `
+                        <div style="text-align: left;">
+                            <p><strong>Appointment Number:</strong> ${result.appointment.number}</p>
+                            <p><strong>Reference Code:</strong> ${result.appointment.reference_code}</p>
+                            <p><strong>Date & Time:</strong> ${result.appointment.date} at ${result.appointment.time || 'Selected time slot'}</p>
+                            <p><strong>Contact Person:</strong> ${escapeHtml(result.appointment.contact_name)}</p>
+                            <p><strong>Contact Number:</strong> ${result.appointment.contact_mobile}</p>
+                            ${result.appointment.contact_email ? `<p><strong>Email:</strong> ${result.appointment.contact_email}</p>` : ''}
+                            <p><strong>Total Clients:</strong> ${result.appointment.clients_count} person(s)</p>
+                            ${clientsHtml}
+                            <hr>
+                            <p><small>A confirmation ${result.email_sent ? 'email has been sent' : 'SMS will be sent'} to your registered contact.</small></p>
+                            <p><small style="color: #dc3545;">⚠️ Please save your Reference Code for verification.</small></p>
+                        </div>
+                    `;
+                    successModal.style.display = 'flex';
+                } else {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error',
+                        text: result.message || 'Unknown error occurred',
+                        confirmButtonColor: '#dc3545'
                     });
-                    const result = await response.json();
-                    if (result.success) {
-                        let clientsHtml = '';
-                        if (result.appointment.clients_list && result.appointment.clients_list.length > 0) {
-                            clientsHtml =
-                                '<div style="text-align: left; margin-top: 10px;"><strong>Client Details:</strong><ul style="margin-top: 5px;">';
-                            result.appointment.clients_list.forEach(client => {
-                                clientsHtml += `<li><strong>${escapeHtml(client.name)}</strong><br>
-                                        <small>Client Number: ${client.client_number}</small><br>
-                                        <small>Service: ${client.service_name}</small>
-                                       </li>`;
-                            });
-                            clientsHtml += '</ul></div>';
-                        }   
+                }
+            } catch (error) {
+                console.error('Submission error:', error);
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Connection Error',
+                    text: 'Failed to submit appointment. Please check your connection and try again.',
+                    confirmButtonColor: '#dc3545'
+                });
+            } finally {
+                hideLoading();
+            }
+        };
+    })();
 
-                        let locationMessage = result.appointment.location_city ?
-                            `` : '';
+    // ==================== DOWNLOAD FUNCTIONS ====================
+    async function captureSuccessModal() {
+        const successDetails = document.getElementById('successDetails');
+        if (!successDetails) return null;
 
-                        document.getElementById('successDetails').innerHTML = `
-                            <div style="text-align: left;">
-                                <p><strong>Appointment Number:</strong> ${result.appointment.number}</p>
-                                <p><strong>Reference Code:</strong> ${result.appointment.reference_code}</p>
-                                <p><strong>Date & Time:</strong> ${result.appointment.date} at ${result.appointment.time || 'Selected time slot'}</p>
-                                <p><strong>Contact Person:</strong> ${escapeHtml(result.appointment.contact_name)}</p>
-                                <p><strong>Contact Number:</strong> ${result.appointment.contact_mobile}</p>
-                                ${result.appointment.contact_email ? `<p><strong>Email:</strong> ${result.appointment.contact_email}</p>` : ''}
-                                <p><strong>Total Clients:</strong> ${result.appointment.clients_count} person(s)</p>
-                                ${clientsHtml}
-                                ${locationMessage}
-                                <hr>
-                                <p><small>A confirmation ${result.email_sent ? 'email has been sent' : 'SMS will be sent'} to your registered contact.</small></p>
-                                <p><small style="color: #dc3545;">⚠️ Please save your Reference Code for verification.</small></p>
-                            </div>
-                        `;
-                        successModal.style.display = 'flex';
-                    } else {
-                        alert('Error: ' + (result.message || 'Unknown error occurred'));
-                    }
-                } catch (error) {
-                    console.error('Submission error:', error);
-                    alert('Failed to submit appointment. Please check your connection and try again.');
-                } finally {
-                    hideLoading();
+        const receiptContainer = document.createElement('div');
+        receiptContainer.style.cssText = `
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            max-width: 500px;
+            margin: 0 auto;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+        `;
+
+        const now = new Date();
+        const formattedDateTime = now.toLocaleString('en-US', {
+            year: 'numeric',
+            month: 'long',
+            day: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit'
+        });
+
+        receiptContainer.innerHTML = `
+            <div style="text-align: center; margin-bottom: 20px;">
+                <img src="{{ asset('images/psa-logo.png') }}" alt="PSA Logo" style="height: 60px; width: auto; margin-bottom: 10px;">
+                <h2 style="color: #2c5f8a; margin: 0;">Philippine Statistics Authority</h2>
+                <h3 style="color: #4a5568; margin: 5px 0;">National ID System (PhilSys)</h3>
+                <p style="color: #718096; margin: 5px 0;">Appointment Confirmation</p>
+            </div>
+            <div style="border-top: 2px solid #2c5f8a; margin: 10px 0;"></div>
+            <div style="padding: 10px 0;">
+                ${successDetails.innerHTML}
+            </div>
+            <div style="border-top: 1px solid #e2e8f0; margin: 10px 0;"></div>
+            <div style="text-align: center; padding-top: 10px;">
+                <p style="color: #718096; font-size: 12px; margin: 5px 0;">This is a system-generated confirmation.</p>
+                <p style="color: #718096; font-size: 12px; margin: 5px 0;">Generated on: ${formattedDateTime}</p>
+                <p style="color: #718096; font-size: 12px; margin: 5px 0;">© ${new Date().getFullYear()} Philippine Statistics Authority</p>
+            </div>
+        `;
+
+        return receiptContainer;
+    }
+
+    document.getElementById('downloadPngBtn').onclick = async () => {
+        try {
+            const btn = document.getElementById('downloadPngBtn');
+            const originalText = btn.innerHTML;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Generating...';
+            btn.disabled = true;
+
+            if (typeof html2canvas === 'undefined') {
+                await new Promise((resolve, reject) => {
+                    const script = document.createElement('script');
+                    script.src =
+                        'https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js';
+                    script.onload = resolve;
+                    script.onerror = reject;
+                    document.head.appendChild(script);
+                });
+            }
+
+            const receipt = await captureSuccessModal();
+            if (!receipt) {
+                alert('Unable to generate receipt');
+                return;
+            }
+
+            document.body.appendChild(receipt);
+            const canvas = await html2canvas(receipt, {
+                scale: 2,
+                backgroundColor: '#ffffff',
+                logging: false,
+                useCORS: true
+            });
+            document.body.removeChild(receipt);
+
+            const link = document.createElement('a');
+            link.download = `appointment-confirmation-${Date.now()}.png`;
+            link.href = canvas.toDataURL('image/png');
+            link.click();
+
+            btn.innerHTML = originalText;
+            btn.disabled = false;
+        } catch (error) {
+            console.error('PNG download error:', error);
+            alert('Failed to generate PNG. Please try again.');
+            const btn = document.getElementById('downloadPngBtn');
+            btn.innerHTML = '<i class="fas fa-image"></i> Download PNG';
+            btn.disabled = false;
+        }
+    };
+
+    document.getElementById('downloadPdfBtn').onclick = async () => {
+        try {
+            const btn = document.getElementById('downloadPdfBtn');
+            const originalText = btn.innerHTML;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Generating...';
+            btn.disabled = true;
+
+            const receipt = await captureSuccessModal();
+            if (!receipt) {
+                alert('Unable to generate receipt');
+                return;
+            }
+
+            document.body.appendChild(receipt);
+
+            const opt = {
+                margin: [0.5, 0.5, 0.5, 0.5],
+                filename: `appointment-confirmation-${Date.now()}.pdf`,
+                image: {
+                    type: 'jpeg',
+                    quality: 0.98
+                },
+                html2canvas: {
+                    scale: 2,
+                    useCORS: true
+                },
+                jsPDF: {
+                    unit: 'in',
+                    format: 'letter',
+                    orientation: 'portrait'
                 }
             };
-        })();
 
-        // ==================== DOWNLOAD FUNCTIONS ====================
-        async function captureSuccessModal() {
-            const successDetails = document.getElementById('successDetails');
-            if (!successDetails) return null;
+            await html2pdf().set(opt).from(receipt).save();
+            document.body.removeChild(receipt);
 
-            const receiptContainer = document.createElement('div');
-            receiptContainer.style.cssText = `
-                background: white;
-                padding: 30px;
-                border-radius: 12px;
-                font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-                max-width: 500px;
-                margin: 0 auto;
-                box-shadow: 0 4px 20px rgba(0,0,0,0.1);
-            `;
-
-            const now = new Date();
-            const formattedDateTime = now.toLocaleString('en-US', {
-                year: 'numeric',
-                month: 'long',
-                day: 'numeric',
-                hour: '2-digit',
-                minute: '2-digit'
-            });
-
-            receiptContainer.innerHTML = `
-                <div style="text-align: center; margin-bottom: 20px;">
-                    <img src="{{ asset('images/psa-logo.png') }}" alt="PSA Logo" style="height: 60px; width: auto; margin-bottom: 10px;">
-                    <h2 style="color: #2c5f8a; margin: 0;">Philippine Statistics Authority</h2>
-                    <h3 style="color: #4a5568; margin: 5px 0;">National ID System (PhilSys)</h3>
-                    <p style="color: #718096; margin: 5px 0;">Appointment Confirmation</p>
-                </div>
-                <div style="border-top: 2px solid #2c5f8a; margin: 10px 0;"></div>
-                <div style="padding: 10px 0;">
-                    ${successDetails.innerHTML}
-                </div>
-                <div style="border-top: 1px solid #e2e8f0; margin: 10px 0;"></div>
-                <div style="text-align: center; padding-top: 10px;">
-                    <p style="color: #718096; font-size: 12px; margin: 5px 0;">This is a system-generated confirmation.</p>
-                    <p style="color: #718096; font-size: 12px; margin: 5px 0;">Generated on: ${formattedDateTime}</p>
-                    <p style="color: #718096; font-size: 12px; margin: 5px 0;">© ${new Date().getFullYear()} Philippine Statistics Authority</p>
-                </div>
-            `;
-
-            return receiptContainer;
+            btn.innerHTML = originalText;
+            btn.disabled = false;
+        } catch (error) {
+            console.error('PDF download error:', error);
+            alert('Failed to generate PDF. Please try again.');
+            const btn = document.getElementById('downloadPdfBtn');
+            btn.innerHTML = '<i class="fas fa-file-pdf"></i> Download PDF';
+            btn.disabled = false;
         }
-
-        document.getElementById('downloadPngBtn').onclick = async () => {
-            try {
-                const btn = document.getElementById('downloadPngBtn');
-                const originalText = btn.innerHTML;
-                btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Generating...';
-                btn.disabled = true;
-
-                if (typeof html2canvas === 'undefined') {
-                    await new Promise((resolve, reject) => {
-                        const script = document.createElement('script');
-                        script.src =
-                            'https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js';
-                        script.onload = resolve;
-                        script.onerror = reject;
-                        document.head.appendChild(script);
-                    });
-                }
-
-                const receipt = await captureSuccessModal();
-                if (!receipt) {
-                    alert('Unable to generate receipt');
-                    return;
-                }
-
-                document.body.appendChild(receipt);
-                const canvas = await html2canvas(receipt, {
-                    scale: 2,
-                    backgroundColor: '#ffffff',
-                    logging: false,
-                    useCORS: true
-                });
-                document.body.removeChild(receipt);
-
-                const link = document.createElement('a');
-                link.download = `appointment-confirmation-${Date.now()}.png`;
-                link.href = canvas.toDataURL('image/png');
-                link.click();
-
-                btn.innerHTML = originalText;
-                btn.disabled = false;
-            } catch (error) {
-                console.error('PNG download error:', error);
-                alert('Failed to generate PNG. Please try again.');
-                const btn = document.getElementById('downloadPngBtn');
-                btn.innerHTML = '<i class="fas fa-image"></i> Download PNG';
-                btn.disabled = false;
-            }
-        };
-
-        document.getElementById('downloadPdfBtn').onclick = async () => {
-            try {
-                const btn = document.getElementById('downloadPdfBtn');
-                const originalText = btn.innerHTML;
-                btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Generating...';
-                btn.disabled = true;
-
-                const receipt = await captureSuccessModal();
-                if (!receipt) {
-                    alert('Unable to generate receipt');
-                    return;
-                }
-
-                document.body.appendChild(receipt);
-
-                const opt = {
-                    margin: [0.5, 0.5, 0.5, 0.5],
-                    filename: `appointment-confirmation-${Date.now()}.pdf`,
-                    image: {
-                        type: 'jpeg',
-                        quality: 0.98
-                    },
-                    html2canvas: {
-                        scale: 2,
-                        useCORS: true
-                    },
-                    jsPDF: {
-                        unit: 'in',
-                        format: 'letter',
-                        orientation: 'portrait'
-                    }
-                };
-
-                await html2pdf().set(opt).from(receipt).save();
-                document.body.removeChild(receipt);
-
-                btn.innerHTML = originalText;
-                btn.disabled = false;
-            } catch (error) {
-                console.error('PDF download error:', error);
-                alert('Failed to generate PDF. Please try again.');
-                const btn = document.getElementById('downloadPdfBtn');
-                btn.innerHTML = '<i class="fas fa-file-pdf"></i> Download PDF';
-                btn.disabled = false;
-            }
-        };
-    </script>
+    };
+</script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 </body>
 
