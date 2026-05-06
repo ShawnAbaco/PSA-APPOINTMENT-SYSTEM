@@ -1,4 +1,4 @@
-@extends('layouts.staff')
+@extends('layouts.admin')
 
 @section('content')
     <div class="clients-container">
@@ -37,7 +37,7 @@
                     <span class="record-count" id="recordCount">{{ $clients->total() }} records</span>
                 </div>
                 <div class="table-actions">
-                    <a href="{{ route('staff.clients.export') }}" class="btn-icon" title="Export to CSV">
+                    <a href="{{ route('admin.clients.export') }}" class="btn-icon" title="Export to CSV">
                         <i class="fas fa-download"></i>
                     </a>
                     <button class="btn-icon" id="refreshBtn" title="Refresh">
@@ -215,7 +215,7 @@
             verifyBtn.style.display = 'none';
 
             // Fetch client details
-            fetch(`/staff/clients/${clientId}/modal`, {
+            fetch(`/admin/clients/${clientId}/modal`, {
                     headers: {
                         'X-Requested-With': 'XMLHttpRequest',
                         'Accept': 'text/html',
@@ -284,7 +284,7 @@
 
         // Verify client from modal
         function verifyClientFromModal(clientId) {
-            fetch(`/staff/clients/${clientId}/verify`, {
+            fetch(`/admin/clients/${clientId}/verify`, {
                     method: 'PUT',
                     headers: {
                         'Content-Type': 'application/json',
@@ -317,7 +317,7 @@
 
         // Update reference number
         function updateReferenceNumber(clientId, refNumber) {
-            fetch(`/staff/clients/${clientId}/reference`, {
+            fetch(`/admin/clients/${clientId}/reference`, {
                     method: 'PUT',
                     headers: {
                         'Content-Type': 'application/json',
@@ -365,7 +365,7 @@
                 rows.forEach(row => {
                     const clientId = row.querySelector('.client-id')?.textContent || '';
                     const clientName = row.querySelector('.client-name strong')?.textContent
-                        .toLowerCase() || '';
+                    .toLowerCase() || '';
                     const service = row.getAttribute('data-service') || '';
 
                     const matchesSearch = !searchTerm || clientId.includes(searchTerm) || clientName
