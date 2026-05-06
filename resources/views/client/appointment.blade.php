@@ -110,12 +110,12 @@
         </div>
 
         <div class="stepper">
-            <div class="step active" id="step1"><span class="step-num">1</span> Guide</div>
-            <div class="step" id="step2"><span class="step-num">2</span> Applicants</div>
-            <div class="step" id="step3"><span class="step-num">3</span> Schedule</div>
-            <div class="step" id="step4"><span class="step-num">4</span> Contact</div>
-            <div class="step" id="step5"><span class="step-num">5</span> Review</div>
-            <div class="step" id="step6"><span class="step-num">6</span> Confirm</div>
+            <div class="step active" id="step1"><span class="step-num"></span> Guide</div>
+            <div class="step" id="step2"><span class="step-num">1</span> Applicants</div>
+            <div class="step" id="step3"><span class="step-num">2</span> Schedule</div>
+            <div class="step" id="step4"><span class="step-num">3</span> Contact</div>
+            <div class="step" id="step5"><span class="step-num">4</span> Review</div>
+            <div class="step" id="step6"><span class="step-num">5</span> Confirm</div>
             <div class="step" id="step7"
                 style="margin-left: auto; background: var(--primary); color: white; border: 1px solid var(--primary); padding: 8px 16px; border-radius: 40px; font-weight: 700;">
                 <span>Book your appointment now</span>
@@ -179,6 +179,7 @@
                         <li>Each person can select their own service type</li>
                         <li>Bring valid IDs and required documents</li>
                         <li>Arrive 15 minutes before your scheduled time</li>
+                        <li>Click the button below (Start Booking) to set your Appointment.</li>
                     </ul>
                 </div>
 
@@ -412,6 +413,8 @@
             cursor: pointer;
             font-weight: 600;
             transition: all 0.3s ease;
+                width: 100%;
+
         }
         
         .btn-view-req:hover {
@@ -555,6 +558,8 @@
             font-size: 0.8rem;
             color: #666;
             margin-top: 5px;
+                text-align: center;
+
         }
     </style>
 
@@ -1212,10 +1217,10 @@
                     </div>
                     
                     <!-- View Requirements Button -->
-                    <div style="margin: 15px 0 10px 0;">
-                        <button class="btn-view-req ${c.requirementsRead ? 'requirements-read' : ''}" data-id="${c.id}" ${!isComplete ? 'disabled' : ''}><i class="fas fa-book"></i> ${c.requirementsRead ? 'Requirements Viewed ✓' : 'View Requirements'}</button>
-                        ${!isComplete ? '<div class="step-instruction"><i class="fas fa-arrow-up"></i> Fill in all fields above first</div>' : (c.requirementsRead ? '<div class="step-instruction" style="color: #28a745;"><i class="fas fa-check-circle"></i> Requirements have been read</div>' : '<div class="step-instruction"><i class="fas fa-arrow-up"></i> Click to view requirements for this applicant</div>')}
-                    </div>
+<div class="btn-view-req-wrapper">
+    <button class="btn-view-req ${c.requirementsRead ? 'requirements-read' : ''}" data-id="${c.id}" ${!isComplete ? 'disabled' : ''}><i class="fas fa-book"></i> ${c.requirementsRead ? 'Requirements Viewed ✓' : 'View Requirements'}</button>
+    ${!isComplete ? '<div class="step-instruction"><i class="fas fa-arrow-up"></i> Fill in all fields above first</div>' : (c.requirementsRead ? '<div class="step-instruction" style="color: #28a745;"><i class="fas fa-check-circle"></i> Requirements have been read</div>' : '<div class="step-instruction"><i class="fas fa-arrow-up"></i> Click to view requirements for this applicant</div>')}
+</div>
                     
                     <!-- Acknowledgment Checkbox Row -->
                     <div class="req-ack-row ${c.reqAcknowledged ? 'acknowledged' : ''} ${!c.requirementsRead ? 'disabled-checkbox' : ''}" data-client-id="${c.id}">
