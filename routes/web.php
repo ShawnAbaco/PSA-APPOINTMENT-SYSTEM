@@ -222,6 +222,8 @@ Route::prefix('client')->name('client.')->group(function () {
     Route::get('/appointment/available-dates', [App\Http\Controllers\Client\AppointmentController::class, 'getAvailableDates'])->name('appointment.available-dates');
     Route::get('/appointment/available-time-slots', [App\Http\Controllers\Client\AppointmentController::class, 'getAvailableTimeSlots'])->name('appointment.available-time-slots');
     Route::get('/appointment/check-availability', [App\Http\Controllers\Client\AppointmentController::class, 'checkAvailability'])->name('appointment.check-availability');
+    Route::get('/appointment/get-requirements', [App\Http\Controllers\Client\AppointmentController::class, 'getRequirements'])
+    ->name('appointment.get-requirements');
 });
 
 

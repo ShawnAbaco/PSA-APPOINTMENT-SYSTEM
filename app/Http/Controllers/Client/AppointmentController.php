@@ -6,6 +6,7 @@ namespace App\Http\Controllers\Client;
 use App\Http\Controllers\Controller;
 use App\Models\Appointment;
 use App\Models\AppointmentClient;
+use App\Models\DocumentRequirement;
 use App\Models\Service;
 use App\Models\Setting;
 use App\Models\TimeSlot;
@@ -32,16 +33,18 @@ class AppointmentController extends Controller
         $this->mailService = $mailService;
     }
 
-    public function index()
+    // In your AppointmentController.php, update the index method:
+
+ public function index()
     {
-        try {
-            $services = Service::where('is_active', true)->orderBy('display_order')->get();
-            return view('client.appointment', compact('services'));
-        } catch (\Exception $e) {
-            Log::error('Error loading appointment page: ' . $e->getMessage());
-            $services = collect();
-            return view('client.appointment', compact('services'));
-        }
+        // Fetch all active requirements from database
+        $requirements = DocumentRequirement::where('is_active', true)
+            ->orderBy('service')
+            ->orderBy('age_group')
+            ->get()
+            ->groupBy(['service', 'age_group']);
+        
+        return view('client.appointment', compact('requirements'));
     }
     
     /**
@@ -633,4 +636,135 @@ class AppointmentController extends Controller
             'address' => 'Capt. Vicente Roa Street, Brgy. 31, Cagayan de Oro City, 9000 Misamis Oriental, Philippines'
         ]);
     }
+
+    /**
+ * Get requirements for a specific service and birthdate
+ * This ensures the logic is handled on the backend
+ */
+public function getRequirements(Request $request)
+{
+    try {
+        $validator = Validator::make($request->all(), [
+            'service' => 'required|in:reg,updating,inquiry',
+            'birthdate' => 'nullable|date'
+        ]);
+        
+        if ($validator->fails()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Invalid parameters',
+                'errors' => $validator->errors()
+            ], 422);
+        }
+        
+        $service = $request->service;
+        $birthdate = $request->birthdate;
+        
+        // Determine age group
+        $ageGroup = 'adult';
+        if ($birthdate) {
+            $birthDate = Carbon::parse($birthdate);
+            $today = Carbon::now();
+            $age = $today->diffInYears($birthDate);
+            $ageGroup = ($age >= 1 && $age <= 4) ? 'child' : 'adult';
+        }
+        
+        // Fetch requirements from database
+        $requirements = DocumentRequirement::where('service', $service)
+            ->where('age_group', $ageGroup)
+            ->where('is_active', true)
+            ->orderBy('id')
+            ->get();
+        
+        // Build HTML response
+        $html = $this->buildRequirementsHtml($service, $ageGroup, $requirements);
+        
+        return response()->json([
+            'success' => true,
+            'html' => $html,
+            'service' => $service,
+            'age_group' => $ageGroup,
+            'requirements_count' => $requirements->count()
+        ]);
+        
+    } catch (\Exception $e) {
+        Log::error('Error fetching requirements: ' . $e->getMessage());
+        return response()->json([
+            'success' => false,
+            'message' => 'Failed to load requirements. Please try again.'
+        ], 500);
+    }
+}
+
+/**
+ * Build HTML for requirements display with checkboxes
+ */
+private function buildRequirementsHtml($service, $ageGroup, $requirements)
+{
+    $serviceNames = [
+        'reg' => 'National ID Registration',
+        'updating' => 'Correction/Updating',
+        'inquiry' => 'Status Inquiry / Retrieval Of TRN / Other Concern'
+    ];
+    
+    $serviceName = $serviceNames[$service] ?? $service;
+    $ageGroupLabel = $ageGroup === 'child' ? 'Child (1-4 years old)' : 'Adult (5 years old and above)';
+    $serviceIcon = $this->getServiceIcon($service);
+    
+    $html = '<div class="requirements-container">';
+    $html .= '<div class="requirements-header">';
+    $html .= '<h4><i class="fas ' . $serviceIcon . '"></i> ' . e($serviceName) . ' - ' . e($ageGroupLabel) . '</h4>';
+    $html .= '<p class="requirements-note"><i class="fas fa-info-circle"></i> Please confirm that you have the following documents ready:</p>';
+    $html .= '</div>';
+    
+    $html .= '<div class="requirements-checklist">';
+    
+    foreach ($requirements as $index => $req) {
+        $html .= '<div class="requirement-item" data-requirement-id="' . $req->id . '">';
+        $html .= '<label class="requirement-checkbox-label">';
+        $html .= '<input type="checkbox" class="requirement-checkbox" data-requirement="' . e($req->requirement) . '">';
+        $html .= '<span class="checkmark"></span>';
+        $html .= '<span class="requirement-text">' . e($req->requirement) . '</span>';
+        $html .= '</label>';
+        $html .= '</div>';
+    }
+    
+    $html .= '</div>';
+    
+    // Add warning note
+    $html .= '<div class="warning-note">';
+    $html .= '<i class="fas fa-exclamation-triangle"></i> <strong>Important:</strong> Bring <strong>original documents</strong>. No photocopies accepted for primary validation.';
+    $html .= '</div>';
+    
+    // Special note for child registration
+    if ($service === 'reg' && $ageGroup === 'child') {
+        $html .= '<div class="info-note">';
+        $html .= '<i class="fas fa-child"></i> <strong>Note for Children:</strong> Parent or legal guardian must accompany the child during the appointment.';
+        $html .= '</div>';
+    }
+    
+    // Add progress indicator
+    $html .= '<div class="requirements-progress">';
+    $html .= '<div class="progress-text">';
+    $html .= '<span id="checkedCount">0</span> of <span id="totalCount">' . $requirements->count() . '</span> requirements confirmed';
+    $html .= '</div>';
+    $html .= '<div class="progress-bar-container">';
+    $html .= '<div class="progress-bar-fill" id="progressBarFill" style="width: 0%;"></div>';
+    $html .= '</div>';
+    $html .= '</div>';
+    
+    $html .= '</div>';
+    
+    return $html;
+}
+
+private function getServiceIcon($service)
+{
+    $icons = [
+        'reg' => 'fa-id-card',
+        'updating' => 'fa-pen',
+        'inquiry' => 'fa-question-circle'
+    ];
+    return $icons[$service] ?? 'fa-file-alt';
+}
 }

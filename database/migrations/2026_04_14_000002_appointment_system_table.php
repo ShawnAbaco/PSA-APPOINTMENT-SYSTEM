@@ -260,10 +260,22 @@ return new class extends Migration
             $table->string('group')->default('general');
             $table->timestamps();
         });
+
+        Schema::create('document_requirements', function (Blueprint $table) {
+            $table->id();
+            $table->enum('service', ['reg', 'updating', 'inquiry']);
+            $table->enum('age_group', ['adult', 'child'])->default('adult');
+            $table->text('requirement');
+            $table->boolean('is_active')->default(true);
+            $table->timestamps();
+            
+            $table->index(['service', 'age_group']);
+        });
     }
 
     public function down(): void
     {
+        Schema::dropIfExists('document_requirements');
         Schema::dropIfExists('settings');
         Schema::dropIfExists('notifications');
         Schema::dropIfExists('activity_logs');

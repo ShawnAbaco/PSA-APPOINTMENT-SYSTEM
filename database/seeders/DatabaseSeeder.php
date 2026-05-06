@@ -23,8 +23,9 @@ class DatabaseSeeder extends Seeder
             ServicesTableSeeder::class,
             SettingsTableSeeder::class,
             WorkingDaysDefaultsTableSeeder::class,
-                        WorkingDaysOverridesSeeder::class,
+            WorkingDaysOverridesSeeder::class,
             SlotCapacityRulesSeeder::class,
+            DocumentRequirementsSeeder::class,
         ]);
 }
 }
