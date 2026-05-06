@@ -1466,3 +1466,248 @@ body {
                 scroll-padding-top: 120px;
             }
         }
+
+
+        /* Improved Requirements Section Styles */
+.requirements-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(380px, 1fr));
+    gap: 32px;
+    margin-top: 24px;
+}
+
+.req-card {
+    background: white;
+    border-radius: 24px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+    overflow: hidden;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    border: 1px solid rgba(15, 59, 111, 0.1);
+}
+
+.req-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.12);
+}
+
+.req-header {
+    background: linear-gradient(135deg, #0f3b6f 0%, #1a4d7a 100%);
+    padding: 20px 24px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+        border-radius: 15px;
+
+}
+
+.req-icon {
+    width: 48px;
+    height: 48px;
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 24px;
+    color: #ffd966;
+}
+
+.req-header h3 {
+    margin: 0;
+    font-size: 1.3rem;
+    font-weight: 700;
+    color: white;
+}
+
+.req-tabs {
+    display: flex;
+    border-bottom: 1px solid #e2e8f0;
+    background: #f8fafc;
+    padding: 0 20px;
+}
+
+.req-tab {
+    flex: 1;
+    padding: 14px 16px;
+    background: none;
+    border: none;
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: #64748b;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    position: relative;
+    font-family: 'Inter', sans-serif;
+}
+
+.req-tab:hover {
+    color: #0f3b6f;
+    background: rgba(15, 59, 111, 0.05);
+}
+
+.req-tab.active {
+    color: #0f3b6f;
+    background: white;
+}
+
+.req-tab.active::after {
+    content: '';
+    position: absolute;
+    bottom: -1px;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: #c49a2c;
+    border-radius: 3px 3px 0 0;
+}
+
+.req-content {
+    display: none;
+    flex: 1;
+    padding: 20px;
+}
+
+.req-content.active {
+    display: block;
+}
+
+.req-list-container {
+    max-height: 350px;
+    overflow-y: auto;
+    padding-right: 8px;
+}
+
+.req-list-container::-webkit-scrollbar {
+    width: 6px;
+}
+
+.req-list-container::-webkit-scrollbar-track {
+    background: #e2e8f0;
+    border-radius: 10px;
+}
+
+.req-list-container::-webkit-scrollbar-thumb {
+    background: #c49a2c;
+    border-radius: 10px;
+}
+
+.req-list-container::-webkit-scrollbar-thumb:hover {
+    background: #b8860b;
+}
+
+.req-docs {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+
+.req-docs li {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 12px 8px;
+    border-bottom: 1px solid #f1f5f9;
+    font-size: 0.85rem;
+    line-height: 1.4;
+    color: #334155;
+}
+
+.req-docs li:last-child {
+    border-bottom: none;
+}
+
+.req-docs li i {
+    flex-shrink: 0;
+    margin-top: 2px;
+    font-size: 14px;
+}
+
+.req-docs li i.fa-check-circle {
+    color: #10b981;
+}
+
+.req-docs li i.fa-child {
+    color: #f59e0b;
+}
+
+.req-docs li span {
+    flex: 1;
+}
+
+.warning-note {
+    margin: 0 20px 20px 20px;
+    padding: 14px 16px;
+    background: #fffbeb;
+    border-left: 4px solid #f59e0b;
+    border-radius: 12px;
+    font-size: 0.8rem;
+    display: flex;
+    gap: 10px;
+    align-items: flex-start;
+}
+
+.warning-note i {
+    color: #f59e0b;
+    font-size: 1rem;
+    margin-top: 2px;
+}
+
+.warning-note span {
+    flex: 1;
+    color: #92400e;
+    line-height: 1.4;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .requirements-grid {
+        grid-template-columns: 1fr;
+        gap: 24px;
+    }
+    
+    .req-header {
+        padding: 16px 20px;
+    }
+    
+    .req-icon {
+        width: 40px;
+        height: 40px;
+        font-size: 20px;
+    }
+    
+    .req-header h3 {
+        font-size: 1.1rem;
+    }
+    
+    .req-tab {
+        padding: 10px 12px;
+        font-size: 0.75rem;
+    }
+    
+    .req-list-container {
+        max-height: 280px;
+    }
+    
+    .req-docs li {
+        padding: 10px 6px;
+        font-size: 0.8rem;
+    }
+    
+    .warning-note {
+        margin: 0 16px 16px 16px;
+        padding: 12px;
+    }
+}
+
+@media (max-width: 480px) {
+    .req-list-container {
+        max-height: 250px;
+    }
+    
+    .req-docs li {
+        gap: 8px;
+    }
+}

@@ -22,7 +22,7 @@ class DocumentRequirement extends Model
     }
     
     // Get requirements by service and age group
-    public static function getRequirements($service, $ageGroup = 'adult')
+    public static function getRequirements($service, $ageGroup = 'standard')
     {
         return self::active()
             ->where('service', $service)
@@ -33,7 +33,7 @@ class DocumentRequirement extends Model
     // Check if age is child (1-4 years old)
     public static function getAgeGroup($birthdate)
     {
-        if (!$birthdate) return 'adult';
+        if (!$birthdate) return 'standard';
         
         $age = \Carbon\Carbon::parse($birthdate)->age;
         
@@ -41,6 +41,6 @@ class DocumentRequirement extends Model
             return 'child';
         }
         
-        return 'adult';
+        return 'standard';
     }
 }

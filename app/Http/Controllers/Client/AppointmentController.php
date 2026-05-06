@@ -661,7 +661,7 @@ public function getRequirements(Request $request)
         $birthdate = $request->birthdate;
         
         // Determine age group - FIXED LOGIC
-        $ageGroup = 'adult';
+        $ageGroup = 'standard';
         if ($birthdate) {
             $birthDate = Carbon::parse($birthdate);
             $today = Carbon::now();
@@ -669,17 +669,17 @@ public function getRequirements(Request $request)
             // Calculate exact age in years
             $age = $birthDate->diffInYears($today);
             
-            // If birthdate is in the future or invalid, treat as child (0-4 years old)
+            // If birthdate is in the future or invalid, treat as child (1-4 years old)
             if ($birthDate->greaterThan($today)) {
                 $age = 0;
             }
             
-            // Child: 0-4 years old (including infants)
-            // Adult: 5 years old and above
+            // Child: 1-4 years old (including infants)
+            // standard: 5 years old and above
             if ($age >= 0 && $age <= 4) {
                 $ageGroup = 'child';
             } else {
-                $ageGroup = 'adult';
+                $ageGroup = 'standard';
             }
             
             Log::info("Age calculation: Birthdate={$birthdate}, Age={$age}, Group={$ageGroup}");
@@ -728,9 +728,9 @@ private function buildRequirementsHtml($service, $ageGroup, $requirements)
     
     // Update the age group label to be more clear
     if ($ageGroup === 'child') {
-        $ageGroupLabel = 'Child (0-4 years old)';
+        $ageGroupLabel = 'Child (1-4 years old)';
     } else {
-        $ageGroupLabel = 'Adult (5 years old and above)';
+        $ageGroupLabel = 'Standard (5 years old and above)';
     }
     
     $serviceIcon = $this->getServiceIcon($service);
@@ -762,7 +762,7 @@ private function buildRequirementsHtml($service, $ageGroup, $requirements)
     // Special note for child registration
     if ($service === 'reg' && $ageGroup === 'child') {
         $html .= '<div class="info-note">';
-        $html .= '<i class="fas fa-child"></i> <strong>Note for Children (0-4 years old):</strong> Parent or legal guardian must accompany the child during the appointment. The guardian must bring a valid ID.';
+        $html .= '<i class="fas fa-child"></i> <strong>Note for Children (1-4 years old):</strong> Parent or legal guardian must accompany the child during the appointment. The guardian must bring a valid ID.';
         $html .= '</div>';
     }
     

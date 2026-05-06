@@ -148,7 +148,7 @@ class MailService
             <div style='max-width: 600px; margin: 0 auto; padding: 20px;'>
                 <div style='text-align: center; border-bottom: 3px solid #2c5f8a; padding-bottom: 15px; margin-bottom: 20px;'>
                     <h2 style='color: #2c5f8a; margin: 0;'>Philippine Statistics Authority</h2>
-                    <p style='margin: 5px 0; text-align: center;'>National ID Appointment System</p>
+                    <p style='margin: 5px 0; text-align: center;'>National ID Appointment Management System</p>
                 </div>
                 
                 <div style='background: #e8f5e9; padding: 15px; border-radius: 5px; margin-bottom: 20px; text-align: center;'>
@@ -181,7 +181,7 @@ class MailService
                     </tr>
                 </table>
                 
-                <h3 style='color: #2c5f8a;'>Client Information</h3>
+                <h3 style='color: #2c5f8a;'>Applicant Information</h3>
                 <table style='width: 100%; border-collapse: collapse; margin-bottom: 20px;'>
                     <thead>
                         <tr style='background: #2c5f8a; color: white;'>
@@ -209,17 +209,33 @@ class MailService
                     <tr>
                         <td style='padding: 10px; border: 1px solid #ddd; background: #f5f5f5;'><strong>Email:</strong></td>
                         <td style='padding: 10px; border: 1px solid #ddd;'>" . htmlspecialchars($appointment->contact_email) . "</td>
-                    <tr>" : "") . "
+                    </td>" : "") . "
                 </table>
+                
+                <!-- PSA OFFICIAL ADDRESS -->
+                <div style='margin-top: 20px; margin-bottom: 20px; padding: 15px; background: #f0f4f8; border-radius: 8px; text-align: center;'>
+                    <h4 style='color: #2c5f8a; margin: 0 0 8px 0;'><i class='fas fa-map-marker-alt'></i> PSA Misamis Oriental Office</h4>
+                    <p style='margin: 0; font-size: 0.85rem; color: #475569; line-height: 1.5;'>
+                        Capt. Vicente Roa Street,<br>
+                        Brgy. 31, Cagayan de Oro City,<br>
+                        9000 Misamis Oriental, Philippines
+                    </p>
+                </div>
                 
                 <div style='background: #fff3e0; padding: 15px; border-radius: 5px; margin: 20px 0; border-left: 4px solid #ff9800;'>
                     <h4 style='color: #e65100; margin-top: 0;'>Important Reminders:</h4>
                     <ul style='margin-bottom: 0;'>
+                        <li><strong>⏰ Please arrive at least 15 minutes before your scheduled appointment time.</strong></li>
                         <li>Please bring this confirmation email and a valid government-issued ID on your appointment date.</li>
-                        <li>Arrive at least 15 minutes before your scheduled time.</li>
                         <li>Bring all required documents as per your selected service.</li>
                         <li>For minors, a parent or legal guardian must accompany them.</li>
+                        <li>Bring original documents. No photocopies accepted for primary validation.</li>
                     </ul>
+                </div>
+                
+                <!-- Location Map Link -->
+                <div style='text-align: center; margin: 15px 0;'>
+                    <a href='https://maps.google.com/?q=Capt.+Vicente+Roa+Street+Brgy.+31+Cagayan+de+Oro+City' style='display: inline-block; padding: 10px 20px; background: #2c5f8a; color: white; text-decoration: none; border-radius: 5px; font-size: 0.85rem;'>📌 View on Google Maps</a>
                 </div>
                 
                 <div style='text-align: center; font-size: 12px; color: #999; margin-top: 20px; padding-top: 15px; border-top: 1px solid #ddd;'>

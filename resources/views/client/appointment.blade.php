@@ -7,7 +7,7 @@
     <meta name="viewport"
         content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes, viewport-fit=cover">
     <meta name="csrf-token" content="{{ csrf_token() }}">
-    <title>National ID Appointment System</title>
+    <title>National ID Appointment Management System</title>
     <link rel="icon" type="image/png" sizes="32x32" href="{{ asset('images/psa.png') }}">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <link rel="stylesheet" href="{{ asset('css/appointment.css') }}">
@@ -35,7 +35,7 @@
         <div class="privacy-modal">
             <h2>Privacy Notice</h2>
             <p>This system collects and processes limited personal information solely for the purpose of scheduling,
-                managing, and confirming National ID System appointments, in accordance with the <span
+                managing, and confirming National ID Appointment Management System, in accordance with the <span
                     class="legal-ref">Data Privacy Act of 2012 (RA 10173)</span> and applicable Philippine Statistics
                 Authority (PSA) policies.</p>
             <p>The personal data collected include your full name, email address or mobile number, selected service, and
@@ -104,9 +104,9 @@
             <div class="logos">
                 <img src="{{ asset('images/psa-logo.png') }}" alt="PSA Logo" style="height: 60px; width: auto;">
             </div>
-            <div class="header-title">
+            <!-- <div class="header-title">
                 <img src="{{ asset('images/logo.png') }}" alt="National ID System" style="height: 50px; width: auto;">
-            </div>
+            </div> -->
         </div>
 
         <div class="stepper">
@@ -403,6 +403,24 @@
     <input type="hidden" id="userZipcode" value="">
 
     <style>
+        /* Birthdate input styling */
+.birthdate-wrapper {
+    position: relative;
+    width: 100%;
+}
+
+.birthdate-format-hint {
+    display: block;
+    font-size: 0.7rem;
+    color: #6c757d;
+    margin-top: 4px;
+    font-style: italic;
+}
+
+.birthdate-format-hint i {
+    margin-right: 4px;
+    font-size: 0.65rem;
+}
         /* Style for view requirements button - Red outline (not clicked yet) */
         .btn-view-req {
             background-color: transparent !important;
@@ -1188,11 +1206,17 @@
                     </div>
                     <div class="form-row">
                         <div class="form-col"><label>Sex <span style="color: var(--danger);">*</span></label><select class="client-sex" data-id="${c.id}"><option value="Male" ${c.sex === 'Male' ? 'selected' : ''}>Male</option><option value="Female" ${c.sex === 'Female' ? 'selected' : ''}>Female</option></select></div>
-                        <div class="form-col"><label>Birthdate <span style="color: var(--danger);">*</span></label>
-                        <input type="date" class="client-birthdate" data-id="${c.id}" value="${c.birthdate || ''}" 
-                            oninput="validateBirthdate(this)" 
-                            onchange="validateBirthdate(this)">
-                        </div>
+                        <div class="form-col">
+    <label>Birthdate <span style="color: var(--danger);">*</span></label>
+    <div class="birthdate-wrapper">
+        <input type="date" class="client-birthdate" data-id="${c.id}" value="${c.birthdate || ''}" 
+            oninput="validateBirthdate(this)" 
+            onchange="validateBirthdate(this)">
+        <small class="birthdate-format-hint">
+            <i class="fas fa-calendar-alt"></i> Format: DD/MM/YYYY (e.g., 25/12/1990 for December 25, 1990)
+        </small>
+    </div>
+</div>
                     </div>
                     <div class="form-col" style="margin-top: 12px;">
                         <label>Service <span style="color: var(--danger);">*</span></label>
@@ -1793,10 +1817,10 @@
                     let clientsHtml = '';
                     if (result.appointment.clients_list && result.appointment.clients_list.length > 0) {
                         clientsHtml =
-                            '<div style="text-align: left; margin-top: 10px;"><strong>Client Details:</strong><ul style="margin-top: 5px;">';
+                            '<div style="text-align: left; margin-top: 10px;"><strong>Applicant Details:</strong><ul style="margin-top: 5px;">';
                         result.appointment.clients_list.forEach(client => {
                             clientsHtml += `<li><strong>${escapeHtml(client.name)}</strong><br>
-                                    <small>Client Number: ${client.client_number}</small><br>
+                                    <small>Applicant Number: ${client.client_number}</small><br>
                                     <small>Service: ${client.service_name}</small>
                                    </li>`;
                         });
@@ -1811,7 +1835,7 @@
                             <p><strong>Contact Person:</strong> ${escapeHtml(result.appointment.contact_name)}</p>
                             <p><strong>Contact Number:</strong> ${result.appointment.contact_mobile}</p>
                             ${result.appointment.contact_email ? `<p><strong>Email:</strong> ${result.appointment.contact_email}</p>` : ''}
-                            <p><strong>Total Clients:</strong> ${result.appointment.clients_count} person(s)</p>
+                            <p><strong>Total Applicants:</strong> ${result.appointment.clients_count} person(s)</p>
                             ${clientsHtml}
                             <hr>
                             <p><small>A confirmation ${result.email_sent ? 'email has been sent' : 'SMS will be sent'} to your registered contact.</small></p>
@@ -1842,51 +1866,76 @@
     })();
 
     // ==================== DOWNLOAD FUNCTIONS ====================
-    async function captureSuccessModal() {
-        const successDetails = document.getElementById('successDetails');
-        if (!successDetails) return null;
+async function captureSuccessModal() {
+    const successDetails = document.getElementById('successDetails');
+    if (!successDetails) return null;
 
-        const receiptContainer = document.createElement('div');
-        receiptContainer.style.cssText = `
-            background: white;
-            padding: 30px;
-            border-radius: 12px;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            max-width: 500px;
-            margin: 0 auto;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
-        `;
+    const receiptContainer = document.createElement('div');
+    receiptContainer.style.cssText = `
+        background: white;
+        padding: 30px;
+        border-radius: 12px;
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        max-width: 500px;
+        margin: 0 auto;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+    `;
 
-        const now = new Date();
-        const formattedDateTime = now.toLocaleString('en-US', {
-            year: 'numeric',
-            month: 'long',
-            day: 'numeric',
-            hour: '2-digit',
-            minute: '2-digit'
-        });
+    const now = new Date();
+    const formattedDateTime = now.toLocaleString('en-US', {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit'
+    });
 
-        receiptContainer.innerHTML = `
-            <div style="text-align: center; margin-bottom: 20px;">
-                <img src="{{ asset('images/psa-logo.png') }}" alt="PSA Logo" style="height: 60px; width: auto; margin-bottom: 10px;">
-                <h2 style="color: #2c5f8a; margin: 0;">Philippine Statistics Authority</h2>
-                <h3 style="color: #4a5568; margin: 5px 0;">National ID System (PhilSys)</h3>
-                <p style="color: #718096; margin: 5px 0;">Appointment Confirmation</p>
-            </div>
-            <div style="border-top: 2px solid #2c5f8a; margin: 10px 0;"></div>
-            <div style="padding: 10px 0;">
-                ${successDetails.innerHTML}
-            </div>
-            <div style="border-top: 1px solid #e2e8f0; margin: 10px 0;"></div>
-            <div style="text-align: center; padding-top: 10px;">
-                <p style="color: #718096; font-size: 12px; margin: 5px 0;">This is a system-generated confirmation.</p>
-                <p style="color: #718096; font-size: 12px; margin: 5px 0;">Generated on: ${formattedDateTime}</p>
-                <p style="color: #718096; font-size: 12px; margin: 5px 0;">© ${new Date().getFullYear()} Philippine Statistics Authority</p>
-            </div>
-        `;
+    
 
-        return receiptContainer;
-    }
+    receiptContainer.innerHTML = `
+        <div style="text-align: center; margin-bottom: 20px;">
+            <h2 style="color: #2c5f8a; margin: 0; font-size: 1.3rem;">Philippine Statistics Authority</h2>
+            <h3 style="color: #4a5568; margin: 5px 0; font-size: 1rem;">National ID System (PhilSys)</h3>
+            <p style="color: #718096; margin: 5px 0; font-size: 0.85rem;">Appointment Confirmation</p>
+        </div>
+        
+        <div style="border-top: 2px solid #2c5f8a; margin: 10px 0;"></div>
+        
+        <div style="padding: 10px 0;">
+            ${successDetails.innerHTML}
+        </div>
+        
+        <div style="border-top: 1px solid #e2e8f0; margin: 10px 0;"></div>
+        
+        <!-- PSA OFFICIAL ADDRESS -->
+        <div style="margin-top: 15px; padding: 12px; background: #f8fafc; border-radius: 8px; text-align: center;">
+            <p style="margin: 0; font-size: 0.8rem; color: #475569;">
+                <strong><i class="fas fa-map-marker-alt"></i> PSA Misamis Oriental Office</strong><br>
+                Capt. Vicente Roa Street,<br>
+                Brgy. 31, Cagayan de Oro City,<br>
+                9000 Misamis Oriental, Philippines
+            </p>
+        </div>
+        
+        <!-- IMPORTANT REMINDER -->
+        <div style="margin-top: 15px; padding: 12px; background: #fef3c7; border-left: 4px solid #f59e0b; border-radius: 8px;">
+            <p style="margin: 0; font-size: 0.8rem; color: #92400e;">
+                <strong><i class="fas fa-clock"></i> Important Reminder:</strong><br>
+                Please arrive at least <strong>15 minutes before</strong> your scheduled appointment time.
+            </p>
+        </div>
+        
+        <div style="border-top: 1px solid #e2e8f0; margin: 15px 0 10px 0;"></div>
+        
+        <div style="text-align: center; padding-top: 10px;">
+            <p style="color: #718096; font-size: 11px; margin: 5px 0;">This is a system-generated confirmation.</p>
+            <p style="color: #718096; font-size: 11px; margin: 5px 0;">Generated on: ${formattedDateTime}</p>
+            <p style="color: #718096; font-size: 11px; margin: 5px 0;">© ${new Date().getFullYear()} Philippine Statistics Authority</p>
+        </div>
+    `;
+
+    return receiptContainer;
+}
 
     document.getElementById('downloadPngBtn').onclick = async () => {
         try {
@@ -1938,51 +1987,51 @@
     };
 
     document.getElementById('downloadPdfBtn').onclick = async () => {
-        try {
-            const btn = document.getElementById('downloadPdfBtn');
-            const originalText = btn.innerHTML;
-            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Generating...';
-            btn.disabled = true;
+    try {
+        const btn = document.getElementById('downloadPdfBtn');
+        const originalText = btn.innerHTML;
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Generating...';
+        btn.disabled = true;
 
-            const receipt = await captureSuccessModal();
-            if (!receipt) {
-                alert('Unable to generate receipt');
-                return;
-            }
-
-            document.body.appendChild(receipt);
-
-            const opt = {
-                margin: [0.5, 0.5, 0.5, 0.5],
-                filename: `appointment-confirmation-${Date.now()}.pdf`,
-                image: {
-                    type: 'jpeg',
-                    quality: 0.98
-                },
-                html2canvas: {
-                    scale: 2,
-                    useCORS: true
-                },
-                jsPDF: {
-                    unit: 'in',
-                    format: 'letter',
-                    orientation: 'portrait'
-                }
-            };
-
-            await html2pdf().set(opt).from(receipt).save();
-            document.body.removeChild(receipt);
-
-            btn.innerHTML = originalText;
-            btn.disabled = false;
-        } catch (error) {
-            console.error('PDF download error:', error);
-            alert('Failed to generate PDF. Please try again.');
-            const btn = document.getElementById('downloadPdfBtn');
-            btn.innerHTML = '<i class="fas fa-file-pdf"></i> Download PDF';
-            btn.disabled = false;
+        const receipt = await captureSuccessModal();  // <-- Uses the same function
+        if (!receipt) {
+            alert('Unable to generate receipt');
+            return;
         }
-    };
+
+        document.body.appendChild(receipt);
+
+        const opt = {
+            margin: [0.5, 0.5, 0.5, 0.5],
+            filename: `appointment-confirmation-${Date.now()}.pdf`,
+            image: {
+                type: 'jpeg',
+                quality: 0.98
+            },
+            html2canvas: {
+                scale: 2,
+                useCORS: true
+            },
+            jsPDF: {
+                unit: 'in',
+                format: 'letter',
+                orientation: 'portrait'
+            }
+        };
+
+        await html2pdf().set(opt).from(receipt).save();
+        document.body.removeChild(receipt);
+
+        btn.innerHTML = originalText;
+        btn.disabled = false;
+    } catch (error) {
+        console.error('PDF download error:', error);
+        alert('Failed to generate PDF. Please try again.');
+        const btn = document.getElementById('downloadPdfBtn');
+        btn.innerHTML = '<i class="fas fa-file-pdf"></i> Download PDF';
+        btn.disabled = false;
+    }
+};
 </script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 </body>

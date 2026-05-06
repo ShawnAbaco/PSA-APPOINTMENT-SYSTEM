@@ -5,7 +5,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes, viewport-fit=cover">
-    <title>PSA | National ID Appointment System</title>
+    <title>PSA | National ID Appointment Management System</title>
     <link rel="icon" type="image/png" sizes="32x32" href="{{ asset('images/psa.png') }}">
     <link
         href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;14..32,400;14..32,500;14..32,600;14..32,700;14..32,800&display=swap"
@@ -27,7 +27,7 @@
                 </div>
                 <div class="logo-text">
                     <span class="psa-title">Philippine Statistics Authority</span>
-                    <span class="psa-sub">National ID Appointment System</span>
+                    <span class="psa-sub">National ID Appointment Management System</span>
                 </div>
             </div>
             <nav class="main-nav">
@@ -48,7 +48,7 @@
         <section id="home" class="hero-section">
             <div class="container hero-grid">
                 <div class="hero-content">
-                    <div class="badge">PhilSys - National ID Appointment System</div>
+                    <div class="badge">PhilSys - National ID Appointment Management System</div>
                     <h1>Step into the future with <span class="highlight">National ID</span> registration</h1>
                     <p>Schedule your PhilSys registration, ePhilID printing, or data correction appointment. Secure your
                         Philippine Identification System credentials with ease.</p>
@@ -136,116 +136,153 @@
             </div>
         </section>
 
-        <!-- Requirements Section - NOW WITH 3 CARDS -->
-        <section id="requirements" class="requirements-section">
-            <div class="container">
-                <div class="section-header">
-                    <h2>Appointment Requirements & Services</h2>
-                    <p>Prepare the necessary documents before your scheduled visit</p>
+      <!-- Requirements Section - IMPROVED UI WITH SCROLLABLE LISTS -->
+<section id="requirements" class="requirements-section">
+    <div class="container">
+        <div class="section-header">
+            <h2>Appointment Requirements & Services</h2>
+            <p>Prepare the necessary documents before your scheduled visit</p>
+        </div>
+        <div class="requirements-grid">
+            
+            {{-- NATIONAL ID REGISTRATION CARD --}}
+            @php
+                $regRequirements = $requirements['reg'] ?? collect();
+                $regStandardRequirements = $regRequirements->where('age_group', 'standard');
+                $regChildRequirements = $regRequirements->where('age_group', 'child');
+            @endphp
+            <div class="req-card">
+                <div class="req-header">
+                    <div class="req-icon">
+                        <i class="fas fa-id-card"></i>
+                    </div>
+                    <h3>National ID Registration</h3>
                 </div>
-                <div class="requirements-grid">
-                    {{-- CARD 1: National ID Registration (Primary & Secondary) --}}
-                    <div class="req-card">
-                        <div class="req-header">
-                            <h3>National ID Registration</h3>
-                        </div>
+                
+                <div class="req-tabs">
+                    <button class="req-tab active" data-tab="standard-reg">Standard (5+ years)</button>
+                    <button class="req-tab" data-tab="child-reg">Child (1-4 years)</button>
+                </div>
+                
+                <div class="req-content active" id="standard-reg">
+                    <div class="req-list-container">
                         <ul class="req-docs">
-                            <li><strong>PRIMARY DOCUMENTS:</strong>
-                                <ol style="margin-top: 5px; margin-left: 20px; list-style: decimal;">
-                                    <li>PSA-issued Certificate of Live Birth and one (1) government-issued
-                                        identification document which bears the full name, front-facing photograph, and
-                                        signature or thumbmark;</li>
-                                    <li>Philippine Passport or ePassport issued by the Department of Foreign Affairs
-                                        (DFA);</li>
-                                    <li>Unified Multi-purpose Identification (UMID) Card issued by the Government
-                                        Service Insurance System (GSIS) or Social Security System (SSS); or</li>
-                                    <li>Student's License Permit or Non-Professional/Professional Driver's License
-                                        issued by the Land Transportation Office (LTO).</li>
-                                </ol>
-                            </li>
-                            <li><strong>SECONDARY DOCUMENTS:</strong>
-                                <ol
-                                    style="margin-top: 5px; margin-left: 20px; list-style: decimal; max-height: 200px; overflow-y: auto;">
-                                    <li>PSA-issued Certificate of Live Birth/National Statistics Office (NSO)-issued
-                                        Certificate of Live Birth with Birth Reference Number (BreN);</li>
-                                    <li>Local Civil Registry Office (LCRO)-issued Certificate of Live Birth;</li>
-                                    <li>PSA-issued Report of Birth:</li>
-                                    <li>PSA-issued Certificate of Foundling:</li>
-                                    <li>Integrated Bar of the Philippines (IBP) Identification Card;</li>
-                                    <li>Professional Regulatory Commission (PRC) ID;</li>
-                                    <li>Seaman's Book (Seafarer's Record Book);</li>
-                                    <li>Overseas Workers Welfare Administration (OWWA) ID:</li>
-                                    <li>Senior Citizen's ID;</li>
-                                    <li>SSS ID;</li>
-                                    <li>Pantawid Pamilyang Pilipino Program (4Ps) ID;</li>
-                                    <li>License to Own or Possess Firearms (LTOPF);</li>
-                                    <li>NBI Clearance;</li>
-                                    <li>Police Clearance/ID:</li>
-                                    <li>Solo Parent's ID;</li>
-                                    <li>Person with Disability (PWD) ID;</li>
-                                    <li>Voter's ID;</li>
-                                    <li>Postal ID;</li>
-                                    <li>Taxpayer Identification Number (TIN):</li>
-                                    <li>PhilHealth ID;</li>
-                                    <li>Special Resident Retiree's Visa (SRRV);</li>
-                                    <li>National ID from other countries;</li>
-                                    <li>Residence ID from other countries;</li>
-                                    <li>Professional Identification Card;</li>
-                                    <li>Eligibility Card; and</li>
-                                    <li>Dependent's ID.</li>
-                                </ol>
-                            </li>
+                            @foreach($regStandardRequirements as $req)
+                                <li><span>{{ $req->requirement }}</span></li>
+                            @endforeach
                         </ul>
-                        <div class="warning-note">Bring <strong>original documents</strong>. No photocopies accepted
-                            for primary validation.</div>
                     </div>
-
-                    {{-- CARD 2: Status Inquiry (ePhilID Issuance + TRN Retrieval) --}}
-                    <div class="req-card">
-                        <div class="req-header">
-                            <h3>Status Inquiry</h3>
-                        </div>
+                </div>
+                
+                <div class="req-content" id="child-reg">
+                    <div class="req-list-container">
                         <ul class="req-docs">
-                            <li><strong>ePhilID Issuance (Printing)</strong>
-                                <ul style="margin-top: 5px; margin-left: 20px; list-style: disc;">
-                                    <li>Transaction slip or reference number from Step 1 registration</li>
-                                    <li><strong>For Representative:</strong> Authorization letter + valid ID of both
-                                        parties</li>
-                                    <li><strong>For Minor:</strong> Birth Certificate + Guardian's valid ID</li>
-                                </ul>
-                            </li>
-                            <li><strong>TRN Retrieval</strong>
-                                <ul style="margin-top: 5px; margin-left: 20px; list-style: disc;">
-                                    <li>Provide: First, Middle, Last Name</li>
-                                    <li>Date of Birth (exact as registered)</li>
-                                    <li>Sex / Gender information</li>
-                                </ul>
-                            </li>
+                            @foreach($regChildRequirements as $req)
+                                <li><i class="fas fa-child"></i> <span>{{ $req->requirement }}</span></li>
+                            @endforeach
                         </ul>
-                        <div class="warning-note">ePhilID is a valid proof of identity while waiting for the physical
-                            card.<br>
-                            Confidential per RA 10173 (Data Privacy Act). TRN will only be released to the data subject.
-                        </div>
                     </div>
-
-
-                    {{-- CARD 3: Correction / Updating --}}
-                    <div class="req-card">
-                        <div class="req-header">
-                            <h3>Correction / Updating</h3>
-                        </div>
-                        <ul class="req-docs">
-                            <li><strong>First/Last Name:</strong> Birth Certificate, Marriage Certificate (if
-                                applicable)</li>
-                            <li><strong>Sex/DOB:</strong> PSA Birth Certificate (original)</li>
-                            <li><strong>Address:</strong> Barangay Certificate + Proof of Billing (utility bill)</li>
-                        </ul>
-                        <div class="warning-note">Bring <strong>ORIGINAL copies</strong> of supporting documents for
-                            any demographic change.</div>
-                    </div>
+                </div>
+                
+                <div class="warning-note">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    <span>Bring <strong>original documents</strong>. No photocopies accepted for primary validation.</span>
                 </div>
             </div>
-        </section>
+
+            {{-- STATUS INQUIRY / ePhilID / TRN RETRIEVAL CARD --}}
+            @php
+                $inquiryRequirements = $requirements['inquiry'] ?? collect();
+                $inquiryStandardRequirements = $inquiryRequirements->where('age_group', 'standard');
+                $inquiryChildRequirements = $inquiryRequirements->where('age_group', 'child');
+            @endphp
+            <div class="req-card">
+                <div class="req-header">
+                    <div class="req-icon">
+                        <i class="fas fa-question-circle"></i>
+                    </div>
+                    <h3>Status Inquiry & ePhilID</h3>
+                </div>
+                
+                <div class="req-tabs">
+                    <button class="req-tab active" data-tab="standard-inq">Standard (5+ years)</button>
+                    <button class="req-tab" data-tab="child-inq">Child (1-4 years)</button>
+                </div>
+                
+                <div class="req-content active" id="standard-inq">
+                    <div class="req-list-container">
+                        <ul class="req-docs">
+                            @foreach($inquiryStandardRequirements as $req)
+                                <li> <span>{{ $req->requirement }}</span></li>
+                            @endforeach
+                        </ul>
+                    </div>
+                </div>
+                
+                <div class="req-content" id="child-inq">
+                    <div class="req-list-container">
+                        <ul class="req-docs">
+                            @foreach($inquiryChildRequirements as $req)
+                                <li><i class="fas fa-child"></i> <span>{{ $req->requirement }}</span></li>
+                            @endforeach
+                        </ul>
+                    </div>
+                </div>
+                
+                <div class="warning-note">
+                    <i class="fas fa-info-circle"></i>
+                    <span>ePhilID is a valid proof of identity while waiting for the physical card.<br>Confidential per RA 10173 (Data Privacy Act).</span>
+                </div>
+            </div>
+
+            {{-- CORRECTION / UPDATING CARD --}}
+            @php
+                $updatingRequirements = $requirements['updating'] ?? collect();
+                $updatingStandardRequirements = $updatingRequirements->where('age_group', 'standard');
+                $updatingChildRequirements = $updatingRequirements->where('age_group', 'child');
+            @endphp
+            <div class="req-card">
+                <div class="req-header">
+                    <div class="req-icon">
+                        <i class="fas fa-edit"></i>
+                    </div>
+                    <h3>Correction / Updating</h3>
+                </div>
+                
+                <div class="req-tabs">
+                    <button class="req-tab active" data-tab="standard-upd">Standard (5+ years)</button>
+                    <button class="req-tab" data-tab="child-upd">Child (1-4 years)</button>
+                </div>
+                
+                <div class="req-content active" id="standard-upd">
+                    <div class="req-list-container">
+                        <ul class="req-docs">
+                            @foreach($updatingStandardRequirements as $req)
+                                <li> <span>{{ $req->requirement }}</span></li>
+                            @endforeach
+                        </ul>
+                    </div>
+                </div>
+                
+                <div class="req-content" id="child-upd">
+                    <div class="req-list-container">
+                        <ul class="req-docs">
+                            @foreach($updatingChildRequirements as $req)
+                                <li><i class="fas fa-child"></i> <span>{{ $req->requirement }}</span></li>
+                            @endforeach
+                        </ul>
+                    </div>
+                </div>
+                
+                <div class="warning-note">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    <span>Bring <strong>ORIGINAL copies</strong> of supporting documents for any demographic change.</span>
+                </div>
+            </div>
+            
+        </div>
+    </div>
+</section>
 
         <!-- Guidelines Section -->
         <section id="info" class="info-section">
@@ -388,8 +425,7 @@
     <div id="appointmentModal" class="appointment-modal-overlay">
         <div class="appointment-modal-container">
             <div class="appointment-modal-header">
-                <h3><img src="{{ asset('images/psa.png') }}" alt="PSA" style="height: 40px;"> National ID
-                    Appointment System</h3>
+                <h3><img src="{{ asset('images/psa.png') }}" alt="PSA" style="height: 40px;">National ID Appointment Management System</h3>
                 <button class="close-appointment-modal" id="closeAppointmentModalBtn">
                     <i class="fas fa-times"></i>
                 </button>
@@ -672,6 +708,31 @@
             }
         });
     </script>
+
+    <script>
+    // Requirements tabs functionality
+    document.addEventListener('DOMContentLoaded', function() {
+        const tabs = document.querySelectorAll('.req-tab');
+        
+        tabs.forEach(tab => {
+            tab.addEventListener('click', function() {
+                const card = this.closest('.req-card');
+                const tabId = this.getAttribute('data-tab');
+                
+                // Remove active class from all tabs in this card
+                card.querySelectorAll('.req-tab').forEach(t => t.classList.remove('active'));
+                this.classList.add('active');
+                
+                // Hide all content in this card
+                card.querySelectorAll('.req-content').forEach(content => content.classList.remove('active'));
+                
+                // Show selected content
+                const activeContent = card.querySelector(`#${tabId}`);
+                if (activeContent) activeContent.classList.add('active');
+            });
+        });
+    });
+</script>
 </body>
 
 </html>
