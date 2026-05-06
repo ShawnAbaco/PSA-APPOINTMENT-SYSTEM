@@ -1197,7 +1197,7 @@
                     <div class="form-col" style="margin-top: 12px;">
                         <label>Service <span style="color: var(--danger);">*</span></label>
                         <select class="client-service" data-id="${c.id}">
-                            <option value="" disabled ${c.service === '' ? 'selected' : ''}>-- Select Service --</option>
+                            <option value="" disabled ${c.service === '' ? 'selected' : ''}> Select Service </option>
                             <option value="reg" ${c.service === 'reg' ? 'selected' : ''}>National ID Registration</option>
                             <option value="updating" ${c.service === 'updating' ? 'selected' : ''}>Correction/Updating</option>
                             <option value="inquiry" ${c.service === 'inquiry' ? 'selected' : ''}>Status Inquiry / Retrieval Of TRN / Other Concern</option>
