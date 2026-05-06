@@ -71,7 +71,7 @@
                             <th class="detail-th">Appointment</th>
                             <td class="detail-td">
                                 @if ($client->appointment)
-                                    <a href="{{ route('operator.appointments.index', $client->appointment->id) }}"
+                                    <a href="{{ route('admin.appointments.index', $client->appointment->id) }}"
                                         class="appointment-link-modal">
                                         <i class="fas fa-link"></i> {{ $client->appointment->appointment_number }}
                                     </a>
@@ -167,7 +167,7 @@
                                             </td>
                                             <td class="history-td">
                                                 @if ($history->appointment)
-                                                    <a href="{{ route('operator.appointments.show', $history->appointment->id) }}"
+                                                    <a href="{{ route('admin.appointments.show', $history->appointment->id) }}"
                                                         class="view-link">
                                                         <i class="fas fa-eye"></i> View
                                                     </a>

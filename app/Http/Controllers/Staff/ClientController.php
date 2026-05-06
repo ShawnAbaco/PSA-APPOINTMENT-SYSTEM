@@ -14,7 +14,7 @@ class ClientController extends Controller
     /**
      * Display a listing of all clients.
      */
-    public function index(Request $request)
+        public function index(Request $request)
     {
         $query = AppointmentClient::with('appointment.timeSlot');
         
@@ -73,13 +73,13 @@ class ClientController extends Controller
     }
     
     /**
-     * Display the specified client details.
+     * Display client details in modal via AJAX.
      */
-    public function show($id)
+    public function showModal($id)
     {
         $client = AppointmentClient::with('appointment.timeSlot')->findOrFail($id);
         
-        // Get client's appointment history (all appointments for this person)
+        // Get client's appointment history
         $clientHistory = AppointmentClient::with('appointment.timeSlot')
             ->where('first_name', $client->first_name)
             ->where('last_name', $client->last_name)
@@ -87,13 +87,13 @@ class ClientController extends Controller
             ->orderBy('created_at', 'desc')
             ->get();
         
-        // Updated service name mapping
         $services = [
             'reg' => 'National ID Registration',
             'updating' => 'Correction/Updating',
             'inquiry' => 'Status Inquiry / TRN Retrieval'
         ];
         
+        // Return only the content without layout for modal
         return view('staff.clients.show', compact('client', 'clientHistory', 'services'));
     }
     
@@ -158,47 +158,64 @@ class ClientController extends Controller
     }
     
     /**
-     * Verify client (mark as verified).
+     * Verify client via AJAX
      */
     public function verify($id)
     {
-        $client = AppointmentClient::findOrFail($id);
-        
-        $client->update([
-            'is_verified' => true,
-            'verified_at' => now(),
-        ]);
-        
-        // Update appointment status if pending
-        if ($client->appointment && $client->appointment->status === 'pending') {
-            $client->appointment->update([
-                'status' => 'confirmed',
-                'confirmed_at' => now(),
-                'processed_by' => Auth::id(),
+        try {
+            $client = AppointmentClient::findOrFail($id);
+            
+            $client->update([
+                'is_verified' => true,
+                'verified_at' => now(),
             ]);
+            
+            // Update appointment status if pending
+            if ($client->appointment && $client->appointment->status === 'pending') {
+                $client->appointment->update([
+                    'status' => 'confirmed',
+                    'confirmed_at' => now(),
+                    'processed_by' => Auth::id(),
+                ]);
+            }
+            
+            return response()->json([
+                'success' => true,
+                'message' => 'Client verified successfully.'
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to verify client: ' . $e->getMessage()
+            ], 500);
         }
-        
-        return redirect()->back()->with('success', 'Client verified successfully.');
     }
-    
+
     /**
-     * Update PSA reference number.
+     * Update reference number via AJAX
      */
     public function updateReferenceNumber(Request $request, $id)
     {
-        $request->validate([
-            'psa_reference_number' => 'required|string|max:255',
-        ]);
-        
-        $client = AppointmentClient::findOrFail($id);
-        $client->update([
-            'psa_reference_number' => $request->psa_reference_number,
-        ]);
-        
-        return response()->json([
-            'success' => true,
-            'message' => 'Reference number updated successfully.'
-        ]);
+        try {
+            $request->validate([
+                'psa_reference_number' => 'required|string|max:255',
+            ]);
+            
+            $client = AppointmentClient::findOrFail($id);
+            $client->update([
+                'psa_reference_number' => $request->psa_reference_number,
+            ]);
+            
+            return response()->json([
+                'success' => true,
+                'message' => 'Reference number updated successfully.'
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to update reference number: ' . $e->getMessage()
+            ], 500);
+        }
     }
     
     /**

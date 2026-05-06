@@ -1,8 +1,10 @@
+/* client.css */
 .clients-container {
     margin: 0 auto;
     background: var(--bg-gradient);
     min-height: 100vh;
 }
+
 
 /* Header */
 .clients-header {
@@ -39,7 +41,7 @@
     font-size: 40px;
     font-weight: 600;
     color: white;
-    margin: 0 0 6px 0;
+    margin: 0;
     letter-spacing: -0.3px;
     position: relative;
     z-index: 1;
@@ -58,7 +60,6 @@
     align-items: center;
     box-shadow: var(--shadow);
     border: 1px solid rgba(255, 255, 255, 0.9);
-    width: 650px;
 }
 
 .filter-group {
@@ -232,7 +233,6 @@
 
 .client-row:hover {
     background: linear-gradient(90deg, var(--gray-50) 0%, white 100%);
-    transform: scale(1.002);
 }
 
 /* Client Name */
@@ -292,6 +292,7 @@
     font-weight: 500;
     text-decoration: none;
     transition: var(--transition);
+    cursor: pointer;
 }
 
 .appointment-link:hover {
@@ -423,64 +424,20 @@
     margin: 0;
 }
 
-
-@keyframes slideInRight {
-    from {
-        opacity: 0;
-        transform: translateX(100px);
-    }
-    to {
-        opacity: 1;
-        transform: translateX(0);
-    }
+/* Loading Container */
+.loading-container {
+    text-align: center;
+    padding: 60px 20px;
 }
 
-.toast-content {
-    background: var(--gray-800);
-    color: white;
-    padding: 12px 24px;
-    border-radius: 50px;
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    box-shadow: var(--shadow-lg);
-    font-size: 14px;
-}
-
-.toast-content i {
-    font-size: 18px;
-    color: var(--success);
-}
-
-/* Client Details Content in Modal */
-.client-details-content {
-    max-height: 70vh;
-    overflow-y: auto;
-    padding: 4px;
-}
-
-.client-details-content .card {
-    margin-bottom: 20px;
-}
-
-/* Scrollbar */
-::-webkit-scrollbar {
-    width: 6px;
-    height: 6px;
-}
-
-::-webkit-scrollbar-track {
-    background: var(--gray-100);
-    border-radius: 10px;
-}
-
-::-webkit-scrollbar-thumb {
-    background: var(--gray-400);
-    border-radius: 10px;
-}
-
-::-webkit-scrollbar-thumb:hover {
-    background: var(--gray-500);
+.loading-container .loading-spinner {
+    width: 50px;
+    height: 50px;
+    border: 4px solid #f3f3f3;
+    border-top: 4px solid #667eea;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    margin: 0 auto 20px;
 }
 
 /* Responsive */
@@ -507,11 +464,7 @@
         padding: 24px 20px;
     }
     
-    .header-stats {
-        justify-content: center;
-    }
-    
-    .filters-bar {
+    .clients-filters-bar {
         flex-direction: column;
     }
     
@@ -540,6 +493,14 @@
         justify-content: center;
     }
     
+    .modal-container {
+        width: 95%;
+        max-height: 95vh;
+    }
+    
+    .modal-body {
+        padding: 16px;
+    }
 }
 
 @media (max-width: 640px) {

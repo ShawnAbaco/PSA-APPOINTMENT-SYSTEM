@@ -14,6 +14,9 @@
 
     {{-- appointment css link --}}
     <link rel="stylesheet" href="{{ asset('css/admin/appointments/appointments.css') }}">
+    <link rel="stylesheet" href="{{ asset('css/admin/clients/client.css') }}">
+    <link rel="stylesheet" href="{{ asset('css/admin/clients/show.css') }}">
+
     <link rel="stylesheet" href="{{ asset('css/admin/appointments/calendar.css') }}">
 
     {{-- users css link --}}
@@ -113,15 +116,15 @@
                 flex-direction: column;
                 text-align: center;
             }
-            
+
             .footer-links {
                 justify-content: center;
             }
-            
+
             .footer-datetime {
                 justify-content: center;
             }
-            
+
             .admin-footer {
                 padding: 16px 20px;
             }
@@ -164,6 +167,13 @@
                         class="nav-link {{ request()->routeIs('admin.appointments.*') ? 'active' : '' }}">
                         <i class="fas fa-calendar-check"></i>
                         <span>Appointments</span>
+                    </a>
+                </div>
+                <div class="nav-item">
+                    <a href="{{ route('admin.clients.index') }}"
+                        class="nav-link {{ request()->routeIs('admin.clients.*') ? 'active' : '' }}">
+                        <i class="fas fa-users"></i>
+                        <span>Clients</span>
                     </a>
                 </div>
                 <div class="nav-item">
@@ -351,22 +361,32 @@
         // ============================================================
         function updateDateTime() {
             const now = new Date();
-            
+
             // Format date: Thursday, May 5, 2026
-            const dateOptions = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+            const dateOptions = {
+                weekday: 'long',
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric'
+            };
             const dateElement = document.getElementById('currentDate');
             if (dateElement) {
                 dateElement.textContent = now.toLocaleDateString('en-US', dateOptions);
             }
-            
+
             // Format time: 2:30:45 PM
-            const timeOptions = { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true };
+            const timeOptions = {
+                hour: '2-digit',
+                minute: '2-digit',
+                second: '2-digit',
+                hour12: true
+            };
             const timeElement = document.getElementById('currentTime');
             if (timeElement) {
                 timeElement.textContent = now.toLocaleTimeString('en-US', timeOptions);
             }
         }
-        
+
         // Update immediately and then every second
         updateDateTime();
         setInterval(updateDateTime, 1000);
@@ -558,28 +578,33 @@
             const helpLink = document.getElementById('helpLink');
             const privacyLink = document.getElementById('privacyLink');
             const contactLink = document.getElementById('contactLink');
-            
+
             if (aboutLink) {
                 aboutLink.addEventListener('click', (e) => {
                     e.preventDefault();
-                    showToast('About', 'PSA Appointment System v1.0.0<br>Developed for Philippine Statistics Authority', 'info');
+                    showToast('About',
+                        'PSA Appointment System v1.0.0<br>Developed for Philippine Statistics Authority', 'info'
+                    );
                 });
             }
-            
+
             if (helpLink) {
                 helpLink.addEventListener('click', (e) => {
                     e.preventDefault();
-                    showToast('Help', 'For assistance, contact your system administrator or refer to the user manual.', 'info');
+                    showToast('Help',
+                        'For assistance, contact your system administrator or refer to the user manual.', 'info'
+                    );
                 });
             }
-            
+
             if (privacyLink) {
                 privacyLink.addEventListener('click', (e) => {
                     e.preventDefault();
-                    showToast('Privacy Policy', 'All data is handled in accordance with Data Privacy Act of 2012 (RA 10173).', 'info');
+                    showToast('Privacy Policy',
+                        'All data is handled in accordance with Data Privacy Act of 2012 (RA 10173).', 'info');
                 });
             }
-            
+
             if (contactLink) {
                 contactLink.addEventListener('click', (e) => {
                     e.preventDefault();

@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Controllers\Operator;
+namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\AppointmentClient;
@@ -9,7 +9,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 
-class OClientController extends Controller
+class ClientController extends Controller
 {
     /**
      * Display a listing of all clients.
@@ -63,7 +63,7 @@ class OClientController extends Controller
             'inquiry' => 'Status Inquiry / TRN Retrieval'
         ];
         
-        return view('operator.clients.index', compact(
+        return view('admin.clients.index', compact(
             'clients', 
             'serviceCounts', 
             'totalClients', 
@@ -94,7 +94,7 @@ class OClientController extends Controller
         ];
         
         // Return only the content without layout for modal
-        return view('operator.clients.show', compact('client', 'clientHistory', 'services'));
+        return view('admin.clients.show', compact('client', 'clientHistory', 'services'));
     }
     
     /**
@@ -375,7 +375,7 @@ class OClientController extends Controller
         
         $client->delete();
         
-        return redirect()->route('operator.clients.index')->with('success', 'Client deleted successfully.');
+        return redirect()->route('admin.clients.index')->with('success', 'Client deleted successfully.');
     }
     
     /**
