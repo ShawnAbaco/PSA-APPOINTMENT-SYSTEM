@@ -684,3 +684,51 @@
         border: 1px solid var(--gray-300);
     }
 }
+
+/* Time slot styling */
+.time-slot-item {
+    transition: all 0.3s ease;
+    background: white;
+}
+
+.time-slot-item:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+}
+
+.time-slot-item.selected {
+    background: #eff6ff;
+    border-color: #3b82f6 !important;
+    box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2);
+    color: black;
+}
+
+.time-slot-full {
+    background: #fef2f2;
+    opacity: 0.8;
+}
+
+.time-slot-limited {
+    background: #fff7ed;
+}
+
+.time-slot-available {
+    background: #fefce8;
+}
+
+.time-slot-plenty {
+    background: #f0fdf4;
+}
+
+.time-slot-unavailable {
+    background: #f3f4f6;
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+.status-badge {
+    padding: 4px 8px;
+    border-radius: 6px;
+    font-size: 11px;
+    font-weight: 600;
+}

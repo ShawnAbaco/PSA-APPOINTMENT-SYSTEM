@@ -101,7 +101,6 @@
     let slotData = {};
 
     // Get total capacity - you can adjust this based on your business logic
-    const TOTAL_DAILY_CAPACITY = 48; // 12 time slots × 4 appointments per slot = 48 max
 
     function switchCalendarView(view) {
         if (calendar) calendar.changeView(view);
@@ -340,43 +339,108 @@
     }
     
     function loadTimeSlots(date, service) {
-        const container = document.getElementById('dayTimeSlotsContainer');
-        container.innerHTML = '<div class="loading-spinner">Loading time slots...</div>';
-        
-        fetch(`/admin/calendar/time-slots?date=${date}&service=${service}`)
-            .then(response => response.json())
-            .then(data => {
-                if (data.success && data.time_slots.length > 0) {
-                    let html = '<div class="time-slots-list">';
-                    data.time_slots.forEach(slot => {
-                        html += `
-                            <div class="time-slot-item" data-slot-id="${slot.id}" data-slot-label="${slot.slot_label}">
-                                ${slot.slot_label}<br>
-                                <small>${slot.available_slots} slots available</small>
-                            </div>
-                        `;
-                    });
-                    html += '</div>';
-                    container.innerHTML = html;
+    const container = document.getElementById('dayTimeSlotsContainer');
+    container.innerHTML = '<div class="loading-spinner">Loading time slots...</div>';
+    
+    fetch(`/admin/calendar/time-slots?date=${date}&service=${service}`)
+        .then(response => response.json())
+        .then(data => {
+            if (data.success && data.time_slots.length > 0) {
+                let html = '<div class="time-slots-list">';
+                data.time_slots.forEach(slot => {
+                    // Determine color class based on status
+                    let statusClass = '';
+                    let statusText = '';
+                    let borderStyle = '';
                     
-                    document.querySelectorAll('.time-slot-item').forEach(el => {
-                        el.addEventListener('click', () => {
-                            document.querySelectorAll('.time-slot-item').forEach(s => s.classList.remove('selected'));
-                            el.classList.add('selected');
-                            const slotId = el.dataset.slotId;
-                            const slotLabel = el.dataset.slotLabel;
-                            loadAppointments(date, slotId, service, slotLabel);
-                        });
+                    switch(slot.status) {
+                        case 'full':
+                            statusClass = 'time-slot-full';
+                            statusText = '🔴 FULL';
+                            borderStyle = 'border: 2px solid #dc2626;';
+                            break;
+                        case 'limited':
+                            statusClass = 'time-slot-limited';
+                            statusText = '🟠 AVAILABLE';
+                            borderStyle = 'border: 2px solid #f97316;';
+                            break;
+                        case 'available':
+                            statusClass = 'time-slot-available';
+                            statusText = '🟡 AVAILABLE';
+                            borderStyle = 'border: 2px solid #eab308;';
+                            break;
+                        case 'plenty':
+                            statusClass = 'time-slot-plenty';
+                            statusText = '🟢 AVAILABLE';
+                            borderStyle = 'border: 2px solid #22c55e;';
+                            break;
+                        case 'unavailable':
+                            statusClass = 'time-slot-unavailable';
+                            statusText = '⚫ UNAVAILABLE';
+                            borderStyle = 'border: 2px solid #6b7280; background: #f3f4f6;';
+                            break;
+                        default:
+                            statusClass = 'time-slot-default';
+                            borderStyle = 'border: 2px solid #cbd5e1;';
+                    }
+                    
+                    // Don't hide any time slots - show all with appropriate styling
+                    html += `
+                        <div class="time-slot-item ${statusClass}" 
+                             data-slot-id="${slot.id}" 
+                             data-slot-label="${slot.slot_label}"
+                             style="${borderStyle} cursor: pointer; margin-bottom: 10px; padding: 12px; border-radius: 8px; transition: all 0.3s ease;">
+                            <div style="display: flex; justify-content: space-between; align-items: center;">
+                                <div>
+                                    <strong>${slot.slot_label}</strong>
+                                    <div style="font-size: 12px; margin-top: 5px;">
+                                        ${slot.available_slots} / ${slot.total_capacity} slots available
+                                    </div>
+                                </div>
+                                <div>
+                                    <span class="status-badge" style="${slot.status === 'full' ? 'background: #fee2e2; color: #dc2626;' : 
+                                                                       (slot.status === 'limited' ? 'background: #fff3e0; color: #f97316;' :
+                                                                       (slot.status === 'available' ? 'background: #fef9c3; color: #854d0e;' :
+                                                                       (slot.status === 'plenty' ? 'background: #dcfce7; color: #16a34a;' :
+                                                                       'background: #e5e7eb; color: #4b5563;')))}">
+                                        ${statusText}
+                                    </span>
+                                </div>
+                            </div>
+                            ${slot.available_slots > 0 ? `<small style="color: #64748b;">Click to view appointments</small>` : 
+                                                          `<small style="color: #dc2626;">No available slots</small>`}
+                        </div>
+                    `;
+                });
+                html += '</div>';
+                container.innerHTML = html;
+                
+                // Add click handlers to all time slots (even full/unavailable ones)
+                document.querySelectorAll('.time-slot-item').forEach(el => {
+                    el.addEventListener('click', () => {
+                        // Only load appointments if there are appointments to show
+                        const slotId = el.dataset.slotId;
+                        const slotLabel = el.dataset.slotLabel;
+                        const status = el.classList.contains('time-slot-full') ? 'full' : 
+                                     (el.classList.contains('time-slot-unavailable') ? 'unavailable' : 'available');
+                        
+                        // Remove selected class from all
+                        document.querySelectorAll('.time-slot-item').forEach(s => s.classList.remove('selected'));
+                        el.classList.add('selected');
+                        
+                        // Load appointments even if full (to show existing appointments)
+                        loadAppointments(date, slotId, service, slotLabel);
                     });
-                } else {
-                    container.innerHTML = '<div class="loading-spinner">No available time slots for this service on this date.</div>';
-                }
-            })
-            .catch(error => {
-                console.error('Error:', error);
-                container.innerHTML = '<div class="loading-spinner">Error loading time slots.</div>';
-            });
-    }
+                });
+            } else {
+                container.innerHTML = '<div class="loading-spinner">No time slots configured for this date.</div>';
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            container.innerHTML = '<div class="loading-spinner">Error loading time slots.</div>';
+        });
+}
     
     function loadAppointments(date, timeSlotId, service, slotLabel) {
         const container = document.getElementById('dayAppointmentsContainer');
@@ -429,58 +493,64 @@
         }
     }
     
-    function updateDayCellsWithSlotInfo() {
-        // Get all day cells
-        const dayCells = document.querySelectorAll('.fc-daygrid-day');
+function updateDayCellsWithSlotInfo() {
+    // Get all day cells
+    const dayCells = document.querySelectorAll('.fc-daygrid-day');
+    
+    dayCells.forEach(cell => {
+        // Find the date attribute
+        const dateAttr = cell.getAttribute('data-date');
+        if (!dateAttr) return;
         
-        dayCells.forEach(cell => {
-            // Find the date attribute
-            const dateAttr = cell.getAttribute('data-date');
-            if (!dateAttr) return;
-            
-            // Remove existing slot info if any
-            const existingInfo = cell.querySelector('.day-slot-info');
-            if (existingInfo) existingInfo.remove();
-            
-            // Get slot data for this date
-            const data = slotData[dateAttr];
-            if (!data) return;
-            
-            const remaining = data.remaining || 0;
-            const total = data.total || TOTAL_DAILY_CAPACITY;
-            
-            // Determine status class
-            let statusClass = '';
-            let statusIcon = '';
-            if (remaining === 0) {
-                statusClass = 'available-low';
-                statusIcon = '🔴';
-            } else if (remaining <= total / 3) {
-                statusClass = 'available-low';
-                statusIcon = '🟠';
-            } else if (remaining <= total * 0.66) {
-                statusClass = 'available-medium';
-                statusIcon = '🟡';
-            } else {
-                statusClass = 'available-high';
-                statusIcon = '🟢';
-            }
-            
-            // Create slot info element
-            const slotInfo = document.createElement('div');
-            slotInfo.className = `day-slot-info ${statusClass}`;
-            slotInfo.innerHTML = `
-                <span class="slot-count">${statusIcon} ${remaining} / ${total}</span>
-                <span class="slot-label">Available Slots</span>
-            `;
-            
-            // Find the day frame and append the slot info
-            const frame = cell.querySelector('.fc-daygrid-day-frame');
-            if (frame) {
-                frame.appendChild(slotInfo);
-            }
-        });
-    }
+        // Remove existing slot info if any
+        const existingInfo = cell.querySelector('.day-slot-info');
+        if (existingInfo) existingInfo.remove();
+        
+        // Get slot data for this date from the server
+        const data = slotData[dateAttr];
+        if (!data) return;
+        
+        // Use the actual values from the database (sent by the server)
+        const remaining = data.remaining || 0;
+        const total = data.total || 0;  // This now comes from actual database calculations
+        
+        // Skip if no capacity data
+        if (total === 0) return;
+        
+        // Determine status class and icon based on remaining percentage
+        const percentageRemaining = (remaining / total) * 100;
+        let statusClass = '';
+        let statusIcon = '';
+        
+        if (remaining === 0) {
+            statusClass = 'available-low';
+            statusIcon = '🔴';
+        } else if (percentageRemaining <= 33) {
+            statusClass = 'available-low';
+            statusIcon = '🟠';
+        } else if (percentageRemaining <= 66) {
+            statusClass = 'available-medium';
+            statusIcon = '🟡';
+        } else {
+            statusClass = 'available-high';
+            statusIcon = '🟢';
+        }
+        
+        // Create slot info element
+        const slotInfo = document.createElement('div');
+        slotInfo.className = `day-slot-info ${statusClass}`;
+        slotInfo.innerHTML = `
+            <span class="slot-count">${statusIcon} ${remaining} / ${total}</span>
+            <span class="slot-label">Available Slots (All Services)</span>
+        `;
+        
+        // Find the day frame and append the slot info
+        const frame = cell.querySelector('.fc-daygrid-day-frame');
+        if (frame) {
+            frame.appendChild(slotInfo);
+        }
+    });
+}
     
     function observeCalendarRendering() {
         const observer = new MutationObserver(function(mutations) {
