@@ -44,7 +44,7 @@
 
         /* Welcome Section */
         .reports-welcome-section {
-            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+            background: var(--title);
             border-radius: var(--border-radius);
             padding: 28px 32px;
             margin-bottom: 28px;

@@ -158,6 +158,13 @@ Route::get('/get-default-capacities', [App\Http\Controllers\Admin\SlotController
     Route::post('/settings/appointment', [App\Http\Controllers\Admin\SettingsController::class, 'updateAppointmentSettings'])->name('settings.appointment');
     Route::post('/settings/appointment/reset', [App\Http\Controllers\Admin\SettingsController::class, 'resetAppointmentSettings'])->name('settings.appointment.reset');
     Route::post('/settings/capacity-rules', [App\Http\Controllers\Admin\SettingsController::class, 'saveCapacityRules'])->name('settings.capacity-rules');
+
+    // Profile Routes
+    Route::get('/profile', [App\Http\Controllers\Admin\ProfileController::class, 'index'])->name('profile.index');
+    Route::get('/profile/edit', [App\Http\Controllers\Admin\ProfileController::class, 'edit'])->name('profile.edit');
+    Route::put('/profile/update', [App\Http\Controllers\Admin\ProfileController::class, 'update'])->name('profile.update');
+    Route::get('/profile/change-password', [App\Http\Controllers\Admin\ProfileController::class, 'changePassword'])->name('profile.change-password');
+    Route::put('/profile/password', [App\Http\Controllers\Admin\ProfileController::class, 'updatePassword'])->name('profile.password.update');
 });
 
 // Staff routes
@@ -195,6 +202,15 @@ Route::middleware(['auth', 'staff'])->prefix('staff')->name('staff.')->group(fun
     Route::get('/reports/export', [App\Http\Controllers\Staff\ReportsController::class, 'export'])->name('reports.export');
     Route::get('/export/pdf', [App\Http\Controllers\Staff\ReportsController::class, 'exportPdf'])->name('reports.export.pdf');
     Route::get('/export/excel', [App\Http\Controllers\Staff\ReportsController::class, 'exportExcel'])->name('reports.export.excel');
+
+    // Profile Routes
+    Route::get('/profile', [App\Http\Controllers\Staff\ProfileController::class, 'index'])->name('profile.index');
+    Route::get('/profile/edit', [App\Http\Controllers\Staff\ProfileController::class, 'edit'])->name('profile.edit');
+    Route::put('/profile/update', [App\Http\Controllers\Staff\ProfileController::class, 'update'])->name('profile.update');
+    Route::get('/profile/change-password', [App\Http\Controllers\Staff\ProfileController::class, 'changePassword'])->name('profile.change-password');
+    Route::put('/profile/password', [App\Http\Controllers\Staff\ProfileController::class, 'updatePassword'])->name('profile.password.update');
+
+
 });
 
 // Operator routes
@@ -228,6 +244,13 @@ Route::middleware(['auth', 'operator'])->prefix('operator')->name('operator.')->
     Route::get('/reports/export', [App\Http\Controllers\Operator\OReportsController::class, 'export'])->name('reports.export');
     Route::get('/export/pdf', [App\Http\Controllers\Operator\OReportsController::class, 'exportPdf'])->name('reports.export.pdf');
     Route::get('/export/excel', [App\Http\Controllers\Operator\OReportsController::class, 'exportExcel'])->name('reports.export.excel');
+
+    // Profile Routes
+    Route::get('/profile', [App\Http\Controllers\Operator\OProfileController::class, 'index'])->name('profile.index');
+    Route::get('/profile/edit', [App\Http\Controllers\Operator\OProfileController::class, 'edit'])->name('profile.edit');
+    Route::put('/profile/update', [App\Http\Controllers\Operator\OProfileController::class, 'update'])->name('profile.update');
+    Route::get('/profile/change-password', [App\Http\Controllers\Operator\OProfileController::class, 'changePassword'])->name('profile.change-password');
+    Route::put('/profile/password', [App\Http\Controllers\Operator\OProfileController::class, 'updatePassword'])->name('profile.password.update');
 });
 
 // Client appointment routes

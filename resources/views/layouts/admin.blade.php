@@ -31,6 +31,12 @@
     {{-- settings css link --}}
     <link rel="stylesheet" href="{{ asset('css/admin/settings/setting.css') }}">
 
+    {{-- profile css link --}}
+    <link rel="stylesheet" href="{{ asset('css/admin/profile/index.css') }}">
+    <link rel="stylesheet" href="{{ asset('css/admin/profile/change-password.css') }}">
+    <link rel="stylesheet" href="{{ asset('css/admin/profile/edit.css') }}">
+
+
     <meta name="csrf-token" content="{{ csrf_token() }}">
 
     <style>
@@ -256,7 +262,8 @@
                             </div>
                         </div>
                     </div>
-                    <span class="role-badge">{{ ucfirst(Auth::user()->role) }}</span>
+                    <span class="role-badge" id="roleBadge"
+                        style="cursor: pointer;">{{ ucfirst(Auth::user()->role) }}</span>
                 </div>
             </div>
 
@@ -319,6 +326,199 @@
                     </div>
                 </div>
             </footer>
+        </div>
+    </div>
+
+    <!-- Profile Modal -->
+    <div class="profile-modal" id="profileModal">
+        <div class="profile-modal-content">
+            <div class="profile-modal-header">
+                <h3><i class="fas fa-user-circle"></i> My Profile</h3>
+                <button class="profile-modal-close" id="closeProfileModal">&times;</button>
+            </div>
+            <div class="profile-modal-body">
+                <!-- Tabs -->
+                <div class="profile-tabs">
+                    <button class="profile-tab active" data-tab="view-tab">Profile</button>
+                    <button class="profile-tab" data-tab="edit-tab">Edit Profile</button>
+                    <button class="profile-tab" data-tab="password-tab">Change Password</button>
+                </div>
+
+                <!-- View Profile Tab -->
+                <div class="tab-pane active" id="view-tab">
+                    <div class="profile-view-header">
+                        @php
+                            $avatarPath = Auth::user()->profile_photo ?? null;
+                            $userInitial = strtoupper(substr(Auth::user()->first_name, 0, 1));
+                        @endphp
+                        @if ($avatarPath && file_exists(public_path('storage/' . $avatarPath)))
+                            <img src="{{ asset('storage/' . $avatarPath) }}" alt="Profile"
+                                class="profile-view-avatar" id="modalAvatar">
+                        @else
+                            <div class="profile-view-avatar-placeholder" id="modalAvatarPlaceholder">
+                                {{ $userInitial }}</div>
+                            <img style="display:none" class="profile-view-avatar" id="modalAvatar">
+                        @endif
+                        <h4 class="profile-view-name">{{ Auth::user()->first_name }} {{ Auth::user()->last_name }}
+                        </h4>
+                        <span class="profile-view-role">{{ ucfirst(Auth::user()->role) }}</span>
+                    </div>
+
+                    <div class="info-grid">
+                        <div class="info-item">
+                            <div class="info-icon"><i class="fas fa-envelope"></i></div>
+                            <div class="info-content">
+                                <div class="info-label">Email Address</div>
+                                <div class="info-value" id="viewEmail">{{ Auth::user()->email }}</div>
+                            </div>
+                        </div>
+                        <div class="info-item">
+                            <div class="info-icon"><i class="fas fa-phone"></i></div>
+                            <div class="info-content">
+                                <div class="info-label">Contact Number</div>
+                                <div class="info-value" id="viewContact">
+                                    {{ Auth::user()->contact_number ?? 'Not set' }}</div>
+                            </div>
+                        </div>
+                        <div class="info-item">
+                            <div class="info-icon"><i class="fas fa-calendar-alt"></i></div>
+                            <div class="info-content">
+                                <div class="info-label">Member Since</div>
+                                <div class="info-value">{{ Auth::user()->created_at->format('F d, Y') }}</div>
+                            </div>
+                        </div>
+                        <div class="info-item">
+                            <div class="info-icon"><i class="fas fa-id-badge"></i></div>
+                            <div class="info-content">
+                                <div class="info-label">User ID</div>
+                                <div class="info-value">#{{ Auth::user()->id }}</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Edit Profile Tab -->
+                <div class="tab-pane" id="edit-tab">
+                    <form id="profileUpdateForm" method="POST" action="{{ route('admin.profile.update') }}"
+                        enctype="multipart/form-data">
+                        @csrf
+                        @method('PUT')
+
+                        <div class="avatar-section">
+                            @php
+                                $currentAvatar = Auth::user()->profile_photo ?? null;
+                                $avatarUrl =
+                                    $currentAvatar && file_exists(public_path('storage/' . $currentAvatar))
+                                        ? asset('storage/' . $currentAvatar)
+                                        : null;
+                            @endphp
+                            @if ($avatarUrl)
+                                <img src="{{ $avatarUrl }}" alt="Profile" class="avatar-preview"
+                                    id="editAvatarPreview">
+                            @else
+                                <div class="avatar-placeholder" id="editAvatarPlaceholder">{{ $userInitial }}</div>
+                                <img style="display:none" class="avatar-preview" id="editAvatarPreview">
+                            @endif
+                            <div>
+                                <label class="upload-btn">
+                                    <i class="fas fa-camera"></i> Change Photo
+                                    <input type="file" name="profile_photo" id="profilePhotoInput"
+                                        accept="image/*" style="display: none;">
+                                </label>
+                                <small style="display: block; margin-top: 5px; color: #6b7280; font-size: 11px;">Max
+                                    2MB. JPG, PNG only</small>
+                            </div>
+                        </div>
+
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>First Name <span class="required">*</span></label>
+                                <input type="text" name="first_name" id="editFirstName"
+                                    value="{{ old('first_name', Auth::user()->first_name) }}" required>
+                            </div>
+                            <div class="form-group">
+                                <label>Last Name <span class="required">*</span></label>
+                                <input type="text" name="last_name" id="editLastName"
+                                    value="{{ old('last_name', Auth::user()->last_name) }}" required>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label>Email Address <span class="required">*</span></label>
+                            <input type="email" name="email" id="editEmail"
+                                value="{{ old('email', Auth::user()->email) }}" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label>Contact Number</label>
+                            <input type="text" name="contact_number" id="editContact"
+                                value="{{ old('contact_number', Auth::user()->contact_number) }}"
+                                placeholder="e.g., 09123456789">
+                        </div>
+
+                        <div class="action-buttons">
+                            <button type="submit" class="btn-save" id="saveProfileBtn">Save Changes</button>
+                            <button type="button" class="btn-cancel cancel-edit">Cancel</button>
+                        </div>
+                    </form>
+                </div>
+
+                <!-- Change Password Tab -->
+                <div class="tab-pane" id="password-tab">
+                    <form id="passwordUpdateForm" method="POST"
+                        action="{{ route('admin.profile.password.update') }}">
+                        @csrf
+                        @method('PUT')
+
+                        <div class="form-group">
+                            <label>Current Password <span class="required">*</span></label>
+                            <div class="password-input-wrapper">
+                                <input type="password" name="current_password" id="currentPassword" required>
+                                <i class="fas fa-eye-slash toggle-password" data-target="currentPassword"></i>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label>New Password <span class="required">*</span></label>
+                            <div class="password-input-wrapper">
+                                <input type="password" name="new_password" id="newPassword" required>
+                                <i class="fas fa-eye-slash toggle-password" data-target="newPassword"></i>
+                            </div>
+                            <div class="password-strength">
+                                <div class="strength-bar" id="strengthBar"></div>
+                                <div class="strength-text" id="strengthText"></div>
+                            </div>
+                        </div>
+
+                        <div class="password-requirements">
+                            <p>Password Requirements:</p>
+                            <div class="requirement" id="reqLength"><i class="fas fa-circle"></i> At least 8
+                                characters</div>
+                            <div class="requirement" id="reqUppercase"><i class="fas fa-circle"></i> At least 1
+                                uppercase letter</div>
+                            <div class="requirement" id="reqLowercase"><i class="fas fa-circle"></i> At least 1
+                                lowercase letter</div>
+                            <div class="requirement" id="reqNumber"><i class="fas fa-circle"></i> At least 1 number
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label>Confirm New Password <span class="required">*</span></label>
+                            <div class="password-input-wrapper">
+                                <input type="password" name="new_password_confirmation" id="confirmPassword"
+                                    required>
+                                <i class="fas fa-eye-slash toggle-password" data-target="confirmPassword"></i>
+                            </div>
+                            <div id="matchMessage" style="font-size: 11px; margin-top: 5px;"></div>
+                        </div>
+
+                        <div class="action-buttons">
+                            <button type="submit" class="btn-save" id="savePasswordBtn">Update Password</button>
+                            <button type="button" class="btn-cancel cancel-password">Cancel</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
         </div>
     </div>
 
@@ -578,6 +778,18 @@
             const helpLink = document.getElementById('helpLink');
             const privacyLink = document.getElementById('privacyLink');
             const contactLink = document.getElementById('contactLink');
+            const roleBadge = document.getElementById('roleBadge');
+
+            if (roleBadge) {
+                roleBadge.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    const modal = document.getElementById('profileModal');
+                    if (modal) {
+                        modal.classList.add('active');
+                        document.body.style.overflow = 'hidden';
+                    }
+                });
+            }
 
             if (aboutLink) {
                 aboutLink.addEventListener('click', (e) => {
@@ -712,6 +924,355 @@
             bindNavigationLoaders();
             initLogoutHandler();
             initFooterLinks();
+
+            // Profile Modal Functionality
+            const profileModal = document.getElementById('profileModal');
+            const closeModalBtn = document.getElementById('closeProfileModal');
+
+            if (closeModalBtn) {
+                closeModalBtn.addEventListener('click', function() {
+                    profileModal.classList.remove('active');
+                    document.body.style.overflow = '';
+                });
+            }
+
+            if (profileModal) {
+                profileModal.addEventListener('click', function(e) {
+                    if (e.target === profileModal) {
+                        profileModal.classList.remove('active');
+                        document.body.style.overflow = '';
+                    }
+                });
+            }
+
+            // Tab switching
+            const tabs = document.querySelectorAll('.profile-tab');
+            tabs.forEach(tab => {
+                tab.addEventListener('click', function() {
+                    const tabId = this.dataset.tab;
+                    tabs.forEach(t => t.classList.remove('active'));
+                    this.classList.add('active');
+                    document.querySelectorAll('.tab-pane').forEach(pane => pane.classList.remove(
+                        'active'));
+                    document.getElementById(tabId).classList.add('active');
+                });
+            });
+
+            // Cancel buttons
+            document.querySelectorAll('.cancel-edit, .cancel-password').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    document.querySelector('.profile-tab[data-tab="view-tab"]').click();
+                });
+            });
+
+            // Avatar preview
+            const photoInput = document.getElementById('profilePhotoInput');
+            const editAvatarPreview = document.getElementById('editAvatarPreview');
+            const editAvatarPlaceholder = document.getElementById('editAvatarPlaceholder');
+
+            if (photoInput) {
+                photoInput.addEventListener('change', function(e) {
+                    const file = e.target.files[0];
+                    if (file) {
+                        if (file.size > 2 * 1024 * 1024) {
+                            alert('File size must be less than 2MB');
+                            this.value = '';
+                            return;
+                        }
+                        const reader = new FileReader();
+                        reader.onload = function(event) {
+                            if (editAvatarPreview) {
+                                editAvatarPreview.src = event.target.result;
+                                editAvatarPreview.style.display = 'block';
+                            }
+                            if (editAvatarPlaceholder) editAvatarPlaceholder.style.display = 'none';
+                        };
+                        reader.readAsDataURL(file);
+                    }
+                });
+            }
+
+            // Toggle password visibility
+            document.querySelectorAll('.toggle-password').forEach(icon => {
+                icon.addEventListener('click', function() {
+                    const targetId = this.dataset.target;
+                    const input = document.getElementById(targetId);
+                    if (input.type === 'password') {
+                        input.type = 'text';
+                        this.classList.remove('fa-eye-slash');
+                        this.classList.add('fa-eye');
+                    } else {
+                        input.type = 'password';
+                        this.classList.remove('fa-eye');
+                        this.classList.add('fa-eye-slash');
+                    }
+                });
+            });
+
+            // Password strength checker
+            const newPassword = document.getElementById('newPassword');
+            const confirmPassword = document.getElementById('confirmPassword');
+            const strengthBar = document.getElementById('strengthBar');
+            const strengthText = document.getElementById('strengthText');
+            const matchMessage = document.getElementById('matchMessage');
+
+            function checkPasswordStrength(password) {
+                let score = 0;
+                if (password.length >= 8) score++;
+                if (password.match(/[A-Z]/)) score++;
+                if (password.match(/[a-z]/)) score++;
+                if (password.match(/[0-9]/)) score++;
+                return score;
+            }
+
+            function updateStrengthDisplay() {
+                const password = newPassword ? newPassword.value : '';
+                const score = checkPasswordStrength(password);
+
+                let barClass = '';
+                let textClass = '';
+                let text = '';
+
+                if (password.length === 0) {
+                    barClass = '';
+                    text = '';
+                } else if (score === 1) {
+                    barClass = 'weak';
+                    textClass = 'weak';
+                    text = 'Weak';
+                } else if (score === 2) {
+                    barClass = 'medium';
+                    textClass = 'medium';
+                    text = 'Medium';
+                } else if (score === 3) {
+                    barClass = 'strong';
+                    textClass = 'strong';
+                    text = 'Strong';
+                } else if (score === 4) {
+                    barClass = 'very-strong';
+                    textClass = 'very-strong';
+                    text = 'Very Strong';
+                }
+
+                if (strengthBar) strengthBar.className = 'strength-bar ' + barClass;
+                if (strengthText) {
+                    strengthText.className = 'strength-text ' + textClass;
+                    strengthText.textContent = text;
+                }
+
+                const reqLength = document.getElementById('reqLength');
+                const reqUppercase = document.getElementById('reqUppercase');
+                const reqLowercase = document.getElementById('reqLowercase');
+                const reqNumber = document.getElementById('reqNumber');
+
+                if (reqLength) {
+                    reqLength.className = password.length >= 8 ? 'requirement valid' : 'requirement invalid';
+                    reqLength.innerHTML = (password.length >= 8 ? '<i class="fas fa-check-circle"></i>' :
+                        '<i class="fas fa-circle"></i>') + ' At least 8 characters';
+                }
+                if (reqUppercase) {
+                    reqUppercase.className = password.match(/[A-Z]/) ? 'requirement valid' : 'requirement invalid';
+                    reqUppercase.innerHTML = (password.match(/[A-Z]/) ? '<i class="fas fa-check-circle"></i>' :
+                        '<i class="fas fa-circle"></i>') + ' At least 1 uppercase letter';
+                }
+                if (reqLowercase) {
+                    reqLowercase.className = password.match(/[a-z]/) ? 'requirement valid' : 'requirement invalid';
+                    reqLowercase.innerHTML = (password.match(/[a-z]/) ? '<i class="fas fa-check-circle"></i>' :
+                        '<i class="fas fa-circle"></i>') + ' At least 1 lowercase letter';
+                }
+                if (reqNumber) {
+                    reqNumber.className = password.match(/[0-9]/) ? 'requirement valid' : 'requirement invalid';
+                    reqNumber.innerHTML = (password.match(/[0-9]/) ? '<i class="fas fa-check-circle"></i>' :
+                        '<i class="fas fa-circle"></i>') + ' At least 1 number';
+                }
+            }
+
+            function checkPasswordMatch() {
+                if (!newPassword || !confirmPassword || !matchMessage) return;
+                const password = newPassword.value;
+                const confirm = confirmPassword.value;
+
+                if (confirm.length === 0) {
+                    matchMessage.innerHTML = '';
+                    return;
+                }
+
+                if (password === confirm) {
+                    matchMessage.innerHTML =
+                        '<i class="fas fa-check-circle" style="color: #10b981;"></i> Passwords match';
+                    matchMessage.style.color = '#10b981';
+                } else {
+                    matchMessage.innerHTML =
+                        '<i class="fas fa-exclamation-circle" style="color: #ef4444;"></i> Passwords do not match';
+                    matchMessage.style.color = '#ef4444';
+                }
+            }
+
+            if (newPassword) {
+                newPassword.addEventListener('input', updateStrengthDisplay);
+                newPassword.addEventListener('input', checkPasswordMatch);
+            }
+            if (confirmPassword) {
+                confirmPassword.addEventListener('input', checkPasswordMatch);
+            }
+
+            // Profile Update Form Submission (AJAX)
+            const profileForm = document.getElementById('profileUpdateForm');
+            if (profileForm) {
+                profileForm.addEventListener('submit', function(e) {
+                    e.preventDefault();
+
+                    const formData = new FormData(this);
+                    const saveBtn = document.getElementById('saveProfileBtn');
+
+                    saveBtn.disabled = true;
+                    saveBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving...';
+
+                    // Use POST with _method override so multipart FormData is parsed by Laravel
+                    formData.append('_method', 'PUT');
+                    fetch(this.action, {
+                            method: 'POST',
+                            headers: {
+                                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')
+                                    .content,
+                                'X-Requested-With': 'XMLHttpRequest'
+                            },
+                            body: formData
+                        })
+                        .then(response => response.json())
+                        .then(data => {
+                            if (data.success) {
+                                // Update view tab with new data
+                                document.querySelector('.profile-view-name').textContent = document
+                                    .getElementById('editFirstName').value + ' ' + document
+                                    .getElementById('editLastName').value;
+                                document.getElementById('viewEmail').textContent = document
+                                    .getElementById('editEmail').value;
+                                document.getElementById('viewContact').textContent = document
+                                    .getElementById('editContact').value || 'Not set';
+
+                                // Update avatar in view tab if changed
+                                const editPreview = document.getElementById('editAvatarPreview');
+                                if (editPreview && editPreview.style.display !== 'none') {
+                                    const viewAvatar = document.getElementById('modalAvatar');
+                                    const viewPlaceholder = document.getElementById(
+                                        'modalAvatarPlaceholder');
+                                    if (viewAvatar) {
+                                        viewAvatar.src = editPreview.src;
+                                        viewAvatar.style.display = 'block';
+                                    }
+                                    if (viewPlaceholder) viewPlaceholder.style.display = 'none';
+                                }
+
+                                // Show success message
+                                const editTab = document.getElementById('edit-tab');
+                                const successAlert = document.createElement('div');
+                                successAlert.className = 'alert alert-success';
+                                successAlert.innerHTML = data.message +
+                                    '<button type="button" class="alert-close" onclick="this.parentElement.remove()">&times;</button>';
+                                editTab.insertBefore(successAlert, editTab.firstChild);
+
+                                saveBtn.disabled = false;
+                                saveBtn.innerHTML = '<i class="fas fa-save"></i> Save Changes';
+                                hidePSALoader();
+
+                                // Switch to view tab after 1.5 seconds
+                                setTimeout(() => {
+                                    document.querySelector('.profile-tab[data-tab="view-tab"]')
+                                        .click();
+                                }, 1500);
+                            } else {
+                                alert(data.message || 'Something went wrong');
+                                saveBtn.disabled = false;
+                                saveBtn.innerHTML = '<i class="fas fa-save"></i> Save Changes';
+                                hidePSALoader();
+                            }
+                        })
+                        .catch(error => {
+                            alert('Network error occurred');
+                            saveBtn.disabled = false;
+                            saveBtn.innerHTML = '<i class="fas fa-save"></i> Save Changes';
+                            hidePSALoader();
+                        });
+                });
+            }
+
+            // Password Update Form Submission (AJAX)
+            const passwordForm = document.getElementById('passwordUpdateForm');
+            if (passwordForm) {
+                passwordForm.addEventListener('submit', function(e) {
+                    e.preventDefault();
+
+                    const password = newPassword.value;
+                    const confirm = confirmPassword.value;
+
+                    if (password !== confirm) {
+                        alert('Passwords do not match!');
+                        return;
+                    }
+
+                    if (password.length < 8) {
+                        alert('Password must be at least 8 characters!');
+                        return;
+                    }
+
+                    const saveBtn = document.getElementById('savePasswordBtn');
+                    saveBtn.disabled = true;
+                    saveBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Updating...';
+
+                    fetch(this.action, {
+                            method: 'POST',
+                            headers: {
+                                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')
+                                    .content,
+                                'Content-Type': 'application/json',
+                                'X-Requested-With': 'XMLHttpRequest'
+                            },
+                            body: JSON.stringify({
+                                current_password: document.getElementById('currentPassword')
+                                    .value,
+                                new_password: password,
+                                new_password_confirmation: confirm
+                            })
+                        })
+                        .then(response => response.json())
+                        .then(data => {
+                            if (data.success) {
+                                const passwordTab = document.getElementById('password-tab');
+                                const successAlert = document.createElement('div');
+                                successAlert.className = 'alert alert-success';
+                                successAlert.innerHTML = data.message +
+                                    '<button type="button" class="alert-close" onclick="this.parentElement.remove()">&times;</button>';
+                                passwordTab.insertBefore(successAlert, passwordTab.firstChild);
+
+                                passwordForm.reset();
+                                if (strengthBar) strengthBar.className = 'strength-bar';
+                                if (strengthText) strengthText.textContent = '';
+                                if (matchMessage) matchMessage.innerHTML = '';
+
+                                saveBtn.disabled = false;
+                                saveBtn.innerHTML = '<i class="fas fa-save"></i> Update Password';
+                                hidePSALoader();
+
+                                setTimeout(() => {
+                                    document.querySelector('.profile-tab[data-tab="view-tab"]')
+                                        .click();
+                                }, 2000);
+                            } else {
+                                alert(data.message || 'Current password is incorrect');
+                                saveBtn.disabled = false;
+                                saveBtn.innerHTML = '<i class="fas fa-save"></i> Update Password';
+                                hidePSALoader();
+                            }
+                        })
+                        .catch(error => {
+                            alert('Network error occurred');
+                            saveBtn.disabled = false;
+                            saveBtn.innerHTML = '<i class="fas fa-save"></i> Update Password';
+                            hidePSALoader();
+                        });
+                });
+            }
 
             window.showPSALoader = showPSALoader;
             window.hidePSALoader = hidePSALoader;
