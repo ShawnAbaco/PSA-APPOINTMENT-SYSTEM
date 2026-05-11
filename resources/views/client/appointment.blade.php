@@ -1725,14 +1725,8 @@
         return;
     }
     
-    // Debug: Log clientTimeSlots to see what's there
-    console.log('clientTimeSlots:', clientTimeSlots);
-    console.log('clients:', clients);
-    
     const clientsData = clients.map(c => {
         const timeSlot = clientTimeSlots[c.id];
-        console.log(`Client ${c.id} (${getFullName(c)}) timeSlot:`, timeSlot);
-        
         return {
             first_name: c.firstName,
             middle_name: c.middleName || null,
@@ -1746,8 +1740,6 @@
             trn_number: clientTrnData[c.id]?.hasTrn && clientTrnData[c.id]?.isValid ? clientTrnData[c.id]?.trnNumber : null
         };
     });
-
-    console.log('clientsData being sent:', clientsData);
 
     showLoading();
     try {
@@ -1764,92 +1756,313 @@
         });
         const result = await response.json();
         if (result.success) {
-            document.getElementById('successDetails').innerHTML = `<div><p><strong>Reference Code:</strong> ${result.appointment.reference_code}</p><p><strong>Date:</strong> ${result.appointment.date}</p><p><strong>Total Applicants:</strong> ${result.appointment.clients_count}</p><p style="color:#dc3545;">⚠️ Please save your Reference Code.</p></div>`;
+            // Store appointment data globally for download functions
+            window.globalAppointmentData = {
+                appointment_number: result.appointment.number,
+                reference_code: result.appointment.reference_code,
+                date: result.appointment.date,
+                contact_name: result.appointment.contact_name,
+                contact_mobile: result.appointment.contact_mobile,
+                contact_email: result.appointment.contact_email,
+                clients_list: result.appointment.clients_list || []
+            };
+            
+            // Build clients HTML for display
+            let clientsHtml = '';
+            if (window.globalAppointmentData.clients_list && window.globalAppointmentData.clients_list.length > 0) {
+                clientsHtml = '<div style="text-align: left; margin-top: 10px;"><strong>Applicant Details:</strong><ul>';
+                window.globalAppointmentData.clients_list.forEach(client => {
+                    clientsHtml += `<li><strong>${escapeHtml(client.name)}</strong><br><small>Service: ${client.service_name}</small><br><small>Time: ${client.time_slot}</small></li>`;
+                });
+                clientsHtml += '</ul></div>';
+            }
+            
+            document.getElementById('successDetails').innerHTML = `
+                <div style="text-align: left;">
+                    <p><strong>Appointment Number:</strong> ${result.appointment.number}</p>
+                    <p><strong>Reference Code:</strong> ${result.appointment.reference_code}</p>
+                    <p><strong>Date:</strong> ${result.appointment.date}</p>
+                    <p><strong>Contact Person:</strong> ${escapeHtml(result.appointment.contact_name)}</p>
+                    <p><strong>Contact Number:</strong> ${result.appointment.contact_mobile}</p>
+                    ${result.appointment.contact_email ? `<p><strong>Email:</strong> ${escapeHtml(result.appointment.contact_email)}</p>` : ''}
+                    <p><strong>Total Applicants:</strong> ${result.appointment.clients_count} person(s)</p>
+                    ${clientsHtml}
+                    <hr>
+                    <p><small style="color: #dc3545;">⚠️ Please save your Reference Code for verification.</small></p>
+                </div>
+            `;
             successModal.style.display = 'flex';
         } else {
             Swal.fire({ icon: 'error', title: 'Error', text: result.message, confirmButtonColor: '#dc3545' });
         }
     } catch (error) {
         console.error('Submission error:', error);
-        Swal.fire({ icon: 'error', title: 'Error', text: 'Submission failed: ' + error.message, confirmButtonColor: '#dc3545' });
+        Swal.fire({ icon: 'error', title: 'Error', text: 'Submission failed.', confirmButtonColor: '#dc3545' });
     } finally { hideLoading(); }
 };
 })();
 
 // DOWNLOAD FUNCTIONS
-async function captureSuccessModal() {
-    const successDetails = document.getElementById('successDetails');
-    if (!successDetails) return null;
+// ==================== DOWNLOAD FUNCTIONS - MULTI-RECEIPT ====================
+
+// Local escape function for downloads (self-contained)
+function downloadEscapeHtml(str) {
+    if (!str) return '';
+    return String(str).replace(/[&<>]/g, function(m) {
+        if (m === '&') return '&amp;';
+        if (m === '<') return '&lt;';
+        if (m === '>') return '&gt;';
+        return m;
+    });
+}
+
+async function captureClientReceipt(client, appointmentData) {
     const receiptContainer = document.createElement('div');
-    receiptContainer.style.cssText = `background: white; padding: 30px; border-radius: 12px; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; max-width: 500px; margin: 0 auto; box-shadow: 0 4px 20px rgba(0,0,0,0.1);`;
+    receiptContainer.style.cssText = `
+        background: white;
+        padding: 30px;
+        border-radius: 12px;
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        max-width: 500px;
+        margin: 0 auto;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+        page-break-after: always;
+        break-inside: avoid;
+    `;
+    
     const now = new Date();
-    const formattedDateTime = now.toLocaleString('en-US', { year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' });
+    const formattedDateTime = now.toLocaleString('en-US', {
+        year: 'numeric', month: 'long', day: 'numeric',
+        hour: '2-digit', minute: '2-digit'
+    });
+    
     receiptContainer.innerHTML = `
         <div style="text-align: center; margin-bottom: 20px;">
+            <img src="{{ asset('images/psa-logo.png') }}" alt="PSA Logo" style="height: 60px; width: auto; margin-bottom: 10px;">
             <h2 style="color: #2c5f8a; margin: 0; font-size: 1.3rem;">Philippine Statistics Authority</h2>
             <h3 style="color: #4a5568; margin: 5px 0; font-size: 1rem;">National ID System (PhilSys)</h3>
-            <p style="color: #718096; margin: 5px 0; font-size: 0.85rem;">Appointment Confirmation</p>
+            <p style="color: #718096; margin: 5px 0; font-size: 0.85rem;">Applicant Confirmation Slip</p>
         </div>
+        
         <div style="border-top: 2px solid #2c5f8a; margin: 10px 0;"></div>
-        <div style="padding: 10px 0;">${successDetails.innerHTML}</div>
+        
+        <div style="padding: 10px 0;">
+            <p style="margin: 8px 0;"><strong>Applicant Name:</strong> ${downloadEscapeHtml(client.name)}</p>
+            <p style="margin: 8px 0;"><strong>Service:</strong> ${downloadEscapeHtml(client.service_name || client.service)}</p>
+            <p style="margin: 8px 0;"><strong>Appointment Number:</strong> ${downloadEscapeHtml(appointmentData.appointment_number)}</p>
+            <p style="margin: 8px 0;"><strong>Reference Code:</strong> ${downloadEscapeHtml(appointmentData.reference_code)}</p>
+            <p style="margin: 8px 0;"><strong>Date:</strong> ${downloadEscapeHtml(appointmentData.date)}</p>
+            <p style="margin: 8px 0;"><strong>Time Slot:</strong> ${downloadEscapeHtml(client.time_slot || 'Time slot selected')}</p>
+            <p style="margin: 8px 0;"><strong>Contact Person:</strong> ${downloadEscapeHtml(appointmentData.contact_name)}</p>
+            <p style="margin: 8px 0;"><strong>Contact Number:</strong> ${downloadEscapeHtml(appointmentData.contact_mobile)}</p>
+            ${appointmentData.contact_email ? `<p style="margin: 8px 0;"><strong>Email:</strong> ${downloadEscapeHtml(appointmentData.contact_email)}</p>` : ''}
+        </div>
+        
         <div style="border-top: 1px solid #e2e8f0; margin: 10px 0;"></div>
+        
+        <div style="text-align: center; margin: 15px 0;">
+            <div style="display: inline-block; padding: 10px; background: white; border: 1px solid #e2e8f0; border-radius: 8px;">
+                <svg width="100" height="100" viewBox="0 0 100 100" style="margin: 0 auto;">
+                    <rect width="100" height="100" fill="white"/>
+                    <text x="50" y="50" text-anchor="middle" dominant-baseline="middle" font-size="8" fill="black">${downloadEscapeHtml(appointmentData.reference_code)}</text>
+                </svg>
+            </div>
+        </div>
+        
         <div style="margin-top: 15px; padding: 12px; background: #f8fafc; border-radius: 8px; text-align: center;">
             <p style="margin: 0; font-size: 0.8rem; color: #475569;">
                 <strong><i class="fas fa-map-marker-alt"></i> PSA Misamis Oriental Office</strong><br>
-                Capt. Vicente Roa Street, Brgy. 31, Cagayan de Oro City, 9000 Misamis Oriental, Philippines
+                Capt. Vicente Roa Street, Brgy. 31, Cagayan de Oro City,<br>
+                9000 Misamis Oriental, Philippines
             </p>
         </div>
+        
         <div style="margin-top: 15px; padding: 12px; background: #fef3c7; border-left: 4px solid #f59e0b; border-radius: 8px;">
             <p style="margin: 0; font-size: 0.8rem; color: #92400e;">
                 <strong><i class="fas fa-clock"></i> Important Reminder:</strong><br>
                 Please arrive at least <strong>15 minutes before</strong> your scheduled appointment time.
             </p>
         </div>
+        
         <div style="border-top: 1px solid #e2e8f0; margin: 15px 0 10px 0;"></div>
+        
         <div style="text-align: center; padding-top: 10px;">
-            <p style="color: #718096; font-size: 11px;">Generated on: ${formattedDateTime}</p>
-            <p style="color: #718096; font-size: 11px;">© ${new Date().getFullYear()} Philippine Statistics Authority</p>
+            <p style="color: #718096; font-size: 10px; margin: 5px 0;">This is a system-generated confirmation for individual applicant.</p>
+            <p style="color: #718096; font-size: 10px; margin: 5px 0;">Generated on: ${formattedDateTime}</p>
+            <p style="color: #718096; font-size: 10px; margin: 5px 0;">© ${new Date().getFullYear()} Philippine Statistics Authority</p>
         </div>
     `;
+    
     return receiptContainer;
 }
 
+async function generateAllClientReceipts() {
+    const appointmentData = window.globalAppointmentData;
+    if (!appointmentData || !appointmentData.clients_list || appointmentData.clients_list.length === 0) {
+        return [];
+    }
+    
+    const receipts = [];
+    for (let i = 0; i < appointmentData.clients_list.length; i++) {
+        const client = appointmentData.clients_list[i];
+        const receipt = await captureClientReceipt(client, appointmentData);
+        receipts.push(receipt);
+    }
+    return receipts;
+}
+
+
+// PNG Download - Multiple images
 document.getElementById('downloadPngBtn').onclick = async () => {
     try {
         const btn = document.getElementById('downloadPngBtn');
-        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Generating...';
+        const originalText = btn.innerHTML;
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Generating PNGs...';
         btn.disabled = true;
+        
         if (typeof html2canvas === 'undefined') {
-            await new Promise((resolve) => { const script = document.createElement('script'); script.src = 'https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js'; script.onload = resolve; document.head.appendChild(script); });
+            await new Promise((resolve) => {
+                const script = document.createElement('script');
+                script.src = 'https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js';
+                script.onload = resolve;
+                document.head.appendChild(script);
+            });
         }
-        const receipt = await captureSuccessModal();
-        if (!receipt) { alert('Unable to generate receipt'); return; }
-        document.body.appendChild(receipt);
-        const canvas = await html2canvas(receipt, { scale: 2, backgroundColor: '#ffffff', logging: false, useCORS: true });
-        document.body.removeChild(receipt);
-        const link = document.createElement('a');
-        link.download = `appointment-confirmation-${Date.now()}.png`;
-        link.href = canvas.toDataURL('image/png');
-        link.click();
+        
+        const receipts = await generateAllClientReceipts();
+        
+        if (receipts.length === 0) {
+            Swal.fire({
+                icon: 'warning',
+                title: 'No Data',
+                text: 'No appointment data found. Please submit an appointment first.',
+                confirmButtonColor: '#dc3545'
+            });
+            btn.innerHTML = originalText;
+            btn.disabled = false;
+            return;
+        }
+        
+        for (let i = 0; i < receipts.length; i++) {
+            const receipt = receipts[i];
+            document.body.appendChild(receipt);
+            
+            const canvas = await html2canvas(receipt, {
+                scale: 2,
+                backgroundColor: '#ffffff',
+                logging: false,
+                useCORS: true
+            });
+            
+            document.body.removeChild(receipt);
+            
+            const link = document.createElement('a');
+            const clientName = (window.globalAppointmentData.clients_list[i].name || 'applicant').replace(/\s/g, '_');
+            link.download = `appointment-${clientName}-${Date.now()}.png`;
+            link.href = canvas.toDataURL('image/png');
+            link.click();
+            
+            await new Promise(resolve => setTimeout(resolve, 500));
+        }
+        
+        Swal.fire({
+            icon: 'success',
+            title: 'Download Complete',
+            text: `${receipts.length} receipt(s) downloaded successfully.`,
+            confirmButtonColor: '#28a745',
+            timer: 2000
+        });
+        
+        btn.innerHTML = originalText;
+        btn.disabled = false;
+    } catch (error) {
+        console.error('PNG download error:', error);
+        Swal.fire({
+            icon: 'error',
+            title: 'Download Failed',
+            text: 'Failed to generate PNG receipts. Please try again.',
+            confirmButtonColor: '#dc3545'
+        });
+        const btn = document.getElementById('downloadPngBtn');
         btn.innerHTML = '<i class="fas fa-image"></i> Download PNG';
         btn.disabled = false;
-    } catch (error) { console.error('PNG download error:', error); alert('Failed to generate PNG. Please try again.'); }
+    }
 };
 
+
+
+// PDF Download - Multi-page PDF
 document.getElementById('downloadPdfBtn').onclick = async () => {
     try {
         const btn = document.getElementById('downloadPdfBtn');
-        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Generating...';
+        const originalText = btn.innerHTML;
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Generating PDF...';
         btn.disabled = true;
-        const receipt = await captureSuccessModal();
-        if (!receipt) { alert('Unable to generate receipt'); return; }
-        document.body.appendChild(receipt);
-        await html2pdf().set({ margin: [0.5, 0.5, 0.5, 0.5], filename: `appointment-confirmation-${Date.now()}.pdf`, image: { type: 'jpeg', quality: 0.98 }, html2canvas: { scale: 2, useCORS: true }, jsPDF: { unit: 'in', format: 'letter', orientation: 'portrait' } }).from(receipt).save();
-        document.body.removeChild(receipt);
+        
+        const receipts = await generateAllClientReceipts();
+        
+        if (receipts.length === 0) {
+            Swal.fire({
+                icon: 'warning',
+                title: 'No Data',
+                text: 'No appointment data found. Please submit an appointment first.',
+                confirmButtonColor: '#dc3545'
+            });
+            btn.innerHTML = originalText;
+            btn.disabled = false;
+            return;
+        }
+        
+        const wrapper = document.createElement('div');
+        wrapper.style.cssText = 'background: white; padding: 20px;';
+        
+        for (let i = 0; i < receipts.length; i++) {
+            wrapper.appendChild(receipts[i]);
+            if (i < receipts.length - 1) {
+                const pageBreak = document.createElement('div');
+                pageBreak.style.cssText = 'page-break-after: always; break-after: page;';
+                wrapper.appendChild(pageBreak);
+            }
+        }
+        
+        document.body.appendChild(wrapper);
+        
+        const opt = {
+            margin: [0.5, 0.5, 0.5, 0.5],
+            filename: `appointment-receipts-${Date.now()}.pdf`,
+            image: { type: 'jpeg', quality: 0.98 },
+            html2canvas: { scale: 2, useCORS: true },
+            jsPDF: { unit: 'in', format: 'letter', orientation: 'portrait' }
+        };
+        
+        await html2pdf().set(opt).from(wrapper).save();
+        document.body.removeChild(wrapper);
+        
+        Swal.fire({
+            icon: 'success',
+            title: 'Download Complete',
+            text: `${receipts.length} receipt(s) downloaded as PDF.`,
+            confirmButtonColor: '#28a745',
+            timer: 2000
+        });
+        
+        btn.innerHTML = originalText;
+        btn.disabled = false;
+    } catch (error) {
+        console.error('PDF download error:', error);
+        Swal.fire({
+            icon: 'error',
+            title: 'Download Failed',
+            text: 'Failed to generate PDF receipts. Please try again.',
+            confirmButtonColor: '#dc3545'
+        });
+        const btn = document.getElementById('downloadPdfBtn');
         btn.innerHTML = '<i class="fas fa-file-pdf"></i> Download PDF';
         btn.disabled = false;
-    } catch (error) { console.error('PDF download error:', error); alert('Failed to generate PDF. Please try again.'); }
+    }
 };
+
+
 </script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 </body>
