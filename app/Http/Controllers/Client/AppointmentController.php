@@ -150,21 +150,27 @@ class AppointmentController extends Controller
      * Get booked count for a specific date, time slot, and service
      * Counts ONLY confirmed/pending appointments (not cancelled)
      */
-    private function getBookedCount($date, $timeSlotId, $service)
-    {
-        try {
-            $dateString = $date instanceof Carbon ? $date->format('Y-m-d') : Carbon::parse($date)->format('Y-m-d');
-            
-            return AppointmentClient::whereHas('appointment', function($query) use ($dateString, $timeSlotId) {
-                $query->where('appointment_date', $dateString)
-                    ->where('time_slot_id', $timeSlotId)
-                    ->whereIn('status', ['pending', 'confirmed']); // Only count active bookings
-            })->where('service', $service)->count();
-        } catch (\Exception $e) {
-            Log::warning('Error getting booked count: ' . $e->getMessage());
-            return 0;
-        }
+    /**
+ * Get booked count for a specific date, time slot, and service
+ * Counts clients with their individual time slots
+ */
+private function getBookedCount($date, $timeSlotId, $service)
+{
+    try {
+        $dateString = $date instanceof Carbon ? $date->format('Y-m-d') : Carbon::parse($date)->format('Y-m-d');
+        
+        return AppointmentClient::whereHas('appointment', function($query) use ($dateString) {
+            $query->where('appointment_date', $dateString)
+                ->whereIn('status', ['pending', 'confirmed']);
+        })->where('time_slot_id', $timeSlotId)
+          ->where('service', $service)
+          ->count();
+          
+    } catch (\Exception $e) {
+        Log::warning('Error getting booked count: ' . $e->getMessage());
+        return 0;
     }
+}
     
     /**
      * Get available slots for a specific date, time slot, and service
@@ -275,76 +281,77 @@ class AppointmentController extends Controller
     }
     
     public function getAvailableTimeSlots(Request $request)
-    {
-        try {
-            $date = $request->get('date');
-            $servicesParam = $request->get('services', '');
-            $clientCount = (int)$request->get('client_count', 1);
-            
-            $servicesToCheck = !empty($servicesParam) ? explode(',', $servicesParam) : ['reg', 'updating', 'inquiry'];
-            
-            // First check if the date is a working day
-            $dayType = $this->getDayType($date);
-            if ($dayType !== 'working') {
-                return response()->json([
-                    'success' => true,
-                    'time_slots' => [],
-                    'date' => $date,
-                    'message' => 'This date is not a working day.'
-                ]);
-            }
-            
-            $timeSlots = TimeSlot::where('is_active', true)
-                ->orderBy('display_order')
-                ->get();
-            
-            $availableTimeSlots = [];
-            
-            foreach ($timeSlots as $timeSlot) {
-                $availableForServices = [];
-                $allServicesHaveAvailability = true;
-                $minAvailable = PHP_INT_MAX;
-                
-                foreach ($servicesToCheck as $service) {
-                    $available = $this->getAvailableSlots($date, $timeSlot->id, $service);
-                    $availableForServices[$service] = $available;
-                    $minAvailable = min($minAvailable, $available);
-                    
-                    if ($available <= 0) {
-                        $allServicesHaveAvailability = false;
-                    }
-                }
-                
-                // Show time slot ONLY if ALL selected services have at least 1 available slot
-                if ($allServicesHaveAvailability) {
-                    $availableTimeSlots[] = [
-                        'id' => $timeSlot->id,
-                        'time_slot_id' => $timeSlot->id,
-                        'slot_label' => $timeSlot->label ?? $this->formatTimeRange($timeSlot->start_time, $timeSlot->end_time),
-                        'start_time' => $timeSlot->start_time,
-                        'end_time' => $timeSlot->end_time,
-                        'is_available' => true,
-                        'available_slots' => $minAvailable,
-                        'service_availability' => $availableForServices,
-                    ];
-                }
-            }
-            
+{
+    try {
+        $date = $request->get('date');
+        $servicesParam = $request->get('services', '');
+        $clientCount = (int)$request->get('client_count', 1);
+        
+        $servicesToCheck = !empty($servicesParam) ? explode(',', $servicesParam) : ['reg', 'updating', 'inquiry'];
+        
+        // First check if the date is a working day
+        $dayType = $this->getDayType($date);
+        if ($dayType !== 'working') {
             return response()->json([
                 'success' => true,
-                'time_slots' => $availableTimeSlots,
-                'date' => $date
+                'time_slots' => [],
+                'date' => $date,
+                'message' => 'This date is not a working day.'
             ]);
-            
-        } catch (\Exception $e) {
-            Log::error('getAvailableTimeSlots error: ' . $e->getMessage());
-            return response()->json([
-                'success' => false,
-                'message' => $e->getMessage(),
-                'time_slots' => []
-            ], 500);
         }
+        
+        $timeSlots = TimeSlot::where('is_active', true)
+            ->orderBy('display_order')
+            ->get();
+        
+        $availableTimeSlots = [];
+        
+        foreach ($timeSlots as $timeSlot) {
+            $availableForServices = [];
+            $hasAnyAvailability = false;
+            $minAvailable = PHP_INT_MAX;
+            
+            foreach ($servicesToCheck as $service) {
+                $available = $this->getAvailableSlots($date, $timeSlot->id, $service);
+                $availableForServices[$service] = $available;
+                $minAvailable = min($minAvailable, $available);
+                
+                if ($available > 0) {
+                    $hasAnyAvailability = true;
+                }
+            }
+            
+            // Show time slot if ANY service has available slots (for per-client selection)
+            // Also include availability data for each service so frontend can filter
+            if ($hasAnyAvailability) {
+                $availableTimeSlots[] = [
+                    'id' => $timeSlot->id,
+                    'time_slot_id' => $timeSlot->id,
+                    'slot_label' => $timeSlot->label ?? $this->formatTimeRange($timeSlot->start_time, $timeSlot->end_time),
+                    'start_time' => $timeSlot->start_time,
+                    'end_time' => $timeSlot->end_time,
+                    'is_available' => true,
+                    'available_slots' => $minAvailable,
+                    'service_availability' => $availableForServices,
+                ];
+            }
+        }
+        
+        return response()->json([
+            'success' => true,
+            'time_slots' => $availableTimeSlots,
+            'date' => $date
+        ]);
+        
+    } catch (\Exception $e) {
+        Log::error('getAvailableTimeSlots error: ' . $e->getMessage());
+        return response()->json([
+            'success' => false,
+            'message' => $e->getMessage(),
+            'time_slots' => []
+        ], 500);
     }
+}
     
     private function formatTimeRange($startTime, $endTime)
     {
@@ -357,223 +364,216 @@ class AppointmentController extends Controller
         }
     }
     
-    public function store(Request $request)
-    {
-        try {
-            Log::info('Store method called', $request->all());
-            
-            $clientCount = count($request->clients);
-            $detectedType = $clientCount === 1 ? 'single' : 'multiple';
-            $request->merge(['appointment_type' => $detectedType]);
-            
-            Log::info('Auto-detected appointment type: ' . $detectedType . ' (Clients: ' . $clientCount . ')');
-            
-            $validator = Validator::make($request->all(), [
-                'appointment_type' => 'required|in:single,multiple',
-                'appointment_date' => 'required|date|after_or_equal:today',
-                'appointment_time_slot_id' => 'required|exists:time_slots,id',
-                'contact_name' => 'required|string|max:255',
-                'contact_mobile' => 'required|string|max:20',
-                'contact_email' => 'nullable|email|max:255',
-                'clients' => 'required|array|min:1|max:4',
-                'clients.*.first_name' => 'required|string|max:255',
-                'clients.*.last_name' => 'required|string|max:255',
-                'clients.*.sex' => 'required|in:Male,Female',
-                'clients.*.birthdate' => 'required|date|before:today',
-                'clients.*.service' => 'required|in:reg,updating,inquiry',
-                'clients.*.has_trn' => 'nullable|boolean',
-                'clients.*.trn_number' => 'nullable|string|size:29|regex:/^\d+$/',
-                'user_lat' => 'nullable|numeric|between:-90,90',
-                'user_lng' => 'nullable|numeric|between:-180,180',
-                'user_city' => 'nullable|string|max:100',
-                'user_address' => 'nullable|string',
-                'user_zipcode' => 'nullable|string|max:20',
-            ]);
-            
-            if ($validator->fails()) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Validation failed',
-                    'errors' => $validator->errors()
-                ], 422);
-            }
-            
-            // Check if the selected date is working
-            $dateToCheck = Carbon::parse($request->appointment_date);
-            $dayType = $this->getDayType($dateToCheck);
-            if ($dayType !== 'working') {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'The selected date is not available for appointments. Please choose a working day.'
-                ], 422);
-            }
-            
-            // Group clients by service type
-            $clientsByService = [];
-            foreach ($request->clients as $client) {
-                $service = $client['service'];
-                if (!isset($clientsByService[$service])) {
-                    $clientsByService[$service] = 0;
-                }
-                $clientsByService[$service]++;
-            }
-            
-            DB::beginTransaction();
-            
-            try {
-                $timeSlot = TimeSlot::find($request->appointment_time_slot_id);
-                if (!$timeSlot) {
-                    throw new \Exception('Invalid time slot selected');
-                }
-                
-                // Check availability for each service BEFORE booking
-                foreach ($clientsByService as $service => $count) {
-                    $available = $this->getAvailableSlots($request->appointment_date, $request->appointment_time_slot_id, $service);
-                    
-                    if ($available < $count) {
-                        DB::rollback();
-                        $serviceNames = [
-                            'reg' => 'Registration',
-                            'updating' => 'Correction/Updating',
-                            'inquiry' => 'Status Inquiry'
-                        ];
-                        return response()->json([
-                            'success' => false,
-                            'message' => "Not enough slots for {$serviceNames[$service]}. Only {$available} slots available. You need {$count} slots."
-                        ], 422);
-                    }
-                }
-                
-                // Generate appointment number and reference code
-                $date = Carbon::now()->format('Ymd');
-                $last = Appointment::whereDate('created_at', Carbon::today())->count() + 1;
-                $appointmentNumber = 'PSA-' . $date . '-' . str_pad($last, 5, '0', STR_PAD_LEFT);
-                $referenceCode = 'REF-' . strtoupper(uniqid());
-                
-                // Create appointment
-                $appointment = new Appointment();
-                $appointment->appointment_number = $appointmentNumber;
-                $appointment->type = $request->appointment_type;
-                $appointment->appointment_date = $request->appointment_date;
-                $appointment->time_slot_id = $request->appointment_time_slot_id;
-                $appointment->contact_name = $request->contact_name;
-                $appointment->contact_email = $request->contact_email;
-                $appointment->contact_mobile = $request->contact_mobile;
-                $appointment->reference_code = $referenceCode;
-                $appointment->status = 'pending';
-                $appointment->metadata = json_encode([
-                    'user_agent' => $request->userAgent(),
-                    'ip_address' => $request->ip(),
-                    'auto_detected_type' => true,
-                    'original_client_count' => $clientCount
-                ]);
-                
-                if ($request->filled('user_lat')) $appointment->user_lat = $request->user_lat;
-                if ($request->filled('user_lng')) $appointment->user_lng = $request->user_lng;
-                if ($request->filled('user_city')) $appointment->user_city = $request->user_city;
-                if ($request->filled('user_address')) $appointment->user_address = $request->user_address;
-                if ($request->filled('user_zipcode')) $appointment->user_zipcode = $request->user_zipcode;
-                
-                $appointment->save();
-                
-                // Store clients
-                $clientsData = [];
-                $clientsList = [];
-                
-                foreach ($request->clients as $index => $clientData) {
-                    $client = new AppointmentClient();
-                    $clientNumber = $this->generateClientNumber();
-                    $client->client_number = $clientNumber;
-                    $client->appointment_id = $appointment->id;
-                    $client->first_name = $clientData['first_name'];
-                    $client->middle_name = $clientData['middle_name'] ?? null;
-                    $client->last_name = $clientData['last_name'];
-                    $client->suffix = $clientData['suffix'] ?? null;
-                    $client->sex = $clientData['sex'];
-                    $client->birthdate = $clientData['birthdate'];
-                    $client->service = $clientData['service'];
-                    $client->requirements_acknowledged = true;
-                    $client->acknowledged_at = now();
-                    
-                    if ($clientData['service'] === 'inquiry') {
-                        $client->has_trn = $clientData['has_trn'] ?? null;
-                        $client->trn_number = ($clientData['has_trn'] ?? false) ? ($clientData['trn_number'] ?? null) : null;
-                    }
-                    
-                    $client->save();
-                    
-                    $fullName = trim($clientData['first_name'] . ' ' . ($clientData['middle_name'] ? $clientData['middle_name'] . ' ' : '') . $clientData['last_name']);
-                    if (!empty($clientData['suffix'])) {
-                        $fullName .= ' ' . $clientData['suffix'];
-                    }
-                    
-                    $clientsList[] = [
-                        'client_number' => $clientNumber,
-                        'name' => $fullName,
-                        'service' => $clientData['service'],
-                        'service_name' => $this->getServiceName($clientData['service'])
-                    ];
-                    
-                    $clientsData[] = $clientData;
-                }
-                
-                DB::commit();
-                
-                // Send email confirmation
-                $timeSlotLabel = $timeSlot->label ?? $this->formatTimeRange($timeSlot->start_time, $timeSlot->end_time);
-                $emailSent = false;
-                
-                if ($appointment->contact_email) {
-                    try {
-                        $emailSent = $this->mailService->sendAppointmentConfirmation($appointment, $clientsData, $timeSlotLabel);
-                    } catch (\Exception $e) {
-                        Log::warning('Email sending failed but appointment was saved: ' . $e->getMessage());
-                    }
-                }
-                
-                $successMessage = 'Appointment created successfully!';
-                if ($emailSent) {
-                    $successMessage .= ' A confirmation email has been sent to your email address.';
-                } elseif ($appointment->contact_email) {
-                    $successMessage .= ' We could not send a confirmation email. Please save your reference code.';
-                }
-                
-                return response()->json([
-                    'success' => true,
-                    'message' => $successMessage,
-                    'email_sent' => $emailSent,
-                    'appointment' => [
-                        'number' => $appointment->appointment_number,
-                        'reference_code' => $appointment->reference_code,
-                        'date' => Carbon::parse($appointment->appointment_date)->format('F d, Y'),
-                        'time' => $timeSlotLabel,
-                        'clients_count' => count($request->clients),
-                        'type' => $appointment->type,
-                        'location_city' => $appointment->user_city ?? null,
-                        'contact_name' => $appointment->contact_name,
-                        'contact_mobile' => $appointment->contact_mobile,
-                        'contact_email' => $appointment->contact_email,
-                        'clients_list' => $clientsList
-                    ]
-                ]);
-                
-            } catch (\Exception $e) {
-                DB::rollback();
-                Log::error('Transaction failed: ' . $e->getMessage());
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Database error: ' . $e->getMessage()
-                ], 500);
-            }
-            
-        } catch (\Exception $e) {
-            Log::error('Store method error: ' . $e->getMessage());
+   public function store(Request $request)
+{
+    try {
+        Log::info('Store method called', $request->all());
+        
+        $clientCount = count($request->clients);
+        $detectedType = $clientCount === 1 ? 'single' : 'multiple';
+        $request->merge(['appointment_type' => $detectedType]);
+        
+        $validator = Validator::make($request->all(), [
+            'appointment_type' => 'required|in:single,multiple',
+            'appointment_date' => 'required|date|after_or_equal:today',
+            'contact_name' => 'required|string|max:255',
+            'contact_mobile' => 'required|string|max:20',
+            'contact_email' => 'nullable|email|max:255',
+            'clients' => 'required|array|min:1|max:4',
+            'clients.*.first_name' => 'required|string|max:255',
+            'clients.*.last_name' => 'required|string|max:255',
+            'clients.*.sex' => 'required|in:Male,Female',
+            'clients.*.birthdate' => 'required|date|before:today',
+            'clients.*.service' => 'required|in:reg,updating,inquiry',
+            'clients.*.time_slot_id' => 'required|exists:time_slots,id',
+            'clients.*.has_trn' => 'nullable|boolean',
+            'clients.*.trn_number' => 'nullable|string|size:29|regex:/^\d+$/',
+            'user_lat' => 'nullable|numeric|between:-90,90',
+            'user_lng' => 'nullable|numeric|between:-180,180',
+            'user_city' => 'nullable|string|max:100',
+            'user_address' => 'nullable|string',
+            'user_zipcode' => 'nullable|string|max:20',
+        ]);
+        
+        if ($validator->fails()) {
             return response()->json([
                 'success' => false,
-                'message' => 'Server error: ' . $e->getMessage()
+                'message' => 'Validation failed',
+                'errors' => $validator->errors()
+            ], 422);
+        }
+        
+        $dateToCheck = Carbon::parse($request->appointment_date);
+        $dayType = $this->getDayType($dateToCheck);
+        if ($dayType !== 'working') {
+            return response()->json([
+                'success' => false,
+                'message' => 'The selected date is not available for appointments. Please choose a working day.'
+            ], 422);
+        }
+        
+        // Group clients by service AND time slot for availability checking
+        $clientsByServiceAndSlot = [];
+        foreach ($request->clients as $client) {
+            $key = $client['service'] . '_' . $client['time_slot_id'];
+            if (!isset($clientsByServiceAndSlot[$key])) {
+                $clientsByServiceAndSlot[$key] = [
+                    'service' => $client['service'],
+                    'time_slot_id' => $client['time_slot_id'],
+                    'count' => 0
+                ];
+            }
+            $clientsByServiceAndSlot[$key]['count']++;
+        }
+        
+        DB::beginTransaction();
+        
+        try {
+            // Check availability for each service and time slot combination
+            foreach ($clientsByServiceAndSlot as $item) {
+                $available = $this->getAvailableSlots($request->appointment_date, $item['time_slot_id'], $item['service']);
+                
+                if ($available < $item['count']) {
+                    DB::rollback();
+                    $serviceNames = ['reg' => 'Registration', 'updating' => 'Correction/Updating', 'inquiry' => 'Status Inquiry'];
+                    $timeSlot = TimeSlot::find($item['time_slot_id']);
+                    $slotLabel = $timeSlot ? ($timeSlot->label ?? $this->formatTimeRange($timeSlot->start_time, $timeSlot->end_time)) : 'Selected time slot';
+                    
+                    return response()->json([
+                        'success' => false,
+                        'message' => "Not enough slots for {$serviceNames[$item['service']]} at {$slotLabel}. Only {$available} slots available. You need {$item['count']} slots."
+                    ], 422);
+                }
+            }
+            
+            // Generate appointment number and reference code
+            $date = Carbon::now()->format('Ymd');
+            $last = Appointment::whereDate('created_at', Carbon::today())->count() + 1;
+            $appointmentNumber = 'PSA-' . $date . '-' . str_pad($last, 5, '0', STR_PAD_LEFT);
+            $referenceCode = 'REF-' . strtoupper(uniqid());
+            
+            // Create appointment (time_slot_id is null since each client has their own)
+            // Create appointment (use first client's time slot as the main slot)
+            $appointment = new Appointment();
+            $appointment->appointment_number = $appointmentNumber;
+            $appointment->type = $request->appointment_type;
+            $appointment->appointment_date = $request->appointment_date;
+            // Use the first client's time slot ID for the main appointment (since time_slot_id cannot be null)
+            $appointment->time_slot_id = $request->clients[0]['time_slot_id'];
+            $appointment->contact_name = $request->contact_name;
+            $appointment->contact_email = $request->contact_email;
+            $appointment->contact_mobile = $request->contact_mobile;
+            $appointment->reference_code = $referenceCode;
+            $appointment->status = 'pending';
+            $appointment->metadata = json_encode([
+                'user_agent' => $request->userAgent(),
+                'ip_address' => $request->ip(),
+                'per_client_time_slots' => true
+            ]);
+            
+            if ($request->filled('user_lat')) $appointment->user_lat = $request->user_lat;
+            if ($request->filled('user_lng')) $appointment->user_lng = $request->user_lng;
+            if ($request->filled('user_city')) $appointment->user_city = $request->user_city;
+            if ($request->filled('user_address')) $appointment->user_address = $request->user_address;
+            if ($request->filled('user_zipcode')) $appointment->user_zipcode = $request->user_zipcode;
+            
+            $appointment->save();
+            
+            // Store clients with their individual time slots
+            $clientsData = [];
+            $clientsList = [];
+            
+            foreach ($request->clients as $index => $clientData) {
+                $client = new AppointmentClient();
+                $clientNumber = $this->generateClientNumber();
+                $client->client_number = $clientNumber;
+                $client->appointment_id = $appointment->id;
+                $client->first_name = $clientData['first_name'];
+                $client->middle_name = $clientData['middle_name'] ?? null;
+                $client->last_name = $clientData['last_name'];
+                $client->suffix = $clientData['suffix'] ?? null;
+                $client->sex = $clientData['sex'];
+                $client->birthdate = $clientData['birthdate'];
+                $client->service = $clientData['service'];
+                $client->time_slot_id = $clientData['time_slot_id'];
+                $client->requirements_acknowledged = true;
+                $client->acknowledged_at = now();
+                
+                if ($clientData['service'] === 'inquiry') {
+                    $client->has_trn = $clientData['has_trn'] ?? null;
+                    $client->trn_number = ($clientData['has_trn'] ?? false) ? ($clientData['trn_number'] ?? null) : null;
+                }
+                
+                $client->save();
+                
+                $fullName = trim($clientData['first_name'] . ' ' . ($clientData['middle_name'] ? $clientData['middle_name'] . ' ' : '') . $clientData['last_name']);
+                if (!empty($clientData['suffix'])) $fullName .= ' ' . $clientData['suffix'];
+                
+                $timeSlot = TimeSlot::find($clientData['time_slot_id']);
+                $timeSlotLabel = $timeSlot ? ($timeSlot->label ?? $this->formatTimeRange($timeSlot->start_time, $timeSlot->end_time)) : 'Time slot selected';
+                
+                $clientsList[] = [
+                    'client_number' => $clientNumber,
+                    'name' => $fullName,
+                    'service' => $clientData['service'],
+                    'service_name' => $this->getServiceName($clientData['service']),
+                    'time_slot' => $timeSlotLabel
+                ];
+                
+                $clientsData[] = $clientData;
+            }
+            
+            DB::commit();
+            
+            $timeSlotLabel = 'Multiple time slots - see applicant details';
+            $emailSent = false;
+            
+            if ($appointment->contact_email) {
+                try {
+                    $emailSent = $this->mailService->sendAppointmentConfirmation($appointment, $clientsData, $timeSlotLabel);
+                } catch (\Exception $e) {
+                    Log::warning('Email sending failed: ' . $e->getMessage());
+                }
+            }
+            
+            $successMessage = 'Appointment created successfully!';
+            if ($emailSent) $successMessage .= ' A confirmation email has been sent to your email address.';
+            elseif ($appointment->contact_email) $successMessage .= ' We could not send a confirmation email. Please save your reference code.';
+            
+            return response()->json([
+                'success' => true,
+                'message' => $successMessage,
+                'email_sent' => $emailSent,
+                'appointment' => [
+                    'number' => $appointment->appointment_number,
+                    'reference_code' => $appointment->reference_code,
+                    'date' => Carbon::parse($appointment->appointment_date)->format('F d, Y'),
+                    'clients_count' => count($request->clients),
+                    'type' => $appointment->type,
+                    'contact_name' => $appointment->contact_name,
+                    'contact_mobile' => $appointment->contact_mobile,
+                    'contact_email' => $appointment->contact_email,
+                    'clients_list' => $clientsList
+                ]
+            ]);
+            
+        } catch (\Exception $e) {
+            DB::rollback();
+            Log::error('Transaction failed: ' . $e->getMessage());
+            return response()->json([
+                'success' => false,
+                'message' => 'Database error: ' . $e->getMessage()
             ], 500);
         }
+        
+    } catch (\Exception $e) {
+        Log::error('Store method error: ' . $e->getMessage());
+        return response()->json([
+            'success' => false,
+            'message' => 'Server error: ' . $e->getMessage()
+        ], 500);
     }
+}
 
     private function getServiceName($code)
     {
