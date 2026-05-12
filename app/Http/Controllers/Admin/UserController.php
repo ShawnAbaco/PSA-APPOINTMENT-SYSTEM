@@ -7,6 +7,7 @@ use App\Http\Controllers\Controller;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
+use App\Services\TotpService;
 
 class UserController extends Controller
 {
@@ -193,6 +194,55 @@ class UserController extends Controller
         
         return redirect()->back()->with('success', 'User status updated.');
     }
+
+    // Generate 2FA secret for a user (admin only)
+    public function generateTwoFactor($id)
+    {
+        $user = User::findOrFail($id);
+        $secret = TotpService::generateSecret();
+        $user->update([
+            'two_factor_secret' => $secret,
+            'two_factor_enabled' => true,
+            'two_factor_confirmed_at' => now(),
+        ]);
+
+        if (request()->wantsJson()) {
+            $qr = TotpService::getQrCodeUrl($user->email ?? $user->username, $secret, config('app.name', 'PSA'));
+            return response()->json(['success' => true, 'secret' => $secret, 'qr' => $qr]);
+        }
+
+        // Don't flash the QR or secret into the edit page. Admins should click "Show QR" to view.
+        return redirect()->back()->with('success', 'Two-factor secret generated. Use "Show QR" to view and scan.');
+    }
+
+    // Show QR page for users (admin only) so admin can scan the QR
+    public function showTwoFactorQr($id)
+    {
+        $user = User::findOrFail($id);
+        if (!$user->two_factor_secret) {
+            abort(404, 'Two-factor not configured for this user');
+        }
+        $qr = TotpService::getQrCodeUrl($user->email ?? $user->username, $user->two_factor_secret, config('app.name', 'PSA'));
+        return view('admin.users.two_factor_qr', compact('user', 'qr'));
+    }
+
+    // Revoke 2FA for a user
+    public function revokeTwoFactor($id)
+    {
+        $user = User::findOrFail($id);
+        $user->update([
+            'two_factor_secret' => null,
+            'two_factor_recovery_codes' => null,
+            'two_factor_confirmed_at' => null,
+            'two_factor_enabled' => false,
+        ]);
+
+        if (request()->wantsJson()) {
+            return response()->json(['success' => true]);
+        }
+
+        return redirect()->back()->with('success', 'Two-factor authentication revoked for user.');
+    }
     
     // NEW METHODS FOR ACCOUNT APPROVAL
     
@@ -206,8 +256,17 @@ class UserController extends Controller
     }
     
     public function approveAccount($id)
-    {
+{
+    try {
         $user = User::findOrFail($id);
+        
+        // Check if already approved
+        if ($user->account_status === 'approved') {
+            if (request()->wantsJson()) {
+                return response()->json(['success' => false, 'message' => 'Account is already approved.'], 400);
+            }
+            return redirect()->back()->with('error', 'Account is already approved.');
+        }
         
         // Generate employee ID for approved account if role is not 'user'
         $employeeId = null;
@@ -229,19 +288,45 @@ class UserController extends Controller
         $user->update($updateData);
         
         if (request()->wantsJson()) {
-            return response()->json(['success' => true, 'employee_id' => $employeeId]);
+            return response()->json([
+                'success' => true, 
+                'message' => 'Account approved successfully.',
+                'employee_id' => $employeeId
+            ]);
         }
         
         return redirect()->back()->with('success', "Account for {$user->first_name} {$user->last_name} has been approved.");
+        
+    } catch (\Exception $e) {
+        \Log::error('Approval error: ' . $e->getMessage());
+        
+        if (request()->wantsJson()) {
+            return response()->json([
+                'success' => false, 
+                'message' => 'Error approving account: ' . $e->getMessage()
+            ], 500);
+        }
+        
+        return redirect()->back()->with('error', 'Error approving account: ' . $e->getMessage());
     }
+}
     
     public function rejectAccount(Request $request, $id)
-    {
+{
+    try {
         $request->validate([
             'rejection_reason' => 'required|string|max:500',
         ]);
         
         $user = User::findOrFail($id);
+        
+        // Check if already approved or rejected
+        if ($user->account_status !== 'pending') {
+            if (request()->wantsJson()) {
+                return response()->json(['success' => false, 'message' => 'Account is no longer pending.'], 400);
+            }
+            return redirect()->back()->with('error', 'Account is no longer pending.');
+        }
         
         $user->update([
             'account_status' => 'rejected',
@@ -252,16 +337,25 @@ class UserController extends Controller
         ]);
         
         if (request()->wantsJson()) {
-            return response()->json(['success' => true]);
+            return response()->json([
+                'success' => true, 
+                'message' => 'Account rejected successfully.'
+            ]);
         }
         
         return redirect()->back()->with('success', "Account for {$user->first_name} {$user->last_name} has been rejected.");
+        
+    } catch (\Exception $e) {
+        \Log::error('Rejection error: ' . $e->getMessage());
+        
+        if (request()->wantsJson()) {
+            return response()->json([
+                'success' => false, 
+                'message' => 'Error rejecting account: ' . $e->getMessage()
+            ], 500);
+        }
+        
+        return redirect()->back()->with('error', 'Error rejecting account: ' . $e->getMessage());
     }
-    
-    // Add this method to get user data for editing via AJAX
-    public function getEditData($id)
-    {
-        $user = User::findOrFail($id);
-        return response()->json($user);
-    }
+}
 }

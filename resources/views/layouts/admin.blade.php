@@ -36,7 +36,6 @@
     <link rel="stylesheet" href="{{ asset('css/admin/profile/change-password.css') }}">
     <link rel="stylesheet" href="{{ asset('css/admin/profile/edit.css') }}">
 
-
     <meta name="csrf-token" content="{{ csrf_token() }}">
 
     <style>
@@ -134,17 +133,6 @@
             .admin-footer {
                 padding: 16px 20px;
             }
-        }
-
-        /* Ensure admin-main takes full height to push footer down */
-        .admin-main {
-            display: flex;
-            flex-direction: column;
-            min-height: 100vh;
-        }
-
-        .admin-content {
-            flex: 1;
         }
     </style>
 
@@ -342,6 +330,7 @@
                     <button class="profile-tab active" data-tab="view-tab">Profile</button>
                     <button class="profile-tab" data-tab="edit-tab">Edit Profile</button>
                     <button class="profile-tab" data-tab="password-tab">Change Password</button>
+                    <button class="profile-tab" data-tab="twofa-tab">2FA Security</button>
                 </div>
 
                 <!-- View Profile Tab -->
@@ -399,7 +388,7 @@
 
                 <!-- Edit Profile Tab -->
                 <div class="tab-pane" id="edit-tab">
-                    <form id="profileUpdateForm" method="POST" action="{{ route('admin.profile.update') }}"
+                    <form id="profileUpdateForm" method="POST" action="{{ route('admin.update') }}"
                         enctype="multipart/form-data">
                         @csrf
                         @method('PUT')
@@ -465,8 +454,7 @@
 
                 <!-- Change Password Tab -->
                 <div class="tab-pane" id="password-tab">
-                    <form id="passwordUpdateForm" method="POST"
-                        action="{{ route('admin.profile.password.update') }}">
+                    <form id="passwordUpdateForm" method="POST" action="{{ route('admin.password.update') }}">
                         @csrf
                         @method('PUT')
 
@@ -518,6 +506,67 @@
                         </div>
                     </form>
                 </div>
+
+                <!-- Two-Factor Authentication Tab -->
+                <div class="tab-pane" id="twofa-tab">
+                    <div class="twofa-container">
+                        <div class="twofa-header">
+                            <div>
+                                <h4><i class="fas fa-shield-alt"></i> Two-Factor Authentication</h4>
+                            </div>
+                            <div>
+                                <span id="twoFactorStatus"
+                                    class="twofa-status {{ Auth::user()->two_factor_enabled ? 'enabled' : 'disabled' }}">
+                                    {{ Auth::user()->two_factor_enabled ? 'Enabled' : 'Disabled' }}
+                                </span>
+                                <button id="manage2faBtn" class="btn-manage" style="margin-left: 10px;">
+                                    <i class="fas fa-cog"></i> Manage
+                                </button>
+                            </div>
+                        </div>
+                        <p class="twofa-description">
+                            Two-factor authentication adds an extra layer of security to your account.
+                            Once enabled, you'll need to provide a verification code from your authenticator app when
+                            logging in.
+                        </p>
+
+                        <div id="twoFactorPanel" style="display: none;">
+                            <div class="radio-group">
+                                <label>
+                                    <input type="radio" name="2fa_action" value="enable"
+                                        {{ !Auth::user()->two_factor_enabled ? 'checked' : '' }}>
+                                    <i class="fas fa-check-circle"></i> Enable 2FA
+                                </label>
+                                <label>
+                                    <input type="radio" name="2fa_action" value="disable"
+                                        {{ Auth::user()->two_factor_enabled ? 'checked' : '' }}>
+                                    <i class="fas fa-ban"></i> Disable 2FA
+                                </label>
+                            </div>
+
+                            <div style="display: flex; gap: 10px; margin-bottom: 20px;">
+                                <button id="apply2faBtn" class="btn-save">
+                                    <i class="fas fa-check"></i> Apply Changes
+                                </button>
+                                <button id="showQrBtn" class="btn-manage"
+                                    style="display: {{ Auth::user()->two_factor_enabled ? 'inline-block' : 'none' }};">
+                                    <i class="fas fa-key"></i> Show QR-Code Key
+                                </button>
+                            </div>
+
+                            <div id="qrPreview" style="display: none;" class="qr-preview">
+                                <center><img id="qrImage" class="qr-image" src="" alt="QR Code"></center>
+                                <div id="qrSecret" class="qr-secret"></div>
+                                {{-- <div id="recoveryCodes" class="recovery-codes" style="display: none;">
+                                    <strong><i class="fas fa-key"></i> Recovery Codes (store securely)</strong>
+                                    <ul id="recoveryList"></ul>
+                                    <small>⚠️ These codes can be used to log in if you lose access to your authenticator
+                                        app.</small>
+                                </div> --}}
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
@@ -562,7 +611,6 @@
         function updateDateTime() {
             const now = new Date();
 
-            // Format date: Thursday, May 5, 2026
             const dateOptions = {
                 weekday: 'long',
                 year: 'numeric',
@@ -574,7 +622,6 @@
                 dateElement.textContent = now.toLocaleDateString('en-US', dateOptions);
             }
 
-            // Format time: 2:30:45 PM
             const timeOptions = {
                 hour: '2-digit',
                 minute: '2-digit',
@@ -587,7 +634,6 @@
             }
         }
 
-        // Update immediately and then every second
         updateDateTime();
         setInterval(updateDateTime, 1000);
 
@@ -602,6 +648,7 @@
             let icon = 'fa-info-circle';
             if (type === 'success') icon = 'fa-check-circle';
             if (type === 'warning') icon = 'fa-exclamation-triangle';
+            if (type === 'error') icon = 'fa-times-circle';
             toast.innerHTML =
                 `<i class="fas ${icon}" style="color:#FCD116;"></i><div><strong>${escapeHtml(title)}</strong><br/><small>${escapeHtml(message)}</small></div>`;
             container.appendChild(toast);
@@ -677,15 +724,15 @@
                     return;
                 }
                 container.innerHTML = this.notifications.map(n => `
-                    <div class="notification-item ${!n.read ? 'unread' : ''}" data-id="${n.id}">
-                        <div class="notification-icon ${n.type}"><i class="fas ${this.getIcon(n.type)}"></i></div>
-                        <div class="notification-content">
-                            <div class="notification-title">${escapeHtml(n.title)}</div>
-                            <div class="notification-message">${escapeHtml(n.message)}</div>
-                            <div class="notification-time">${escapeHtml(n.time)}</div>
-                        </div>
-                    </div>
-                `).join('');
+            <div class="notification-item ${!n.read ? 'unread' : ''}" data-id="${n.id}">
+                <div class="notification-icon ${n.type}"><i class="fas ${this.getIcon(n.type)}"></i></div>
+                <div class="notification-content">
+                    <div class="notification-title">${escapeHtml(n.title)}</div>
+                    <div class="notification-message">${escapeHtml(n.message)}</div>
+                    <div class="notification-time">${escapeHtml(n.time)}</div>
+                </div>
+            </div>
+        `).join('');
                 document.querySelectorAll('.notification-item').forEach(el => {
                     el.addEventListener('click', () => this.markRead(parseInt(el.dataset.id)));
                 });
@@ -822,6 +869,71 @@
                     e.preventDefault();
                     showToast('Contact', 'Email: support@psa.gov.ph<br>Phone: (088) 856-1234', 'info');
                 });
+            }
+        }
+
+        // Function to check if 2FA is really enabled
+        // Function to check if 2FA is really enabled
+        async function check2FAStatus() {
+            try {
+                const response = await fetch('{{ route('admin.2fa.status') }}', {
+                    headers: {
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+                        'Accept': 'application/json'
+                    }
+                });
+                const data = await response.json();
+                return data.enabled === true;
+            } catch (error) {
+                console.error('Error checking 2FA status:', error);
+                return false;
+            }
+        }
+
+        // Modified fetch2FADetails function
+        async function fetch2FADetails() {
+            try {
+                // First check if 2FA is really enabled
+                const isEnabled = await check2FAStatus();
+
+                if (!isEnabled) {
+                    console.log('2FA is not enabled, skipping QR fetch');
+                    if (typeof showToast !== 'undefined') {
+                        showToast('Information', '2FA is not enabled yet. Please enable it first.', 'info');
+                    }
+                    return false;
+                }
+
+                const response = await fetch('{{ route('admin.2fa.qr') }}', {
+                    headers: {
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+                        'Accept': 'application/json'
+                    }
+                });
+
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    throw new Error(errorData.message || 'Failed to fetch 2FA details');
+                }
+
+                const data = await response.json();
+
+                if (data.success) {
+                    display2FADetails(data);
+                    return true;
+                } else {
+                    console.warn('2FA details not available:', data.message);
+                    if (typeof showToast !== 'undefined') {
+                        showToast('Information', data.message || '2FA details not available', 'info');
+                    }
+                    return false;
+                }
+            } catch (error) {
+                console.error('Error fetching 2FA details:', error);
+                if (typeof showToast !== 'undefined') {
+                    showToast('Error', error.message || 'Failed to load 2FA details', 'error');
+                }
+                return false;
             }
         }
 
@@ -1128,7 +1240,6 @@
                     saveBtn.disabled = true;
                     saveBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving...';
 
-                    // Use POST with _method override so multipart FormData is parsed by Laravel
                     formData.append('_method', 'PUT');
                     fetch(this.action, {
                             method: 'POST',
@@ -1142,7 +1253,6 @@
                         .then(response => response.json())
                         .then(data => {
                             if (data.success) {
-                                // Update view tab with new data
                                 document.querySelector('.profile-view-name').textContent = document
                                     .getElementById('editFirstName').value + ' ' + document
                                     .getElementById('editLastName').value;
@@ -1151,7 +1261,6 @@
                                 document.getElementById('viewContact').textContent = document
                                     .getElementById('editContact').value || 'Not set';
 
-                                // Update avatar in view tab if changed
                                 const editPreview = document.getElementById('editAvatarPreview');
                                 if (editPreview && editPreview.style.display !== 'none') {
                                     const viewAvatar = document.getElementById('modalAvatar');
@@ -1164,7 +1273,6 @@
                                     if (viewPlaceholder) viewPlaceholder.style.display = 'none';
                                 }
 
-                                // Show success message
                                 const editTab = document.getElementById('edit-tab');
                                 const successAlert = document.createElement('div');
                                 successAlert.className = 'alert alert-success';
@@ -1176,7 +1284,6 @@
                                 saveBtn.innerHTML = '<i class="fas fa-save"></i> Save Changes';
                                 hidePSALoader();
 
-                                // Switch to view tab after 1.5 seconds
                                 setTimeout(() => {
                                     document.querySelector('.profile-tab[data-tab="view-tab"]')
                                         .click();
@@ -1271,6 +1378,305 @@
                             saveBtn.innerHTML = '<i class="fas fa-save"></i> Update Password';
                             hidePSALoader();
                         });
+                });
+            }
+
+            // ============================================================
+            //  TWO-FACTOR AUTHENTICATION CODE (UPDATED)
+            // ============================================================
+            const manage2faBtn = document.getElementById('manage2faBtn');
+            const twoFactorPanel = document.getElementById('twoFactorPanel');
+            const apply2faBtn = document.getElementById('apply2faBtn');
+            const showQrBtn = document.getElementById('showQrBtn');
+            const qrPreview = document.getElementById('qrPreview');
+            const qrImage = document.getElementById('qrImage');
+            const qrSecret = document.getElementById('qrSecret');
+            const twoFactorStatus = document.getElementById('twoFactorStatus');
+            const recoveryCodes = document.getElementById('recoveryCodes');
+            const recoveryList = document.getElementById('recoveryList');
+
+            if (manage2faBtn) {
+                manage2faBtn.addEventListener('click', () => {
+                    if (twoFactorPanel) {
+                        twoFactorPanel.style.display = twoFactorPanel.style.display === 'none' ? 'block' :
+                            'none';
+                    }
+                });
+            }
+
+            // Function to display 2FA details
+            function display2FADetails(data) {
+                console.log('Displaying 2FA details:', data);
+
+                if (qrPreview) {
+                    // Show QR code if available
+                    if (data.qr_image || data.qr) {
+                        if (qrImage) {
+                            qrImage.src = data.qr_image || data.qr;
+                            qrImage.style.display = 'block';
+                        }
+                        // Remove manual setup instructions if they exist
+                        const existingManual = qrPreview.querySelector('.manual-setup');
+                        if (existingManual) existingManual.remove();
+                    } else {
+                        // If no QR code, hide image and show instructions
+                        if (qrImage) qrImage.style.display = 'none';
+
+                        // Display manual setup instructions
+                        const manualInstructions = document.createElement('div');
+                        manualInstructions.className = 'manual-setup';
+                        manualInstructions.style.cssText =
+                            'background: #fff3cd; padding: 12px; border-radius: 8px; margin-top: 10px;';
+                        manualInstructions.innerHTML = `
+                    <strong><i class="fas fa-info-circle"></i> Manual Setup Required:</strong><br>
+                    <p style="margin: 8px 0; font-size: 13px;">Your authenticator app may not support QR codes. Use these details instead:</p>
+                    <div style="background: white; padding: 10px; border-radius: 6px; margin: 10px 0;">
+                        <strong>Key (Secret):</strong> <code style="font-size: 14px; word-break: break-all;">${escapeHtml(data.secret)}</code>
+                    </div>
+                    <p style="font-size: 12px; margin: 5px 0;"><i class="fas fa-mobile-alt"></i> In your authenticator app, select "Manual Entry" and enter the details above.</p>
+                `;
+
+                        // Remove previous manual instructions if any
+                        const existingManual = qrPreview.querySelector('.manual-setup');
+                        if (existingManual) existingManual.remove();
+                        qrPreview.appendChild(manualInstructions);
+                    }
+
+                    if (qrSecret && data.secret) {
+                        qrSecret.textContent = data.secret;
+                        qrSecret.style.display = 'block';
+                    }
+
+                    // Make sure QR preview is visible
+                    qrPreview.style.display = 'block';
+                    qrPreview.style.visibility = 'visible';
+
+                    // Scroll to QR code
+                    qrPreview.scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'nearest'
+                    });
+                }
+
+                if (recoveryCodes && data.recovery_codes && data.recovery_codes.length > 0) {
+                    if (recoveryList) {
+                        recoveryList.innerHTML = '';
+                        data.recovery_codes.forEach(code => {
+                            const li = document.createElement('li');
+                            li.textContent = code;
+                            recoveryList.appendChild(li);
+                        });
+                    }
+                    recoveryCodes.style.display = 'block';
+                }
+            }
+
+            // Function to fetch 2FA details
+            async function fetch2FADetails() {
+                try {
+                    const response = await fetch('{{ route('admin.2fa.qr') }}', {
+                        headers: {
+                            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+                            'Accept': 'application/json'
+                        }
+                    });
+
+                    if (!response.ok) {
+                        throw new Error('Failed to fetch 2FA details');
+                    }
+
+                    const data = await response.json();
+
+                    if (data.success) {
+                        display2FADetails(data);
+                        return true;
+                    } else {
+                        console.warn('2FA details not available:', data.message);
+                        return false;
+                    }
+                } catch (error) {
+                    console.error('Error fetching 2FA details:', error);
+                    if (typeof showToast !== 'undefined') {
+                        showToast('Error', 'Failed to load 2FA details', 'error');
+                    }
+                    return false;
+                }
+            }
+
+            if (apply2faBtn) {
+                apply2faBtn.addEventListener('click', async () => {
+                    const action = document.querySelector('input[name="2fa_action"]:checked');
+                    if (!action) {
+                        if (typeof showToast !== 'undefined') {
+                            showToast('Two-Factor', 'Please select enable or disable first', 'warning');
+                        } else {
+                            alert('Please select enable or disable first');
+                        }
+                        return;
+                    }
+
+                    if (action.value === 'disable') {
+                        if (!confirm(
+                                '⚠️ Warning: Disabling 2FA will make your account less secure.\n\nAre you sure you want to disable two-factor authentication?'
+                            )) {
+                            return;
+                        }
+                    }
+
+                    const btnText = apply2faBtn.innerHTML;
+                    apply2faBtn.disabled = true;
+                    apply2faBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processing...';
+
+                    try {
+                        const response = await fetch('{{ route('admin.2fa.toggle') }}', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'X-CSRF-TOKEN': document.querySelector(
+                                    'meta[name="csrf-token"]').content,
+                                'Accept': 'application/json'
+                            },
+                            body: JSON.stringify({
+                                action: action.value
+                            })
+                        });
+
+                        const data = await response.json();
+
+                        if (data.success) {
+                            // Update status display
+                            if (twoFactorStatus) {
+                                twoFactorStatus.textContent = data.enabled ? 'Enabled' : 'Disabled';
+                                twoFactorStatus.className =
+                                    `twofa-status ${data.enabled ? 'enabled' : 'disabled'}`;
+                            }
+
+                            // Update radio buttons
+                            const enableRadio = document.querySelector(
+                                'input[name="2fa_action"][value="enable"]');
+                            const disableRadio = document.querySelector(
+                                'input[name="2fa_action"][value="disable"]');
+                            if (enableRadio && disableRadio) {
+                                if (data.enabled) {
+                                    disableRadio.checked = true;
+                                } else {
+                                    enableRadio.checked = true;
+                                }
+                            }
+
+                            // Show/hide QR button
+                            if (showQrBtn) {
+                                showQrBtn.style.display = data.enabled ? 'inline-block' : 'none';
+                            }
+
+                            if (data.enabled) {
+                                // Display QR and recovery codes from response
+                                if (data.qr_image || data.qr) {
+                                    display2FADetails(data);
+                                } else {
+                                    // If not in response, fetch them
+                                    setTimeout(async () => {
+                                        await fetch2FADetails();
+                                    }, 500);
+                                }
+
+                                if (typeof showToast !== 'undefined') {
+                                    showToast('Success',
+                                        '2FA has been enabled! Please scan the QR code with your authenticator app.',
+                                        'success');
+                                }
+                            } else {
+                                // Hide QR preview when disabled
+                                if (qrPreview) {
+                                    qrPreview.style.display = 'none';
+                                    // Remove manual instructions
+                                    const existingManual = qrPreview.querySelector('.manual-setup');
+                                    if (existingManual) existingManual.remove();
+                                }
+                                if (recoveryCodes) recoveryCodes.style.display = 'none';
+                                if (qrImage) qrImage.src = '';
+                                if (qrSecret) qrSecret.textContent = '';
+
+                                if (typeof showToast !== 'undefined') {
+                                    showToast('Success', '2FA has been disabled', 'success');
+                                }
+                            }
+                        } else {
+                            if (typeof showToast !== 'undefined') {
+                                showToast('Error', data.message || 'Unable to update 2FA settings',
+                                    'error');
+                            } else {
+                                alert(data.message || 'Unable to update 2FA settings');
+                            }
+                        }
+                    } catch (error) {
+                        console.error('2FA toggle error:', error);
+                        if (typeof showToast !== 'undefined') {
+                            showToast('Error', 'Network error occurred. Please try again.', 'error');
+                        } else {
+                            alert('Network error occurred. Please try again.');
+                        }
+                    } finally {
+                        apply2faBtn.disabled = false;
+                        apply2faBtn.innerHTML = btnText;
+                    }
+                });
+            }
+
+            if (showQrBtn) {
+                showQrBtn.addEventListener('click', async () => {
+                    const btnText = showQrBtn.innerHTML;
+                    showQrBtn.disabled = true;
+                    showQrBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Loading...';
+
+                    try {
+                        const response = await fetch('{{ route('admin.2fa.qr') }}', {
+                            headers: {
+                                'X-CSRF-TOKEN': document.querySelector(
+                                    'meta[name="csrf-token"]').content,
+                                'Accept': 'application/json'
+                            }
+                        });
+
+                        const data = await response.json();
+
+                        if (data.success) {
+                            if (qrPreview.style.display === 'none' || qrPreview.style.display === '') {
+                                display2FADetails(data);
+                            } else {
+                                qrPreview.style.display = 'none';
+                                if (recoveryCodes) recoveryCodes.style.display = 'none';
+                            }
+                        } else {
+                            if (typeof showToast !== 'undefined') {
+                                showToast('Information',
+                                    '2FA is not enabled yet. Please enable it first.', 'info');
+                            }
+                        }
+                    } catch (error) {
+                        console.error('Error fetching QR code:', error);
+                        if (typeof showToast !== 'undefined') {
+                            showToast('Error', 'Failed to load QR code. Please try again.', 'error');
+                        }
+                    } finally {
+                        showQrBtn.disabled = false;
+                        showQrBtn.innerHTML = btnText;
+                    }
+                });
+            }
+
+            // When Two-Factor tab is opened, check if 2FA is enabled and fetch details
+            const twofaTab = document.querySelector('.profile-tab[data-tab="twofa-tab"]');
+            if (twofaTab) {
+                twofaTab.addEventListener('click', async function() {
+                    // If 2FA is enabled, fetch the QR and recovery codes
+                    const statusElement = document.getElementById('twoFactorStatus');
+                    if (statusElement && statusElement.textContent === 'Enabled') {
+                        // Small delay to ensure tab content is visible
+                        setTimeout(async () => {
+                            await fetch2FADetails();
+                        }, 100);
+                    }
                 });
             }
 

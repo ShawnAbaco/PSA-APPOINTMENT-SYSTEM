@@ -50,6 +50,7 @@ class User extends Authenticatable
         'two_factor_secret',
         'two_factor_recovery_codes',
         'two_factor_confirmed_at',
+        'two_factor_enabled',
     ];
 
     /**
@@ -77,6 +78,7 @@ class User extends Authenticatable
             'approved_at' => 'datetime',      // ADDED
             'rejected_at' => 'datetime',      // ADDED
             'two_factor_confirmed_at' => 'datetime',
+            'two_factor_enabled' => 'boolean',
             'password' => 'hashed',
             'is_active' => 'boolean',
             'permissions' => 'array',

@@ -37,6 +37,14 @@ class LoginController extends Controller
         
         if (Auth::attempt([$field => $request->username, 'password' => $request->password], $request->remember)) {
             $user = Auth::user();
+
+            // If user has two-factor enabled, require token step on separate page
+            if ($user->two_factor_enabled && $user->two_factor_secret) {
+                // store pending user id and logout
+                session(['2fa:user:id' => $user->id]);
+                Auth::logout();
+                return redirect()->route('auth.2fa.verify');
+            }
             
             // Check if account is approved
             if ($user->account_status === 'pending') {

@@ -7,6 +7,7 @@ use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
+use App\Services\TotpService;
 
 class UserSeeder extends Seeder
 {
@@ -29,18 +30,21 @@ class UserSeeder extends Seeder
             'alternate_contact' => null,
             'role' => 'admin',
             'is_active' => true,
-            'account_status' => 'approved', // Admin is approved by default
+            'account_status' => 'approved',
             'rejection_reason' => null,
             'position' => 'IT Administrator',
             'department' => 'Information Technology',
             'profile_photo' => null,
             'permissions' => json_encode(['*']),
+            'two_factor_enabled' => false,
+            'two_factor_secret' => null,
+            'two_factor_confirmed_at' => null,
             'email_verified_at' => now(),
             'last_login_at' => null,
             'last_login_ip' => null,
             'created_by' => null,
             'updated_by' => null,
-            'approved_by' => null, // No need for admin approval
+            'approved_by' => null,
             'approved_at' => null,
             'rejected_by' => null,
             'rejected_at' => null,
@@ -77,12 +81,15 @@ class UserSeeder extends Seeder
                 'confirm_appointments',
                 'view_reports'
             ]),
+            'two_factor_secret' => null,
+            'two_factor_enabled' => false,
+            'two_factor_confirmed_at' => null,
             'email_verified_at' => now(),
             'last_login_at' => null,
             'last_login_ip' => null,
             'created_by' => 1,
             'updated_by' => 1,
-            'approved_by' => 1, // Approved by admin
+            'approved_by' => 1,
             'approved_at' => now(),
             'rejected_by' => null,
             'rejected_at' => null,
@@ -119,6 +126,9 @@ class UserSeeder extends Seeder
                 'confirm_appointments',
                 'view_reports'
             ]),
+            'two_factor_secret' => null,
+            'two_factor_enabled' => false,
+            'two_factor_confirmed_at' => null,
             'email_verified_at' => now(),
             'last_login_at' => null,
             'last_login_ip' => null,

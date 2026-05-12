@@ -5,6 +5,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Session;
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Auth\RegisterController;
+use App\Http\Controllers\Auth\TwoFactorController;
 use App\Http\Controllers\Web\PageController;
 use App\Models\User;
 
@@ -42,6 +43,10 @@ Route::get('/login', [LoginController::class, 'showLoginForm'])->name('login');
 
 Route::post('/login', [LoginController::class, 'login']);
 Route::post('/logout', [LoginController::class, 'logout'])->name('logout');
+
+// Two-Factor authentication public routes (used during login flow)
+Route::get('/2fa/verify', [TwoFactorController::class, 'index'])->name('auth.2fa.verify');
+Route::post('/2fa/verify', [TwoFactorController::class, 'verify'])->name('auth.2fa.verify.post');
 
 Route::get('/register', [RegisterController::class, 'showRegistrationForm'])->name('register');
 Route::post('/register', [RegisterController::class, 'register']);
@@ -143,8 +148,9 @@ Route::get('/get-default-capacities', [App\Http\Controllers\Admin\SlotController
     Route::get('/users/{id}/edit', [App\Http\Controllers\Admin\UserController::class, 'edit'])->name('users.edit');
     Route::put('/users/{id}', [App\Http\Controllers\Admin\UserController::class, 'update'])->name('users.update');
     Route::delete('/users/{id}', [App\Http\Controllers\Admin\UserController::class, 'destroy'])->name('users.destroy');
-    Route::put('/users/{id}/toggle-status', [App\Http\Controllers\Admin\UserController::class, 'toggleStatus'])->name('users.toggle-status');
-    
+    Route::put('/users/{id}/approve', [App\Http\Controllers\Admin\UserController::class, 'approveAccount'])->name('users.approve');
+    Route::put('/users/{id}/reject', [App\Http\Controllers\Admin\UserController::class, 'rejectAccount'])->name('users.reject');
+        
     // Reports
     Route::get('/reports', [App\Http\Controllers\Admin\ReportController::class, 'index'])->name('reports.index');
     Route::get('/reports/export', [App\Http\Controllers\Admin\ReportController::class, 'export'])->name('reports.export');
@@ -160,11 +166,17 @@ Route::get('/get-default-capacities', [App\Http\Controllers\Admin\SlotController
     Route::post('/settings/capacity-rules', [App\Http\Controllers\Admin\SettingsController::class, 'saveCapacityRules'])->name('settings.capacity-rules');
 
     // Profile Routes
-    Route::get('/profile', [App\Http\Controllers\Admin\ProfileController::class, 'index'])->name('profile.index');
-    Route::get('/profile/edit', [App\Http\Controllers\Admin\ProfileController::class, 'edit'])->name('profile.edit');
-    Route::put('/profile/update', [App\Http\Controllers\Admin\ProfileController::class, 'update'])->name('profile.update');
-    Route::get('/profile/change-password', [App\Http\Controllers\Admin\ProfileController::class, 'changePassword'])->name('profile.change-password');
-    Route::put('/profile/password', [App\Http\Controllers\Admin\ProfileController::class, 'updatePassword'])->name('profile.password.update');
+    Route::get('/profile', [App\Http\Controllers\Admin\ProfileController::class, 'index'])->name('index');
+    Route::get('/profile/edit', [App\Http\Controllers\Admin\ProfileController::class, 'edit'])->name('edit');
+    Route::put('/profile/update', [App\Http\Controllers\Admin\ProfileController::class, 'update'])->name('update');
+    Route::get('/profile/change-password', [App\Http\Controllers\Admin\ProfileController::class, 'changePassword'])->name('change-password');
+    Route::put('/profile/password', [App\Http\Controllers\Admin\ProfileController::class, 'updatePassword'])->name('password.update');
+    
+    // 2FA Routes 
+    Route::post('/2fa/toggle', [App\Http\Controllers\Admin\ProfileController::class, 'toggleTwoFactor'])->name('2fa.toggle');
+    Route::get('/2fa/qr', [App\Http\Controllers\Admin\ProfileController::class, 'showTwoFactorQr'])->name('2fa.qr');
+    Route::get('/2fa/status', [App\Http\Controllers\Admin\ProfileController::class, 'checkTwoFactorStatus'])->name('2fa.status');
+
 });
 
 // Staff routes
@@ -204,13 +216,15 @@ Route::middleware(['auth', 'staff'])->prefix('staff')->name('staff.')->group(fun
     Route::get('/export/excel', [App\Http\Controllers\Staff\ReportsController::class, 'exportExcel'])->name('reports.export.excel');
 
     // Profile Routes
-    Route::get('/profile', [App\Http\Controllers\Staff\ProfileController::class, 'index'])->name('profile.index');
-    Route::get('/profile/edit', [App\Http\Controllers\Staff\ProfileController::class, 'edit'])->name('profile.edit');
-    Route::put('/profile/update', [App\Http\Controllers\Staff\ProfileController::class, 'update'])->name('profile.update');
-    Route::get('/profile/change-password', [App\Http\Controllers\Staff\ProfileController::class, 'changePassword'])->name('profile.change-password');
-    Route::put('/profile/password', [App\Http\Controllers\Staff\ProfileController::class, 'updatePassword'])->name('profile.password.update');
-
-
+    Route::get('/profile', [App\Http\Controllers\Staff\ProfileController::class, 'index'])->name('index');
+    Route::get('/profile/edit', [App\Http\Controllers\Staff\ProfileController::class, 'edit'])->name('edit');
+    Route::put('/profile/update', [App\Http\Controllers\Staff\ProfileController::class, 'update'])->name('update');
+    Route::get('/profile/change-password', [App\Http\Controllers\Staff\ProfileController::class, 'changePassword'])->name('change-password');
+    Route::put('/profile/password', [App\Http\Controllers\Staff\ProfileController::class, 'updatePassword'])->name('password.update');
+    
+    // 2FA Routes 
+    Route::post('/profile/2fa/toggle', [App\Http\Controllers\Staff\ProfileController::class, 'toggleTwoFactor'])->name('2fa.toggle');
+    Route::get('/profile/2fa/qr', [App\Http\Controllers\Staff\ProfileController::class, 'showTwoFactorQr'])->name('2fa.qr');
 });
 
 // Operator routes
@@ -246,11 +260,15 @@ Route::middleware(['auth', 'operator'])->prefix('operator')->name('operator.')->
     Route::get('/export/excel', [App\Http\Controllers\Operator\OReportsController::class, 'exportExcel'])->name('reports.export.excel');
 
     // Profile Routes
-    Route::get('/profile', [App\Http\Controllers\Operator\OProfileController::class, 'index'])->name('profile.index');
-    Route::get('/profile/edit', [App\Http\Controllers\Operator\OProfileController::class, 'edit'])->name('profile.edit');
-    Route::put('/profile/update', [App\Http\Controllers\Operator\OProfileController::class, 'update'])->name('profile.update');
-    Route::get('/profile/change-password', [App\Http\Controllers\Operator\OProfileController::class, 'changePassword'])->name('profile.change-password');
-    Route::put('/profile/password', [App\Http\Controllers\Operator\OProfileController::class, 'updatePassword'])->name('profile.password.update');
+    Route::get('/profile', [App\Http\Controllers\Operator\OProfileController::class, 'index'])->name('index');
+    Route::get('/profile/edit', [App\Http\Controllers\Operator\OProfileController::class, 'edit'])->name('edit');
+    Route::put('/profile/update', [App\Http\Controllers\Operator\OProfileController::class, 'update'])->name('update');
+    Route::get('/profile/change-password', [App\Http\Controllers\Operator\OProfileController::class, 'changePassword'])->name('change-password');
+    Route::put('/profile/password', [App\Http\Controllers\Operator\OProfileController::class, 'updatePassword'])->name('password.update');
+    
+    // 2FA Routes 
+    Route::post('/2fa/toggle', [App\Http\Controllers\Operator\OProfileController::class, 'toggleTwoFactor'])->name('2fa.toggle');
+    Route::get('/2fa/qr', [App\Http\Controllers\Operator\OProfileController::class, 'showTwoFactorQr'])->name('2fa.qr');
 });
 
 // Client appointment routes

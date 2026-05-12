@@ -1,4 +1,3 @@
-{{-- resources/views/auth/create.blade.php --}}
 <!DOCTYPE html>
 <html lang="en">
 
@@ -6,37 +5,30 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
     <meta name="csrf-token" content="{{ csrf_token() }}">
-    <title>PSA Appointment System | Create Staff Account</title>
     <link rel="icon" type="image/png" sizes="32x32" href="{{ asset('images/psa.png') }}">
-
-    <link
-        href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600;14..32,700;14..32,800&display=swap"
-        rel="stylesheet">
+    <title>Two-Factor Verification</title>
+    <link rel="stylesheet" href="{{ asset('css/login.css') }}">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="stylesheet" href="{{ asset('css/create.css') }}">
 </head>
 
 <body>
     <!-- Canvas Background -->
     <canvas id="canvas-bg"></canvas>
 
-    <!-- PSA Overlay Animations -->
+    <!-- PSA Overlay Animation (Your requested overlay) -->
     <div class="overlay"></div>
     <div class="gradient-overlay"></div>
     <div class="vignette"></div>
-
-    <div class="register-wrapper">
-        <div class="register-card">
-            <div class="register-header">
+    <div class="login-wrapper">
+        <div class="login-card">
+            <div class="login-header">
                 <div class="logo-container">
-                    <img src="{{ asset('images/psa-logo.png') }}" alt="PSA Logo" class="psa-logo-img"
-                        onerror="this.src='https://via.placeholder.com/90?text=PSA'">
+                    <img src="{{ asset('images/psa-logo.png') }}" alt="PSA Logo" class="psa-logo-img">
                 </div>
-                <h1 class="brand-title">Staff Registration</h1>
-                <p class="subtitle">Create Employee Account for PSA Appointment System</p>
+                <h1 class="brand-title">Two-Factor Authentication</h1>
+                <p class="subtitle">Enter the 6-digit code from your authenticator app</p>
             </div>
 
-            <!-- Display validation errors -->
             @if ($errors->any())
                 <div class="alert-message">
                     <i class="fas fa-exclamation-triangle"></i>
@@ -44,109 +36,31 @@
                 </div>
             @endif
 
-            @if (session('error'))
-                <div class="alert-message">
-                    <i class="fas fa-circle-exclamation"></i>
-                    <span>{{ session('error') }}</span>
-                </div>
-            @endif
-
-            @if (session('success'))
-                <div class="alert-message alert-success">
-                    <i class="fas fa-check-circle"></i>
-                    <span>{{ session('success') }}</span>
-                </div>
-            @endif
-
-            <!-- Registration Form - Staff Only -->
-            <form method="POST" action="{{ route('register') }}" id="registerForm">
+            <form id="twofaForm" method="POST" action="{{ route('auth.2fa.verify.post') }}">
                 @csrf
-                <!-- Hidden role input - always staff -->
-                <input type="hidden" name="role" value="staff">
-
-                <!-- First Name -->
                 <div class="input-group">
-                    <i class="fas fa-user input-icon"></i>
-                    <input type="text" name="first_name" id="first_name" class="form-control" placeholder=" "
-                        value="{{ old('first_name') }}" required>
-                    <label for="first_name" class="floating-label required-field">First Name</label>
+                    <i class="fas fa-key input-icon"></i>
+                    <input type="text" inputmode="numeric" pattern="\d{6}" maxlength="6" name="code"
+                        value="{{ old('code') }}" class="form-control" placeholder=" " required autofocus>
+                    <label class="floating-label">6-digit code</label>
                 </div>
 
-                <!-- Last Name -->
-                <div class="input-group">
-                    <i class="fas fa-user input-icon"></i>
-                    <input type="text" name="last_name" id="last_name" class="form-control" placeholder=" "
-                        value="{{ old('last_name') }}" required>
-                    <label for="last_name" class="floating-label required-field">Last Name</label>
+                <div class="form-options">
+                    <a href="{{ route('login') }}" class="forgot-link">Back to login</a>
                 </div>
 
-                <!-- Email -->
-                <div class="input-group">
-                    <i class="fas fa-envelope input-icon"></i>
-                    <input type="email" name="email" id="email" class="form-control" placeholder=" "
-                        value="{{ old('email') }}" required>
-                    <label for="email" class="floating-label required-field">Email Address</label>
-                </div>
-
-                <!-- Username -->
-                <div class="input-group">
-                    <i class="fas fa-id-card input-icon"></i>
-                    <input type="text" name="username" id="username" class="form-control" placeholder=" "
-                        value="{{ old('username') }}" required>
-                    <label for="username" class="floating-label required-field">Username</label>
-                </div>
-
-                <!-- Password -->
-                <div class="input-group">
-                    <i class="fas fa-lock input-icon"></i>
-                    <input type="password" name="password" id="password" class="form-control" placeholder=" " required>
-                    <label for="password" class="floating-label required-field">Password</label>
-                    <button type="button" class="password-toggle" id="togglePasswordBtn" tabindex="-1">
-                        <i class="far fa-eye-slash"></i>
-                    </button>
-                </div>
-
-                <!-- Confirm Password -->
-                <div class="input-group">
-                    <i class="fas fa-lock input-icon"></i>
-                    <input type="password" name="password_confirmation" id="password_confirmation"
-                        class="form-control" placeholder=" " required>
-                    <label for="password_confirmation" class="floating-label required-field">Confirm Password</label>
-                    <button type="button" class="password-toggle" id="toggleConfirmBtn" tabindex="-1">
-                        <i class="far fa-eye-slash"></i>
-                    </button>
-                </div>
-
-                <button type="submit" class="btn-register">
-                    <span>CREATE ACCOUNT</span>
+                <button type="submit" class="btn-login">
+                    <span>VERIFY</span>
                     <i class="fas fa-arrow-right"></i>
                 </button>
-
-                <div class="login-link">
-                    Already have an account?
-                    <a href="{{ route('login') }}" id="signInLink" style="cursor: pointer;">
-                        Sign in here
-                    </a>
-                </div>
             </form>
-
-            <div class="footer-note">
-                <span>© 2025 PSA Appointment System</span>
-                <span>•</span>
-                <span>Secure SSL Registration</span>
-                <span>•</span>
-                <span><i class="fas fa-shield-alt"></i> Encrypted</span>
-            </div>
         </div>
     </div>
-
-    <!-- PSA LOADING MODAL -->
     <div class="psa-loader-modal" id="psaLoaderModal">
         <div class="psa-loader-container">
             <img src="{{ asset('images/psa.png') }}" alt="PSA Loading" class="psa-loader-logo">
         </div>
     </div>
-
     <script>
         // ============================================================
         //  MODERN PARTICLE NETWORK BACKGROUND (Canvas Animation)
@@ -298,69 +212,40 @@
         }
 
         // ============================================================
-        //  UI INTERACTIONS
+        //  UI INTERACTIONS & FORM SUBMIT HANDLER
         // ============================================================
-
-        // Password visibility toggles
-        const togglePassword = document.getElementById('togglePasswordBtn');
-        const toggleConfirm = document.getElementById('toggleConfirmBtn');
+        const toggleBtn = document.getElementById('togglePasswordBtn');
         const passwordField = document.getElementById('password');
-        const confirmField = document.getElementById('password_confirmation');
-
-        function setupToggle(btn, field) {
-            if (btn && field) {
-                btn.addEventListener('click', () => {
-                    const type = field.getAttribute('type') === 'password' ? 'text' : 'password';
-                    field.setAttribute('type', type);
-                    const icon = btn.querySelector('i');
-                    if (type === 'text') {
-                        icon.classList.remove('fa-eye-slash');
-                        icon.classList.add('fa-eye');
-                    } else {
-                        icon.classList.remove('fa-eye');
-                        icon.classList.add('fa-eye-slash');
-                    }
-                });
-            }
+        if (toggleBtn && passwordField) {
+            toggleBtn.addEventListener('click', () => {
+                const type = passwordField.getAttribute('type') === 'password' ? 'text' : 'password';
+                passwordField.setAttribute('type', type);
+                const icon = toggleBtn.querySelector('i');
+                if (type === 'text') {
+                    icon.classList.remove('fa-eye-slash');
+                    icon.classList.add('fa-eye');
+                } else {
+                    icon.classList.remove('fa-eye');
+                    icon.classList.add('fa-eye-slash');
+                }
+            });
         }
-
-        setupToggle(togglePassword, passwordField);
-        setupToggle(toggleConfirm, confirmField);
 
         // Handle form submission - show loading state
-        const registerForm = document.getElementById('registerForm');
-        if (registerForm) {
-            registerForm.addEventListener('submit', function(e) {
+        const loginForm = document.getElementById('loginForm');
+        if (loginForm) {
+            loginForm.addEventListener('submit', function(e) {
                 showPSALoader();
             });
         }
 
-        const signInLink = document.getElementById('signInLink');
-        if (signInLink) {
-            signInLink.addEventListener('click', function(e) {
-                e.preventDefault();
-                showPSALoader();
-                // Navigate after a short delay to show loader
-                setTimeout(() => {
-                    window.location.href = this.getAttribute('href');
-                }, 300);
-            });
-        }
-
-        // Handle create account button click (if any other navigation)
+        // Show loader on create account button click
         const createAccountBtn = document.querySelector('.btn-create-account');
         if (createAccountBtn) {
             createAccountBtn.addEventListener('click', function(e) {
                 showPSALoader();
             });
         }
-
-        // Floating label fix for autofilled fields
-        document.querySelectorAll('.form-control').forEach(input => {
-            if (input.value.trim() !== '') {
-                input.dispatchEvent(new Event('input'));
-            }
-        });
 
         // Auto-dismiss alerts after 6 seconds
         setTimeout(() => {
@@ -374,15 +259,29 @@
             });
         }, 6000);
 
+        // Floating label fix for autofilled fields
+        document.querySelectorAll('.form-control').forEach(input => {
+            if (input.value.trim() !== '') {
+                input.dispatchEvent(new Event('input'));
+            }
+        });
+
         // Hide loader when page fully loads
         window.addEventListener('pageshow', function() {
             hidePSALoader();
         });
 
-        // Safety timeout to hide loader if something goes wrong
         setTimeout(() => {
             hidePSALoader();
         }, 3000);
+
+        // Show PSA loader when submitting the 2FA form
+        const twofaForm = document.getElementById('twofaForm');
+        if (twofaForm) {
+            twofaForm.addEventListener('submit', function() {
+                showPSALoader();
+            });
+        }
     </script>
 </body>
 
