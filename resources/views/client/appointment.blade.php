@@ -1838,7 +1838,6 @@ async function captureClientReceipt(client, appointmentData) {
     
     receiptContainer.innerHTML = `
         <div style="text-align: center; margin-bottom: 20px;">
-            <img src="{{ asset('images/psa-logo.png') }}" alt="PSA Logo" style="height: 60px; width: auto; margin-bottom: 10px;">
             <h2 style="color: #2c5f8a; margin: 0; font-size: 1.3rem;">Philippine Statistics Authority</h2>
             <h3 style="color: #4a5568; margin: 5px 0; font-size: 1rem;">National ID System (PhilSys)</h3>
             <p style="color: #718096; margin: 5px 0; font-size: 0.85rem;">Applicant Confirmation Slip</p>

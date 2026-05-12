@@ -148,7 +148,7 @@
             {{-- NATIONAL ID REGISTRATION CARD --}}
             @php
                 $regRequirements = $requirements['reg'] ?? collect();
-                $regStandardRequirements = $regRequirements->where('age_group', 'standard');
+                $regStandardRequirements = $regRequirements->where('age_group', '4_above');
                 $regChildRequirements = $regRequirements->where('age_group', 'child');
             @endphp
             <div class="req-card">
@@ -160,8 +160,8 @@
                 </div>
                 
                 <div class="req-tabs">
-                    <button class="req-tab active" data-tab="standard-reg">Standard (5+ years)</button>
-                    <button class="req-tab" data-tab="child-reg">Child (1-4 years)</button>
+                    <button class="req-tab active" data-tab="standard-reg">5+ Years Old</button>
+                    <button class="req-tab" data-tab="child-reg">0-4 Years Old</button>
                 </div>
                 
                 <div class="req-content active" id="standard-reg">
@@ -193,7 +193,7 @@
             {{-- STATUS INQUIRY / ePhilID / TRN RETRIEVAL CARD --}}
             @php
                 $inquiryRequirements = $requirements['inquiry'] ?? collect();
-                $inquiryStandardRequirements = $inquiryRequirements->where('age_group', 'standard');
+                $inquiryStandardRequirements = $inquiryRequirements->where('age_group', '4_above');
                 $inquiryChildRequirements = $inquiryRequirements->where('age_group', 'child');
             @endphp
             <div class="req-card">
@@ -205,8 +205,8 @@
                 </div>
                 
                 <div class="req-tabs">
-                    <button class="req-tab active" data-tab="standard-inq">Standard (5+ years)</button>
-                    <button class="req-tab" data-tab="child-inq">Child (1-4 years)</button>
+                    <button class="req-tab active" data-tab="standard-inq">5+ Years Old</button>
+                    <button class="req-tab" data-tab="child-inq">0-4 Years Old</button>
                 </div>
                 
                 <div class="req-content active" id="standard-inq">
@@ -238,7 +238,7 @@
             {{-- CORRECTION / UPDATING CARD --}}
             @php
                 $updatingRequirements = $requirements['updating'] ?? collect();
-                $updatingStandardRequirements = $updatingRequirements->where('age_group', 'standard');
+                $updatingStandardRequirements = $updatingRequirements->where('age_group', '4_above');
                 $updatingChildRequirements = $updatingRequirements->where('age_group', 'child');
             @endphp
             <div class="req-card">
@@ -250,8 +250,8 @@
                 </div>
                 
                 <div class="req-tabs">
-                    <button class="req-tab active" data-tab="standard-upd">Standard (5+ years)</button>
-                    <button class="req-tab" data-tab="child-upd">Child (1-4 years)</button>
+                    <button class="req-tab active" data-tab="standard-upd">5+ Years Old</button>
+                    <button class="req-tab" data-tab="child-upd">0-4 Years Old</button>
                 </div>
                 
                 <div class="req-content active" id="standard-upd">

@@ -264,7 +264,7 @@ return new class extends Migration
         Schema::create('document_requirements', function (Blueprint $table) {
             $table->id();
             $table->enum('service', ['reg', 'updating', 'inquiry']);
-            $table->enum('age_group', ['standard', 'child'])->default('standard');
+            $table->enum('age_group', ['4_above', 'child'])->default('4_above');
             $table->text('requirement');
             $table->boolean('is_active')->default(true);
             $table->timestamps();
