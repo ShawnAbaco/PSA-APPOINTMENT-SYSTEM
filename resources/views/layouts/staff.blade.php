@@ -164,7 +164,7 @@
                     <a href="{{ route('staff.clients.index') }}"
                         class="nav-link {{ request()->routeIs('staff.clients.*') ? 'active' : '' }}">
                         <i class="fas fa-users"></i>
-                        <span>Clients</span>
+                        <span>Applicants</span>
                     </a>
                 </div>
                 <div class="nav-item">
