@@ -194,7 +194,7 @@
                     <i class="fas fa-users"></i> Add the persons who will attend (Maximum 4 persons)
                 </p>
 
-                
+
 
                 <div class="clients-list" id="clientsList"></div>
 
@@ -216,7 +216,7 @@
                         class="fas fa-arrow-right"></i></button>
             </div>
 
-             <!-- STEP 3: SCHEDULE -->
+            <!-- STEP 3: SCHEDULE -->
             <div id="sectionSchedule" class="hidden">
                 <div class="section-title">Select Appointment Date & Time</div>
 
@@ -229,13 +229,16 @@
                     <div class="calendar-header">
                         <span class="calendar-month-year" id="calendarMonthYear">Loading...</span>
                         <div class="calendar-nav">
-                            <button class="calendar-nav-btn" id="prevMonthBtn"><i class="fas fa-chevron-left"></i></button>
-                            <button class="calendar-nav-btn" id="nextMonthBtn"><i class="fas fa-chevron-right"></i></button>
+                            <button class="calendar-nav-btn" id="prevMonthBtn"><i
+                                    class="fas fa-chevron-left"></i></button>
+                            <button class="calendar-nav-btn" id="nextMonthBtn"><i
+                                    class="fas fa-chevron-right"></i></button>
                         </div>
                     </div>
                     <div class="calendar-weekdays">
                         <span class="weekday">Mo</span><span class="weekday">Tu</span><span class="weekday">We</span>
-                        <span class="weekday">Th</span><span class="weekday">Fr</span><span class="weekday">Sa</span><span class="weekday">Su</span>
+                        <span class="weekday">Th</span><span class="weekday">Fr</span><span
+                            class="weekday">Sa</span><span class="weekday">Su</span>
                     </div>
                     <div class="calendar-days" id="calendarDays">
                         <div class="loading-spinner">Loading calendar...</div>
@@ -245,14 +248,17 @@
                 <div class="selected-date-display">
                     <i class="far fa-check-circle" style="color: var(--success);"></i>
                     <span>Selected Date:</span>
-                    <span id="selectedDateText" style="font-weight: 600; color: var(--gray-900);">No date selected</span>
+                    <span id="selectedDateText" style="font-weight: 600; color: var(--gray-900);">No date
+                        selected</span>
                 </div>
 
                 <div id="perApplicantTimeSlotsContainer" style="margin-top: 30px;"></div>
 
                 <div class="btn-group">
-                    <button class="btn-next" id="nextToContact">Next: Contact Info <i class="fas fa-arrow-right"></i></button>
-                    <button class="btn-next back-btn" id="backToClients"><i class="fas fa-arrow-left"></i> Back</button>
+                    <button class="btn-next" id="nextToContact">Next: Contact Info <i
+                            class="fas fa-arrow-right"></i></button>
+                    <button class="btn-next back-btn" id="backToClients"><i class="fas fa-arrow-left"></i>
+                        Back</button>
                 </div>
             </div>
 
@@ -392,398 +398,412 @@
 
     <style>
         /* Per Applicant Time Slot Styles */
-.applicant-time-slot-card {
-    background: white;
-    border: 1px solid var(--gray-200);
-    border-radius: 12px;
-    margin-bottom: 20px;
-    overflow: hidden;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.05);
-    transition: box-shadow 0.2s ease;
-}
+        .applicant-time-slot-card {
+            background: white;
+            border: 1px solid var(--gray-200);
+            border-radius: 12px;
+            margin-bottom: 20px;
+            overflow: hidden;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+            transition: box-shadow 0.2s ease;
+        }
 
-.applicant-time-slot-card:hover {
-    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-}
+        .applicant-time-slot-card:hover {
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
 
-.applicant-time-slot-header {
-    background: linear-gradient(135deg, var(--gray-50) 0%, #f8f9fa 100%);
-    padding: 15px 20px;
-    border-bottom: 1px solid var(--gray-200);
-    display: flex;
-    align-items: center;
-    gap: 12px;
-}
+        .applicant-time-slot-header {
+            background: linear-gradient(135deg, var(--gray-50) 0%, #f8f9fa 100%);
+            padding: 15px 20px;
+            border-bottom: 1px solid var(--gray-200);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
 
-.applicant-time-slot-header i {
-    font-size: 1.3rem;
-    color: var(--primary);
-}
+        .applicant-time-slot-header i {
+            font-size: 1.3rem;
+            color: var(--primary);
+        }
 
-.applicant-time-slot-header .applicant-name {
-    font-weight: 600;
-    color: var(--gray-800);
-    font-size: 1rem;
-}
+        .applicant-time-slot-header .applicant-name {
+            font-weight: 600;
+            color: var(--gray-800);
+            font-size: 1rem;
+        }
 
-.applicant-time-slot-header .applicant-service {
-    font-size: 0.75rem;
-    color: var(--gray-500);
-    margin-left: auto;
-    background: var(--gray-100);
-    padding: 4px 10px;
-    border-radius: 20px;
-}
+        .applicant-time-slot-header .applicant-service {
+            font-size: 0.75rem;
+            color: var(--gray-500);
+            margin-left: auto;
+            background: var(--gray-100);
+            padding: 4px 10px;
+            border-radius: 20px;
+        }
 
-/* Selected time display */
-.applicant-time-selected {
-    padding: 15px 20px;
-    background: linear-gradient(135deg, #e8f5e9 0%, #c8e6c9 100%);
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    flex-wrap: wrap;
-    gap: 10px;
-    border-left: 4px solid var(--success);
-}
+        /* Selected time display */
+        .applicant-time-selected {
+            padding: 15px 20px;
+            background: linear-gradient(135deg, #e8f5e9 0%, #c8e6c9 100%);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 10px;
+            border-left: 4px solid var(--success);
+        }
 
-.applicant-time-selected .selected-time-display {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    flex-wrap: wrap;
-}
+        .applicant-time-selected .selected-time-display {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
 
-.applicant-time-selected .selected-time-display i {
-    color: var(--success);
-    font-size: 1.1rem;
-}
+        .applicant-time-selected .selected-time-display i {
+            color: var(--success);
+            font-size: 1.1rem;
+        }
 
-.applicant-time-selected .selected-time-display span:first-of-type {
-    color: var(--gray-600);
-    font-size: 0.85rem;
-}
+        .applicant-time-selected .selected-time-display span:first-of-type {
+            color: var(--gray-600);
+            font-size: 0.85rem;
+        }
 
-.applicant-time-selected .selected-time-display .time-value {
-    font-weight: 700;
-    color: var(--gray-800);
-    background: white;
-    padding: 4px 12px;
-    border-radius: 20px;
-    font-size: 0.9rem;
-}
+        .applicant-time-selected .selected-time-display .time-value {
+            font-weight: 700;
+            color: var(--gray-800);
+            background: white;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.9rem;
+        }
 
-/* Change Time button */
-.btn-change-time {
-    background: white;
-    border: 1px solid var(--gray-300);
-    padding: 8px 16px;
-    border-radius: 25px;
-    cursor: pointer;
-    font-size: 0.8rem;
-    color: var(--gray-700);
-    transition: all 0.2s ease;
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    font-weight: 500;
-}
+        /* Change Time button */
+        .btn-change-time {
+            background: white;
+            border: 1px solid var(--gray-300);
+            padding: 8px 16px;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 0.8rem;
+            color: var(--gray-700);
+            transition: all 0.2s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            font-weight: 500;
+        }
 
-.btn-change-time:hover {
-    background: var(--gray-100);
-    border-color: var(--gray-400);
-    transform: translateY(-1px);
-}
+        .btn-change-time:hover {
+            background: var(--gray-100);
+            border-color: var(--gray-400);
+            transform: translateY(-1px);
+        }
 
-.btn-change-time i {
-    font-size: 0.75rem;
-}
+        .btn-change-time i {
+            font-size: 0.75rem;
+        }
 
-/* Time options container */
-.applicant-time-options {
-    padding: 20px;
-    display: none;
-    background: #fafbfc;
-}
+        /* Time options container */
+        .applicant-time-options {
+            padding: 20px;
+            display: none;
+            background: #fafbfc;
+        }
 
-.applicant-time-options.visible {
-    display: block;
-    animation: fadeIn 0.3s ease;
-}
+        .applicant-time-options.visible {
+            display: block;
+            animation: fadeIn 0.3s ease;
+        }
 
-@keyframes fadeIn {
-    from { opacity: 0; transform: translateY(-10px); }
-    to { opacity: 1; transform: translateY(0); }
-}
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
 
-/* Time slots grid - 2 columns on mobile, more on desktop */
-.time-slots-compact {
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: 12px;
-    margin-top: 12px;
-}
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
 
-/* Individual time slot option */
-.time-slot-option {
-    background: white;
-    border: 1px solid var(--gray-300);
-    border-radius: 10px;
-    padding: 10px 12px;
-    cursor: pointer;
-    font-size: 0.85rem;
-    font-weight: 500;
-    transition: all 0.2s ease;
-    color: var(--gray-700);
-    box-shadow: 0 1px 2px rgba(0,0,0,0.02);
-    text-align: center;
-}
+        /* Time slots grid - 2 columns on mobile, more on desktop */
+        .time-slots-compact {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+            margin-top: 12px;
+        }
 
-.time-slot-option:hover:not(.disabled) {
-    background: var(--primary);
-    border-color: var(--primary);
-    color: white;
-    transform: translateY(-2px);
-    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-}
+        /* Individual time slot option */
+        .time-slot-option {
+            background: white;
+            border: 1px solid var(--gray-300);
+            border-radius: 10px;
+            padding: 10px 12px;
+            cursor: pointer;
+            font-size: 0.85rem;
+            font-weight: 500;
+            transition: all 0.2s ease;
+            color: var(--gray-700);
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.02);
+            text-align: center;
+        }
 
-.time-slot-option.selected {
-    background: var(--primary);
-    border-color: var(--primary);
-    color: white;
-    box-shadow: 0 2px 4px rgba(0,123,255,0.3);
-}
+        .time-slot-option:hover:not(.disabled) {
+            background: var(--primary);
+            border-color: var(--primary);
+            color: white;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
 
-.time-slot-option.disabled {
-    opacity: 0.5;
-    cursor: not-allowed;
-    background: var(--gray-100);
-    color: var(--gray-500);
-    text-decoration: line-through;
-}
+        .time-slot-option.selected {
+            background: var(--primary);
+            border-color: var(--primary);
+            color: white;
+            box-shadow: 0 2px 4px rgba(0, 123, 255, 0.3);
+        }
 
-.time-slot-option.disabled:hover {
-    background: var(--gray-100);
-    color: var(--gray-500);
-    transform: none;
-    box-shadow: none;
-}
+        .time-slot-option.disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            background: var(--gray-100);
+            color: var(--gray-500);
+            text-decoration: line-through;
+        }
 
-/* Slot info messages */
-.slot-info {
-    background: #e3f2fd;
-    padding: 15px 20px;
-    border-radius: 10px;
-    margin: 15px 0;
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    color: #1565c0;
-    font-size: 0.9rem;
-}
+        .time-slot-option.disabled:hover {
+            background: var(--gray-100);
+            color: var(--gray-500);
+            transform: none;
+            box-shadow: none;
+        }
 
-.slot-info i {
-    font-size: 1.2rem;
-}
+        /* Slot info messages */
+        .slot-info {
+            background: #e3f2fd;
+            padding: 15px 20px;
+            border-radius: 10px;
+            margin: 15px 0;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            color: #1565c0;
+            font-size: 0.9rem;
+        }
 
-/* Selected date display */
-.selected-date-display {
-    background: #f0fdf4;
-    padding: 12px 16px;
-    border-radius: 10px;
-    margin: 20px 0;
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    font-size: 0.9rem;
-    border: 1px solid #bbf7d0;
-}
+        .slot-info i {
+            font-size: 1.2rem;
+        }
 
-.selected-date-display i {
-    color: var(--success);
-    font-size: 1.1rem;
-}
+        /* Selected date display */
+        .selected-date-display {
+            background: #f0fdf4;
+            padding: 12px 16px;
+            border-radius: 10px;
+            margin: 20px 0;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 0.9rem;
+            border: 1px solid #bbf7d0;
+        }
 
-/* Desktop styles - more columns */
-@media (min-width: 768px) {
-    .time-slots-compact {
-        grid-template-columns: repeat(3, 1fr);
-        gap: 15px;
-    }
-    
-    .time-slot-option {
-        padding: 12px 18px;
-        font-size: 0.9rem;
-    }
-}
+        .selected-date-display i {
+            color: var(--success);
+            font-size: 1.1rem;
+        }
 
-@media (min-width: 1024px) {
-    .time-slots-compact {
-        grid-template-columns: repeat(4, 1fr);
-    }
-}
+        /* Desktop styles - more columns */
+        @media (min-width: 768px) {
+            .time-slots-compact {
+                grid-template-columns: repeat(3, 1fr);
+                gap: 15px;
+            }
 
-/* Responsive adjustments for mobile */
-@media (max-width: 768px) {
-    .applicant-time-slot-header {
-        flex-wrap: wrap;
-        gap: 8px;
-    }
-    
-    .applicant-time-slot-header .applicant-service {
-        margin-left: 0;
-    }
-    
-    .applicant-time-selected {
-        flex-direction: column;
-        align-items: flex-start;
-    }
-    
-    .applicant-time-selected .selected-time-display {
-        width: 100%;
-        justify-content: space-between;
-    }
-    
-    .btn-change-time {
-        width: 100%;
-        justify-content: center;
-    }
-    
-    .time-slots-compact {
-        gap: 10px;
-    }
-    
-    .time-slot-option {
-        padding: 10px 12px;
-        font-size: 0.8rem;
-    }
-    
-    /* Better touch targets for mobile */
-    .time-slot-option,
-    .btn-change-time {
-        min-height: 44px;
-    }
-}
+            .time-slot-option {
+                padding: 12px 18px;
+                font-size: 0.9rem;
+            }
+        }
 
-/* Small mobile phones */
-@media (max-width: 480px) {
-    .time-slots-compact {
-        gap: 8px;
-    }
-    
-    .time-slot-option {
-        padding: 8px 10px;
-        font-size: 0.75rem;
-    }
-    
-    .applicant-time-options {
-        padding: 15px;
-    }
-}
+        @media (min-width: 1024px) {
+            .time-slots-compact {
+                grid-template-columns: repeat(4, 1fr);
+            }
+        }
 
-/* Calendar day styles */
-.calendar-day {
-    cursor: pointer;
-    transition: all 0.2s ease;
-}
+        /* Responsive adjustments for mobile */
+        @media (max-width: 768px) {
+            .applicant-time-slot-header {
+                flex-wrap: wrap;
+                gap: 8px;
+            }
 
-.calendar-day.available {
-    background: #e8f5e9;
-    color: #2e7d32;
-    font-weight: 500;
-}
+            .applicant-time-slot-header .applicant-service {
+                margin-left: 0;
+            }
 
-.calendar-day.available:hover {
-    background: #c8e6c9;
-    transform: scale(1.02);
-}
+            .applicant-time-selected {
+                flex-direction: column;
+                align-items: flex-start;
+            }
 
-.calendar-day.selected {
-    background: var(--primary);
-    color: white;
-}
+            .applicant-time-selected .selected-time-display {
+                width: 100%;
+                justify-content: space-between;
+            }
 
-.calendar-day.disabled {
-    background: #f5f5f5;
-    color: #bdbdbd;
-    cursor: not-allowed;
-}
+            .btn-change-time {
+                width: 100%;
+                justify-content: center;
+            }
 
-/* Time slots grid inside schedule (if still used) */
-.time-slots-grid {
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: 12px;
-    margin-top: 15px;
-}
+            .time-slots-compact {
+                gap: 10px;
+            }
 
-@media (min-width: 768px) {
-    .time-slots-grid {
-        grid-template-columns: repeat(3, 1fr);
-    }
-}
+            .time-slot-option {
+                padding: 10px 12px;
+                font-size: 0.8rem;
+            }
 
-@media (min-width: 1024px) {
-    .time-slots-grid {
-        grid-template-columns: repeat(4, 1fr);
-    }
-}
+            /* Better touch targets for mobile */
+            .time-slot-option,
+            .btn-change-time {
+                min-height: 44px;
+            }
+        }
 
-.time-slot-card {
-    background: white;
-    border: 1px solid var(--gray-300);
-    border-radius: 10px;
-    padding: 12px 16px;
-    cursor: pointer;
-    transition: all 0.2s ease;
-    text-align: center;
-}
+        /* Small mobile phones */
+        @media (max-width: 480px) {
+            .time-slots-compact {
+                gap: 8px;
+            }
 
-.time-slot-card:hover {
-    background: var(--primary);
-    border-color: var(--primary);
-    color: white;
-}
+            .time-slot-option {
+                padding: 8px 10px;
+                font-size: 0.75rem;
+            }
 
-.time-slot-card.selected {
-    background: var(--primary);
-    border-color: var(--primary);
-    color: white;
-}
+            .applicant-time-options {
+                padding: 15px;
+            }
+        }
 
-/* Loading spinner */
-.spinner {
-    width: 40px;
-    height: 40px;
-    border: 4px solid #f3f3f3;
-    border-top: 4px solid var(--primary);
-    border-radius: 50%;
-    animation: spin 1s linear infinite;
-    margin: 0 auto;
-}
+        /* Calendar day styles */
+        .calendar-day {
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
 
-@keyframes spin {
-    0% { transform: rotate(0deg); }
-    100% { transform: rotate(360deg); }
-}
+        .calendar-day.available {
+            background: #e8f5e9;
+            color: #2e7d32;
+            font-weight: 500;
+        }
+
+        .calendar-day.available:hover {
+            background: #c8e6c9;
+            transform: scale(1.02);
+        }
+
+        .calendar-day.selected {
+            background: var(--primary);
+            color: white;
+        }
+
+        .calendar-day.disabled {
+            background: #f5f5f5;
+            color: #bdbdbd;
+            cursor: not-allowed;
+        }
+
+        /* Time slots grid inside schedule (if still used) */
+        .time-slots-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+            margin-top: 15px;
+        }
+
+        @media (min-width: 768px) {
+            .time-slots-grid {
+                grid-template-columns: repeat(3, 1fr);
+            }
+        }
+
+        @media (min-width: 1024px) {
+            .time-slots-grid {
+                grid-template-columns: repeat(4, 1fr);
+            }
+        }
+
+        .time-slot-card {
+            background: white;
+            border: 1px solid var(--gray-300);
+            border-radius: 10px;
+            padding: 12px 16px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            text-align: center;
+        }
+
+        .time-slot-card:hover {
+            background: var(--primary);
+            border-color: var(--primary);
+            color: white;
+        }
+
+        .time-slot-card.selected {
+            background: var(--primary);
+            border-color: var(--primary);
+            color: white;
+        }
+
+        /* Loading spinner */
+        .spinner {
+            width: 40px;
+            height: 40px;
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid var(--primary);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto;
+        }
+
+        @keyframes spin {
+            0% {
+                transform: rotate(0deg);
+            }
+
+            100% {
+                transform: rotate(360deg);
+            }
+        }
+
         /* Birthdate input styling */
-.birthdate-wrapper {
-    position: relative;
-    width: 100%;
-}
+        .birthdate-wrapper {
+            position: relative;
+            width: 100%;
+        }
 
-.birthdate-format-hint {
-    display: block;
-    font-size: 0.7rem;
-    color: #6c757d;
-    margin-top: 4px;
-    font-style: italic;
-}
+        .birthdate-format-hint {
+            display: block;
+            font-size: 0.7rem;
+            color: #6c757d;
+            margin-top: 4px;
+            font-style: italic;
+        }
 
-.birthdate-format-hint i {
-    margin-right: 4px;
-    font-size: 0.65rem;
-}
+        .birthdate-format-hint i {
+            margin-right: 4px;
+            font-size: 0.65rem;
+        }
+
         /* Style for view requirements button - Red outline (not clicked yet) */
         .btn-view-req {
             background-color: transparent !important;
@@ -794,34 +814,34 @@
             cursor: pointer;
             font-weight: 600;
             transition: all 0.3s ease;
-                width: 100%;
+            width: 100%;
 
         }
-        
+
         .btn-view-req:hover {
             background-color: #dc3545 !important;
             color: white !important;
             transform: translateY(-1px);
         }
-        
+
         /* Style for view requirements button - Green (clicked/read) */
         .btn-view-req.requirements-read {
             background-color: #ffffff !important;
             color: white !important;
             border: 2px solid #28a745 !important;
         }
-        
+
         .btn-view-req.requirements-read:hover {
             background-color: #218838 !important;
             border-color: #218838 !important;
         }
-        
+
         .btn-view-req:disabled {
             opacity: 0.5;
             cursor: not-allowed;
             transform: none;
         }
-        
+
         .btn-view-req:disabled:hover {
             background-color: transparent !important;
             color: #dc3545 !important;
@@ -832,11 +852,11 @@
             cursor: not-allowed;
             opacity: 0.5;
         }
-        
+
         .req-ack-row.disabled-checkbox {
             opacity: 0.6;
         }
-        
+
         .req-ack-row .helper-text {
             display: block;
             font-size: 0.75rem;
@@ -852,14 +872,14 @@
             cursor: not-allowed !important;
             opacity: 0.6;
         }
-        
+
         /* Style for enabled view requirements button */
         .btn-view-req:enabled {
             background-color: #white !important;
             color: black !important;
             cursor: pointer !important;
         }
-        
+
         .btn-view-req:enabled:hover {
             background-color: lightgray !important;
             transform: translateY(-1px);
@@ -870,16 +890,21 @@
             text-align: center;
             padding: 40px;
         }
-        
+
         .loading-spinner i {
             font-size: 2rem;
             color: var(--primary);
             animation: spin 1s linear infinite;
         }
-        
+
         @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
+            0% {
+                transform: rotate(0deg);
+            }
+
+            100% {
+                transform: rotate(360deg);
+            }
         }
 
         /* Requirements list styles - simple list without checkboxes */
@@ -888,14 +913,17 @@
             overflow-y: auto;
             padding: 10px;
         }
+
         .requirements-simple-list ul {
             margin: 0;
             padding-left: 20px;
         }
+
         .requirements-simple-list li {
             margin-bottom: 10px;
             line-height: 1.4;
         }
+
         .warning-note {
             background: #fff3cd;
             border-left: 4px solid #ffc107;
@@ -905,6 +933,7 @@
             font-size: 0.85rem;
             color: #856404;
         }
+
         .info-note {
             background: #d1ecf1;
             border-left: 4px solid #17a2b8;
@@ -914,11 +943,12 @@
             font-size: 0.85rem;
             color: #0c5460;
         }
+
         .requirements-header h4 {
             margin-bottom: 10px;
             color: var(--primary);
         }
-        
+
         /* Guide note styles */
         .guide-note {
             background: #e7f3ff;
@@ -929,17 +959,17 @@
             font-size: 0.85rem;
             color: #0c5460;
         }
-        
+
         .guide-note i {
             margin-right: 8px;
             color: #2196F3;
         }
-        
+
         .step-instruction {
             font-size: 0.8rem;
             color: #666;
             margin-top: 5px;
-                text-align: center;
+            text-align: center;
 
         }
     </style>
@@ -948,105 +978,111 @@
     <!-- SweetAlert2 JS -->
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script>
-(function() {
-    'use strict';
+        (function() {
+            'use strict';
 
-    let selectedDate = null;
-    let availableDatesData = [];
-    let clientTimeSlots = {};
-    let availableTimeSlotsCache = [];
-    let clientTrnData = {};
-    let userLocation = {
-        lat: null,
-        lng: null,
-        city: null,
-        address: null,
-        zipcode: null
-    };
-    let html5QrCode = null;
-    let currentQrClientId = null;
-    let currentRequirementsClientId = null;
+            let selectedDate = null;
+            let availableDatesData = [];
+            let clientTimeSlots = {};
+            let availableTimeSlotsCache = [];
+            let clientTrnData = {};
+            let userLocation = {
+                lat: null,
+                lng: null,
+                city: null,
+                address: null,
+                zipcode: null
+            };
+            let html5QrCode = null;
+            let currentQrClientId = null;
+            let currentRequirementsClientId = null;
 
-    let serviceOptions = window.serviceOptions || {};
-    let identityReminders = window.identityReminders || {};
+            let serviceOptions = window.serviceOptions || {};
+            let identityReminders = window.identityReminders || {};
 
-    const TRN_LENGTH = 29;
-    const MAX_CLIENTS = 4;
+            const TRN_LENGTH = 29;
+            const MAX_CLIENTS = 4;
 
-    function isValidTrn(trnValue) {
-        if (!trnValue) return false;
-        const cleanTrn = trnValue.replace(/\s/g, '');
-        return /^\d{29}$/.test(cleanTrn);
-    }
-
-    function getServiceName(code) {
-        return serviceOptions[code] || code;
-    }
-
-    function getFullName(c) {
-        const parts = [c.firstName, c.middleName, c.lastName].filter(p => p && p.trim());
-        let fullName = parts.join(' ') || '(No name)';
-        if (c.suffix) fullName += ' ' + c.suffix;
-        return fullName;
-    }
-
-    async function loadAvailableDates() {
-        const services = [...new Set(clients.map(c => c.service))];
-        let url = `{{ route('client.appointment.available-dates') }}?month=${currentMonth + 1}&year=${currentYear}&client_count=${clients.length}&services=${services.join(',')}`;
-        try {
-            const response = await fetch(url);
-            const data = await response.json();
-            if (data.success) {
-                availableDatesData = data.dates;
-                renderCalendar();
-            } else {
-                document.getElementById('calendarDays').innerHTML = '<div class="error">' + (data.message || 'Failed to load available dates') + '</div>';
+            function isValidTrn(trnValue) {
+                if (!trnValue) return false;
+                const cleanTrn = trnValue.replace(/\s/g, '');
+                return /^\d{29}$/.test(cleanTrn);
             }
-        } catch (error) {
-            console.error('Error loading dates:', error);
-            document.getElementById('calendarDays').innerHTML = '<div class="error">Failed to load available dates.</div>';
-        }
-    }
 
-    async function loadAvailableTimeSlotsForDate(date) {
-        try {
-            const selectedServices = [...new Set(clients.map(c => c.service))];
-            const url = `{{ route('client.appointment.available-time-slots') }}?date=${date}&services=${selectedServices.join(',')}&client_count=${clients.length}`;
-            const response = await fetch(url);
-            const data = await response.json();
-            if (data.success && data.time_slots && data.time_slots.length > 0) {
-                availableTimeSlotsCache = data.time_slots;
-                return availableTimeSlotsCache;
-            } else {
-                availableTimeSlotsCache = [];
-                return [];
+            function getServiceName(code) {
+                return serviceOptions[code] || code;
             }
-        } catch (error) {
-            console.error('Error loading time slots:', error);
-            availableTimeSlotsCache = [];
-            return [];
-        }
-    }
 
-    function renderPerApplicantTimeSlots() {
-        const container = document.getElementById('perApplicantTimeSlotsContainer');
-        
-        if (!selectedDate) {
-            container.innerHTML = '<div class="slot-info"><i class="fas fa-info-circle"></i> Please select a date first</div>';
-            return;
-        }
-        
-        if (availableTimeSlotsCache.length === 0) {
-            container.innerHTML = '<div class="slot-info"><i class="fas fa-exclamation-triangle"></i> No available time slots for this date. Please select another date.</div>';
-            return;
-        }
-        
-        let html = '';
-        clients.forEach((client) => {
-            const currentSelectedSlot = clientTimeSlots[client.id];
-            const hasSelectedTime = currentSelectedSlot && currentSelectedSlot.slotId;
-            
-            html += `
+            function getFullName(c) {
+                const parts = [c.firstName, c.middleName, c.lastName].filter(p => p && p.trim());
+                let fullName = parts.join(' ') || '(No name)';
+                if (c.suffix) fullName += ' ' + c.suffix;
+                return fullName;
+            }
+
+            async function loadAvailableDates() {
+                const services = [...new Set(clients.map(c => c.service))];
+                let url =
+                    `{{ route('client.appointment.available-dates') }}?month=${currentMonth + 1}&year=${currentYear}&client_count=${clients.length}&services=${services.join(',')}`;
+                try {
+                    const response = await fetch(url);
+                    const data = await response.json();
+                    if (data.success) {
+                        availableDatesData = data.dates;
+                        renderCalendar();
+                    } else {
+                        document.getElementById('calendarDays').innerHTML = '<div class="error">' + (data.message ||
+                            'Failed to load available dates') + '</div>';
+                    }
+                } catch (error) {
+                    console.error('Error loading dates:', error);
+                    document.getElementById('calendarDays').innerHTML =
+                        '<div class="error">Failed to load available dates.</div>';
+                }
+            }
+
+            async function loadAvailableTimeSlotsForDate(date) {
+                try {
+                    const selectedServices = [...new Set(clients.map(c => c.service))];
+                    const url =
+                        `{{ route('client.appointment.available-time-slots') }}?date=${date}&services=${selectedServices.join(',')}&client_count=${clients.length}`;
+                    const response = await fetch(url);
+                    const data = await response.json();
+                    if (data.success && data.time_slots && data.time_slots.length > 0) {
+                        availableTimeSlotsCache = data.time_slots;
+                        return availableTimeSlotsCache;
+                    } else {
+                        availableTimeSlotsCache = [];
+                        return [];
+                    }
+                } catch (error) {
+                    console.error('Error loading time slots:', error);
+                    availableTimeSlotsCache = [];
+                    return [];
+                }
+            }
+
+            function renderPerApplicantTimeSlots() {
+                const container = document.getElementById('perApplicantTimeSlotsContainer');
+
+                if (!selectedDate) {
+                    container.innerHTML =
+                        '<div class="slot-info"><i class="fas fa-info-circle"></i> Please select a date first</div>';
+                    return;
+                }
+
+                if (availableTimeSlotsCache.length === 0) {
+                    container.innerHTML =
+                        '<div class="slot-info"><i class="fas fa-exclamation-triangle"></i> No available time slots for this date. Please select another date.</div>';
+                    return;
+                }
+
+                let html = '';
+                clients.forEach((client) => {
+                    const currentSelectedSlot = clientTimeSlots[client.id];
+                    const hasSelectedTime = currentSelectedSlot && currentSelectedSlot.slotId;
+
+                    html += `
                 <div class="applicant-time-slot-card">
                     <div class="applicant-time-slot-header">
                         <i class="fas fa-user-circle"></i>
@@ -1054,9 +1090,9 @@
                         <span class="applicant-service">${getServiceName(client.service)}</span>
                     </div>
             `;
-            
-            if (hasSelectedTime) {
-                html += `
+
+                    if (hasSelectedTime) {
+                        html += `
                     <div class="applicant-time-selected">
                         <div class="selected-time-display">
                             <i class="fas fa-check-circle"></i>
@@ -1073,8 +1109,8 @@
                         </div>
                     </div>
                 `;
-            } else {
-                html += `
+                    } else {
+                        html += `
                     <div class="applicant-time-options visible" id="timeOptions_${client.id}">
                         <div style="margin-bottom: 10px; color: var(--gray-600);">
                             <i class="fas fa-clock"></i> Select preferred time slot:
@@ -1084,41 +1120,42 @@
                         </div>
                     </div>
                 `;
+                    }
+                    html += `</div>`;
+                });
+
+                container.innerHTML = html;
+
+                document.querySelectorAll('.btn-change-time').forEach(btn => {
+                    btn.addEventListener('click', (e) => {
+                        const clientId = parseInt(btn.dataset.clientId);
+                        const optionsDiv = document.getElementById(`timeOptions_${clientId}`);
+                        const selectedDiv = btn.closest('.applicant-time-selected');
+                        if (optionsDiv) {
+                            optionsDiv.style.display = 'block';
+                            if (selectedDiv) selectedDiv.style.display = 'none';
+                        }
+                    });
+                });
+
+                clients.forEach(client => attachTimeSlotClickHandlers(client.id));
             }
-            html += `</div>`;
-        });
-        
-        container.innerHTML = html;
-        
-        document.querySelectorAll('.btn-change-time').forEach(btn => {
-            btn.addEventListener('click', (e) => {
-                const clientId = parseInt(btn.dataset.clientId);
-                const optionsDiv = document.getElementById(`timeOptions_${clientId}`);
-                const selectedDiv = btn.closest('.applicant-time-selected');
-                if (optionsDiv) {
-                    optionsDiv.style.display = 'block';
-                    if (selectedDiv) selectedDiv.style.display = 'none';
-                }
-            });
-        });
-        
-        clients.forEach(client => attachTimeSlotClickHandlers(client.id));
-    }
-    
-    function generateTimeSlotOptions(clientId) {
-        const client = clients.find(c => c.id === clientId);
-        if (!client) return '<div>Error: Client not found</div>';
-        
-        const currentSelectedSlot = clientTimeSlots[clientId];
-        
-        let html = '';
-        availableTimeSlotsCache.forEach(slot => {
-            const availableForService = slot.service_availability && slot.service_availability[client.service] > 0;
-            const isSelected = currentSelectedSlot && currentSelectedSlot.slotId === slot.id;
-            const disabledClass = !availableForService ? 'disabled' : '';
-            const selectedClass = isSelected ? 'selected' : '';
-            
-            html += `
+
+            function generateTimeSlotOptions(clientId) {
+                const client = clients.find(c => c.id === clientId);
+                if (!client) return '<div>Error: Client not found</div>';
+
+                const currentSelectedSlot = clientTimeSlots[clientId];
+
+                let html = '';
+                availableTimeSlotsCache.forEach(slot => {
+                    const availableForService = slot.service_availability && slot.service_availability[client
+                        .service] > 0;
+                    const isSelected = currentSelectedSlot && currentSelectedSlot.slotId === slot.id;
+                    const disabledClass = !availableForService ? 'disabled' : '';
+                    const selectedClass = isSelected ? 'selected' : '';
+
+                    html += `
                 <div class="time-slot-option ${disabledClass} ${selectedClass}" 
                      data-client-id="${clientId}"
                      data-slot-id="${slot.id}" 
@@ -1127,120 +1164,136 @@
                     ${escapeHtml(slot.slot_label)}
                 </div>
             `;
-        });
-        
-        if (html === '') {
-            html = '<div class="slot-info">No available time slots for this service on this date.</div>';
-        }
-        return html;
-    }
-    
-    function attachTimeSlotClickHandlers(clientId) {
-        const options = document.querySelectorAll(`.time-slot-option[data-client-id="${clientId}"]`);
-        options.forEach(option => {
-            option.removeEventListener('click', handleTimeSlotClick);
-            option.addEventListener('click', handleTimeSlotClick);
-        });
-    }
-    
-    function handleTimeSlotClick(e) {
-        const option = e.currentTarget;
-        if (option.dataset.available === 'false') {
-            Swal.fire({ icon: 'warning', title: 'Slot Unavailable', text: 'This time slot is fully booked.', confirmButtonColor: '#dc3545' });
-            return;
-        }
-        
-        const clientId = parseInt(option.dataset.clientId);
-        const slotId = parseInt(option.dataset.slotId);
-        const slotLabel = option.dataset.slotLabel;
-        
-        clientTimeSlots[clientId] = { slotId: slotId, slotLabel: slotLabel };
-        renderPerApplicantTimeSlots();
-    }
+                });
 
-    function renderCalendar() {
-        const monthNames = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August',
-            'September', 'October', 'November', 'December'];
-        document.getElementById('calendarMonthYear').textContent = `${monthNames[currentMonth]} ${currentYear}`;
-        const firstDay = new Date(currentYear, currentMonth, 1);
-        const startDayOfWeek = firstDay.getDay() || 7;
-        const startOffset = startDayOfWeek === 7 ? 0 : startDayOfWeek - 1;
-        const daysInMonth = new Date(currentYear, currentMonth + 1, 0).getDate();
-        let html = '';
-        for (let i = 0; i < startOffset; i++) html += '<div class="calendar-day empty"></div>';
-        const today = new Date();
-        today.setHours(0, 0, 0, 0);
-        for (let d = 1; d <= daysInMonth; d++) {
-            const date = new Date(currentYear, currentMonth, d);
-            const dateKey = `${currentYear}-${String(currentMonth + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
-            const dateData = availableDatesData ? availableDatesData.find(item => item.date === dateKey) : null;
-            const isPast = date < today;
-            const isSelected = selectedDate === dateKey;
-            let cls = 'calendar-day';
-            if (isPast) cls += ' disabled';
-            else if (dateData && dateData.available) cls += ' available';
-            else if (!dateData) cls += ' disabled';
-            if (isSelected) cls += ' selected';
-            html += `<div class="${cls}" data-date="${dateKey}" onclick="window.selectDate('${dateKey}')"><div class="day-number">${d}</div></div>`;
-        }
-        document.getElementById('calendarDays').innerHTML = html;
-    }
-
-    window.selectDate = async function(dateKey) {
-        selectedDate = dateKey;
-        clientTimeSlots = {};
-        document.getElementById('selectedDateText').textContent = formatDisplayDate(dateKey);
-        document.getElementById('slotInfoText').innerHTML = `✓ Date selected. Please choose time slots for each applicant.`;
-        renderCalendar();
-        await loadAvailableTimeSlotsForDate(dateKey);
-        renderPerApplicantTimeSlots();
-    };
-
-    // TRN Functions
-    function validateAndStyleTrnInput(clientId) {
-        const trnInput = document.getElementById(`trnNumber_${clientId}`);
-        const charCounter = document.getElementById(`trnCharCounter_${clientId}`);
-        if (!trnInput) return false;
-        const trnValue = trnInput.value;
-        const cleanValue = trnValue.replace(/\s/g, '');
-        const isValid = isValidTrn(cleanValue);
-        const currentLength = cleanValue.length;
-        if (isValid) {
-            trnInput.classList.remove('trn-invalid');
-            trnInput.classList.add('trn-valid');
-            if (charCounter) {
-                charCounter.classList.remove('invalid');
-                charCounter.classList.add('valid');
-                charCounter.innerHTML = `<i class="fas fa-check-circle"></i> ${currentLength}/${TRN_LENGTH} digits - Valid TRN`;
+                if (html === '') {
+                    html = '<div class="slot-info">No available time slots for this service on this date.</div>';
+                }
+                return html;
             }
-            clientTrnData[clientId].trnNumber = cleanValue;
-            clientTrnData[clientId].isValid = true;
-            return true;
-        } else {
-            trnInput.classList.remove('trn-valid');
-            trnInput.classList.add('trn-invalid');
-            if (charCounter) {
-                charCounter.classList.remove('valid');
-                charCounter.classList.add('invalid');
-                if (currentLength > 0 && currentLength < TRN_LENGTH) {
-                    charCounter.innerHTML = `<i class="fas fa-exclamation-triangle"></i> ${currentLength}/${TRN_LENGTH} digits - TRN must be exactly 29 digits`;
-                } else if (currentLength > TRN_LENGTH) {
-                    charCounter.innerHTML = `<i class="fas fa-exclamation-triangle"></i> ${currentLength}/${TRN_LENGTH} digits - Too many digits (max ${TRN_LENGTH})`;
+
+            function attachTimeSlotClickHandlers(clientId) {
+                const options = document.querySelectorAll(`.time-slot-option[data-client-id="${clientId}"]`);
+                options.forEach(option => {
+                    option.removeEventListener('click', handleTimeSlotClick);
+                    option.addEventListener('click', handleTimeSlotClick);
+                });
+            }
+
+            function handleTimeSlotClick(e) {
+                const option = e.currentTarget;
+                if (option.dataset.available === 'false') {
+                    Swal.fire({
+                        icon: 'warning',
+                        title: 'Slot Unavailable',
+                        text: 'This time slot is fully booked.',
+                        confirmButtonColor: '#dc3545'
+                    });
+                    return;
+                }
+
+                const clientId = parseInt(option.dataset.clientId);
+                const slotId = parseInt(option.dataset.slotId);
+                const slotLabel = option.dataset.slotLabel;
+
+                clientTimeSlots[clientId] = {
+                    slotId: slotId,
+                    slotLabel: slotLabel
+                };
+                renderPerApplicantTimeSlots();
+            }
+
+            function renderCalendar() {
+                const monthNames = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August',
+                    'September', 'October', 'November', 'December'
+                ];
+                document.getElementById('calendarMonthYear').textContent = `${monthNames[currentMonth]} ${currentYear}`;
+                const firstDay = new Date(currentYear, currentMonth, 1);
+                const startDayOfWeek = firstDay.getDay() || 7;
+                const startOffset = startDayOfWeek === 7 ? 0 : startDayOfWeek - 1;
+                const daysInMonth = new Date(currentYear, currentMonth + 1, 0).getDate();
+                let html = '';
+                for (let i = 0; i < startOffset; i++) html += '<div class="calendar-day empty"></div>';
+                const today = new Date();
+                today.setHours(0, 0, 0, 0);
+                for (let d = 1; d <= daysInMonth; d++) {
+                    const date = new Date(currentYear, currentMonth, d);
+                    const dateKey =
+                        `${currentYear}-${String(currentMonth + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
+                    const dateData = availableDatesData ? availableDatesData.find(item => item.date === dateKey) : null;
+                    const isPast = date < today;
+                    const isSelected = selectedDate === dateKey;
+                    let cls = 'calendar-day';
+                    if (isPast) cls += ' disabled';
+                    else if (dateData && dateData.available) cls += ' available';
+                    else if (!dateData) cls += ' disabled';
+                    if (isSelected) cls += ' selected';
+                    html +=
+                        `<div class="${cls}" data-date="${dateKey}" onclick="window.selectDate('${dateKey}')"><div class="day-number">${d}</div></div>`;
+                }
+                document.getElementById('calendarDays').innerHTML = html;
+            }
+
+            window.selectDate = async function(dateKey) {
+                selectedDate = dateKey;
+                clientTimeSlots = {};
+                document.getElementById('selectedDateText').textContent = formatDisplayDate(dateKey);
+                document.getElementById('slotInfoText').innerHTML =
+                    `✓ Date selected. Please choose time slots for each applicant.`;
+                renderCalendar();
+                await loadAvailableTimeSlotsForDate(dateKey);
+                renderPerApplicantTimeSlots();
+            };
+
+            // TRN Functions
+            function validateAndStyleTrnInput(clientId) {
+                const trnInput = document.getElementById(`trnNumber_${clientId}`);
+                const charCounter = document.getElementById(`trnCharCounter_${clientId}`);
+                if (!trnInput) return false;
+                const trnValue = trnInput.value;
+                const cleanValue = trnValue.replace(/\s/g, '');
+                const isValid = isValidTrn(cleanValue);
+                const currentLength = cleanValue.length;
+                if (isValid) {
+                    trnInput.classList.remove('trn-invalid');
+                    trnInput.classList.add('trn-valid');
+                    if (charCounter) {
+                        charCounter.classList.remove('invalid');
+                        charCounter.classList.add('valid');
+                        charCounter.innerHTML =
+                            `<i class="fas fa-check-circle"></i> ${currentLength}/${TRN_LENGTH} digits - Valid TRN`;
+                    }
+                    clientTrnData[clientId].trnNumber = cleanValue;
+                    clientTrnData[clientId].isValid = true;
+                    return true;
                 } else {
-                    charCounter.innerHTML = `<i class="fas fa-info-circle"></i> TRN must be exactly 29 digits (0-9 only)`;
+                    trnInput.classList.remove('trn-valid');
+                    trnInput.classList.add('trn-invalid');
+                    if (charCounter) {
+                        charCounter.classList.remove('valid');
+                        charCounter.classList.add('invalid');
+                        if (currentLength > 0 && currentLength < TRN_LENGTH) {
+                            charCounter.innerHTML =
+                                `<i class="fas fa-exclamation-triangle"></i> ${currentLength}/${TRN_LENGTH} digits - TRN must be exactly 29 digits`;
+                        } else if (currentLength > TRN_LENGTH) {
+                            charCounter.innerHTML =
+                                `<i class="fas fa-exclamation-triangle"></i> ${currentLength}/${TRN_LENGTH} digits - Too many digits (max ${TRN_LENGTH})`;
+                        } else {
+                            charCounter.innerHTML =
+                                `<i class="fas fa-info-circle"></i> TRN must be exactly 29 digits (0-9 only)`;
+                        }
+                    }
+                    clientTrnData[clientId].trnNumber = trnValue;
+                    clientTrnData[clientId].isValid = false;
+                    return false;
                 }
             }
-            clientTrnData[clientId].trnNumber = trnValue;
-            clientTrnData[clientId].isValid = false;
-            return false;
-        }
-    }
 
-    function createTrnHtml(clientId, hasTrnValue, trnNumberValue) {
-        const isValid = trnNumberValue && isValidTrn(trnNumberValue);
-        const validClass = isValid ? 'trn-valid' : '';
-        const currentLength = trnNumberValue ? trnNumberValue.replace(/\s/g, '').length : 0;
-        return `
+            function createTrnHtml(clientId, hasTrnValue, trnNumberValue) {
+                const isValid = trnNumberValue && isValidTrn(trnNumberValue);
+                const validClass = isValid ? 'trn-valid' : '';
+                const currentLength = trnNumberValue ? trnNumberValue.replace(/\s/g, '').length : 0;
+                return `
             <div class="trn-field-group" data-client-id="${clientId}">
                 <div class="trn-question"><i class="fas fa-question-circle"></i> DO YOU HAVE A TRN (TRANSACTION REFERENCE NUMBER)?</div>
                 <div class="trn-checkbox-group">
@@ -1262,224 +1315,284 @@
                     </div>
                 </div>
             </div>`;
-    }
-
-    function attachTrnEvents(clientId) {
-        const radioYes = document.querySelector(`input[name="hasTrn_${clientId}"][value="yes"]`);
-        const radioNo = document.querySelector(`input[name="hasTrn_${clientId}"][value="no"]`);
-        const trnInputArea = document.getElementById(`trnInputArea_${clientId}`);
-        const trnNumberInput = document.getElementById(`trnNumber_${clientId}`);
-        const scanBtn = document.querySelector(`.qr-scan-btn[data-client-id="${clientId}"]`);
-        if (!clientTrnData[clientId]) clientTrnData[clientId] = { hasTrn: null, trnNumber: '', isValid: false };
-        if (radioYes) radioYes.addEventListener('change', function() {
-            if (this.checked) {
-                clientTrnData[clientId].hasTrn = true;
-                if (trnInputArea) trnInputArea.style.display = 'block';
-                setTimeout(() => validateAndStyleTrnInput(clientId), 10);
             }
-        });
-        if (radioNo) radioNo.addEventListener('change', function() {
-            if (this.checked) {
-                clientTrnData[clientId].hasTrn = false;
-                clientTrnData[clientId].trnNumber = '';
-                clientTrnData[clientId].isValid = false;
-                if (trnInputArea) trnInputArea.style.display = 'none';
-                if (trnNumberInput) trnNumberInput.value = '';
-            }
-        });
-        if (trnNumberInput) trnNumberInput.addEventListener('input', function(e) {
-            this.value = this.value.replace(/[^0-9]/g, '');
-            if (this.value.length > TRN_LENGTH) this.value = this.value.slice(0, TRN_LENGTH);
-            clientTrnData[clientId].trnNumber = this.value;
-            validateAndStyleTrnInput(clientId);
-        });
-        if (scanBtn) scanBtn.addEventListener('click', () => startQrScanner(clientId));
-    }
 
-    async function startQrScanner(clientId) {
-        const qrReaderDiv = document.getElementById(`qr-reader_${clientId}`);
-        if (!qrReaderDiv) return;
-        if (html5QrCode && html5QrCode.isScanning) await html5QrCode.stop();
-        qrReaderDiv.style.display = 'block';
-        currentQrClientId = clientId;
-        html5QrCode = new Html5Qrcode(`qr-reader_${clientId}`);
-        try {
-            await html5QrCode.start({ facingMode: "environment" }, { fps: 10, qrbox: { width: 250, height: 250 } },
-                (decodedText) => {
-                    const trnInput = document.getElementById(`trnNumber_${clientId}`);
-                    if (trnInput) {
-                        const digitsOnly = decodedText.replace(/[^0-9]/g, '');
-                        const finalTrn = digitsOnly.slice(0, TRN_LENGTH);
-                        trnInput.value = finalTrn;
-                        clientTrnData[clientId].trnNumber = finalTrn;
-                        validateAndStyleTrnInput(clientId);
+            function attachTrnEvents(clientId) {
+                const radioYes = document.querySelector(`input[name="hasTrn_${clientId}"][value="yes"]`);
+                const radioNo = document.querySelector(`input[name="hasTrn_${clientId}"][value="no"]`);
+                const trnInputArea = document.getElementById(`trnInputArea_${clientId}`);
+                const trnNumberInput = document.getElementById(`trnNumber_${clientId}`);
+                const scanBtn = document.querySelector(`.qr-scan-btn[data-client-id="${clientId}"]`);
+                if (!clientTrnData[clientId]) clientTrnData[clientId] = {
+                    hasTrn: null,
+                    trnNumber: '',
+                    isValid: false
+                };
+                if (radioYes) radioYes.addEventListener('change', function() {
+                    if (this.checked) {
+                        clientTrnData[clientId].hasTrn = true;
+                        if (trnInputArea) trnInputArea.style.display = 'block';
+                        setTimeout(() => validateAndStyleTrnInput(clientId), 10);
                     }
-                    if (html5QrCode && html5QrCode.isScanning) html5QrCode.stop();
+                });
+                if (radioNo) radioNo.addEventListener('change', function() {
+                    if (this.checked) {
+                        clientTrnData[clientId].hasTrn = false;
+                        clientTrnData[clientId].trnNumber = '';
+                        clientTrnData[clientId].isValid = false;
+                        if (trnInputArea) trnInputArea.style.display = 'none';
+                        if (trnNumberInput) trnNumberInput.value = '';
+                    }
+                });
+                if (trnNumberInput) trnNumberInput.addEventListener('input', function(e) {
+                    this.value = this.value.replace(/[^0-9]/g, '');
+                    if (this.value.length > TRN_LENGTH) this.value = this.value.slice(0, TRN_LENGTH);
+                    clientTrnData[clientId].trnNumber = this.value;
+                    validateAndStyleTrnInput(clientId);
+                });
+                if (scanBtn) scanBtn.addEventListener('click', () => startQrScanner(clientId));
+            }
+
+            async function startQrScanner(clientId) {
+                const qrReaderDiv = document.getElementById(`qr-reader_${clientId}`);
+                if (!qrReaderDiv) return;
+                if (html5QrCode && html5QrCode.isScanning) await html5QrCode.stop();
+                qrReaderDiv.style.display = 'block';
+                currentQrClientId = clientId;
+                html5QrCode = new Html5Qrcode(`qr-reader_${clientId}`);
+                try {
+                    await html5QrCode.start({
+                            facingMode: "environment"
+                        }, {
+                            fps: 10,
+                            qrbox: {
+                                width: 250,
+                                height: 250
+                            }
+                        },
+                        (decodedText) => {
+                            const trnInput = document.getElementById(`trnNumber_${clientId}`);
+                            if (trnInput) {
+                                const digitsOnly = decodedText.replace(/[^0-9]/g, '');
+                                const finalTrn = digitsOnly.slice(0, TRN_LENGTH);
+                                trnInput.value = finalTrn;
+                                clientTrnData[clientId].trnNumber = finalTrn;
+                                validateAndStyleTrnInput(clientId);
+                            }
+                            if (html5QrCode && html5QrCode.isScanning) html5QrCode.stop();
+                            qrReaderDiv.style.display = 'none';
+                            alert(clientTrnData[clientId].isValid ? 'QR Code scanned successfully!' :
+                                'QR Code scanned. Please ensure TRN is exactly 29 digits.');
+                        },
+                        (errorMessage) => console.log(`QR Scan error: ${errorMessage}`)
+                    );
+                } catch (err) {
+                    console.error(`Failed to start QR scanner: ${err}`);
+                    alert('Could not access camera. Please grant camera permissions.');
                     qrReaderDiv.style.display = 'none';
-                    alert(clientTrnData[clientId].isValid ? 'QR Code scanned successfully!' : 'QR Code scanned. Please ensure TRN is exactly 29 digits.');
-                },
-                (errorMessage) => console.log(`QR Scan error: ${errorMessage}`)
-            );
-        } catch (err) {
-            console.error(`Failed to start QR scanner: ${err}`);
-            alert('Could not access camera. Please grant camera permissions.');
-            qrReaderDiv.style.display = 'none';
-        }
-    }
-
-    function shouldShowTrnForClient(client) {
-        return client.service === 'inquiry';
-    }
-
-    function validateTrnForClient(client) {
-        if (!shouldShowTrnForClient(client)) return true;
-        const trnData = clientTrnData[client.id];
-        if (!trnData || trnData.hasTrn === null) return false;
-        if (trnData.hasTrn === true && (!trnData.trnNumber || !trnData.isValid)) return false;
-        return true;
-    }
-
-    let clients = [{
-        id: 1, firstName: '', middleName: '', lastName: '', suffix: '', sex: 'Male', birthdate: '', service: '', reqAcknowledged: false, requirementsRead: false
-    }];
-    let nextClientId = 2;
-    let currentMonth = new Date().getMonth();
-    let currentYear = new Date().getFullYear();
-
-    const privacyModal = document.getElementById('privacyModal');
-    const reqModal = document.getElementById('reqModal');
-    const successModal = document.getElementById('successModal');
-    const modalTitle = document.getElementById('modalServiceTitle');
-    const modalBody = document.getElementById('modalBodyContent');
-
-    const sections = {
-        guide: document.getElementById('sectionGuide'),
-        clients: document.getElementById('sectionClients'),
-        schedule: document.getElementById('sectionSchedule'),
-        contact: document.getElementById('sectionContact'),
-        review: document.getElementById('sectionReview'),
-        confirm: document.getElementById('sectionConfirm')
-    };
-
-    function loadLocationFromLandingPage() {
-        const stored = localStorage.getItem('userLocation');
-        if (stored) {
-            try {
-                const locationData = JSON.parse(stored);
-                if (locationData.detected === true && locationData.lat && locationData.lng) {
-                    userLocation.lat = locationData.lat;
-                    userLocation.lng = locationData.lng;
-                    userLocation.city = locationData.city || '';
-                    userLocation.address = locationData.address || '';
-                    userLocation.zipcode = locationData.zipcode || '';
-                    document.getElementById('userLat').value = userLocation.lat;
-                    document.getElementById('userLng').value = userLocation.lng;
-                    document.getElementById('userCity').value = userLocation.city;
-                    document.getElementById('userAddress').value = userLocation.address;
-                    document.getElementById('userZipcode').value = userLocation.zipcode;
-                    return true;
-                }
-            } catch (e) { console.error('Error parsing location data:', e); }
-        }
-        return false;
-    }
-
-    function showLoading() { document.getElementById('loadingOverlay').style.display = 'flex'; }
-    function hideLoading() { document.getElementById('loadingOverlay').style.display = 'none'; }
-
-    function formatDisplayDate(d) {
-        if (!d) return 'No date selected';
-        return new Date(d).toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
-    }
-
-    function isClientFieldsComplete(client) {
-        return client.firstName && client.firstName.trim() !== '' &&
-               client.lastName && client.lastName.trim() !== '' &&
-               client.birthdate && client.birthdate !== '' &&
-               client.sex && client.sex !== '' &&
-               client.service && client.service !== '';
-    }
-
-    function updateViewRequirementsButton(clientId) {
-        const client = clients.find(c => c.id == clientId);
-        if (!client) return;
-        const button = document.querySelector(`.btn-view-req[data-id="${clientId}"]`);
-        if (button) {
-            const isComplete = isClientFieldsComplete(client);
-            if (isComplete) { button.disabled = false; button.style.opacity = '1'; }
-            else { button.disabled = true; button.style.opacity = '0.6'; }
-            if (client.requirementsRead) button.classList.add('requirements-read');
-            else button.classList.remove('requirements-read');
-        }
-        updateAcknowledgmentCheckbox(clientId);
-    }
-    
-    function updateAcknowledgmentCheckbox(clientId) {
-        const client = clients.find(c => c.id == clientId);
-        if (!client) return;
-        const checkbox = document.querySelector(`.req-ack[data-id="${clientId}"]`);
-        const ackRow = document.querySelector(`.req-ack-row[data-client-id="${clientId}"]`);
-        if (checkbox && ackRow) {
-            const canCheck = isClientFieldsComplete(client) && client.requirementsRead === true;
-            if (canCheck) {
-                checkbox.disabled = false;
-                ackRow.classList.remove('disabled-checkbox');
-                const existingHelper = ackRow.querySelector('.helper-text');
-                if (existingHelper) existingHelper.remove();
-            } else {
-                checkbox.disabled = true;
-                ackRow.classList.add('disabled-checkbox');
-                if (!ackRow.querySelector('.helper-text')) {
-                    const helperText = document.createElement('small');
-                    helperText.className = 'helper-text';
-                    if (!isClientFieldsComplete(client)) helperText.innerHTML = '<i class="fas fa-info-circle"></i> Please fill in all required fields first.';
-                    else if (!client.requirementsRead) helperText.innerHTML = '<i class="fas fa-info-circle"></i> Please click "View Requirements" and read the requirements first.';
-                    ackRow.appendChild(helperText);
                 }
             }
-        }
-    }
 
-    async function fetchRequirementsFromBackend(serviceCode, birthdate) {
-        try {
-            let url = `{{ route('client.appointment.get-requirements') }}?service=${serviceCode}`;
-            if (birthdate) url += `&birthdate=${birthdate}`;
-            const response = await fetch(url, { headers: { 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content, 'Accept': 'application/json' } });
-            return await response.json();
-        } catch (error) {
-            return { success: false, message: 'Failed to load requirements' };
-        }
-    }
+            function shouldShowTrnForClient(client) {
+                return client.service === 'inquiry';
+            }
 
-    async function showRequirementsModal(clientId) {
-        const client = clients.find(c => c.id == clientId);
-        if (!client || !isClientFieldsComplete(client)) {
-            await Swal.fire({ icon: 'warning', title: 'Incomplete Information', text: 'Please fill in all required fields first.', confirmButtonColor: '#dc3545' });
-            return;
-        }
-        modalTitle.textContent = 'Loading Requirements...';
-        modalBody.innerHTML = '<div class="loading-spinner"><i class="fas fa-spinner fa-spin"></i> Loading requirements...</div>';
-        reqModal.style.display = 'flex';
-        currentRequirementsClientId = clientId;
-        const result = await fetchRequirementsFromBackend(client.service, client.birthdate);
-        if (result.success && result.html) {
-            modalTitle.textContent = `${getServiceName(client.service)} Requirements`;
-            modalBody.innerHTML = result.html;
-        } else {
-            modalBody.innerHTML = `<div class="error-message">${result.message || 'Failed to load requirements.'}</div>`;
-        }
-    }
+            function validateTrnForClient(client) {
+                if (!shouldShowTrnForClient(client)) return true;
+                const trnData = clientTrnData[client.id];
+                if (!trnData || trnData.hasTrn === null) return false;
+                if (trnData.hasTrn === true && (!trnData.trnNumber || !trnData.isValid)) return false;
+                return true;
+            }
 
-    function renderClients() {
-        const container = document.getElementById('clientsList');
-        container.innerHTML = '';
-        clients.forEach((c, i) => {
-            const showTrn = shouldShowTrnForClient(c);
-            const trnData = clientTrnData[c.id] || { hasTrn: null, trnNumber: '', isValid: false };
-            const isComplete = isClientFieldsComplete(c);
-            const card = document.createElement('div');
-            card.className = 'client-card';
-            card.innerHTML = `
+            let clients = [{
+                id: 1,
+                firstName: '',
+                middleName: '',
+                lastName: '',
+                suffix: '',
+                sex: 'Male',
+                birthdate: '',
+                service: '',
+                reqAcknowledged: false,
+                requirementsRead: false
+            }];
+            let nextClientId = 2;
+            let currentMonth = new Date().getMonth();
+            let currentYear = new Date().getFullYear();
+
+            const privacyModal = document.getElementById('privacyModal');
+            const reqModal = document.getElementById('reqModal');
+            const successModal = document.getElementById('successModal');
+            const modalTitle = document.getElementById('modalServiceTitle');
+            const modalBody = document.getElementById('modalBodyContent');
+
+            const sections = {
+                guide: document.getElementById('sectionGuide'),
+                clients: document.getElementById('sectionClients'),
+                schedule: document.getElementById('sectionSchedule'),
+                contact: document.getElementById('sectionContact'),
+                review: document.getElementById('sectionReview'),
+                confirm: document.getElementById('sectionConfirm')
+            };
+
+            function loadLocationFromLandingPage() {
+                const stored = localStorage.getItem('userLocation');
+                if (stored) {
+                    try {
+                        const locationData = JSON.parse(stored);
+                        if (locationData.detected === true && locationData.lat && locationData.lng) {
+                            userLocation.lat = locationData.lat;
+                            userLocation.lng = locationData.lng;
+                            userLocation.city = locationData.city || '';
+                            userLocation.address = locationData.address || '';
+                            userLocation.zipcode = locationData.zipcode || '';
+                            document.getElementById('userLat').value = userLocation.lat;
+                            document.getElementById('userLng').value = userLocation.lng;
+                            document.getElementById('userCity').value = userLocation.city;
+                            document.getElementById('userAddress').value = userLocation.address;
+                            document.getElementById('userZipcode').value = userLocation.zipcode;
+                            return true;
+                        }
+                    } catch (e) {
+                        console.error('Error parsing location data:', e);
+                    }
+                }
+                return false;
+            }
+
+            function showLoading() {
+                document.getElementById('loadingOverlay').style.display = 'flex';
+            }
+
+            function hideLoading() {
+                document.getElementById('loadingOverlay').style.display = 'none';
+            }
+
+            function formatDisplayDate(d) {
+                if (!d) return 'No date selected';
+                return new Date(d).toLocaleDateString('en-US', {
+                    weekday: 'long',
+                    year: 'numeric',
+                    month: 'long',
+                    day: 'numeric'
+                });
+            }
+
+            function isClientFieldsComplete(client) {
+                return client.firstName && client.firstName.trim() !== '' &&
+                    client.lastName && client.lastName.trim() !== '' &&
+                    client.birthdate && client.birthdate !== '' &&
+                    client.sex && client.sex !== '' &&
+                    client.service && client.service !== '';
+            }
+
+            function updateViewRequirementsButton(clientId) {
+                const client = clients.find(c => c.id == clientId);
+                if (!client) return;
+                const button = document.querySelector(`.btn-view-req[data-id="${clientId}"]`);
+                if (button) {
+                    const isComplete = isClientFieldsComplete(client);
+                    if (isComplete) {
+                        button.disabled = false;
+                        button.style.opacity = '1';
+                    } else {
+                        button.disabled = true;
+                        button.style.opacity = '0.6';
+                    }
+                    if (client.requirementsRead) button.classList.add('requirements-read');
+                    else button.classList.remove('requirements-read');
+                }
+                updateAcknowledgmentCheckbox(clientId);
+            }
+
+            function updateAcknowledgmentCheckbox(clientId) {
+                const client = clients.find(c => c.id == clientId);
+                if (!client) return;
+                const checkbox = document.querySelector(`.req-ack[data-id="${clientId}"]`);
+                const ackRow = document.querySelector(`.req-ack-row[data-client-id="${clientId}"]`);
+                if (checkbox && ackRow) {
+                    const canCheck = isClientFieldsComplete(client) && client.requirementsRead === true;
+                    if (canCheck) {
+                        checkbox.disabled = false;
+                        ackRow.classList.remove('disabled-checkbox');
+                        const existingHelper = ackRow.querySelector('.helper-text');
+                        if (existingHelper) existingHelper.remove();
+                    } else {
+                        checkbox.disabled = true;
+                        ackRow.classList.add('disabled-checkbox');
+                        if (!ackRow.querySelector('.helper-text')) {
+                            const helperText = document.createElement('small');
+                            helperText.className = 'helper-text';
+                            if (!isClientFieldsComplete(client)) helperText.innerHTML =
+                                '<i class="fas fa-info-circle"></i> Please fill in all required fields first.';
+                            else if (!client.requirementsRead) helperText.innerHTML =
+                                '<i class="fas fa-info-circle"></i> Please click "View Requirements" and read the requirements first.';
+                            ackRow.appendChild(helperText);
+                        }
+                    }
+                }
+            }
+
+            async function fetchRequirementsFromBackend(serviceCode, birthdate) {
+                try {
+                    let url = `{{ route('client.appointment.get-requirements') }}?service=${serviceCode}`;
+                    if (birthdate) url += `&birthdate=${birthdate}`;
+                    const response = await fetch(url, {
+                        headers: {
+                            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+                            'Accept': 'application/json'
+                        }
+                    });
+                    return await response.json();
+                } catch (error) {
+                    return {
+                        success: false,
+                        message: 'Failed to load requirements'
+                    };
+                }
+            }
+
+            async function showRequirementsModal(clientId) {
+                const client = clients.find(c => c.id == clientId);
+                if (!client || !isClientFieldsComplete(client)) {
+                    await Swal.fire({
+                        icon: 'warning',
+                        title: 'Incomplete Information',
+                        text: 'Please fill in all required fields first.',
+                        confirmButtonColor: '#dc3545'
+                    });
+                    return;
+                }
+                modalTitle.textContent = 'Loading Requirements...';
+                modalBody.innerHTML =
+                    '<div class="loading-spinner"><i class="fas fa-spinner fa-spin"></i> Loading requirements...</div>';
+                reqModal.style.display = 'flex';
+                currentRequirementsClientId = clientId;
+                const result = await fetchRequirementsFromBackend(client.service, client.birthdate);
+                if (result.success && result.html) {
+                    modalTitle.textContent = `${getServiceName(client.service)} Requirements`;
+                    modalBody.innerHTML = result.html;
+                } else {
+                    modalBody.innerHTML =
+                        `<div class="error-message">${result.message || 'Failed to load requirements.'}</div>`;
+                }
+            }
+
+            function renderClients() {
+                const container = document.getElementById('clientsList');
+                container.innerHTML = '';
+                clients.forEach((c, i) => {
+                    const showTrn = shouldShowTrnForClient(c);
+                    const trnData = clientTrnData[c.id] || {
+                        hasTrn: null,
+                        trnNumber: '',
+                        isValid: false
+                    };
+                    const isComplete = isClientFieldsComplete(c);
+                    const card = document.createElement('div');
+                    card.className = 'client-card';
+                    card.innerHTML = `
                 <div class="client-header">
                     <span class="client-title"><i class="fas fa-user-circle"></i> Person ${i + 1}</span>
                     <div style="display: flex; gap: 8px;">${clients.length > 1 ? `<button class="btn-remove-client" data-id="${c.id}"><i class="fas fa-trash-alt"></i></button>` : ''}</div>
@@ -1512,272 +1625,432 @@
                     <label>I have read and understood the requirements for <strong>${getServiceName(c.service)}</strong>. I will bring all necessary documents.</label>
                 </div>
             `;
-            container.appendChild(card);
-        });
-        attachClientEvents();
-        document.getElementById('clientCount').textContent = clients.length;
-    }
-
-    function escapeHtml(str) {
-        if (!str) return '';
-        return str.replace(/[&<>]/g, function(m) {
-            if (m === '&') return '&amp;';
-            if (m === '<') return '&lt;';
-            if (m === '>') return '&gt;';
-            return m;
-        });
-    }
-
-    function attachClientEvents() {
-        document.querySelectorAll('.client-firstname, .client-lastname, .client-sex, .client-birthdate').forEach(e => e.addEventListener('change', (ev) => {
-            const c = clients.find(x => x.id == ev.target.dataset.id);
-            if (c) {
-                if (ev.target.classList.contains('client-firstname')) c.firstName = ev.target.value;
-                if (ev.target.classList.contains('client-lastname')) c.lastName = ev.target.value;
-                if (ev.target.classList.contains('client-sex')) c.sex = ev.target.value;
-                if (ev.target.classList.contains('client-birthdate')) c.birthdate = ev.target.value;
-                updateViewRequirementsButton(c.id);
-            }
-        }));
-        document.querySelectorAll('.client-middlename').forEach(e => e.addEventListener('change', (ev) => {
-            const c = clients.find(x => x.id == ev.target.dataset.id);
-            if (c) c.middleName = ev.target.value;
-        }));
-        document.querySelectorAll('.client-suffix').forEach(e => e.addEventListener('change', (ev) => {
-            const c = clients.find(x => x.id == ev.target.dataset.id);
-            if (c) c.suffix = ev.target.value;
-        }));
-        document.querySelectorAll('.client-service').forEach(e => e.addEventListener('change', (ev) => {
-            const c = clients.find(x => x.id == ev.target.dataset.id);
-            if (c) {
-                c.service = ev.target.value;
-                c.reqAcknowledged = false;
-                c.requirementsRead = false;
-                if (c.service !== 'inquiry') delete clientTrnData[c.id];
-                else if (!clientTrnData[c.id]) clientTrnData[c.id] = { hasTrn: null, trnNumber: '', isValid: false };
-                renderClients();
-            }
-        }));
-        document.querySelectorAll('.req-ack').forEach(e => e.addEventListener('change', async (ev) => {
-            const c = clients.find(x => x.id == ev.target.dataset.id);
-            if (c && ev.target.checked && (!isClientFieldsComplete(c) || !c.requirementsRead)) {
-                ev.target.checked = false;
-                if (!isClientFieldsComplete(c)) {
-                    await Swal.fire({ icon: 'warning', title: 'Cannot Acknowledge', text: 'Please fill in all required fields first.', confirmButtonColor: '#dc3545' });
-                } else if (!c.requirementsRead) {
-                    await Swal.fire({ icon: 'info', title: 'Requirements Not Read', text: 'Please click "View Requirements" first.', confirmButtonColor: '#28a745', confirmButtonText: 'View Requirements' }).then((result) => {
-                        if (result.isConfirmed) document.querySelector(`.btn-view-req[data-id="${c.id}"]`).click();
-                    });
-                }
-                return;
-            }
-            if (c) c.reqAcknowledged = ev.target.checked;
-        }));
-        document.querySelectorAll('.btn-view-req').forEach(b => b.addEventListener('click', async (ev) => {
-            const id = ev.target.closest('.btn-view-req').dataset.id;
-            await showRequirementsModal(parseInt(id));
-        }));
-        document.querySelectorAll('.btn-remove-client').forEach(b => b.addEventListener('click', (ev) => {
-            const id = parseInt(ev.target.closest('.btn-remove-client').dataset.id);
-            clients = clients.filter(c => c.id !== id);
-            delete clientTrnData[id];
-            delete clientTimeSlots[id];
-            renderClients();
-        }));
-        clients.forEach(client => { if (shouldShowTrnForClient(client)) attachTrnEvents(client.id); });
-    }
-
-    function setActiveStep(s) { document.querySelectorAll('.step').forEach((e, i) => e.classList.toggle('active', i + 1 === s)); }
-    function showSection(s) { Object.values(sections).forEach(x => x.classList.add('hidden')); s.classList.remove('hidden'); }
-
-    // EVENT LISTENERS
-    document.getElementById('agreePrivacyBtn').onclick = () => privacyModal.style.display = 'none';
-    document.getElementById('startBookingBtn').onclick = () => { showSection(sections.clients); setActiveStep(2); };
-    document.getElementById('addClientBtn').onclick = () => {
-        if (clients.length >= MAX_CLIENTS) {
-            Swal.fire({ icon: 'warning', title: 'Maximum Reached', text: `Maximum ${MAX_CLIENTS} persons only.`, confirmButtonColor: '#dc3545' });
-            return;
-        }
-        clients.push({ id: nextClientId++, firstName: '', middleName: '', lastName: '', suffix: '', sex: 'Male', birthdate: '', service: '', reqAcknowledged: false, requirementsRead: false });
-        renderClients();
-    };
-    
-    document.getElementById('nextToSchedule').onclick = () => {
-        for (let c of clients) {
-            if (!c.firstName?.trim() || !c.lastName?.trim()) {
-                Swal.fire({ icon: 'error', title: 'Missing Information', text: 'First Name and Last Name are required.', confirmButtonColor: '#dc3545' });
-                return;
-            }
-            if (!c.sex || !c.birthdate || !c.service) {
-                Swal.fire({ icon: 'error', title: 'Missing Information', text: 'Please fill in all fields.', confirmButtonColor: '#dc3545' });
-                return;
-            }
-            if (!validateTrnForClient(c)) {
-                Swal.fire({ icon: 'error', title: 'Missing TRN', text: `${getFullName(c)}: Please indicate TRN status.`, confirmButtonColor: '#dc3545' });
-                return;
-            }
-            if (!c.reqAcknowledged) {
-                Swal.fire({ icon: 'warning', title: 'Requirements Not Acknowledged', text: `Please acknowledge requirements for ${getFullName(c)}.`, confirmButtonColor: '#dc3545' });
-                return;
-            }
-        }
-        selectedDate = null;
-        clientTimeSlots = {};
-        availableTimeSlotsCache = [];
-        loadAvailableDates();
-        showSection(sections.schedule);
-        setActiveStep(3);
-        document.getElementById('perApplicantTimeSlotsContainer').innerHTML = '<div class="slot-info"><i class="fas fa-calendar-alt"></i> Please select a date first</div>';
-    };
-    
-    document.getElementById('backToClients').onclick = () => { showSection(sections.clients); setActiveStep(2); };
-    document.getElementById('prevMonthBtn').onclick = () => { currentMonth--; if (currentMonth < 0) { currentMonth = 11; currentYear--; } loadAvailableDates(); };
-    document.getElementById('nextMonthBtn').onclick = () => { currentMonth++; if (currentMonth > 11) { currentMonth = 0; currentYear++; } loadAvailableDates(); };
-    
-    document.getElementById('nextToContact').onclick = () => {
-        if (!selectedDate) {
-            Swal.fire({ icon: 'warning', title: 'No Date Selected', text: 'Please select a date.', confirmButtonColor: '#dc3545' });
-            return;
-        }
-        const missing = clients.filter(c => !clientTimeSlots[c.id]?.slotId);
-        if (missing.length) {
-            Swal.fire({ icon: 'warning', title: 'Missing Time Slots', text: `Please select time slots for: ${missing.map(c => getFullName(c)).join(', ')}`, confirmButtonColor: '#dc3545' });
-            return;
-        }
-        showSection(sections.contact);
-        setActiveStep(4);
-    };
-    
-    document.getElementById('backToScheduleFromContact').onclick = () => { showSection(sections.schedule); setActiveStep(3); renderPerApplicantTimeSlots(); };
-    
-    document.getElementById('nextToReview').onclick = () => {
-        const name = document.getElementById('contactName').value;
-        const mobile = document.getElementById('contactMobile').value;
-        if (!name || !mobile || mobile.length !== 10 || !mobile.startsWith('9')) {
-            Swal.fire({ icon: 'error', title: 'Invalid Contact', text: 'Please enter valid contact name and mobile (9XXXXXXXXX).', confirmButtonColor: '#dc3545' });
-            return;
-        }
-        document.getElementById('reviewClientCount').textContent = clients.length;
-        let clientsHtml = '';
-        clients.forEach((c, i) => {
-            const slot = clientTimeSlots[c.id];
-            clientsHtml += `<div><strong>${i+1}. ${escapeHtml(getFullName(c))}</strong> - ${getServiceName(c.service)}<br><small>Time: ${slot?.slotLabel || 'Not selected'}</small></div>`;
-        });
-        document.getElementById('reviewClientsList').innerHTML = clientsHtml;
-        document.getElementById('reviewDateTime').innerHTML = formatDisplayDate(selectedDate);
-        document.getElementById('reviewContactName').textContent = escapeHtml(name);
-        document.getElementById('reviewContactEmail').textContent = document.getElementById('contactEmail').value || 'Not provided';
-        document.getElementById('reviewContactMobile').textContent = '+63' + mobile;
-        showSection(sections.review);
-        setActiveStep(5);
-    };
-    
-    document.getElementById('backToContact').onclick = () => { showSection(sections.contact); setActiveStep(4); };
-    document.getElementById('nextToConfirm').onclick = () => {
-        const mobile = document.getElementById('contactMobile').value;
-        document.getElementById('sumClients').textContent = clients.length + ' person(s)';
-        let timeSummary = formatDisplayDate(selectedDate) + '<br>';
-        clients.forEach(c => { timeSummary += `<small>• ${escapeHtml(getFullName(c))}: ${escapeHtml(clientTimeSlots[c.id]?.slotLabel || 'Not selected')}</small><br>`; });
-        document.getElementById('sumDateTime').innerHTML = timeSummary;
-        document.getElementById('sumContact').textContent = document.getElementById('contactName').value + ' / +63' + mobile;
-        showSection(sections.confirm);
-        setActiveStep(6);
-    };
-    
-    document.getElementById('backToReview').onclick = () => { showSection(sections.review); setActiveStep(5); };
-
-    document.getElementById('confirmCheckbox').addEventListener('change', function(e) {
-        document.getElementById('submitRequestBtn').disabled = !e.target.checked;
-    });
-
-    document.getElementById('closeReqModal').onclick = () => { reqModal.style.display = 'none'; currentRequirementsClientId = null; };
-    document.getElementById('understandBtn').onclick = () => {
-        if (currentRequirementsClientId) {
-            const client = clients.find(c => c.id === currentRequirementsClientId);
-            if (client) {
-                client.requirementsRead = true;
-                renderClients();
-                Swal.fire({ icon: 'success', title: 'Requirements Reviewed', text: 'You may now check the acknowledgment box.', confirmButtonColor: '#28a745', timer: 3000 });
-            }
-            currentRequirementsClientId = null;
-        }
-        reqModal.style.display = 'none';
-    };
-
-    document.getElementById('closeSuccessModal').onclick = () => { successModal.style.display = 'none'; window.location.href = '/'; };
-
-    document.querySelectorAll('[data-edit]').forEach(btn => {
-        btn.addEventListener('click', (e) => {
-            const target = e.target.closest('[data-edit]').dataset.edit;
-            if (target === 'clients') { showSection(sections.clients); setActiveStep(2); }
-            else if (target === 'schedule') { showSection(sections.schedule); setActiveStep(3); renderPerApplicantTimeSlots(); }
-            else if (target === 'contact') { showSection(sections.contact); setActiveStep(4); }
-        });
-    });
-
-    renderClients();
-    loadLocationFromLandingPage();
-
-   document.getElementById('submitRequestBtn').onclick = async () => {
-    const mobile = document.getElementById('contactMobile').value;
-    if (!mobile || mobile.length !== 10 || !mobile.startsWith('9')) {
-        Swal.fire({ icon: 'error', title: 'Invalid Mobile', text: 'Please enter valid mobile number.', confirmButtonColor: '#dc3545' });
-        return;
-    }
-    
-    const clientsData = clients.map(c => {
-        const timeSlot = clientTimeSlots[c.id];
-        return {
-            first_name: c.firstName,
-            middle_name: c.middleName || null,
-            last_name: c.lastName,
-            suffix: c.suffix || null,
-            sex: c.sex,
-            birthdate: c.birthdate,
-            service: c.service,
-            time_slot_id: timeSlot ? timeSlot.slotId : null,
-            has_trn: clientTrnData[c.id]?.hasTrn || null,
-            trn_number: clientTrnData[c.id]?.hasTrn && clientTrnData[c.id]?.isValid ? clientTrnData[c.id]?.trnNumber : null
-        };
-    });
-
-    showLoading();
-    try {
-        const response = await fetch('{{ route('client.appointment.store') }}', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content },
-            body: JSON.stringify({
-                appointment_date: selectedDate,
-                contact_name: document.getElementById('contactName').value,
-                contact_email: document.getElementById('contactEmail').value || null,
-                contact_mobile: '+63' + mobile,
-                clients: clientsData
-            })
-        });
-        const result = await response.json();
-        if (result.success) {
-            // Store appointment data globally for download functions
-            window.globalAppointmentData = {
-                appointment_number: result.appointment.number,
-                reference_code: result.appointment.reference_code,
-                date: result.appointment.date,
-                contact_name: result.appointment.contact_name,
-                contact_mobile: result.appointment.contact_mobile,
-                contact_email: result.appointment.contact_email,
-                clients_list: result.appointment.clients_list || []
-            };
-            
-            // Build clients HTML for display
-            let clientsHtml = '';
-            if (window.globalAppointmentData.clients_list && window.globalAppointmentData.clients_list.length > 0) {
-                clientsHtml = '<div style="text-align: left; margin-top: 10px;"><strong>Applicant Details:</strong><ul>';
-                window.globalAppointmentData.clients_list.forEach(client => {
-                    clientsHtml += `<li><strong>${escapeHtml(client.name)}</strong><br><small>Service: ${client.service_name}</small><br><small>Time: ${client.time_slot}</small></li>`;
+                    container.appendChild(card);
                 });
-                clientsHtml += '</ul></div>';
+                attachClientEvents();
+                document.getElementById('clientCount').textContent = clients.length;
             }
-            
-            document.getElementById('successDetails').innerHTML = `
+
+            function escapeHtml(str) {
+                if (!str) return '';
+                return str.replace(/[&<>]/g, function(m) {
+                    if (m === '&') return '&amp;';
+                    if (m === '<') return '&lt;';
+                    if (m === '>') return '&gt;';
+                    return m;
+                });
+            }
+
+            function attachClientEvents() {
+                document.querySelectorAll('.client-firstname, .client-lastname, .client-sex, .client-birthdate')
+                    .forEach(e => e.addEventListener('change', (ev) => {
+                        const c = clients.find(x => x.id == ev.target.dataset.id);
+                        if (c) {
+                            if (ev.target.classList.contains('client-firstname')) c.firstName = ev.target.value;
+                            if (ev.target.classList.contains('client-lastname')) c.lastName = ev.target.value;
+                            if (ev.target.classList.contains('client-sex')) c.sex = ev.target.value;
+                            if (ev.target.classList.contains('client-birthdate')) c.birthdate = ev.target.value;
+                            updateViewRequirementsButton(c.id);
+                        }
+                    }));
+                document.querySelectorAll('.client-middlename').forEach(e => e.addEventListener('change', (ev) => {
+                    const c = clients.find(x => x.id == ev.target.dataset.id);
+                    if (c) c.middleName = ev.target.value;
+                }));
+                document.querySelectorAll('.client-suffix').forEach(e => e.addEventListener('change', (ev) => {
+                    const c = clients.find(x => x.id == ev.target.dataset.id);
+                    if (c) c.suffix = ev.target.value;
+                }));
+                document.querySelectorAll('.client-service').forEach(e => e.addEventListener('change', (ev) => {
+                    const c = clients.find(x => x.id == ev.target.dataset.id);
+                    if (c) {
+                        c.service = ev.target.value;
+                        c.reqAcknowledged = false;
+                        c.requirementsRead = false;
+                        if (c.service !== 'inquiry') delete clientTrnData[c.id];
+                        else if (!clientTrnData[c.id]) clientTrnData[c.id] = {
+                            hasTrn: null,
+                            trnNumber: '',
+                            isValid: false
+                        };
+                        renderClients();
+                    }
+                }));
+                document.querySelectorAll('.req-ack').forEach(e => e.addEventListener('change', async (ev) => {
+                    const c = clients.find(x => x.id == ev.target.dataset.id);
+                    if (c && ev.target.checked && (!isClientFieldsComplete(c) || !c.requirementsRead)) {
+                        ev.target.checked = false;
+                        if (!isClientFieldsComplete(c)) {
+                            await Swal.fire({
+                                icon: 'warning',
+                                title: 'Cannot Acknowledge',
+                                text: 'Please fill in all required fields first.',
+                                confirmButtonColor: '#dc3545'
+                            });
+                        } else if (!c.requirementsRead) {
+                            await Swal.fire({
+                                icon: 'info',
+                                title: 'Requirements Not Read',
+                                text: 'Please click "View Requirements" first.',
+                                confirmButtonColor: '#28a745',
+                                confirmButtonText: 'View Requirements'
+                            }).then((result) => {
+                                if (result.isConfirmed) document.querySelector(
+                                    `.btn-view-req[data-id="${c.id}"]`).click();
+                            });
+                        }
+                        return;
+                    }
+                    if (c) c.reqAcknowledged = ev.target.checked;
+                }));
+                document.querySelectorAll('.btn-view-req').forEach(b => b.addEventListener('click', async (ev) => {
+                    const id = ev.target.closest('.btn-view-req').dataset.id;
+                    await showRequirementsModal(parseInt(id));
+                }));
+                document.querySelectorAll('.btn-remove-client').forEach(b => b.addEventListener('click', (ev) => {
+                    const id = parseInt(ev.target.closest('.btn-remove-client').dataset.id);
+                    clients = clients.filter(c => c.id !== id);
+                    delete clientTrnData[id];
+                    delete clientTimeSlots[id];
+                    renderClients();
+                }));
+                clients.forEach(client => {
+                    if (shouldShowTrnForClient(client)) attachTrnEvents(client.id);
+                });
+            }
+
+            function setActiveStep(s) {
+                document.querySelectorAll('.step').forEach((e, i) => e.classList.toggle('active', i + 1 === s));
+            }
+
+            function showSection(s) {
+                Object.values(sections).forEach(x => x.classList.add('hidden'));
+                s.classList.remove('hidden');
+            }
+
+            // EVENT LISTENERS
+            document.getElementById('agreePrivacyBtn').onclick = () => privacyModal.style.display = 'none';
+            document.getElementById('startBookingBtn').onclick = () => {
+                showSection(sections.clients);
+                setActiveStep(2);
+            };
+            document.getElementById('addClientBtn').onclick = () => {
+                if (clients.length >= MAX_CLIENTS) {
+                    Swal.fire({
+                        icon: 'warning',
+                        title: 'Maximum Reached',
+                        text: `Maximum ${MAX_CLIENTS} persons only.`,
+                        confirmButtonColor: '#dc3545'
+                    });
+                    return;
+                }
+                clients.push({
+                    id: nextClientId++,
+                    firstName: '',
+                    middleName: '',
+                    lastName: '',
+                    suffix: '',
+                    sex: 'Male',
+                    birthdate: '',
+                    service: '',
+                    reqAcknowledged: false,
+                    requirementsRead: false
+                });
+                renderClients();
+            };
+
+            document.getElementById('nextToSchedule').onclick = () => {
+                for (let c of clients) {
+                    if (!c.firstName?.trim() || !c.lastName?.trim()) {
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Missing Information',
+                            text: 'First Name and Last Name are required.',
+                            confirmButtonColor: '#dc3545'
+                        });
+                        return;
+                    }
+                    if (!c.sex || !c.birthdate || !c.service) {
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Missing Information',
+                            text: 'Please fill in all fields.',
+                            confirmButtonColor: '#dc3545'
+                        });
+                        return;
+                    }
+                    if (!validateTrnForClient(c)) {
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Missing TRN',
+                            text: `${getFullName(c)}: Please indicate TRN status.`,
+                            confirmButtonColor: '#dc3545'
+                        });
+                        return;
+                    }
+                    if (!c.reqAcknowledged) {
+                        Swal.fire({
+                            icon: 'warning',
+                            title: 'Requirements Not Acknowledged',
+                            text: `Please acknowledge requirements for ${getFullName(c)}.`,
+                            confirmButtonColor: '#dc3545'
+                        });
+                        return;
+                    }
+                }
+                selectedDate = null;
+                clientTimeSlots = {};
+                availableTimeSlotsCache = [];
+                loadAvailableDates();
+                showSection(sections.schedule);
+                setActiveStep(3);
+                document.getElementById('perApplicantTimeSlotsContainer').innerHTML =
+                    '<div class="slot-info"><i class="fas fa-calendar-alt"></i> Please select a date first</div>';
+            };
+
+            document.getElementById('backToClients').onclick = () => {
+                showSection(sections.clients);
+                setActiveStep(2);
+            };
+            document.getElementById('prevMonthBtn').onclick = () => {
+                currentMonth--;
+                if (currentMonth < 0) {
+                    currentMonth = 11;
+                    currentYear--;
+                }
+                loadAvailableDates();
+            };
+            document.getElementById('nextMonthBtn').onclick = () => {
+                currentMonth++;
+                if (currentMonth > 11) {
+                    currentMonth = 0;
+                    currentYear++;
+                }
+                loadAvailableDates();
+            };
+
+            document.getElementById('nextToContact').onclick = () => {
+                if (!selectedDate) {
+                    Swal.fire({
+                        icon: 'warning',
+                        title: 'No Date Selected',
+                        text: 'Please select a date.',
+                        confirmButtonColor: '#dc3545'
+                    });
+                    return;
+                }
+                const missing = clients.filter(c => !clientTimeSlots[c.id]?.slotId);
+                if (missing.length) {
+                    Swal.fire({
+                        icon: 'warning',
+                        title: 'Missing Time Slots',
+                        text: `Please select time slots for: ${missing.map(c => getFullName(c)).join(', ')}`,
+                        confirmButtonColor: '#dc3545'
+                    });
+                    return;
+                }
+                showSection(sections.contact);
+                setActiveStep(4);
+            };
+
+            document.getElementById('backToScheduleFromContact').onclick = () => {
+                showSection(sections.schedule);
+                setActiveStep(3);
+                renderPerApplicantTimeSlots();
+            };
+
+            document.getElementById('nextToReview').onclick = () => {
+                const name = document.getElementById('contactName').value;
+                const mobile = document.getElementById('contactMobile').value;
+                if (!name || !mobile || mobile.length !== 10 || !mobile.startsWith('9')) {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Invalid Contact',
+                        text: 'Please enter valid contact name and mobile (9XXXXXXXXX).',
+                        confirmButtonColor: '#dc3545'
+                    });
+                    return;
+                }
+                document.getElementById('reviewClientCount').textContent = clients.length;
+                let clientsHtml = '';
+                clients.forEach((c, i) => {
+                    const slot = clientTimeSlots[c.id];
+                    clientsHtml +=
+                        `<div><strong>${i+1}. ${escapeHtml(getFullName(c))}</strong> - ${getServiceName(c.service)}<br><small>Time: ${slot?.slotLabel || 'Not selected'}</small></div>`;
+                });
+                document.getElementById('reviewClientsList').innerHTML = clientsHtml;
+                document.getElementById('reviewDateTime').innerHTML = formatDisplayDate(selectedDate);
+                document.getElementById('reviewContactName').textContent = escapeHtml(name);
+                document.getElementById('reviewContactEmail').textContent = document.getElementById('contactEmail')
+                    .value || 'Not provided';
+                document.getElementById('reviewContactMobile').textContent = '+63' + mobile;
+                showSection(sections.review);
+                setActiveStep(5);
+            };
+
+            document.getElementById('backToContact').onclick = () => {
+                showSection(sections.contact);
+                setActiveStep(4);
+            };
+            document.getElementById('nextToConfirm').onclick = () => {
+                const mobile = document.getElementById('contactMobile').value;
+                document.getElementById('sumClients').textContent = clients.length + ' person(s)';
+                let timeSummary = formatDisplayDate(selectedDate) + '<br>';
+                clients.forEach(c => {
+                    timeSummary +=
+                        `<small>• ${escapeHtml(getFullName(c))}: ${escapeHtml(clientTimeSlots[c.id]?.slotLabel || 'Not selected')}</small><br>`;
+                });
+                document.getElementById('sumDateTime').innerHTML = timeSummary;
+                document.getElementById('sumContact').textContent = document.getElementById('contactName').value +
+                    ' / +63' + mobile;
+                showSection(sections.confirm);
+                setActiveStep(6);
+            };
+
+            document.getElementById('backToReview').onclick = () => {
+                showSection(sections.review);
+                setActiveStep(5);
+            };
+
+            document.getElementById('confirmCheckbox').addEventListener('change', function(e) {
+                document.getElementById('submitRequestBtn').disabled = !e.target.checked;
+            });
+
+            document.getElementById('closeReqModal').onclick = () => {
+                reqModal.style.display = 'none';
+                currentRequirementsClientId = null;
+            };
+            document.getElementById('understandBtn').onclick = () => {
+                if (currentRequirementsClientId) {
+                    const client = clients.find(c => c.id === currentRequirementsClientId);
+                    if (client) {
+                        client.requirementsRead = true;
+                        renderClients();
+                        Swal.fire({
+                            icon: 'success',
+                            title: 'Requirements Reviewed',
+                            text: 'You may now check the acknowledgment box.',
+                            confirmButtonColor: '#28a745',
+                            timer: 3000
+                        });
+                    }
+                    currentRequirementsClientId = null;
+                }
+                reqModal.style.display = 'none';
+            };
+
+            document.getElementById('closeSuccessModal').onclick = () => {
+                successModal.style.display = 'none';
+                window.location.href = '/';
+            };
+
+            document.querySelectorAll('[data-edit]').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    const target = e.target.closest('[data-edit]').dataset.edit;
+                    if (target === 'clients') {
+                        showSection(sections.clients);
+                        setActiveStep(2);
+                    } else if (target === 'schedule') {
+                        showSection(sections.schedule);
+                        setActiveStep(3);
+                        renderPerApplicantTimeSlots();
+                    } else if (target === 'contact') {
+                        showSection(sections.contact);
+                        setActiveStep(4);
+                    }
+                });
+            });
+
+            renderClients();
+            loadLocationFromLandingPage();
+
+            document.getElementById('submitRequestBtn').onclick = async () => {
+                const mobile = document.getElementById('contactMobile').value;
+                if (!mobile || mobile.length !== 10 || !mobile.startsWith('9')) {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Invalid Mobile',
+                        text: 'Please enter valid mobile number.',
+                        confirmButtonColor: '#dc3545'
+                    });
+                    return;
+                }
+
+                const clientsData = clients.map(c => {
+                    const timeSlot = clientTimeSlots[c.id];
+                    return {
+                        first_name: c.firstName,
+                        middle_name: c.middleName || null,
+                        last_name: c.lastName,
+                        suffix: c.suffix || null,
+                        sex: c.sex,
+                        birthdate: c.birthdate,
+                        service: c.service,
+                        time_slot_id: timeSlot ? timeSlot.slotId : null,
+                        has_trn: clientTrnData[c.id]?.hasTrn || null,
+                        trn_number: clientTrnData[c.id]?.hasTrn && clientTrnData[c.id]?.isValid ?
+                            clientTrnData[c.id]?.trnNumber : null
+                    };
+                });
+
+                // Debug: Log location values before sending
+                console.log('📍 Location values being submitted:', {
+                    user_lat: document.getElementById('userLat').value,
+                    user_lng: document.getElementById('userLng').value,
+                    user_city: document.getElementById('userCity').value,
+                    user_address: document.getElementById('userAddress').value,
+                    user_zipcode: document.getElementById('userZipcode').value
+                });
+
+                showLoading();
+                try {
+                    const response = await fetch('{{ route('client.appointment.store') }}', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+                        },
+                        body: JSON.stringify({
+                            appointment_date: selectedDate,
+                            contact_name: document.getElementById('contactName').value,
+                            contact_email: document.getElementById('contactEmail').value ||
+                                null,
+                            contact_mobile: '+63' + mobile,
+                            clients: clientsData,
+                            user_lat: document.getElementById('userLat').value || null,
+                            user_lng: document.getElementById('userLng').value || null,
+                            user_city: document.getElementById('userCity').value || null,
+                            user_address: document.getElementById('userAddress').value || null,
+                            user_zipcode: document.getElementById('userZipcode').value || null
+                        })
+                    });
+                    const result = await response.json();
+                    if (result.success) {
+                        // Store appointment data globally for download functions
+                        window.globalAppointmentData = {
+                            appointment_number: result.appointment.number,
+                            reference_code: result.appointment.reference_code,
+                            date: result.appointment.date,
+                            contact_name: result.appointment.contact_name,
+                            contact_mobile: result.appointment.contact_mobile,
+                            contact_email: result.appointment.contact_email,
+                            clients_list: result.appointment.clients_list || []
+                        };
+
+                        // Build clients HTML for display
+                        let clientsHtml = '';
+                        if (window.globalAppointmentData.clients_list && window.globalAppointmentData
+                            .clients_list.length > 0) {
+                            clientsHtml =
+                                '<div style="text-align: left; margin-top: 10px;"><strong>Applicant Details:</strong><ul>';
+                            window.globalAppointmentData.clients_list.forEach(client => {
+                                clientsHtml +=
+                                    `<li><strong>${escapeHtml(client.name)}</strong><br><small>Service: ${client.service_name}</small><br><small>Time: ${client.time_slot}</small></li>`;
+                            });
+                            clientsHtml += '</ul></div>';
+                        }
+
+                        document.getElementById('successDetails').innerHTML = `
                 <div style="text-align: left;">
                     <p><strong>Appointment Number:</strong> ${result.appointment.number}</p>
                     <p><strong>Reference Code:</strong> ${result.appointment.reference_code}</p>
@@ -1791,34 +2064,46 @@
                     <p><small style="color: #dc3545;">⚠️ Please save your Reference Code for verification.</small></p>
                 </div>
             `;
-            successModal.style.display = 'flex';
-        } else {
-            Swal.fire({ icon: 'error', title: 'Error', text: result.message, confirmButtonColor: '#dc3545' });
+                        successModal.style.display = 'flex';
+                    } else {
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Error',
+                            text: result.message,
+                            confirmButtonColor: '#dc3545'
+                        });
+                    }
+                } catch (error) {
+                    console.error('Submission error:', error);
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error',
+                        text: 'Submission failed: ' + (error.message || 'Unknown error'),
+                        confirmButtonColor: '#dc3545'
+                    });
+                } finally {
+                    hideLoading();
+                }
+            };
+        })();
+
+        // DOWNLOAD FUNCTIONS
+        // ==================== DOWNLOAD FUNCTIONS - MULTI-RECEIPT ====================
+
+        // Local escape function for downloads (self-contained)
+        function downloadEscapeHtml(str) {
+            if (!str) return '';
+            return String(str).replace(/[&<>]/g, function(m) {
+                if (m === '&') return '&amp;';
+                if (m === '<') return '&lt;';
+                if (m === '>') return '&gt;';
+                return m;
+            });
         }
-    } catch (error) {
-        console.error('Submission error:', error);
-        Swal.fire({ icon: 'error', title: 'Error', text: 'Submission failed.', confirmButtonColor: '#dc3545' });
-    } finally { hideLoading(); }
-};
-})();
 
-// DOWNLOAD FUNCTIONS
-// ==================== DOWNLOAD FUNCTIONS - MULTI-RECEIPT ====================
-
-// Local escape function for downloads (self-contained)
-function downloadEscapeHtml(str) {
-    if (!str) return '';
-    return String(str).replace(/[&<>]/g, function(m) {
-        if (m === '&') return '&amp;';
-        if (m === '<') return '&lt;';
-        if (m === '>') return '&gt;';
-        return m;
-    });
-}
-
-async function captureClientReceipt(client, appointmentData) {
-    const receiptContainer = document.createElement('div');
-    receiptContainer.style.cssText = `
+        async function captureClientReceipt(client, appointmentData) {
+            const receiptContainer = document.createElement('div');
+            receiptContainer.style.cssText = `
         background: white;
         padding: 30px;
         border-radius: 12px;
@@ -1829,14 +2114,17 @@ async function captureClientReceipt(client, appointmentData) {
         page-break-after: always;
         break-inside: avoid;
     `;
-    
-    const now = new Date();
-    const formattedDateTime = now.toLocaleString('en-US', {
-        year: 'numeric', month: 'long', day: 'numeric',
-        hour: '2-digit', minute: '2-digit'
-    });
-    
-    receiptContainer.innerHTML = `
+
+            const now = new Date();
+            const formattedDateTime = now.toLocaleString('en-US', {
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit'
+            });
+
+            receiptContainer.innerHTML = `
         <div style="text-align: center; margin-bottom: 20px;">
             <h2 style="color: #2c5f8a; margin: 0; font-size: 1.3rem;">Philippine Statistics Authority</h2>
             <h3 style="color: #4a5568; margin: 5px 0; font-size: 1rem;">National ID System (PhilSys)</h3>
@@ -1891,178 +2179,188 @@ async function captureClientReceipt(client, appointmentData) {
             <p style="color: #718096; font-size: 10px; margin: 5px 0;">© ${new Date().getFullYear()} Philippine Statistics Authority</p>
         </div>
     `;
-    
-    return receiptContainer;
-}
 
-async function generateAllClientReceipts() {
-    const appointmentData = window.globalAppointmentData;
-    if (!appointmentData || !appointmentData.clients_list || appointmentData.clients_list.length === 0) {
-        return [];
-    }
-    
-    const receipts = [];
-    for (let i = 0; i < appointmentData.clients_list.length; i++) {
-        const client = appointmentData.clients_list[i];
-        const receipt = await captureClientReceipt(client, appointmentData);
-        receipts.push(receipt);
-    }
-    return receipts;
-}
-
-
-// PNG Download - Multiple images
-document.getElementById('downloadPngBtn').onclick = async () => {
-    try {
-        const btn = document.getElementById('downloadPngBtn');
-        const originalText = btn.innerHTML;
-        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Generating PNGs...';
-        btn.disabled = true;
-        
-        if (typeof html2canvas === 'undefined') {
-            await new Promise((resolve) => {
-                const script = document.createElement('script');
-                script.src = 'https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js';
-                script.onload = resolve;
-                document.head.appendChild(script);
-            });
+            return receiptContainer;
         }
-        
-        const receipts = await generateAllClientReceipts();
-        
-        if (receipts.length === 0) {
-            Swal.fire({
-                icon: 'warning',
-                title: 'No Data',
-                text: 'No appointment data found. Please submit an appointment first.',
-                confirmButtonColor: '#dc3545'
-            });
-            btn.innerHTML = originalText;
-            btn.disabled = false;
-            return;
-        }
-        
-        for (let i = 0; i < receipts.length; i++) {
-            const receipt = receipts[i];
-            document.body.appendChild(receipt);
-            
-            const canvas = await html2canvas(receipt, {
-                scale: 2,
-                backgroundColor: '#ffffff',
-                logging: false,
-                useCORS: true
-            });
-            
-            document.body.removeChild(receipt);
-            
-            const link = document.createElement('a');
-            const clientName = (window.globalAppointmentData.clients_list[i].name || 'applicant').replace(/\s/g, '_');
-            link.download = `appointment-${clientName}-${Date.now()}.png`;
-            link.href = canvas.toDataURL('image/png');
-            link.click();
-            
-            await new Promise(resolve => setTimeout(resolve, 500));
-        }
-        
-        Swal.fire({
-            icon: 'success',
-            title: 'Download Complete',
-            text: `${receipts.length} receipt(s) downloaded successfully.`,
-            confirmButtonColor: '#28a745',
-            timer: 2000
-        });
-        
-        btn.innerHTML = originalText;
-        btn.disabled = false;
-    } catch (error) {
-        console.error('PNG download error:', error);
-        Swal.fire({
-            icon: 'error',
-            title: 'Download Failed',
-            text: 'Failed to generate PNG receipts. Please try again.',
-            confirmButtonColor: '#dc3545'
-        });
-        const btn = document.getElementById('downloadPngBtn');
-        btn.innerHTML = '<i class="fas fa-image"></i> Download PNG';
-        btn.disabled = false;
-    }
-};
 
-
-
-// PDF Download - Multi-page PDF
-document.getElementById('downloadPdfBtn').onclick = async () => {
-    try {
-        const btn = document.getElementById('downloadPdfBtn');
-        const originalText = btn.innerHTML;
-        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Generating PDF...';
-        btn.disabled = true;
-        
-        const receipts = await generateAllClientReceipts();
-        
-        if (receipts.length === 0) {
-            Swal.fire({
-                icon: 'warning',
-                title: 'No Data',
-                text: 'No appointment data found. Please submit an appointment first.',
-                confirmButtonColor: '#dc3545'
-            });
-            btn.innerHTML = originalText;
-            btn.disabled = false;
-            return;
-        }
-        
-        const wrapper = document.createElement('div');
-        wrapper.style.cssText = 'background: white; padding: 20px;';
-        
-        for (let i = 0; i < receipts.length; i++) {
-            wrapper.appendChild(receipts[i]);
-            if (i < receipts.length - 1) {
-                const pageBreak = document.createElement('div');
-                pageBreak.style.cssText = 'page-break-after: always; break-after: page;';
-                wrapper.appendChild(pageBreak);
+        async function generateAllClientReceipts() {
+            const appointmentData = window.globalAppointmentData;
+            if (!appointmentData || !appointmentData.clients_list || appointmentData.clients_list.length === 0) {
+                return [];
             }
+
+            const receipts = [];
+            for (let i = 0; i < appointmentData.clients_list.length; i++) {
+                const client = appointmentData.clients_list[i];
+                const receipt = await captureClientReceipt(client, appointmentData);
+                receipts.push(receipt);
+            }
+            return receipts;
         }
-        
-        document.body.appendChild(wrapper);
-        
-        const opt = {
-            margin: [0.5, 0.5, 0.5, 0.5],
-            filename: `appointment-receipts-${Date.now()}.pdf`,
-            image: { type: 'jpeg', quality: 0.98 },
-            html2canvas: { scale: 2, useCORS: true },
-            jsPDF: { unit: 'in', format: 'letter', orientation: 'portrait' }
+
+
+        // PNG Download - Multiple images
+        document.getElementById('downloadPngBtn').onclick = async () => {
+            try {
+                const btn = document.getElementById('downloadPngBtn');
+                const originalText = btn.innerHTML;
+                btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Generating PNGs...';
+                btn.disabled = true;
+
+                if (typeof html2canvas === 'undefined') {
+                    await new Promise((resolve) => {
+                        const script = document.createElement('script');
+                        script.src =
+                            'https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js';
+                        script.onload = resolve;
+                        document.head.appendChild(script);
+                    });
+                }
+
+                const receipts = await generateAllClientReceipts();
+
+                if (receipts.length === 0) {
+                    Swal.fire({
+                        icon: 'warning',
+                        title: 'No Data',
+                        text: 'No appointment data found. Please submit an appointment first.',
+                        confirmButtonColor: '#dc3545'
+                    });
+                    btn.innerHTML = originalText;
+                    btn.disabled = false;
+                    return;
+                }
+
+                for (let i = 0; i < receipts.length; i++) {
+                    const receipt = receipts[i];
+                    document.body.appendChild(receipt);
+
+                    const canvas = await html2canvas(receipt, {
+                        scale: 2,
+                        backgroundColor: '#ffffff',
+                        logging: false,
+                        useCORS: true
+                    });
+
+                    document.body.removeChild(receipt);
+
+                    const link = document.createElement('a');
+                    const clientName = (window.globalAppointmentData.clients_list[i].name || 'applicant').replace(
+                        /\s/g, '_');
+                    link.download = `appointment-${clientName}-${Date.now()}.png`;
+                    link.href = canvas.toDataURL('image/png');
+                    link.click();
+
+                    await new Promise(resolve => setTimeout(resolve, 500));
+                }
+
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Download Complete',
+                    text: `${receipts.length} receipt(s) downloaded successfully.`,
+                    confirmButtonColor: '#28a745',
+                    timer: 2000
+                });
+
+                btn.innerHTML = originalText;
+                btn.disabled = false;
+            } catch (error) {
+                console.error('PNG download error:', error);
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Download Failed',
+                    text: 'Failed to generate PNG receipts. Please try again.',
+                    confirmButtonColor: '#dc3545'
+                });
+                const btn = document.getElementById('downloadPngBtn');
+                btn.innerHTML = '<i class="fas fa-image"></i> Download PNG';
+                btn.disabled = false;
+            }
         };
-        
-        await html2pdf().set(opt).from(wrapper).save();
-        document.body.removeChild(wrapper);
-        
-        Swal.fire({
-            icon: 'success',
-            title: 'Download Complete',
-            text: `${receipts.length} receipt(s) downloaded as PDF.`,
-            confirmButtonColor: '#28a745',
-            timer: 2000
-        });
-        
-        btn.innerHTML = originalText;
-        btn.disabled = false;
-    } catch (error) {
-        console.error('PDF download error:', error);
-        Swal.fire({
-            icon: 'error',
-            title: 'Download Failed',
-            text: 'Failed to generate PDF receipts. Please try again.',
-            confirmButtonColor: '#dc3545'
-        });
-        const btn = document.getElementById('downloadPdfBtn');
-        btn.innerHTML = '<i class="fas fa-file-pdf"></i> Download PDF';
-        btn.disabled = false;
-    }
-};
 
 
-</script>
+
+        // PDF Download - Multi-page PDF
+        document.getElementById('downloadPdfBtn').onclick = async () => {
+            try {
+                const btn = document.getElementById('downloadPdfBtn');
+                const originalText = btn.innerHTML;
+                btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Generating PDF...';
+                btn.disabled = true;
+
+                const receipts = await generateAllClientReceipts();
+
+                if (receipts.length === 0) {
+                    Swal.fire({
+                        icon: 'warning',
+                        title: 'No Data',
+                        text: 'No appointment data found. Please submit an appointment first.',
+                        confirmButtonColor: '#dc3545'
+                    });
+                    btn.innerHTML = originalText;
+                    btn.disabled = false;
+                    return;
+                }
+
+                const wrapper = document.createElement('div');
+                wrapper.style.cssText = 'background: white; padding: 20px;';
+
+                for (let i = 0; i < receipts.length; i++) {
+                    wrapper.appendChild(receipts[i]);
+                    if (i < receipts.length - 1) {
+                        const pageBreak = document.createElement('div');
+                        pageBreak.style.cssText = 'page-break-after: always; break-after: page;';
+                        wrapper.appendChild(pageBreak);
+                    }
+                }
+
+                document.body.appendChild(wrapper);
+
+                const opt = {
+                    margin: [0.5, 0.5, 0.5, 0.5],
+                    filename: `appointment-receipts-${Date.now()}.pdf`,
+                    image: {
+                        type: 'jpeg',
+                        quality: 0.98
+                    },
+                    html2canvas: {
+                        scale: 2,
+                        useCORS: true
+                    },
+                    jsPDF: {
+                        unit: 'in',
+                        format: 'letter',
+                        orientation: 'portrait'
+                    }
+                };
+
+                await html2pdf().set(opt).from(wrapper).save();
+                document.body.removeChild(wrapper);
+
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Download Complete',
+                    text: `${receipts.length} receipt(s) downloaded as PDF.`,
+                    confirmButtonColor: '#28a745',
+                    timer: 2000
+                });
+
+                btn.innerHTML = originalText;
+                btn.disabled = false;
+            } catch (error) {
+                console.error('PDF download error:', error);
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Download Failed',
+                    text: 'Failed to generate PDF receipts. Please try again.',
+                    confirmButtonColor: '#dc3545'
+                });
+                const btn = document.getElementById('downloadPdfBtn');
+                btn.innerHTML = '<i class="fas fa-file-pdf"></i> Download PDF';
+                btn.disabled = false;
+            }
+        };
+    </script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 </body>
 
