@@ -197,8 +197,8 @@
                     <button class="mobile-menu-btn" id="mobileMenuToggle">
                         <i class="fas fa-bars"></i>
                     </button>
-                    <div class="welcome-text">
-                        <h5>Welcome, {{ Auth::user()->first_name }} {{ Auth::user()->last_name }}</h5>
+                    <div class="welcome-text" style="text-transform: uppercase;">
+                        <h5>Welcome, {{ Auth::user()->role }}</h5>
                     </div>
                 </div>
                 <div class="topbar-right">
@@ -218,11 +218,35 @@
                             </div>
                         </div>
                     </div>
+
+                    {{-- <!-- Role Badge -->
                     <span class="role-badge" id="roleBadge"
-                        style="cursor: pointer;">{{ ucfirst(Auth::user()->role) }}</span>
+                        style="cursor: pointer;">{{ ucfirst(Auth::user()->role) }}</span> --}}
+
+                    <!-- User Full Name -->
+                    <span class="user-fullname" id="userFullName"
+                        style="cursor: pointer; font-weight: 500; color: var(--gray-700, #374151);">
+                        {{ Auth::user()->first_name }} {{ Auth::user()->last_name }}
+                    </span>
+
+                    <!-- Profile Picture -->
+                    <div class="profile-pic-container" id="profilePicContainer" style="cursor: pointer;">
+                        @php
+                            $avatarPath = Auth::user()->profile_photo ?? null;
+                            $userInitial = strtoupper(substr(Auth::user()->first_name, 0, 1));
+                        @endphp
+                        @if ($avatarPath && file_exists(public_path('storage/' . $avatarPath)))
+                            <img src="{{ asset('storage/' . $avatarPath) }}" alt="Profile" class="topbar-avatar"
+                                style="width: 40px; height: 40px; border-radius: 50%; object-fit: cover; border: 2px solid #0f3b6f;">
+                        @else
+                            <div class="topbar-avatar-placeholder"
+                                style="width: 40px; height: 40px; border-radius: 50%; background: linear-gradient(135deg, #0f3b6f, #CE1126); color: white; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 16px; border: 2px solid #0f3b6f;">
+                                {{ $userInitial }}
+                            </div>
+                        @endif
+                    </div>
                 </div>
             </div>
-
             <div class="operator-content">
                 @if (session('success'))
                     <div class="alert alert-success">
@@ -746,13 +770,38 @@
         }
 
         // ========================
-        // FOOTER LINK HANDLERS
+        // FOOTER LINK 
         // ========================
         function initFooterLinks() {
             const aboutLink = document.getElementById('aboutLink');
             const helpLink = document.getElementById('helpLink');
             const privacyLink = document.getElementById('privacyLink');
             const contactLink = document.getElementById('contactLink');
+
+            // Profile modal triggers - all open the profile modal
+            const roleBadgeEl = document.getElementById('roleBadge');
+            const userFullName = document.getElementById('userFullName');
+            const profilePicContainer = document.getElementById('profilePicContainer');
+            const profileModal = document.getElementById('profileModal');
+
+            function openProfileModal(e) {
+                if (e) e.preventDefault();
+                if (profileModal) {
+                    profileModal.classList.add('active');
+                    document.body.style.overflow = 'hidden';
+                }
+            }
+
+            // Attach click events to open profile modal
+            if (roleBadgeEl) {
+                roleBadgeEl.addEventListener('click', openProfileModal);
+            }
+            if (userFullName) {
+                userFullName.addEventListener('click', openProfileModal);
+            }
+            if (profilePicContainer) {
+                profilePicContainer.addEventListener('click', openProfileModal);
+            }
 
             if (aboutLink) {
                 aboutLink.addEventListener('click', (e) => {

@@ -689,3 +689,72 @@
                 grid-template-columns: 1fr;
             }
         }
+
+        /* Topbar Profile Styles */
+.topbar-right {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+}
+
+.user-fullname {
+    cursor: pointer;
+    font-weight: 500;
+    color: var(--gray-700);
+    transition: color 0.2s ease;
+}
+
+.user-fullname:hover {
+    color: var(--primary);
+}
+
+.profile-pic-container {
+    cursor: pointer;
+    transition: transform 0.2s ease;
+}
+
+.profile-pic-container:hover {
+    transform: scale(1.05);
+}
+
+.topbar-avatar,
+.topbar-avatar-placeholder {
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.topbar-avatar-placeholder:hover {
+    filter: brightness(0.95);
+}
+
+.role-badge {
+    background: var(--title);
+    color: white;
+    padding: 6px 14px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+    cursor: pointer;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.role-badge:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 2px 8px rgba(206, 17, 38, 0.3);
+}
+
+@media (max-width: 768px) {
+    .user-fullname {
+        display: none;
+    }
+    
+    .topbar-right {
+        gap: 12px;
+    }
+    
+    .role-badge {
+        padding: 4px 10px;
+        font-size: 11px;
+    }
+}

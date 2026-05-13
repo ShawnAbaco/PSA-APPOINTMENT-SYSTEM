@@ -71,8 +71,8 @@ function initMap() {
                 <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 8px;">
                     <img src="/images/psa.png" style="width: 40px; height: 40px; border-radius: 50%; border: 2px solid #c49a2c; background: white; padding: 2px;">
                     <div>
-                        <strong style="font-size: 1rem;">PSA Misamis Oriental</strong><br>
-                        <small style="font-size: 0.7rem; opacity: 0.9;">National ID Registration Center</small>
+                        <strong style="font-size: 1rem;">PSA - Misamis Oriental</strong><br>
+                        <small style="font-size: 0.7rem; opacity:   0.9;">Fixed Registration Center</small>
                     </div>
                 </div>
             </div>
@@ -86,7 +86,7 @@ function initMap() {
                     <span>🕒 Mon-Fri 8AM-5PM</span>
                 </div>
                 <div style="margin-top: 8px; font-size: 0.75rem; color: #0f3b6f; background: #e8f0fe; padding: 6px; border-radius: 8px; text-align: center;">
-                    National ID | ePhilID | Civil Registry
+                    NID Registration | Updating | Status Inquiry
                 </div>
             </div>
         </div>

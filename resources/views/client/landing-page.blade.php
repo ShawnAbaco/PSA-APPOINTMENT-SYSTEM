@@ -26,7 +26,7 @@
                         alt="PSA Logo">
                 </div>
                 <div class="logo-text">
-                    <span class="psa-title">Philippine Statistics Authority</span>
+                    <span class="psa-title">Philippine Statistics Authority - Misamis Oriental</span>
                     <span class="psa-sub">National ID Appointment Management System</span>
                 </div>
             </div>
@@ -126,8 +126,9 @@
         <section id="map-live" class="map-section">
             <div class="container">
                 <div class="section-header">
-                    <h2>Philippine Statistics Authority Office (Misamis Oriental)</h2>
+                    <h2>Philippine Statistics Authority Office - Misamis Oriental</h2>
                     <p>Auto-detecting your location and showing route to PSA center</p>
+                    <p>Ctrl + Scroll to Zoom</p>
                 </div>
                 <div class="map-card">
                     <div id="liveMap" class="leaflet-map"></div>
@@ -136,153 +137,156 @@
             </div>
         </section>
 
-      <!-- Requirements Section - IMPROVED UI WITH SCROLLABLE LISTS -->
-<section id="requirements" class="requirements-section">
-    <div class="container">
-        <div class="section-header">
-            <h2>Appointment Requirements & Services</h2>
-            <p>Prepare the necessary documents before your scheduled visit</p>
-        </div>
-        <div class="requirements-grid">
-            
-            {{-- NATIONAL ID REGISTRATION CARD --}}
-            @php
-                $regRequirements = $requirements['reg'] ?? collect();
-                $regStandardRequirements = $regRequirements->where('age_group', '4_above');
-                $regChildRequirements = $regRequirements->where('age_group', 'child');
-            @endphp
-            <div class="req-card">
-                <div class="req-header">
-                    <div class="req-icon">
-                        <i class="fas fa-id-card"></i>
-                    </div>
-                    <h3>National ID Registration</h3>
+        <!-- Requirements Section - IMPROVED UI WITH SCROLLABLE LISTS -->
+        <section id="requirements" class="requirements-section">
+            <div class="container">
+                <div class="section-header">
+                    <h2>Appointment Requirements & Services</h2>
+                    <p>Prepare the necessary documents before your scheduled visit</p>
                 </div>
-                
-                <div class="req-tabs">
-                    <button class="req-tab active" data-tab="standard-reg">5+ Years Old</button>
-                    <button class="req-tab" data-tab="child-reg">0-4 Years Old</button>
-                </div>
-                
-                <div class="req-content active" id="standard-reg">
-                    <div class="req-list-container">
-                        <ul class="req-docs">
-                            @foreach($regStandardRequirements as $req)
-                                <li><span>{{ $req->requirement }}</span></li>
-                            @endforeach
-                        </ul>
-                    </div>
-                </div>
-                
-                <div class="req-content" id="child-reg">
-                    <div class="req-list-container">
-                        <ul class="req-docs">
-                            @foreach($regChildRequirements as $req)
-                                <li><i class="fas fa-child"></i> <span>{{ $req->requirement }}</span></li>
-                            @endforeach
-                        </ul>
-                    </div>
-                </div>
-                
-                <div class="warning-note">
-                    <i class="fas fa-exclamation-triangle"></i>
-                    <span>Bring <strong>original documents</strong>. No photocopies accepted for primary validation.</span>
-                </div>
-            </div>
+                <div class="requirements-grid">
 
-            {{-- STATUS INQUIRY / ePhilID / TRN RETRIEVAL CARD --}}
-            @php
-                $inquiryRequirements = $requirements['inquiry'] ?? collect();
-                $inquiryStandardRequirements = $inquiryRequirements->where('age_group', '4_above');
-                $inquiryChildRequirements = $inquiryRequirements->where('age_group', 'child');
-            @endphp
-            <div class="req-card">
-                <div class="req-header">
-                    <div class="req-icon">
-                        <i class="fas fa-question-circle"></i>
-                    </div>
-                    <h3>Status Inquiry & ePhilID</h3>
-                </div>
-                
-                <div class="req-tabs">
-                    <button class="req-tab active" data-tab="standard-inq">5+ Years Old</button>
-                    <button class="req-tab" data-tab="child-inq">0-4 Years Old</button>
-                </div>
-                
-                <div class="req-content active" id="standard-inq">
-                    <div class="req-list-container">
-                        <ul class="req-docs">
-                            @foreach($inquiryStandardRequirements as $req)
-                                <li> <span>{{ $req->requirement }}</span></li>
-                            @endforeach
-                        </ul>
-                    </div>
-                </div>
-                
-                <div class="req-content" id="child-inq">
-                    <div class="req-list-container">
-                        <ul class="req-docs">
-                            @foreach($inquiryChildRequirements as $req)
-                                <li><i class="fas fa-child"></i> <span>{{ $req->requirement }}</span></li>
-                            @endforeach
-                        </ul>
-                    </div>
-                </div>
-                
-                <div class="warning-note">
-                    <i class="fas fa-info-circle"></i>
-                    <span>ePhilID is a valid proof of identity while waiting for the physical card.<br>Confidential per RA 10173 (Data Privacy Act).</span>
-                </div>
-            </div>
+                    {{-- NATIONAL ID REGISTRATION CARD --}}
+                    @php
+                        $regRequirements = $requirements['reg'] ?? collect();
+                        $regStandardRequirements = $regRequirements->where('age_group', '4_above');
+                        $regChildRequirements = $regRequirements->where('age_group', 'child');
+                    @endphp
+                    <div class="req-card">
+                        <div class="req-header">
+                            <div class="req-icon">
+                                <i class="fas fa-id-card"></i>
+                            </div>
+                            <h3>National ID Registration</h3>
+                        </div>
 
-            {{-- CORRECTION / UPDATING CARD --}}
-            @php
-                $updatingRequirements = $requirements['updating'] ?? collect();
-                $updatingStandardRequirements = $updatingRequirements->where('age_group', '4_above');
-                $updatingChildRequirements = $updatingRequirements->where('age_group', 'child');
-            @endphp
-            <div class="req-card">
-                <div class="req-header">
-                    <div class="req-icon">
-                        <i class="fas fa-edit"></i>
+                        <div class="req-tabs">
+                            <button class="req-tab active" data-tab="standard-reg">5+ Years Old</button>
+                            <button class="req-tab" data-tab="child-reg">0-4 Years Old</button>
+                        </div>
+
+                        <div class="req-content active" id="standard-reg">
+                            <div class="req-list-container">
+                                <ul class="req-docs">
+                                    @foreach ($regStandardRequirements as $req)
+                                        <li><span>{{ $req->requirement }}</span></li>
+                                    @endforeach
+                                </ul>
+                            </div>
+                        </div>
+
+                        <div class="req-content" id="child-reg">
+                            <div class="req-list-container">
+                                <ul class="req-docs">
+                                    @foreach ($regChildRequirements as $req)
+                                        <li><i class="fas fa-child"></i> <span>{{ $req->requirement }}</span></li>
+                                    @endforeach
+                                </ul>
+                            </div>
+                        </div>
+
+                        <div class="warning-note">
+                            <i class="fas fa-exclamation-triangle"></i>
+                            <span>Bring <strong>original documents</strong>. No photocopies accepted for primary
+                                validation.</span>
+                        </div>
                     </div>
-                    <h3>Correction / Updating</h3>
-                </div>
-                
-                <div class="req-tabs">
-                    <button class="req-tab active" data-tab="standard-upd">5+ Years Old</button>
-                    <button class="req-tab" data-tab="child-upd">0-4 Years Old</button>
-                </div>
-                
-                <div class="req-content active" id="standard-upd">
-                    <div class="req-list-container">
-                        <ul class="req-docs">
-                            @foreach($updatingStandardRequirements as $req)
-                                <li> <span>{{ $req->requirement }}</span></li>
-                            @endforeach
-                        </ul>
+
+                    {{-- STATUS INQUIRY / ePhilID / TRN RETRIEVAL CARD --}}
+                    @php
+                        $inquiryRequirements = $requirements['inquiry'] ?? collect();
+                        $inquiryStandardRequirements = $inquiryRequirements->where('age_group', '4_above');
+                        $inquiryChildRequirements = $inquiryRequirements->where('age_group', 'child');
+                    @endphp
+                    <div class="req-card">
+                        <div class="req-header">
+                            <div class="req-icon">
+                                <i class="fas fa-question-circle"></i>
+                            </div>
+                            <h3>Status Inquiry & ePhilID</h3>
+                        </div>
+
+                        <div class="req-tabs">
+                            <button class="req-tab active" data-tab="standard-inq">5+ Years Old</button>
+                            <button class="req-tab" data-tab="child-inq">0-4 Years Old</button>
+                        </div>
+
+                        <div class="req-content active" id="standard-inq">
+                            <div class="req-list-container">
+                                <ul class="req-docs">
+                                    @foreach ($inquiryStandardRequirements as $req)
+                                        <li> <span>{{ $req->requirement }}</span></li>
+                                    @endforeach
+                                </ul>
+                            </div>
+                        </div>
+
+                        <div class="req-content" id="child-inq">
+                            <div class="req-list-container">
+                                <ul class="req-docs">
+                                    @foreach ($inquiryChildRequirements as $req)
+                                        <li><i class="fas fa-child"></i> <span>{{ $req->requirement }}</span></li>
+                                    @endforeach
+                                </ul>
+                            </div>
+                        </div>
+
+                        <div class="warning-note">
+                            <i class="fas fa-info-circle"></i>
+                            <span>ePhilID is a valid proof of identity while waiting for the physical
+                                card.<br>Confidential per RA 10173 (Data Privacy Act).</span>
+                        </div>
                     </div>
-                </div>
-                
-                <div class="req-content" id="child-upd">
-                    <div class="req-list-container">
-                        <ul class="req-docs">
-                            @foreach($updatingChildRequirements as $req)
-                                <li><i class="fas fa-child"></i> <span>{{ $req->requirement }}</span></li>
-                            @endforeach
-                        </ul>
+
+                    {{-- CORRECTION / UPDATING CARD --}}
+                    @php
+                        $updatingRequirements = $requirements['updating'] ?? collect();
+                        $updatingStandardRequirements = $updatingRequirements->where('age_group', '4_above');
+                        $updatingChildRequirements = $updatingRequirements->where('age_group', 'child');
+                    @endphp
+                    <div class="req-card">
+                        <div class="req-header">
+                            <div class="req-icon">
+                                <i class="fas fa-edit"></i>
+                            </div>
+                            <h3>Correction / Updating</h3>
+                        </div>
+
+                        <div class="req-tabs">
+                            <button class="req-tab active" data-tab="standard-upd">5+ Years Old</button>
+                            <button class="req-tab" data-tab="child-upd">0-4 Years Old</button>
+                        </div>
+
+                        <div class="req-content active" id="standard-upd">
+                            <div class="req-list-container">
+                                <ul class="req-docs">
+                                    @foreach ($updatingStandardRequirements as $req)
+                                        <li> <span>{{ $req->requirement }}</span></li>
+                                    @endforeach
+                                </ul>
+                            </div>
+                        </div>
+
+                        <div class="req-content" id="child-upd">
+                            <div class="req-list-container">
+                                <ul class="req-docs">
+                                    @foreach ($updatingChildRequirements as $req)
+                                        <li><i class="fas fa-child"></i> <span>{{ $req->requirement }}</span></li>
+                                    @endforeach
+                                </ul>
+                            </div>
+                        </div>
+
+                        <div class="warning-note">
+                            <i class="fas fa-exclamation-triangle"></i>
+                            <span>Bring <strong>ORIGINAL copies</strong> of supporting documents for any demographic
+                                change.</span>
+                        </div>
                     </div>
-                </div>
-                
-                <div class="warning-note">
-                    <i class="fas fa-exclamation-triangle"></i>
-                    <span>Bring <strong>ORIGINAL copies</strong> of supporting documents for any demographic change.</span>
+
                 </div>
             </div>
-            
-        </div>
-    </div>
-</section>
+        </section>
 
         <!-- Guidelines Section -->
         <section id="info" class="info-section">
@@ -321,7 +325,7 @@
             <div class="container">
                 <div class="footer-content">
                     <div class="footer-logo">
-                        <span style="font-weight:700;">Philippine Statistics Authority</span>
+                        <span style="font-weight:700;">Philippine Statistics Authority - Misamis Oriental</span>
                         <small style="display:block;">PhilSys – Philippine Identification System</small>
                     </div>
                     <div class="footer-links">
@@ -331,7 +335,7 @@
                     </div>
                 </div>
                 <div class="copyright">
-                    &copy; 2025 PSA - Philippine Statistics Authority. All rights reserved. | RA 11055 (PhilSys Act)
+                    &copy; 2025 PSA - Misamis Oriental. All rights reserved. | RA 11055 (PhilSys Act)
                 </div>
             </div>
         </footer>
@@ -425,7 +429,8 @@
     <div id="appointmentModal" class="appointment-modal-overlay">
         <div class="appointment-modal-container">
             <div class="appointment-modal-header">
-                <h3><img src="{{ asset('images/psa.png') }}" alt="PSA" style="height: 40px;">National ID Appointment Management System</h3>
+                <h3><img src="{{ asset('images/psa.png') }}" alt="PSA" style="height: 40px;">National ID
+                    Appointment Management System</h3>
                 <button class="close-appointment-modal" id="closeAppointmentModalBtn">
                     <i class="fas fa-times"></i>
                 </button>
@@ -710,29 +715,30 @@
     </script>
 
     <script>
-    // Requirements tabs functionality
-    document.addEventListener('DOMContentLoaded', function() {
-        const tabs = document.querySelectorAll('.req-tab');
-        
-        tabs.forEach(tab => {
-            tab.addEventListener('click', function() {
-                const card = this.closest('.req-card');
-                const tabId = this.getAttribute('data-tab');
-                
-                // Remove active class from all tabs in this card
-                card.querySelectorAll('.req-tab').forEach(t => t.classList.remove('active'));
-                this.classList.add('active');
-                
-                // Hide all content in this card
-                card.querySelectorAll('.req-content').forEach(content => content.classList.remove('active'));
-                
-                // Show selected content
-                const activeContent = card.querySelector(`#${tabId}`);
-                if (activeContent) activeContent.classList.add('active');
+        // Requirements tabs functionality
+        document.addEventListener('DOMContentLoaded', function() {
+            const tabs = document.querySelectorAll('.req-tab');
+
+            tabs.forEach(tab => {
+                tab.addEventListener('click', function() {
+                    const card = this.closest('.req-card');
+                    const tabId = this.getAttribute('data-tab');
+
+                    // Remove active class from all tabs in this card
+                    card.querySelectorAll('.req-tab').forEach(t => t.classList.remove('active'));
+                    this.classList.add('active');
+
+                    // Hide all content in this card
+                    card.querySelectorAll('.req-content').forEach(content => content.classList
+                        .remove('active'));
+
+                    // Show selected content
+                    const activeContent = card.querySelector(`#${tabId}`);
+                    if (activeContent) activeContent.classList.add('active');
+                });
             });
         });
-    });
-</script>
+    </script>
 </body>
 
 </html>
