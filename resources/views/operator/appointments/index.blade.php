@@ -27,7 +27,6 @@
                 <select id="statusFilter" class="appt-filter-select">
                     <option value="">All Status</option>
                     <option value="pending">Pending</option>
-                    <option value="confirmed">Confirmed</option>
                     <option value="completed">Completed</option>
                 </select>
             </div>
@@ -158,6 +157,22 @@
                                                 </button>
 
                                                 @if ($appointment->status == 'pending')
+                                                    <button class="appt-btn-action appt-btn-complete"
+                                                        onclick="completeAppointment({{ $appointment->id }})"
+                                                        title="Complete">
+                                                        <i class="fas fa-check-circle"></i>
+                                                    </button>
+                                                @endif
+
+                                                                                                @if ($appointment->status == 'pending')
+                                                    <button class="appt-btn-action appt-btn-cancel"
+                                                        onclick="cancelAppointment({{ $appointment->id }})"
+                                                        title="Cancel">
+                                                        <i class="fas fa-times-circle"></i>
+                                                    </button>
+                                                @endif
+
+                                                @if ($appointment->status == 'confirmed')
                                                     <button class="appt-btn-action appt-btn-complete"
                                                         onclick="completeAppointment({{ $appointment->id }})"
                                                         title="Complete">

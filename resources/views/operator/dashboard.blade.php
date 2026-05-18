@@ -49,21 +49,6 @@
             <div class="stat-card">
                 <div class="stat-card-content">
                     <div class="stat-info">
-                        <h6 class="stat-label">Confirmed</h6>
-                        <h2 class="stat-value text-success">{{ $confirmedAppointments }}</h2>
-                        <p class="stat-trend">
-                            <i class="fas fa-check-circle"></i> Ready for service
-                        </p>
-                    </div>
-                    <div class="stat-icon-circle success-bg">
-                        <i class="fas fa-check-circle"></i>
-                    </div>
-                </div>
-            </div>
-
-            <div class="stat-card">
-                <div class="stat-card-content">
-                    <div class="stat-info">
                         <h6 class="stat-label">Completed</h6>
                         <h2 class="stat-value text-info">{{ $completedAppointments }}</h2>
                         <p class="stat-trend">
@@ -254,7 +239,7 @@
         new Chart(statusCtx, {
             type: 'doughnut',
             data: {
-                labels: ['Pending', 'Confirmed', 'Completed', 'Cancelled'],
+                labels: ['Pending', 'Completed'],
                 datasets: [{
                     data: [
                         statusCounts.pending,
