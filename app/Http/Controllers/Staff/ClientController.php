@@ -15,62 +15,84 @@ class ClientController extends Controller
      * Display a listing of all clients.
      */
         public function index(Request $request)
-    {
-        $query = AppointmentClient::with('appointment.timeSlot');
-        
-        // Search functionality
-        if ($request->filled('search')) {
-            $search = $request->search;
-            $query->where(function($q) use ($search) {
-                $q->where('first_name', 'like', "%{$search}%")
-                  ->orWhere('last_name', 'like', "%{$search}%")
-                  ->orWhere('middle_name', 'like', "%{$search}%")
-                  ->orWhere('psa_reference_number', 'like', "%{$search}%")
-                  ->orWhere('trn_number', 'like', "%{$search}%");
-            });
-        }
-        
-        // Filter by service (UPDATED: reg, updating, inquiry)
-        if ($request->filled('service')) {
-            $query->where('service', $request->service);
-        }
-        
-        // Filter by sex
-        if ($request->filled('sex')) {
-            $query->where('sex', $request->sex);
-        }
-        
-        // Filter by verification status
-        if ($request->filled('verified')) {
-            $query->where('is_verified', $request->verified === 'true');
-        }
-        
-        // Order by latest first
-        $clients = $query->latest()->paginate(10);
-        
-        // Get service counts for statistics (UPDATED service codes)
-        $serviceCounts = AppointmentClient::selectRaw('service, COUNT(*) as count')
-            ->groupBy('service')
-            ->pluck('count', 'service');
-        
-        $totalClients = AppointmentClient::count();
-        $verifiedClients = AppointmentClient::where('is_verified', true)->count();
-        
-        // Updated service mapping
-        $services = [
-            'reg' => 'National ID Registration',
-            'updating' => 'Correction/Updating',
-            'inquiry' => 'Status Inquiry / TRN Retrieval'
-        ];
-        
-        return view('staff.clients.index', compact(
-            'clients', 
-            'serviceCounts', 
-            'totalClients', 
-            'verifiedClients',
-            'services'
-        ));
+{
+    $query = AppointmentClient::with('appointment.timeSlot');
+    
+    // Search functionality
+    if ($request->filled('search')) {
+        $search = $request->search;
+        $query->where(function($q) use ($search) {
+            $q->where('first_name', 'like', "%{$search}%")
+              ->orWhere('last_name', 'like', "%{$search}%")
+              ->orWhere('middle_name', 'like', "%{$search}%")
+              ->orWhere('psa_reference_number', 'like', "%{$search}%")
+              ->orWhere('trn_number', 'like', "%{$search}%");
+        });
     }
+    
+    // Filter by service
+    if ($request->filled('service')) {
+        $query->where('service', $request->service);
+    }
+    
+    // Filter by sex
+    if ($request->filled('sex')) {
+        $query->where('sex', $request->sex);
+    }
+    
+    // Filter by verification status
+    if ($request->filled('verified')) {
+        $query->where('is_verified', $request->verified === 'true');
+    }
+    
+    // ✅ UPDATED: Filter by appointment date RANGE
+    if ($request->filled('date_from') && $request->filled('date_to')) {
+        $query->whereHas('appointment', function($q) use ($request) {
+            $q->whereBetween('appointment_date', [$request->date_from, $request->date_to]);
+        });
+    } elseif ($request->filled('date_from')) {
+        $query->whereHas('appointment', function($q) use ($request) {
+            $q->whereDate('appointment_date', '>=', $request->date_from);
+        });
+    } elseif ($request->filled('date_to')) {
+        $query->whereHas('appointment', function($q) use ($request) {
+            $q->whereDate('appointment_date', '<=', $request->date_to);
+        });
+    }
+    
+    // Filter by time slot
+    if ($request->filled('time_slot_id')) {
+        $query->whereHas('appointment', function($q) use ($request) {
+            $q->where('time_slot_id', $request->time_slot_id);
+        });
+    }
+    
+    // Order by latest first
+    $clients = $query->latest()->paginate(10);
+    
+    // Get service counts for statistics
+    $serviceCounts = AppointmentClient::selectRaw('service, COUNT(*) as count')
+        ->groupBy('service')
+        ->pluck('count', 'service');
+    
+    $totalClients = AppointmentClient::count();
+    $verifiedClients = AppointmentClient::where('is_verified', true)->count();
+    
+    // Service mapping
+    $services = [
+        'reg' => 'National ID Registration',
+        'updating' => 'Correction/Updating',
+        'inquiry' => 'Status Inquiry / TRN Retrieval'
+    ];
+    
+    return view('staff.clients.index', compact(
+        'clients', 
+        'serviceCounts', 
+        'totalClients', 
+        'verifiedClients',
+        'services'
+    ));
+}
     
     /**
      * Display client details in modal via AJAX.

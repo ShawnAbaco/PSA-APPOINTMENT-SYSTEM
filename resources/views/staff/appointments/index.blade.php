@@ -7,7 +7,7 @@
         <div class="appt-welcome-section">
             <div>
                 <h1 class="appt-title">Appointments</h1>
-                <p class="appt-subtitle">Manage and monitor all client appointments</p>
+                <p class="appt-subtitle">Manage and monitor all applicant appointments</p>
             </div>
             <div class="appt-date-display">
                 <i class="fas fa-calendar-alt"></i>
@@ -19,7 +19,7 @@
         <div class="appt-filters-bar">
             <div class="appt-filter-group">
                 <i class="fas fa-search"></i>
-                <input type="text" id="searchAppointment" placeholder="Search by number or client..."
+                <input type="text" id="searchAppointment" placeholder="Search by number or applicant..."
                     class="appt-filter-input">
             </div>
             <div class="appt-filter-group">
@@ -104,7 +104,7 @@
                                 <th>Appointment #</th>
                                 <th>Date & Time</th>
                                 <th>Contact Person</th>
-                                <th>Clients</th>
+                                <th>Applicants</th>
                                 <th>Status</th>
                                 <th>Actions</th>
                             </tr>
