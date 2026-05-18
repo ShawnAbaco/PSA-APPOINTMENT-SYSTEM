@@ -280,7 +280,7 @@
                         <th>Contact Person</th>
                         <th>Contact Number</th>
                         <th>Location</th>
-                        <th>No. of Clients</th>
+                        <th>No. of Applicants</th>
                         <th>Status</th>
                     </tr>
                 </thead>

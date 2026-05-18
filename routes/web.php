@@ -91,17 +91,17 @@ Route::get('/users/{id}/edit-data', function($id) {
     Route::get('/appointments/{id}/json', [App\Http\Controllers\Admin\CalendarController::class, 'getJson'])->name('admin.appointments.json');
 
     
-    // Client routes
-    Route::get('/clients', [App\Http\Controllers\Admin\ClientController::class, 'index'])->name('clients.index');
-    Route::get('/clients/{id}/details', [App\Http\Controllers\Admin\ClientController::class, 'getClientDetails'])->name('clients.details');
-    Route::get('/clients/{id}/modal', [App\Http\Controllers\Admin\ClientController::class, 'showModal'])->name('clients.modal'); // New route for modal
-    Route::put('/clients/{id}', [App\Http\Controllers\Admin\ClientController::class, 'update'])->name('clients.update');
-    Route::put('/clients/{id}/verify', [App\Http\Controllers\Admin\ClientController::class, 'verify'])->name('clients.verify');
-    Route::put('/clients/{id}/reference', [App\Http\Controllers\Admin\ClientController::class, 'updateReferenceNumber'])->name('clients.reference');
-    Route::delete('/clients/{id}', [App\Http\Controllers\Admin\ClientController::class, 'destroy'])->name('clients.destroy');
-    Route::get('/clients/export/csv', [App\Http\Controllers\Admin\ClientController::class, 'export'])->name('clients.export');
-    Route::get('/clients/search/ajax', [App\Http\Controllers\Admin\ClientController::class, 'search'])->name('clients.search');
-    Route::get('/clients/statistics/data', [App\Http\Controllers\Admin\ClientController::class, 'statistics'])->name('clients.statistics');
+    // Applicant routes
+    Route::get('/applicants', [App\Http\Controllers\Admin\ClientController::class, 'index'])->name('applicants.index');
+    Route::get('/applicants/{id}/details', [App\Http\Controllers\Admin\ClientController::class, 'getClientDetails'])->name('applicants.details');
+    Route::get('/applicants/{id}/modal', [App\Http\Controllers\Admin\ClientController::class, 'showModal'])->name('applicants.modal'); // New route for modal
+    Route::put('/applicants/{id}', [App\Http\Controllers\Admin\ClientController::class, 'update'])->name('applicants.update');
+    Route::put('/applicants/{id}/verify', [App\Http\Controllers\Admin\ClientController::class, 'verify'])->name('applicants.verify');
+    Route::put('/applicants/{id}/reference', [App\Http\Controllers\Admin\ClientController::class, 'updateReferenceNumber'])->name('applicants.reference');
+    Route::delete('/applicants/{id}', [App\Http\Controllers\Admin\ClientController::class, 'destroy'])->name('applicants.destroy');
+    Route::get('/applicants/export/csv', [App\Http\Controllers\Admin\ClientController::class, 'export'])->name('applicants.export');
+    Route::get('/applicants/search/ajax', [App\Http\Controllers\Admin\ClientController::class, 'search'])->name('applicants.search');
+    Route::get('/applicants/statistics/data', [App\Http\Controllers\Admin\ClientController::class, 'statistics'])->name('applicants.statistics');
 
     
     Route::get('/appointments/locations', [App\Http\Controllers\Admin\AppointmentController::class, 'getByLocation'])->name('appointments.locations');
@@ -196,17 +196,17 @@ Route::middleware(['auth', 'staff'])->prefix('staff')->name('staff.')->group(fun
     Route::delete('/appointments/{id}', [App\Http\Controllers\Staff\AppointmentController::class, 'destroy'])->name('appointments.destroy');
     Route::get('/appointments/time-slots', [App\Http\Controllers\Staff\AppointmentController::class, 'getTimeSlots'])->name('staff.appointments.time-slots');
     
-    // Client routes
-    Route::get('/clients', [App\Http\Controllers\Staff\ClientController::class, 'index'])->name('clients.index');
-    Route::get('/clients/{id}/details', [App\Http\Controllers\Staff\ClientController::class, 'getClientDetails'])->name('clients.details');
-    Route::get('/clients/{id}/modal', [App\Http\Controllers\Staff\ClientController::class, 'showModal'])->name('clients.modal'); // New route for modal
-    Route::put('/clients/{id}', [App\Http\Controllers\Staff\ClientController::class, 'update'])->name('clients.update');
-    Route::put('/clients/{id}/verify', [App\Http\Controllers\Staff\ClientController::class, 'verify'])->name('clients.verify');
-    Route::put('/clients/{id}/reference', [App\Http\Controllers\Staff\ClientController::class, 'updateReferenceNumber'])->name('clients.reference');
-    Route::delete('/clients/{id}', [App\Http\Controllers\Staff\ClientController::class, 'destroy'])->name('clients.destroy');
-    Route::get('/clients/export/csv', [App\Http\Controllers\Staff\ClientController::class, 'export'])->name('clients.export');
-    Route::get('/clients/search/ajax', [App\Http\Controllers\Staff\ClientController::class, 'search'])->name('clients.search');
-    Route::get('/clients/statistics/data', [App\Http\Controllers\Staff\ClientController::class, 'statistics'])->name('clients.statistics');
+    // Applicant routes
+    Route::get('/applicants', [App\Http\Controllers\Staff\ClientController::class, 'index'])->name('applicants.index');
+    Route::get('/applicants/{id}/details', [App\Http\Controllers\Staff\ClientController::class, 'getClientDetails'])->name('applicants.details');
+    Route::get('/applicants/{id}/modal', [App\Http\Controllers\Staff\ClientController::class, 'showModal'])->name('applicants.modal'); // New route for modal
+    Route::put('/applicants/{id}', [App\Http\Controllers\Staff\ClientController::class, 'update'])->name('applicants.update');
+    Route::put('/applicants/{id}/verify', [App\Http\Controllers\Staff\ClientController::class, 'verify'])->name('applicants.verify');
+    Route::put('/applicants/{id}/reference', [App\Http\Controllers\Staff\ClientController::class, 'updateReferenceNumber'])->name('applicants.reference');
+    Route::delete('/applicants/{id}', [App\Http\Controllers\Staff\ClientController::class, 'destroy'])->name('applicants.destroy');
+    Route::get('/applicants/export/csv', [App\Http\Controllers\Staff\ClientController::class, 'export'])->name('applicants.export');
+    Route::get('/applicants/search/ajax', [App\Http\Controllers\Staff\ClientController::class, 'search'])->name('applicants.search');
+    Route::get('/applicants/statistics/data', [App\Http\Controllers\Staff\ClientController::class, 'statistics'])->name('applicants.statistics');
 
 
     // Reports routes
@@ -241,17 +241,17 @@ Route::middleware(['auth', 'operator'])->prefix('operator')->name('operator.')->
     Route::put('/appointments/{id}/cancel', [App\Http\Controllers\Operator\OAppointmentController::class, 'cancel'])->name('appointments.cancel');
     Route::put('/appointments/{id}/complete', [App\Http\Controllers\Operator\OAppointmentController::class, 'complete'])->name('appointments.complete');
     
-    // Client routes
-    Route::get('/clients', [App\Http\Controllers\Operator\OClientController::class, 'index'])->name('clients.index');
-    Route::get('/clients/{id}/details', [App\Http\Controllers\Operator\OClientController::class, 'getClientDetails'])->name('clients.details');
-    Route::get('/clients/{id}/modal', [App\Http\Controllers\Operator\OClientController::class, 'showModal'])->name('clients.modal'); // New route for modal
-    Route::put('/clients/{id}', [App\Http\Controllers\Operator\OClientController::class, 'update'])->name('clients.update');
-    Route::put('/clients/{id}/verify', [App\Http\Controllers\Operator\OClientController::class, 'verify'])->name('clients.verify');
-    Route::put('/clients/{id}/reference', [App\Http\Controllers\Operator\OClientController::class, 'updateReferenceNumber'])->name('clients.reference');
-    Route::delete('/clients/{id}', [App\Http\Controllers\Operator\OClientController::class, 'destroy'])->name('clients.destroy');
-    Route::get('/clients/export/csv', [App\Http\Controllers\Operator\OClientController::class, 'export'])->name('clients.export');
-    Route::get('/clients/search/ajax', [App\Http\Controllers\Operator\OClientController::class, 'search'])->name('clients.search');
-    Route::get('/clients/statistics/data', [App\Http\Controllers\Operator\OClientController::class, 'statistics'])->name('clients.statistics');
+    // Applicant routes
+    Route::get('/applicants', [App\Http\Controllers\Operator\OClientController::class, 'index'])->name('applicants.index');
+    Route::get('/applicants/{id}/details', [App\Http\Controllers\Operator\OClientController::class, 'getClientDetails'])->name('applicants.details');
+    Route::get('/applicants/{id}/modal', [App\Http\Controllers\Operator\OClientController::class, 'showModal'])->name('applicants.modal'); // New route for modal
+    Route::put('/applicants/{id}', [App\Http\Controllers\Operator\OClientController::class, 'update'])->name('applicants.update');
+    Route::put('/applicants/{id}/verify', [App\Http\Controllers\Operator\OClientController::class, 'verify'])->name('applicants.verify');
+    Route::put('/applicants/{id}/reference', [App\Http\Controllers\Operator\OClientController::class, 'updateReferenceNumber'])->name('applicants.reference');
+    Route::delete('/applicants/{id}', [App\Http\Controllers\Operator\OClientController::class, 'destroy'])->name('applicants.destroy');
+    Route::get('/applicants/export/csv', [App\Http\Controllers\Operator\OClientController::class, 'export'])->name('applicants.export');
+    Route::get('/applicants/search/ajax', [App\Http\Controllers\Operator\OClientController::class, 'search'])->name('applicants.search');
+    Route::get('/applicants/statistics/data', [App\Http\Controllers\Operator\OClientController::class, 'statistics'])->name('applicants.statistics');
 
     // Reports routes
     Route::get('/reports', [App\Http\Controllers\Operator\OReportsController::class, 'index'])->name('reports.index');

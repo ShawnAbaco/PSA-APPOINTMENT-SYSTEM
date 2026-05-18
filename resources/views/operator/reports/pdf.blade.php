@@ -281,7 +281,7 @@
                     <th>Contact Person</th>
                     <th>Contact Mobile</th>
                     <th>Location</th>
-                    <th># of Clients</th>
+                    <th># of Applicants</th>
                     <th>Status</th>
                 </tr>
             </thead>

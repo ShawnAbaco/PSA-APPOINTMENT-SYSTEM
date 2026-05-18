@@ -375,7 +375,7 @@ class OClientController extends Controller
         
         $client->delete();
         
-        return redirect()->route('operator.clients.index')->with('success', 'Client deleted successfully.');
+        return redirect()->route('operator.applicants.index')->with('success', 'Applicant deleted successfully.');
     }
     
     /**

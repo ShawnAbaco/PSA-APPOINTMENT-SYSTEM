@@ -309,7 +309,7 @@
                     <div class="review-section">
                         <div style="display: flex; justify-content: space-between; margin-bottom: 12px;">
                             <span class="review-section-title"><i class="fas fa-users"
-                                    style="color: var(--primary);"></i> Clients (<span
+                                    style="color: var(--primary);"></i> Applicants (<span
                                     id="reviewClientCount">1</span>)</span>
                             <button class="edit-link" data-edit="clients" style="color: var(--secondary);"><i
                                     class="fas fa-pen"></i> Edit</button>
@@ -352,7 +352,7 @@
                 <div class="section-title">Confirm Appointment</div>
 
                 <div class="summary-box">
-                    <div class="summary-row"><span class="summary-label">Clients</span><span class="summary-value"
+                    <div class="summary-row"><span class="summary-label">Applicants</span><span class="summary-value"
                             id="sumClients">-</span></div>
                     <div class="summary-row"><span class="summary-label">Date & Time</span><span
                             class="summary-value" id="sumDateTime">-</span></div>

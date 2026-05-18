@@ -54,7 +54,7 @@
 
         <div class="clients-card card mb-4">
             <div class="clients-card__header card-header">
-                <h5>Clients</h5>
+                <h5>Applicants</h5>
             </div>
             <div class="clients-card__body card-body">
                 <div class="table-responsive">
@@ -62,7 +62,7 @@
                         <thead>
                             <tr>
                                 <th>#</th>
-                                <th>Client Number</th>
+                                <th>Applicant Number</th>
                                 <th>Full Name</th>
                                 <th>Birthdate</th>
                                 <th>Service</th>
@@ -142,7 +142,7 @@
                     </div>
                     <p>Are you sure you want to permanently delete this appointment?</p>
                     <p class="text-muted">Appointment #: <strong>{{ $appointment->appointment_number }}</strong></p>
-                    <p class="text-muted">Client: <strong>{{ $appointment->contact_name }}</strong></p>
+                    <p class="text-muted">Contact: <strong>{{ $appointment->contact_name }}</strong></p>
                 </div>
                 <div class="modal__footer">
                     <button class="btn btn--secondary" onclick="closeDeleteModal()">Cancel</button>

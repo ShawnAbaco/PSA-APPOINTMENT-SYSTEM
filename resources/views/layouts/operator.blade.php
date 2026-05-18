@@ -163,10 +163,10 @@
                     </a>
                 </div>
                 <div class="nav-item">
-                    <a href="{{ route('operator.clients.index') }}"
-                        class="nav-link {{ request()->routeIs('operator.clients.*') ? 'active' : '' }}">
+                    <a href="{{ route('operator.applicants.index') }}"
+                        class="nav-link {{ request()->routeIs('operator.applicants.*') ? 'active' : '' }}">
                         <i class="fas fa-users"></i>
-                        <span>Clients</span>
+                        <span>Applicants</span>
                     </a>
                 </div>
                 <div class="nav-item">

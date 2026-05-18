@@ -945,7 +945,7 @@
         function exportToCSV() {
             const rows = document.querySelectorAll('.appt-table-row');
             const csvData = [
-                ['Appointment #', 'Date', 'Time', 'Contact Name', 'Contact Phone', 'Status', 'Clients']
+                ['Appointment #', 'Date', 'Time', 'Contact Name', 'Contact Phone', 'Status', 'Applicants']
             ];
 
             rows.forEach(row => {
@@ -1179,7 +1179,7 @@
                     if (apt.clients && apt.clients.length > 0) {
                         clientsHtml = '<div class="edit-clients-list">';
                         clientsHtml +=
-                            '<div class="edit-clients-title"><i class="fas fa-users"></i> Assigned Clients</div>';
+                            '<div class="edit-clients-title"><i class="fas fa-users"></i> Assigned Applicants</div>';
                         clientsHtml += '<div class="edit-clients-items">';
                         apt.clients.forEach(client => {
                             clientsHtml += `
@@ -1192,7 +1192,7 @@
                         clientsHtml += '</div></div>';
                     } else {
                         clientsHtml =
-                            '<div class="edit-empty-clients"><i class="fas fa-user-slash"></i> No clients assigned</div>';
+                            '<div class="edit-empty-clients"><i class="fas fa-user-slash"></i> No applicants assigned</div>';
                     }
 
                     modalBody.innerHTML = `
@@ -1243,7 +1243,7 @@
                         </div>
                         
                         <div class="edit-form-group">
-                            <label class="edit-label">Clients (${apt.clients ? apt.clients.length : 0})</label>
+                            <label class="edit-label">Applicants (${apt.clients ? apt.clients.length : 0})</label>
                             ${clientsHtml}
                         </div>
                         

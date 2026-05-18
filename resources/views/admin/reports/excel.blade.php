@@ -308,7 +308,7 @@
                         <th>City/Municipality</th>
                         <th>Services</th>
                         <th>Status</th>
-                        <th>No. of Clients</th>
+                        <th>No. of Applicants</th>
                     </tr>
                 </thead>
                 <tbody>

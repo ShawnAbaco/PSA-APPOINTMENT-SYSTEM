@@ -375,7 +375,7 @@ class ClientController extends Controller
         
         $client->delete();
         
-        return redirect()->route('admin.clients.index')->with('success', 'Client deleted successfully.');
+        return redirect()->route('admin.applicants.index')->with('success', 'Applicant deleted successfully.');
     }
     
     /**

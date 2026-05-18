@@ -5,7 +5,7 @@
         <!-- Header Section -->
         <div class="clients-header">
             <div>
-                <h1 class="page-title">Clients Directory</h1>
+                <h1 class="page-title">Applicants Directory</h1>
             </div>
         </div>
 
@@ -33,11 +33,11 @@
         <div class="table-container">
             <div class="table-header">
                 <div class="table-title-section">
-                    <h3>All Clients</h3>
+                    <h3>All Applicants</h3>
                     <span class="record-count" id="recordCount">{{ $clients->total() }} records</span>
                 </div>
                 <div class="table-actions">
-                    <a href="{{ route('admin.clients.export') }}" class="btn-icon" title="Export to CSV">
+                    <a href="{{ route('admin.applicants.export') }}" class="btn-icon" title="Export to CSV">
                         <i class="fas fa-download"></i>
                     </a>
                     <button class="btn-icon" id="refreshBtn" title="Refresh">
@@ -105,8 +105,8 @@
                             <tr>
                                 <td colspan="7" class="empty-state">
                                     <i class="fas fa-users"></i>
-                                    <h4>No clients found</h4>
-                                    <p>No clients match your current filters</p>
+                                    <h4>No applicants found</h4>
+                                    <p>No applicants match your current filters</p>
                                 </td>
                             </tr>
                         @endforelse
@@ -117,7 +117,7 @@
             <div class="pagination-wrapper">
                 <div class="pagination-info">
                     Showing {{ $clients->firstItem() ?? 0 }} to {{ $clients->lastItem() ?? 0 }} of
-                    {{ $clients->total() }} clients
+                    {{ $clients->total() }} applicants
                 </div>
                 <div class="simple-pagination">
                     @if ($clients->onFirstPage())
@@ -155,14 +155,14 @@
             <div class="modal-header">
                 <h3>
                     <i class="fas fa-user-circle"></i>
-                    Client Details
+                    Applicant Details
                 </h3>
                 <button class="modal-close" id="closeModalBtn">&times;</button>
             </div>
             <div class="modal-body" id="clientModalBody">
                 <div class="loading-container">
                     <div class="loading-spinner"></div>
-                    <p>Loading client details...</p>
+                    <p>Loading applicant details...</p>
                 </div>
             </div>
             <div class="modal-footer"
@@ -170,7 +170,7 @@
                 <button class="modern-btn" id="closeModalFooterBtn" style="background: #6c757d;">Close</button>
                 <button class="modern-btn" id="verifyClientModalBtn"
                     style="display: none; background: linear-gradient(135deg, #28a745, #20c997);">
-                    <i class="fas fa-check-circle"></i> Verify Client
+                    <i class="fas fa-check-circle"></i> Verify Applicant
                 </button>
             </div>
         </div>
@@ -209,13 +209,13 @@
             modalBody.innerHTML = `
                 <div class="loading-container">
                     <div class="loading-spinner"></div>
-                    <p>Loading client details...</p>
+                    <p>Loading applicant details...</p>
                 </div>
             `;
             verifyBtn.style.display = 'none';
 
             // Fetch client details
-            fetch(`/admin/clients/${clientId}/modal`, {
+            fetch(`/admin/applicants/${clientId}/modal`, {
                     headers: {
                         'X-Requested-With': 'XMLHttpRequest',
                         'Accept': 'text/html',
@@ -247,7 +247,7 @@
                     modalBody.innerHTML = `
                     <div class="error-message">
                         <i class="fas fa-exclamation-triangle" style="font-size: 24px; margin-bottom: 12px; display: block;"></i>
-                        <strong>Failed to load client details.</strong><br>
+                        <strong>Failed to load applicant details.</strong><br>
                         Please try again.
                     </div>
                 `;
@@ -284,7 +284,7 @@
 
         // Verify client from modal
         function verifyClientFromModal(clientId) {
-            fetch(`/admin/clients/${clientId}/verify`, {
+            fetch(`/admin/applicants/${clientId}/verify`, {
                     method: 'PUT',
                     headers: {
                         'Content-Type': 'application/json',
@@ -296,7 +296,7 @@
                 .then(response => response.json())
                 .then(data => {
                     if (data.success) {
-                        showNotification('Client verified successfully!');
+                        showNotification('Applicant verified successfully!');
                         // Reload modal content
                         if (currentClientId) {
                             openClientModal(currentClientId);
@@ -306,18 +306,18 @@
                             location.reload();
                         }, 1500);
                     } else {
-                        showNotification(data.message || 'Failed to verify client', 'error');
+                        showNotification(data.message || 'Failed to verify applicant', 'error');
                     }
                 })
                 .catch(error => {
                     console.error('Error:', error);
-                    showNotification('An error occurred while verifying client', 'error');
+                    showNotification('An error occurred while verifying applicant', 'error');
                 });
         }
 
         // Update reference number
         function updateReferenceNumber(clientId, refNumber) {
-            fetch(`/admin/clients/${clientId}/reference`, {
+            fetch(`/admin/applicants/${clientId}/reference`, {
                     method: 'PUT',
                     headers: {
                         'Content-Type': 'application/json',

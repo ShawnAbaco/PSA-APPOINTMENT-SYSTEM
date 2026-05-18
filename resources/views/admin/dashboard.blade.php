@@ -226,7 +226,7 @@
                                 <div class="schedule-title">{{ $appointment->appointment_number }}</div>
                                 <div class="schedule-subtitle">
                                     {{ $appointment->contact_name }} -
-                                    {{ $appointment->clients->count() }} client(s)
+                                    {{ $appointment->clients->count() }} applicant(s)
                                 </div>
                             </div>
                             <span class="status-badge status-{{ $appointment->status }}">

@@ -426,7 +426,7 @@
                         clientsHtml += '</div>';
                     } else {
                         clientsHtml =
-                            '<div class="popup-client-item" style="text-align:center; color:#999;">No clients</div>';
+                            '<div class="popup-client-item" style="text-align:center; color:#999;">No applicants</div>';
                     }
                     const statusText = booking.status.charAt(0).toUpperCase() + booking.status.slice(1);
                     const appointmentDate = new Date(booking.appointment_date).toLocaleDateString('en-US', {
@@ -435,7 +435,7 @@
                         year: 'numeric'
                     });
                     const popupContent =
-                        `<div style="min-width:260px;"><div class="popup-header" style="display:flex; justify-content:space-between; margin-bottom:10px; border-bottom:1px solid #eee; padding-bottom:8px;"><span class="popup-appointment"><i class="fas fa-hashtag"></i> ${escapeHtml(booking.appointment_number)}</span><span style="padding:2px 8px; border-radius:12px; font-size:11px; background:${booking.status === 'completed' ? '#10b981' : booking.status === 'confirmed' ? '#3b82f6' : booking.status === 'pending' ? '#f59e0b' : '#ef4444'}; color:white;">${statusText}</span></div><div class="popup-body"><div class="popup-location" style="margin-bottom:5px;"><i class="fas fa-map-marker-alt"></i> ${escapeHtml(booking.user_city || 'Unknown Location')}</div><div class="popup-info-row" style="margin-bottom:5px;"><i class="fas fa-calendar-alt"></i> <strong>${appointmentDate}</strong></div><div class="popup-info-row" style="margin-bottom:5px;"><i class="fas fa-user-circle"></i> ${escapeHtml(booking.contact_name)}</div><div class="popup-info-row" style="margin-bottom:10px;"><i class="fas fa-phone-alt"></i> ${escapeHtml(booking.contact_mobile)}</div><div class="popup-clients"><div class="popup-clients-header" style="font-weight:bold; margin-bottom:5px;"><i class="fas fa-users"></i> Clients (${clients.length})</div>${clientsHtml}</div></div></div>`;
+                        `<div style="min-width:260px;"><div class="popup-header" style="display:flex; justify-content:space-between; margin-bottom:10px; border-bottom:1px solid #eee; padding-bottom:8px;"><span class="popup-appointment"><i class="fas fa-hashtag"></i> ${escapeHtml(booking.appointment_number)}</span><span style="padding:2px 8px; border-radius:12px; font-size:11px; background:${booking.status === 'completed' ? '#10b981' : booking.status === 'confirmed' ? '#3b82f6' : booking.status === 'pending' ? '#f59e0b' : '#ef4444'}; color:white;">${statusText}</span></div><div class="popup-body"><div class="popup-location" style="margin-bottom:5px;"><i class="fas fa-map-marker-alt"></i> ${escapeHtml(booking.user_city || 'Unknown Location')}</div><div class="popup-info-row" style="margin-bottom:5px;"><i class="fas fa-calendar-alt"></i> <strong>${appointmentDate}</strong></div><div class="popup-info-row" style="margin-bottom:5px;"><i class="fas fa-user-circle"></i> ${escapeHtml(booking.contact_name)}</div><div class="popup-info-row" style="margin-bottom:10px;"><i class="fas fa-phone-alt"></i> ${escapeHtml(booking.contact_mobile)}</div><div class="popup-clients"><div class="popup-clients-header" style="font-weight:bold; margin-bottom:5px;"><i class="fas fa-users"></i> Applicants (${clients.length})</div>${clientsHtml}</div></div></div>`;
                     marker.bindPopup(popupContent, {
                         maxWidth: 320,
                         minWidth: 280,

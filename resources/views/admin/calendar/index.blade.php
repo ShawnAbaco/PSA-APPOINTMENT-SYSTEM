@@ -144,7 +144,7 @@
                 clientsHtml += `
                     <div class="client-card">
                         <div class="client-header">
-                            <span>Client #${index + 1}</span>
+                            <span>Applicant #${index + 1}</span>
                             <span class="status-badge" style="background: #e0e7ff; color: #3730a3;">${serviceName}</span>
                         </div>
                         <div class="client-detail-row">
@@ -214,7 +214,7 @@
                 clientsHtml += `</div>`;
             });
         } else {
-            clientsHtml = '<p><em>No client details available</em></p>';
+            clientsHtml = '<p><em>No applicant details available</em></p>';
         }
 
         modalBody.innerHTML = `
@@ -245,7 +245,7 @@
                 </div>
             </div>
             
-            <h5 style="margin: 0 0 15px 0; color: #0f3b6f;"><i class="fas fa-users"></i> Client Details (${clients ? clients.length : 0})</h5>
+            <h5 style="margin: 0 0 15px 0; color: #0f3b6f;"><i class="fas fa-users"></i> Applicant Details (${clients ? clients.length : 0})</h5>
             ${clientsHtml}
         `;
         
@@ -304,8 +304,8 @@
                 <p><strong>Time:</strong> ${appointment.time_slot ? appointment.time_slot.label : 'N/A'}</p>
                 <p><strong>Contact:</strong> ${escapeHtml(appointment.contact_name)}</p>
                 <p><strong>Phone:</strong> ${escapeHtml(appointment.contact_mobile)}</p>
-                <p><strong>Clients (${appointment.clients ? appointment.clients.length : 0}):</strong></p>
-                <div>${clientsHtml || '<em>No clients found</em>'}</div>
+                <p><strong>Applicants (${appointment.clients ? appointment.clients.length : 0}):</strong></p>
+                <div>${clientsHtml || '<em>No applicants found</em>'}</div>
             </div>
         `;
         document.getElementById('appointmentModal').style.display = 'block';

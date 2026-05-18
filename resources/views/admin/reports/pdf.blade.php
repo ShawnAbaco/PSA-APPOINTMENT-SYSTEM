@@ -348,7 +348,7 @@
                     <th>City/Municipality</th>
                     <th>Services</th>
                     <th>Status</th>
-                    <th>Clients</th>
+                    <th>Applicants</th>
                 </tr>
             </thead>
             <tbody>

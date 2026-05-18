@@ -110,7 +110,7 @@
                                 <th>Appointment #</th>
                                 <th>Date & Time</th>
                                 <th>Contact Person</th>
-                                <th>Clients</th>
+                                <th>Applicants</th>
                                 <th>Status</th>
                                 <th>Actions</th>
                             </tr>
@@ -302,19 +302,19 @@
                             </div>
                         </div>
 
-                        <!-- Clients Section -->
+                        <!-- Applicants Section -->
                         <div class="appt-form-section">
                             <h6 class="appt-section-title">
                                 <i class="fas fa-users"></i>
-                                Clients
+                                Applicants
                                 <button type="button" class="appt-add-client-btn" id="addClientBtn">
-                                    <i class="fas fa-plus"></i> Add Client
+                                    <i class="fas fa-plus"></i> Add Applicant
                                 </button>
                             </h6>
                             <div id="clientsContainer">
                                 <div class="client-card" data-client-index="0">
                                     <div class="client-card-header">
-                                        <span class="client-number">Client #1</span>
+                                        <span class="client-number">Applicant #1</span>
                                         <button type="button" class="remove-client-btn" style="display: none;">
                                             <i class="fas fa-trash"></i>
                                         </button>
@@ -710,11 +710,10 @@
             overlay.style.display = show ? 'flex' : 'none';
         }
 
-        // Add client to form
+        // Add applicant to form
         function addClient() {
             if (clientCounter >= 4) {
-                showToast('Maximum of 4 clients per appointment', 'error');
-                return;
+                    showToast('Maximum of 4 applicants per appointment', 'error');
             }
 
             const clientsContainer = document.getElementById('clientsContainer');
@@ -723,7 +722,7 @@
             newClient.setAttribute('data-client-index', clientCounter);
             newClient.innerHTML = `
                 <div class="client-card-header">
-                    <span class="client-number">Client #${clientCounter + 1}</span>
+                    <span class="client-number">Applicant #${clientCounter + 1}</span>
                     <button type="button" class="remove-client-btn">
                         <i class="fas fa-trash"></i>
                     </button>
@@ -812,7 +811,7 @@
             const clients = document.querySelectorAll('.client-card');
             clients.forEach((client, index) => {
                 const clientNumberSpan = client.querySelector('.client-number');
-                clientNumberSpan.textContent = `Client #${index + 1}`;
+                clientNumberSpan.textContent = `Applicant #${index + 1}`;
 
                 // Update all input names
                 const inputs = client.querySelectorAll('input, select');
@@ -890,7 +889,7 @@
             clientsContainer.innerHTML = `
                 <div class="client-card" data-client-index="0">
                     <div class="client-card-header">
-                        <span class="client-number">Client #1</span>
+                        <span class="client-number">Applicant #1</span>
                         <button type="button" class="remove-client-btn" style="display: none;">
                             <i class="fas fa-trash"></i>
                         </button>

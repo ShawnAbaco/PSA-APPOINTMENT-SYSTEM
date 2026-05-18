@@ -44,7 +44,7 @@
                 <div id="clientsContainer">
                     <div class="client-card card mb-3">
                         <div class="card-header">
-                            <h6>Client 1</h6>
+                            <h6>Applicant 1</h6>
                         </div>
                         <div class="card-body">
                             <div class="row">
@@ -62,7 +62,7 @@
                     </div>
                 </div>
                 
-                <button type="button" id="addClientBtn" class="btn btn-secondary mb-3">+ Add Another Client</button>
+                <button type="button" id="addClientBtn" class="btn btn-secondary mb-3">+ Add Another Applicant</button>
                 <button type="submit" class="btn btn-primary d-block">Create Appointment</button>
             </form>
         </div>
@@ -75,7 +75,7 @@ let clientCount = 1;
 $('#addClientBtn').click(function() {
     let html = `<div class="client-card card mb-3">
         <div class="card-header d-flex justify-content-between">
-            <h6>Client ${clientCount + 1}</h6>
+            <h6>Applicant ${clientCount + 1}</h6>
             <button type="button" class="btn btn-sm btn-danger remove-client">Remove</button>
         </div>
         <div class="card-body">

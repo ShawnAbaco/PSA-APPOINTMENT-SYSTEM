@@ -61,8 +61,8 @@
     <div class="appt-details-section">
         <div class="appt-details-section-title">
             <i class="fas fa-users"></i>
-            Clients Information
-            <span class="appt-client-count-badge">{{ $appointment->clients->count() }} client(s)</span>
+            Applicants Information
+            <span class="appt-client-count-badge">{{ $appointment->clients->count() }} applicant(s)</span>
         </div>
         <div class="appt-table-wrapper">
             <table class="appt-table appt-table-mini">

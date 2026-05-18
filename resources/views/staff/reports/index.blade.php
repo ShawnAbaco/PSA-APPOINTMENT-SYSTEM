@@ -127,7 +127,7 @@
                                 <th>Contact Person</th>
                                 <th>Contact Mobile</th>
                                 <th>Status</th>
-                                <th># of Clients</th>
+                                <th># of Applicants</th>
                                 <th>Location</th>
                             </tr>
                         </thead>

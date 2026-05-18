@@ -164,10 +164,10 @@
                     </a>
                 </div>
                 <div class="nav-item">
-                    <a href="{{ route('admin.clients.index') }}"
-                        class="nav-link {{ request()->routeIs('admin.clients.*') ? 'active' : '' }}">
+                    <a href="{{ route('admin.applicants.index') }}"
+                        class="nav-link {{ request()->routeIs('admin.applicants.*') ? 'active' : '' }}">
                         <i class="fas fa-users"></i>
-                        <span>Clients</span>
+                        <span>Applicants</span>
                     </a>
                 </div>
                 <div class="nav-item">
