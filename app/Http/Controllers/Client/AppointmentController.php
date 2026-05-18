@@ -377,7 +377,7 @@ private function getBookedCount($date, $timeSlotId, $service)
             'appointment_type' => 'required|in:single,multiple',
             'appointment_date' => 'required|date|after_or_equal:today',
             'contact_name' => 'required|string|max:255',
-            'contact_mobile' => 'required|string|max:20',
+            'contact_mobile' => 'nullable|string|max:20',
             'contact_email' => 'nullable|email|max:255',
             'clients' => 'required|array|min:1|max:4',
             'clients.*.first_name' => 'required|string|max:255',

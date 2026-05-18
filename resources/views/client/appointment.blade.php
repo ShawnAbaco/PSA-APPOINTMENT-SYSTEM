@@ -280,7 +280,7 @@
                 </div>
 
                 <div style="margin-bottom: 20px;">
-                    <label>Mobile Number <span style="color: var(--danger);">*</span></label>
+                    <label>Mobile Number</label>
                     <div
                         style="display: flex; align-items: center; border: 1px solid var(--gray-200); border-radius: var(--radius); overflow: hidden;">
                         <span
@@ -1862,11 +1862,20 @@
             document.getElementById('nextToReview').onclick = () => {
                 const name = document.getElementById('contactName').value;
                 const mobile = document.getElementById('contactMobile').value;
-                if (!name || !mobile || mobile.length !== 10 || !mobile.startsWith('9')) {
+                if (!name) {
                     Swal.fire({
                         icon: 'error',
                         title: 'Invalid Contact',
-                        text: 'Please enter valid contact name and mobile (9XXXXXXXXX).',
+                        text: 'Please enter a contact name.',
+                        confirmButtonColor: '#dc3545'
+                    });
+                    return;
+                }
+                if (mobile && (mobile.length !== 10 || !mobile.startsWith('9'))) {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Invalid Contact',
+                        text: 'Please enter a valid mobile number or leave it blank.',
                         confirmButtonColor: '#dc3545'
                     });
                     return;
@@ -1883,7 +1892,7 @@
                 document.getElementById('reviewContactName').textContent = escapeHtml(name);
                 document.getElementById('reviewContactEmail').textContent = document.getElementById('contactEmail')
                     .value || 'Not provided';
-                document.getElementById('reviewContactMobile').textContent = '+63' + mobile;
+                document.getElementById('reviewContactMobile').textContent = mobile ? '+63' + mobile : 'Not provided';
                 showSection(sections.review);
                 setActiveStep(5);
             };
@@ -1966,11 +1975,11 @@
 
             document.getElementById('submitRequestBtn').onclick = async () => {
                 const mobile = document.getElementById('contactMobile').value;
-                if (!mobile || mobile.length !== 10 || !mobile.startsWith('9')) {
+                if (mobile && (mobile.length !== 10 || !mobile.startsWith('9'))) {
                     Swal.fire({
                         icon: 'error',
                         title: 'Invalid Mobile',
-                        text: 'Please enter valid mobile number.',
+                        text: 'Please enter a valid mobile number or leave it blank.',
                         confirmButtonColor: '#dc3545'
                     });
                     return;
