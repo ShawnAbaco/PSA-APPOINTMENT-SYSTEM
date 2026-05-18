@@ -7,7 +7,7 @@
     <meta name="viewport"
         content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes, viewport-fit=cover">
     <meta name="csrf-token" content="{{ csrf_token() }}">
-    <title>National ID Appointment Management System</title>
+    <title>National ID Appointment System</title>
     <link rel="icon" type="image/png" sizes="32x32" href="{{ asset('images/psa.png') }}">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <link rel="stylesheet" href="{{ asset('css/appointment.css') }}">
@@ -35,7 +35,7 @@
         <div class="privacy-modal">
             <h2>Privacy Notice</h2>
             <p>This system collects and processes limited personal information solely for the purpose of scheduling,
-                managing, and confirming National ID Appointment Management System, in accordance with the <span
+                managing, and confirming National ID Appointment System, in accordance with the <span
                     class="legal-ref">Data Privacy Act of 2012 (RA 10173)</span> and applicable Philippine Statistics
                 Authority (PSA) policies.</p>
             <p>The personal data collected include your full name, email address or mobile number, selected service, and
@@ -67,27 +67,25 @@
         </div>
     </div>
 
-    <!-- SUCCESS MODAL -->
-    <div class="modal-overlay" id="successModal" style="display: none;">
-        <div class="modal-content" style="max-width: 600px; text-align: center;">
-            <div class="modal-header">
-                <h3 style="color: var(--success);"><i class="fas fa-check-circle"></i> Appointment Confirmed!</h3>
-                <span class="close-modal" id="closeSuccessModal">&times;</span>
-            </div>
-            <div id="successBody" style="padding: 20px;">
-                <p>Your appointment has been successfully booked.</p>
-                <div id="successDetails"></div>
-                <div style="display: flex; gap: 10px; justify-content: center; margin-top: 20px;">
-                    <button class="btn-next" id="downloadPngBtn" style="background: #28a745;">
-                        <i class="fas fa-image"></i> Download PNG
-                    </button>
-                    <button class="btn-next" id="downloadPdfBtn" style="background: #dc3545;">
-                        <i class="fas fa-file-pdf"></i> Download PDF
-                    </button>
-                </div>
+<!-- SUCCESS MODAL -->
+<div class="modal-overlay" id="successModal" style="display: none;">
+    <div class="modal-content" style="max-width: 600px; text-align: center;">
+        <div class="modal-header" style="border-bottom: none; padding-bottom: 0; display: flex; justify-content: flex-end;">
+            <span class="close-modal" id="closeSuccessModal">&times;</span>
+        </div>
+        <div id="successBody" style="padding: 20px; padding-top: 0;">
+            <div id="successDetails"></div>
+            <div style="display: flex; gap: 10px; justify-content: center; margin-top: 20px;">
+                <button class="btn-next" id="downloadPngBtn" style="background: #28a745;">
+                    <i class="fas fa-image"></i> Download PNG
+                </button>
+                <button class="btn-next" id="downloadPdfBtn" style="background: #dc3545;">
+                    <i class="fas fa-file-pdf"></i> Download PDF
+                </button>
             </div>
         </div>
     </div>
+</div>
 
     <!-- LOADING OVERLAY -->
     <div id="loadingOverlay"
@@ -348,38 +346,69 @@
             </div>
 
             <!-- STEP 6: CONFIRM -->
-            <div id="sectionConfirm" class="hidden">
-                <div class="section-title">Confirm Appointment</div>
+<div id="sectionConfirm" class="hidden">
+    <div class="section-title">Confirm Appointment</div>
 
-                <div class="summary-box">
-                    <div class="summary-row"><span class="summary-label">Applicants</span><span class="summary-value"
-                            id="sumClients">-</span></div>
-                    <div class="summary-row"><span class="summary-label">Date & Time</span><span
-                            class="summary-value" id="sumDateTime">-</span></div>
-                    <div class="summary-row"><span class="summary-label">Contact</span><span class="summary-value"
-                            id="sumContact">-</span></div>
-                </div>
-
-                <div class="confirmation-checkbox">
-                    <input type="checkbox" id="confirmCheckbox">
-                    <label for="confirmCheckbox">
-                        <strong>I confirm that all information is accurate and complete.</strong><br>
-                        <span style="font-size: 0.85rem; color: var(--gray-500);">I have read all service requirements
-                            and will bring necessary documents.</span>
-                    </label>
-                </div>
-
-                <button class="btn-next" id="submitRequestBtn" disabled>
-                    <i class="fas fa-check-circle"></i> Confirm & Submit
-                </button>
-
-                <div class="reminder" style="margin-top: 20px;">
-                    <i class="far fa-bell" style="color: var(--warning);"></i>
-                    Reminder: Please save your appointment reference number for verification.
-                </div>
-
-                <button class="btn-next back-btn" id="backToReview"><i class="fas fa-arrow-left"></i> Back</button>
+    <div class="summary-box" style="background: #f8fafc; border-radius: 12px; padding: 20px; margin-bottom: 20px;">
+        <h4 style="margin: 0 0 15px 0; color: var(--primary); font-size: 1.1rem;">
+            <i class="fas fa-clipboard-list"></i> Appointment Summary
+        </h4>
+        
+        <!-- Applicants Section -->
+        <div style="margin-bottom: 20px;">
+            <div style="background: var(--primary); color: white; padding: 8px 12px; border-radius: 8px; margin-bottom: 10px;">
+                <i class="fas fa-users"></i> Applicants (<span id="sumClients">0</span>)
             </div>
+            <div id="sumApplicantsList" style="padding: 10px; background: white; border-radius: 8px; border: 1px solid var(--gray-200);">
+                <!-- Dynamic content will be inserted here -->
+            </div>
+        </div>
+        
+        <!-- Schedule Section -->
+        <div style="margin-bottom: 20px;">
+            <div style="background: var(--primary); color: white; padding: 8px 12px; border-radius: 8px; margin-bottom: 10px;">
+                <i class="far fa-calendar-alt"></i> Schedule
+            </div>
+            <div id="sumDateTime" style="padding: 12px; background: white; border-radius: 8px; border: 1px solid var(--gray-200);">
+                <!-- Dynamic content -->
+            </div>
+        </div>
+        
+        <!-- Contact Section -->
+        <div style="margin-bottom: 20px;">
+            <div style="background: var(--primary); color: white; padding: 8px 12px; border-radius: 8px; margin-bottom: 10px;">
+                <i class="fas fa-address-book"></i> Contact Information
+            </div>
+            <div id="sumContact" style="padding: 12px; background: white; border-radius: 8px; border: 1px solid var(--gray-200);">
+                <!-- Dynamic content -->
+            </div>
+        </div>
+        
+        
+    </div>
+
+    <div class="confirmation-checkbox" style="margin: 20px 0;">
+        <input type="checkbox" id="confirmCheckbox">
+        <label for="confirmCheckbox">
+            <strong>I confirm that all information is accurate and complete.</strong><br>
+            <span style="font-size: 0.85rem; color: var(--gray-500);">I have read all service requirements and will bring necessary documents.</span>
+        </label>
+    </div>
+
+    <button class="btn-next" id="submitRequestBtn" disabled>
+        <i class="fas fa-check-circle"></i> Confirm & Submit
+    </button>
+
+    <div class="reminder" style="margin-top: 20px; padding: 12px; background: #fff3cd; border-radius: 8px; border-left: 4px solid #ffc107;">
+        <i class="fas fa-save" style="color: #856404;"></i>
+        <strong style="color: #856404;">Reminder:</strong>
+        <span style="color: #856404;">Please save your appointment reference number and reference code for verification.</span>
+    </div>
+
+    <button class="btn-next back-btn" id="backToReview" style="margin-top: 15px;">
+        <i class="fas fa-arrow-left"></i> Back
+    </button>
+</div>
         </div>
 
         <div class="footer-note">
@@ -974,6 +1003,8 @@
         }
     </style>
 
+<!-- QR Code Generator -->
+<script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.1/build/qrcode.min.js"></script>
     <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
     <!-- SweetAlert2 JS -->
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
@@ -1902,19 +1933,68 @@
                 setActiveStep(4);
             };
             document.getElementById('nextToConfirm').onclick = () => {
-                const mobile = document.getElementById('contactMobile').value;
-                document.getElementById('sumClients').textContent = clients.length + ' person(s)';
-                let timeSummary = formatDisplayDate(selectedDate) + '<br>';
-                clients.forEach(c => {
-                    timeSummary +=
-                        `<small>• ${escapeHtml(getFullName(c))}: ${escapeHtml(clientTimeSlots[c.id]?.slotLabel || 'Not selected')}</small><br>`;
-                });
-                document.getElementById('sumDateTime').innerHTML = timeSummary;
-                document.getElementById('sumContact').textContent = document.getElementById('contactName').value +
-                    ' / +63' + mobile;
-                showSection(sections.confirm);
-                setActiveStep(6);
-            };
+    const mobile = document.getElementById('contactMobile').value;
+    const name = document.getElementById('contactName').value;
+    const email = document.getElementById('contactEmail').value;
+    
+    // Update applicants list
+    document.getElementById('sumClients').textContent = clients.length + ' applicant(s)';
+    let applicantsHtml = '';
+    clients.forEach((c, index) => {
+        const slot = clientTimeSlots[c.id];
+        applicantsHtml += `
+            <div style="padding: 12px; border-bottom: 1px solid var(--gray-200); ${index === clients.length - 1 ? 'border-bottom: none;' : ''}">
+                <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px;">
+                    <div>
+                        <strong style="font-size: 1rem;">${escapeHtml(getFullName(c))}</strong>
+                        <span style="display: inline-block; background: var(--primary); color: white; padding: 2px 8px; border-radius: 20px; font-size: 0.7rem; margin-left: 8px;">${getServiceName(c.service)}</span>
+                    </div>
+                    <div style="color: var(--success);">
+                        <i class="fas fa-clock"></i> ${escapeHtml(slot?.slotLabel || 'Not selected')}
+                    </div>
+                </div>
+                <div style="font-size: 0.8rem; color: var(--gray-500); margin-top: 5px;">
+                    <i class="fas fa-birthday-cake"></i> Birthdate: ${c.birthdate || 'Not provided'} | 
+                    <i class="fas fa-venus-mars"></i> Sex: ${c.sex || 'Not selected'}
+                </div>
+            </div>
+        `;
+    });
+    document.getElementById('sumApplicantsList').innerHTML = applicantsHtml || '<div>No applicants added</div>';
+    
+    // Update schedule
+    let timeSummary = `<div style="margin-bottom: 5px;"><strong>Date:</strong> ${formatDisplayDate(selectedDate)}</div>`;
+    timeSummary += `<div><strong>Individual Time Slots:</strong></div>`;
+    clients.forEach(c => {
+        const slot = clientTimeSlots[c.id];
+        timeSummary += `<div style="margin-left: 15px; margin-top: 5px;">• ${escapeHtml(getFullName(c))}: <strong>${escapeHtml(slot?.slotLabel || 'Not selected')}</strong></div>`;
+    });
+    document.getElementById('sumDateTime').innerHTML = timeSummary;
+    
+    // Update contact
+    let contactHtml = `
+        <div><strong>Name:</strong> ${escapeHtml(name)}</div>
+        <div style="margin-top: 8px;"><strong>Mobile:</strong> ${mobile ? '+63' + mobile : 'Not provided'}</div>
+        ${email ? `<div style="margin-top: 8px;"><strong>Email:</strong> ${escapeHtml(email)}</div>` : ''}
+    `;
+    document.getElementById('sumContact').innerHTML = contactHtml;
+    
+    // Update location if available
+    // const userCity = document.getElementById('userCity').value;
+    // const userAddress = document.getElementById('userAddress').value;
+    // if (userCity || userAddress) {
+    //     let locationHtml = '';
+    //     if (userAddress) locationHtml += `<div><strong>Address:</strong> ${escapeHtml(userAddress)}</div>`;
+    //     if (userCity) locationHtml += `<div style="margin-top: 8px;"><strong>City:</strong> ${escapeHtml(userCity)}</div>`;
+    //     document.getElementById('sumLocation').innerHTML = locationHtml;
+    //     document.getElementById('sumLocationContainer').style.display = 'block';
+    // } else {
+    //     document.getElementById('sumLocationContainer').style.display = 'none';
+    // }
+    
+    showSection(sections.confirm);
+    setActiveStep(6);
+};
 
             document.getElementById('backToReview').onclick = () => {
                 showSection(sections.review);
@@ -2059,20 +2139,85 @@
                             clientsHtml += '</ul></div>';
                         }
 
-                        document.getElementById('successDetails').innerHTML = `
-                <div style="text-align: left;">
-                    <p><strong>Appointment Number:</strong> ${result.appointment.number}</p>
-                    <p><strong>Reference Code:</strong> ${result.appointment.reference_code}</p>
-                    <p><strong>Date:</strong> ${result.appointment.date}</p>
-                    <p><strong>Contact Person:</strong> ${escapeHtml(result.appointment.contact_name)}</p>
-                    <p><strong>Contact Number:</strong> ${result.appointment.contact_mobile}</p>
-                    ${result.appointment.contact_email ? `<p><strong>Email:</strong> ${escapeHtml(result.appointment.contact_email)}</p>` : ''}
-                    <p><strong>Total Applicants:</strong> ${result.appointment.clients_count} person(s)</p>
-                    ${clientsHtml}
-                    <hr>
-                    <p><small style="color: #dc3545;">⚠️ Please save your Reference Code for verification.</small></p>
+document.getElementById('successDetails').innerHTML = `
+    <div style="text-align: left;">
+        <!-- Header -->
+        <div style="text-align: center; margin-bottom: 20px; padding-bottom: 15px; border-bottom: 2px solid var(--success);">
+            <i class="fas fa-check-circle" style="font-size: 48px; color: var(--success); margin-bottom: 10px;"></i>
+            <h3 style="color: var(--success); margin: 0;">Appointment Successfully Booked!</h3>
+            <p style="color: var(--gray-500); margin: 5px 0 0 0;">Please save the information below for your records</p>
+        </div>
+        
+        <!-- Appointment Reference -->
+<div style="background: #f0fdf4; padding: 15px; border-radius: 10px; margin-bottom: 20px; border: 1px solid #bbf7d0;">
+    <div style="margin-bottom: 12px;">
+        <div style="font-size: 0.85rem; color: var(--gray-600); margin-bottom: 4px;"><strong>Appointment Number</strong></div>
+        <div style="font-size: 1.2rem; font-weight: 700; color: var(--gray-800); word-break: break-all;">${result.appointment.number}</div>
+    </div>
+    <div>
+        <div style="font-size: 0.85rem; color: var(--gray-600); margin-bottom: 4px;"><strong>Reference Code</strong></div>
+        <div style="font-size: 1.1rem; font-weight: 700; color: var(--primary); word-break: break-all;">${result.appointment.reference_code}</div>
+    </div>
+</div>
+        
+        <!-- Date & Time -->
+        <div style="background: #f8fafc; padding: 12px; border-radius: 10px; margin-bottom: 15px;">
+            <p style="margin: 0;"><strong><i class="far fa-calendar-alt"></i> Date:</strong> ${result.appointment.date}</p>
+        </div>
+        
+        <!-- Applicants List -->
+<div style="margin-bottom: 15px;">
+    <p style="margin: 0 0 10px 0; font-weight: 600;"><i class="fas fa-users"></i> Applicants (${result.appointment.clients_count})</p>
+    <div style="max-height: 300px; overflow-y: auto;">
+        ${result.appointment.clients_list.map(client => `
+            <div style="background: #f8fafc; padding: 12px; border-radius: 8px; margin-bottom: 10px; border-left: 3px solid var(--primary);">
+                <div style="font-weight: 600; margin-bottom: 8px;">${escapeHtml(client.name)}</div>
+                <div style="margin-bottom: 6px;">
+                    <span style="background: var(--primary); color: white; padding: 3px 10px; border-radius: 20px; font-size: 0.7rem; display: inline-block;">${client.service_name}</span>
                 </div>
-            `;
+                <div style="font-size: 0.8rem; color: var(--gray-700); margin-bottom: 4px;">
+                    <i class="fas fa-id-card" style="width: 20px;"></i> Client #: ${client.client_number}
+                </div>
+                <div style="font-size: 0.8rem; color: var(--gray-700);">
+                    <i class="fas fa-clock" style="width: 20px;"></i> Time: ${client.time_slot}
+                </div>
+            </div>
+        `).join('')}
+    </div>
+</div>
+        
+        <!-- Contact Information -->
+        <div style="background: #f8fafc; padding: 12px; border-radius: 10px; margin-bottom: 15px;">
+            <p style="margin: 0 0 8px 0; font-weight: 600;"><i class="fas fa-address-book"></i> Contact Information</p>
+            <p style="margin: 0;"><strong>Name:</strong> ${escapeHtml(result.appointment.contact_name)}</p>
+            <p style="margin: 5px 0 0 0;"><strong>Mobile:</strong> ${result.appointment.contact_mobile}</p>
+            ${result.appointment.contact_email ? `<p style="margin: 5px 0 0 0;"><strong>Email:</strong> ${escapeHtml(result.appointment.contact_email)}</p>` : ''}
+        </div>
+        
+        <!-- Office Address -->
+        <div style="background: #e3f2fd; padding: 12px; border-radius: 10px; margin-bottom: 15px; text-align: center;">
+            <p style="margin: 0; font-size: 0.85rem;">
+                <strong><i class="fas fa-map-marker-alt"></i> PSA Misamis Oriental Office</strong><br>
+                Capt. Vicente Roa Street, Brgy. 31,<br>
+                Cagayan de Oro City, 9000 Misamis Oriental
+            </p>
+        </div>
+        
+        <!-- Reminder -->
+        <div style="background: #fef3c7; padding: 12px; border-radius: 10px; border-left: 4px solid #f59e0b;">
+            <p style="margin: 0; font-size: 0.85rem; color: #92400e;">
+                <strong><i class="fas fa-clock"></i> Important Reminder:</strong><br>
+                Please arrive at least <strong>15 minutes before</strong> your scheduled appointment time.<br>
+                Bring all required documents for verification.
+            </p>
+        </div>
+        
+        <hr style="margin: 15px 0;">
+        <p style="text-align: center; color: #dc3545; font-size: 0.85rem; margin: 0;">
+            ⚠️ Please save your Reference Code for verification.
+        </p>
+    </div>
+`;
                         successModal.style.display = 'flex';
                     } else {
                         Swal.fire({
