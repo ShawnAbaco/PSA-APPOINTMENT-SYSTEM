@@ -9,7 +9,7 @@
                 <p class="appt-page-subtitle">Manage and track all client appointments</p>
             </div>
             <div class="appt-header-right">
-                
+
             </div>
         </div>
 
@@ -93,9 +93,9 @@
                 </div>
                 <div class="appt-card-header-right">
                     <button class="appt-btn appt-btn-primary" id="createAppointmentBtn">
-                    <i class="fas fa-plus"></i>
-                    Create Appointment
-                </button>
+                        <i class="fas fa-plus"></i>
+                        Create Appointment
+                    </button>
                     <button class="appt-icon-btn" id="refreshBtn" title="Refresh">
                         <i class="fas fa-sync-alt"></i>
                     </button>
@@ -251,7 +251,7 @@
                 <div class="appt-modal-body" style="max-height: 70vh; overflow-y: auto;">
                     <form id="createAppointmentForm">
                         @csrf
-                        
+
                         <!-- Contact Information Section -->
                         <div class="appt-form-section">
                             <h6 class="appt-section-title">
@@ -291,57 +291,14 @@
                                     <label class="appt-form-label">Time Slot *</label>
                                     <select name="appointment_time_slot_id" class="appt-form-input" required>
                                         <option value="">Select Time Slot</option>
-                                        @foreach($timeSlots ?? [] as $slot)
+                                        @foreach ($timeSlots ?? [] as $slot)
                                             <option value="{{ $slot->id }}">
-                                                {{ date('h:i A', strtotime($slot->start_time)) }} - 
+                                                {{ date('h:i A', strtotime($slot->start_time)) }} -
                                                 {{ date('h:i A', strtotime($slot->end_time)) }}
                                             </option>
                                         @endforeach
                                     </select>
                                 </div>
-                            </div>
-                        </div>
-
-                        <!-- Location Section -->
-                        <div class="appt-form-section">
-                            <h6 class="appt-section-title">
-                                <i class="fas fa-map-marker-alt"></i>
-                                Location (Optional)
-                            </h6>
-                            <div class="appt-form-row">
-                                <div class="appt-form-group">
-                                    <label class="appt-form-label">City</label>
-                                    <input type="text" name="user_city" class="appt-form-input">
-                                </div>
-                                <div class="appt-form-group">
-                                    <label class="appt-form-label">Zip Code</label>
-                                    <input type="text" name="user_zipcode" class="appt-form-input">
-                                </div>
-                            </div>
-                            <div class="appt-form-group">
-                                <label class="appt-form-label">Address</label>
-                                <textarea name="user_address" class="appt-form-textarea" rows="2"></textarea>
-                            </div>
-                            <div class="appt-form-row">
-                                <div class="appt-form-group">
-                                    <label class="appt-form-label">Latitude</label>
-                                    <input type="number" step="any" name="user_lat" class="appt-form-input">
-                                </div>
-                                <div class="appt-form-group">
-                                    <label class="appt-form-label">Longitude</label>
-                                    <input type="number" step="any" name="user_lng" class="appt-form-input">
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Notes Section -->
-                        <div class="appt-form-section">
-                            <h6 class="appt-section-title">
-                                <i class="fas fa-sticky-note"></i>
-                                Additional Notes
-                            </h6>
-                            <div class="appt-form-group">
-                                <textarea name="notes" class="appt-form-textarea" rows="3" placeholder="Any additional notes about this appointment..."></textarea>
                             </div>
                         </div>
 
@@ -365,7 +322,8 @@
                                     <div class="appt-form-row">
                                         <div class="appt-form-group">
                                             <label class="appt-form-label">First Name *</label>
-                                            <input type="text" name="clients[0][first_name]" class="appt-form-input" required>
+                                            <input type="text" name="clients[0][first_name]" class="appt-form-input"
+                                                required>
                                         </div>
                                         <div class="appt-form-group">
                                             <label class="appt-form-label">Middle Name</label>
@@ -375,11 +333,13 @@
                                     <div class="appt-form-row">
                                         <div class="appt-form-group">
                                             <label class="appt-form-label">Last Name *</label>
-                                            <input type="text" name="clients[0][last_name]" class="appt-form-input" required>
+                                            <input type="text" name="clients[0][last_name]" class="appt-form-input"
+                                                required>
                                         </div>
                                         <div class="appt-form-group">
                                             <label class="appt-form-label">Suffix</label>
-                                            <input type="text" name="clients[0][suffix]" class="appt-form-input" placeholder="Jr., Sr., III">
+                                            <input type="text" name="clients[0][suffix]" class="appt-form-input"
+                                                placeholder="Jr., Sr., III">
                                         </div>
                                     </div>
                                     <div class="appt-form-row">
@@ -393,12 +353,14 @@
                                         </div>
                                         <div class="appt-form-group">
                                             <label class="appt-form-label">Birthdate *</label>
-                                            <input type="date" name="clients[0][birthdate]" class="appt-form-input" required>
+                                            <input type="date" name="clients[0][birthdate]" class="appt-form-input"
+                                                required>
                                         </div>
                                     </div>
                                     <div class="appt-form-group">
                                         <label class="appt-form-label">Service Type *</label>
-                                        <select name="clients[0][service]" class="appt-form-input service-select" required>
+                                        <select name="clients[0][service]" class="appt-form-input service-select"
+                                            required>
                                             <option value="">Select Service</option>
                                             <option value="reg">Registration</option>
                                             <option value="updating">Correction/Updating</option>
@@ -414,7 +376,8 @@
                                         </div>
                                         <div class="appt-form-group">
                                             <label class="appt-form-label">TRN Number</label>
-                                            <input type="text" name="clients[0][trn_number]" class="appt-form-input" placeholder="29-digit TRN number">
+                                            <input type="text" name="clients[0][trn_number]" class="appt-form-input"
+                                                placeholder="29-digit TRN number">
                                             <small class="appt-form-hint">Required if has TRN is checked</small>
                                         </div>
                                     </div>
@@ -525,7 +488,7 @@
 
         /* Create Appointment Modal Styles */
         .appt-modal-header-success {
-            background: linear-gradient(135deg, #10b981, #059669);
+            background: var(--title);
         }
 
         .appt-form-section {
@@ -573,7 +536,8 @@
             margin-bottom: 6px;
         }
 
-        .appt-form-input, .appt-form-textarea {
+        .appt-form-input,
+        .appt-form-textarea {
             width: 100%;
             padding: 10px 12px;
             border: 1px solid var(--gray-300);
@@ -582,7 +546,8 @@
             transition: var(--transition);
         }
 
-        .appt-form-input:focus, .appt-form-textarea:focus {
+        .appt-form-input:focus,
+        .appt-form-textarea:focus {
             outline: none;
             border-color: var(--primary);
             box-shadow: 0 0 0 3px rgba(15, 59, 111, 0.1);
@@ -848,7 +813,7 @@
             clients.forEach((client, index) => {
                 const clientNumberSpan = client.querySelector('.client-number');
                 clientNumberSpan.textContent = `Client #${index + 1}`;
-                
+
                 // Update all input names
                 const inputs = client.querySelectorAll('input, select');
                 inputs.forEach(input => {
@@ -858,9 +823,9 @@
                         input.setAttribute('name', newName);
                     }
                 });
-                
+
                 client.setAttribute('data-client-index', index);
-                
+
                 // Show remove button for all except first client
                 const removeBtn = client.querySelector('.remove-client-btn');
                 if (removeBtn) {
@@ -874,49 +839,49 @@
         function submitAppointment() {
             const form = document.getElementById('createAppointmentForm');
             const formData = new FormData(form);
-            
+
             // Validate at least one client
             const clients = document.querySelectorAll('.client-card');
             if (clients.length === 0) {
                 showToast('Please add at least one client', 'error');
                 return;
             }
-            
+
             showLoading(true);
-            
-            fetch('{{ route("admin.appointments.store") }}', {
-                method: 'POST',
-                headers: {
-                    'X-CSRF-TOKEN': '{{ csrf_token() }}',
-                    'Accept': 'application/json'
-                },
-                body: formData
-            })
-            .then(response => response.json())
-            .then(data => {
-                showLoading(false);
-                if (data.success) {
-                    showToast(data.message, 'success');
-                    closeCreateModal();
-                    setTimeout(() => location.reload(), 1500);
-                } else {
-                    showToast(data.message || 'Error creating appointment', 'error');
-                }
-            })
-            .catch(error => {
-                showLoading(false);
-                console.error('Error:', error);
-                showToast('Error creating appointment', 'error');
-            });
+
+            fetch('{{ route('admin.appointments.store') }}', {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                        'Accept': 'application/json'
+                    },
+                    body: formData
+                })
+                .then(response => response.json())
+                .then(data => {
+                    showLoading(false);
+                    if (data.success) {
+                        showToast(data.message, 'success');
+                        closeCreateModal();
+                        setTimeout(() => location.reload(), 1500);
+                    } else {
+                        showToast(data.message || 'Error creating appointment', 'error');
+                    }
+                })
+                .catch(error => {
+                    showLoading(false);
+                    console.error('Error:', error);
+                    showToast('Error creating appointment', 'error');
+                });
         }
 
         // Create modal functions
         const createModal = document.getElementById('createAppointmentModal');
-        
+
         function openCreateModal() {
             createModal.classList.add('show');
         }
-        
+
         function closeCreateModal() {
             createModal.classList.remove('show');
             document.getElementById('createAppointmentForm').reset();
@@ -989,7 +954,7 @@
                 </div>
             `;
             clientCounter = 1;
-            
+
             // Re-attach service select event for the reset client
             const firstServiceSelect = document.querySelector('.service-select');
             const firstInquiryFields = document.querySelector('[class^="inquiry-fields-"]');
@@ -1123,7 +1088,7 @@
 
                     if (confirm(
                             'Are you sure you want to delete this appointment? This action cannot be undone.'
-                            )) {
+                        )) {
                         showLoading(true);
                         fetch(`/admin/appointments/${id}`, {
                                 method: 'DELETE',
@@ -1156,10 +1121,10 @@
 
         // Create Appointment Button
         document.getElementById('createAppointmentBtn')?.addEventListener('click', openCreateModal);
-        
+
         // Submit Appointment Button
         document.getElementById('submitAppointmentBtn')?.addEventListener('click', submitAppointment);
-        
+
         // Add Client Button
         document.getElementById('addClientBtn')?.addEventListener('click', addClient);
 

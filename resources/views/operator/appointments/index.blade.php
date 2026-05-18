@@ -26,6 +26,7 @@
                 <i class="fas fa-filter"></i>
                 <select id="statusFilter" class="appt-filter-select">
                     <option value="">All Status</option>
+                    <option value="pending">Pending</option>
                     <option value="confirmed">Confirmed</option>
                     <option value="completed">Completed</option>
                 </select>
@@ -111,7 +112,7 @@
                         </thead>
                         <tbody id="appointmentsTableBody">
                             @forelse($appointments as $appointment)
-                                @if (in_array($appointment->status, ['confirmed', 'completed']))
+                                @if (in_array($appointment->status, ['pending', 'confirmed', 'completed']))
                                     <tr class="appt-table-row" data-status="{{ $appointment->status }}"
                                         data-date="{{ \Carbon\Carbon::parse($appointment->appointment_date)->format('Y-m-d') }}"
                                         data-id="{{ $appointment->id }}">
@@ -156,7 +157,7 @@
                                                     <i class="fas fa-eye"></i>
                                                 </button>
 
-                                                @if ($appointment->status == 'confirmed')
+                                                @if ($appointment->status == 'pending')
                                                     <button class="appt-btn-action appt-btn-complete"
                                                         onclick="completeAppointment({{ $appointment->id }})"
                                                         title="Complete">

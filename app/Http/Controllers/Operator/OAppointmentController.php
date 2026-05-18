@@ -19,7 +19,7 @@ class OAppointmentController extends Controller
    public function index(Request $request)
 {
     $query = Appointment::with('clients', 'timeSlot')
-        ->whereIn('status', ['confirmed', 'completed']);
+        ->whereIn('status', ['pending', 'confirmed', 'completed']);
     
     // Apply filters
     if ($request->filled('status')) {
@@ -291,7 +291,7 @@ class OAppointmentController extends Controller
 {
     $appointment = Appointment::findOrFail($id);
     
-    if ($appointment->status !== 'confirmed') {
+    if ($appointment->status !== 'pending') {
         if (request()->ajax() || request()->wantsJson()) {
             return response()->json([
                 'success' => false,
