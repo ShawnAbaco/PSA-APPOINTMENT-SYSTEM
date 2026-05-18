@@ -4,3 +4,5 @@
 composer require phpmailer/phpmailer
 
 
+composer require pragmarx/google2fa-laravel
+composer require endroid/qr-code

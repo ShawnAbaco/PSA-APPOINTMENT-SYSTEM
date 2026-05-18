@@ -16,18 +16,18 @@ Route::get('/force-logout', function() {
     Auth::logout();
     Session::flush();
     Session::regenerate(true);
-    
+
     $cookies = ['laravel_session', 'XSRF-TOKEN', 'remember_web_59ba36addc2b2f9401580f014c7f58ea4e30989d'];
     foreach ($cookies as $cookie) {
         if (isset($_COOKIE[$cookie])) {
             setcookie($cookie, '', time() - 3600, '/');
         }
     }
-    
+
     foreach ($_COOKIE as $key => $value) {
         setcookie($key, '', time() - 3600, '/');
     }
-    
+
     return response()->json([
         'success' => true,
         'message' => 'Force logout completed!'
@@ -55,13 +55,13 @@ Route::post('/register', [RegisterController::class, 'register']);
 Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(function () {
     // Dashboard
     Route::get('/dashboard', [App\Http\Controllers\Admin\DashboardController::class, 'index'])->name('dashboard');
-    
+
     // Appointments
     Route::get('/appointments', [App\Http\Controllers\Admin\AppointmentController::class, 'index'])->name('appointments.index');
     Route::get('/appointments/{id}', [App\Http\Controllers\Admin\AppointmentController::class, 'show'])->name('appointments.show');
     Route::put('/appointments/{id}/status', [App\Http\Controllers\Admin\AppointmentController::class, 'updateStatus'])->name('appointments.status');
     Route::delete('/appointments/{id}', [App\Http\Controllers\Admin\AppointmentController::class, 'destroy'])->name('appointments.destroy');
-    Route::get('/calendar', [App\Http\Controllers\Admin\CalendarController::class, 'index'])->name('calendar'); 
+    Route::get('/calendar', [App\Http\Controllers\Admin\CalendarController::class, 'index'])->name('calendar');
     Route::get('/calendar/time-slots', [App\Http\Controllers\Admin\CalendarController::class, 'getTimeSlotsByDate'])->name('appointments.time-slots');
 Route::get('/calendar/by-time-slot', [App\Http\Controllers\Admin\CalendarController::class, 'getAppointmentsByTimeSlot'])->name('appointments.by-time-slot');
 Route::get('/calendar/slot-data', [App\Http\Controllers\Admin\CalendarController::class, 'getSlotData'])->name('calendar.slot-data');
@@ -85,12 +85,12 @@ Route::get('/users/{id}/edit-data', function($id) {
     Route::get('/appointment-places', [App\Http\Controllers\Admin\DashboardController::class, 'getAppointmentPlacesAjax']);
     Route::get('/location-map-data', [App\Http\Controllers\Admin\DashboardController::class, 'getLocationMapDataAjax']);
     Route::get('/summary-stats', [App\Http\Controllers\Admin\DashboardController::class, 'getSummaryStats']);
-    Route::get('/calendar-data', [App\Http\Controllers\Admin\DashboardController::class, 'getCalendarData'])->name('calendar-data');    
-        
+    Route::get('/calendar-data', [App\Http\Controllers\Admin\DashboardController::class, 'getCalendarData'])->name('calendar-data');
+
     Route::get('/appointments/{id}/modal', [App\Http\Controllers\Admin\AppointmentController::class, 'showModal'])->name('admin.appointments.modal');
     Route::get('/appointments/{id}/json', [App\Http\Controllers\Admin\CalendarController::class, 'getJson'])->name('admin.appointments.json');
 
-    
+
     // Applicant routes
     Route::get('/applicants', [App\Http\Controllers\Admin\ClientController::class, 'index'])->name('applicants.index');
     Route::get('/applicants/{id}/details', [App\Http\Controllers\Admin\ClientController::class, 'getClientDetails'])->name('applicants.details');
@@ -103,7 +103,7 @@ Route::get('/users/{id}/edit-data', function($id) {
     Route::get('/applicants/search/ajax', [App\Http\Controllers\Admin\ClientController::class, 'search'])->name('applicants.search');
     Route::get('/applicants/statistics/data', [App\Http\Controllers\Admin\ClientController::class, 'statistics'])->name('applicants.statistics');
 
-    
+
     Route::get('/appointments/locations', [App\Http\Controllers\Admin\AppointmentController::class, 'getByLocation'])->name('appointments.locations');
     Route::get('/appointments/city-stats', [App\Http\Controllers\Admin\AppointmentController::class, 'cityStatistics'])->name('appointments.city-stats');
     Route::get('/reports/export-location', [App\Http\Controllers\Admin\ReportController::class, 'exportLocationSummary'])->name('reports.export-location');
@@ -128,7 +128,7 @@ Route::get('/users/{id}/edit-data', function($id) {
         Route::get('/details/{date}', [App\Http\Controllers\Admin\SlotController::class, 'getSlotDetails'])->name('details');
         Route::get('/json', [App\Http\Controllers\Admin\SlotController::class, 'getSlotsJson'])->name('json');
         Route::post('/capacity-rules', [App\Http\Controllers\Admin\SlotController::class, 'saveCapacityRules'])->name('capacity-rules');
-        
+
 
 Route::get('/get-default-capacities', [App\Http\Controllers\Admin\SlotController::class, 'getDefaultCapacities'])->name('default-capacities');
 
@@ -140,7 +140,7 @@ Route::get('/get-default-capacities', [App\Http\Controllers\Admin\SlotController
         Route::put('/{id}', [App\Http\Controllers\Admin\SettingsController::class, 'updateTimeSlot'])->name('update');
         Route::delete('/{id}', [App\Http\Controllers\Admin\SettingsController::class, 'destroyTimeSlot'])->name('destroy');
     });
-    
+
     // Users
     Route::get('/users', [App\Http\Controllers\Admin\UserController::class, 'index'])->name('users.index');
     Route::get('/users/create', [App\Http\Controllers\Admin\UserController::class, 'create'])->name('users.create');
@@ -150,13 +150,13 @@ Route::get('/get-default-capacities', [App\Http\Controllers\Admin\SlotController
     Route::delete('/users/{id}', [App\Http\Controllers\Admin\UserController::class, 'destroy'])->name('users.destroy');
     Route::put('/users/{id}/approve', [App\Http\Controllers\Admin\UserController::class, 'approveAccount'])->name('users.approve');
     Route::put('/users/{id}/reject', [App\Http\Controllers\Admin\UserController::class, 'rejectAccount'])->name('users.reject');
-        
+
     // Reports
     Route::get('/reports', [App\Http\Controllers\Admin\ReportController::class, 'index'])->name('reports.index');
     Route::get('/reports/export', [App\Http\Controllers\Admin\ReportController::class, 'export'])->name('reports.export');
     Route::get('/export/pdf', [App\Http\Controllers\Admin\ReportController::class, 'exportPdf'])->name('reports.export.pdf');
     Route::get('/export/excel', [App\Http\Controllers\Admin\ReportController::class, 'exportExcel'])->name('reports.export.excel');
-    
+
     // Settings index and update
     Route::get('/settings', [App\Http\Controllers\Admin\SettingsController::class, 'index'])->name('settings.index');
     Route::post('/settings', [App\Http\Controllers\Admin\SettingsController::class, 'update'])->name('settings.update');
@@ -171,8 +171,8 @@ Route::get('/get-default-capacities', [App\Http\Controllers\Admin\SlotController
     Route::put('/profile/update', [App\Http\Controllers\Admin\ProfileController::class, 'update'])->name('update');
     Route::get('/profile/change-password', [App\Http\Controllers\Admin\ProfileController::class, 'changePassword'])->name('change-password');
     Route::put('/profile/password', [App\Http\Controllers\Admin\ProfileController::class, 'updatePassword'])->name('password.update');
-    
-    // 2FA Routes 
+
+    // 2FA Routes
     Route::post('/2fa/toggle', [App\Http\Controllers\Admin\ProfileController::class, 'toggleTwoFactor'])->name('2fa.toggle');
     Route::get('/2fa/qr', [App\Http\Controllers\Admin\ProfileController::class, 'showTwoFactorQr'])->name('2fa.qr');
     Route::get('/2fa/status', [App\Http\Controllers\Admin\ProfileController::class, 'checkTwoFactorStatus'])->name('2fa.status');
@@ -183,7 +183,7 @@ Route::get('/get-default-capacities', [App\Http\Controllers\Admin\SlotController
 Route::middleware(['auth', 'staff'])->prefix('staff')->name('staff.')->group(function () {
     // Dashboard
     Route::get('/dashboard', [App\Http\Controllers\Staff\DashboardController::class, 'index'])->name('dashboard');
-    
+
     // Appointments
     Route::get('/appointments', [App\Http\Controllers\Staff\AppointmentController::class, 'index'])->name('appointments.index');
     Route::get('/appointments/create', [App\Http\Controllers\Staff\AppointmentController::class, 'create'])->name('appointments.create');
@@ -195,7 +195,7 @@ Route::middleware(['auth', 'staff'])->prefix('staff')->name('staff.')->group(fun
     Route::put('/appointments/{id}/cancel', [App\Http\Controllers\Staff\AppointmentController::class, 'cancel'])->name('appointments.cancel');
     Route::delete('/appointments/{id}', [App\Http\Controllers\Staff\AppointmentController::class, 'destroy'])->name('appointments.destroy');
     Route::get('/appointments/time-slots', [App\Http\Controllers\Staff\AppointmentController::class, 'getTimeSlots'])->name('staff.appointments.time-slots');
-    
+
     // Applicant routes
     Route::get('/applicants', [App\Http\Controllers\Staff\ClientController::class, 'index'])->name('applicants.index');
     Route::get('/applicants/{id}/details', [App\Http\Controllers\Staff\ClientController::class, 'getClientDetails'])->name('applicants.details');
@@ -221,8 +221,8 @@ Route::middleware(['auth', 'staff'])->prefix('staff')->name('staff.')->group(fun
     Route::put('/profile/update', [App\Http\Controllers\Staff\ProfileController::class, 'update'])->name('update');
     Route::get('/profile/change-password', [App\Http\Controllers\Staff\ProfileController::class, 'changePassword'])->name('change-password');
     Route::put('/profile/password', [App\Http\Controllers\Staff\ProfileController::class, 'updatePassword'])->name('password.update');
-    
-    // 2FA Routes 
+
+    // 2FA Routes
     Route::post('/profile/2fa/toggle', [App\Http\Controllers\Staff\ProfileController::class, 'toggleTwoFactor'])->name('2fa.toggle');
     Route::get('/profile/2fa/qr', [App\Http\Controllers\Staff\ProfileController::class, 'showTwoFactorQr'])->name('2fa.qr');
 });
@@ -231,7 +231,7 @@ Route::middleware(['auth', 'staff'])->prefix('staff')->name('staff.')->group(fun
 Route::middleware(['auth', 'operator'])->prefix('operator')->name('operator.')->group(function () {
     // Dashboard
     Route::get('/dashboard', [App\Http\Controllers\Operator\ODashboardController::class, 'index'])->name('dashboard');
-    
+
     // Appointments
     Route::get('/appointments', [App\Http\Controllers\Operator\OAppointmentController::class, 'index'])->name('appointments.index');
     Route::get('/appointments/create', [App\Http\Controllers\Operator\OAppointmentController::class, 'create'])->name('appointments.create');
@@ -240,7 +240,7 @@ Route::middleware(['auth', 'operator'])->prefix('operator')->name('operator.')->
     Route::put('/appointments/{id}/confirm', [App\Http\Controllers\Operator\OAppointmentController::class, 'confirm'])->name('appointments.confirm');
     Route::put('/appointments/{id}/cancel', [App\Http\Controllers\Operator\OAppointmentController::class, 'cancel'])->name('appointments.cancel');
     Route::put('/appointments/{id}/complete', [App\Http\Controllers\Operator\OAppointmentController::class, 'complete'])->name('appointments.complete');
-    
+
     // Applicant routes
     Route::get('/applicants', [App\Http\Controllers\Operator\OClientController::class, 'index'])->name('applicants.index');
     Route::get('/applicants/{id}/details', [App\Http\Controllers\Operator\OClientController::class, 'getClientDetails'])->name('applicants.details');
@@ -265,8 +265,8 @@ Route::middleware(['auth', 'operator'])->prefix('operator')->name('operator.')->
     Route::put('/profile/update', [App\Http\Controllers\Operator\OProfileController::class, 'update'])->name('update');
     Route::get('/profile/change-password', [App\Http\Controllers\Operator\OProfileController::class, 'changePassword'])->name('change-password');
     Route::put('/profile/password', [App\Http\Controllers\Operator\OProfileController::class, 'updatePassword'])->name('password.update');
-    
-    // 2FA Routes 
+
+    // 2FA Routes
     Route::post('/2fa/toggle', [App\Http\Controllers\Operator\OProfileController::class, 'toggleTwoFactor'])->name('2fa.toggle');
     Route::get('/2fa/qr', [App\Http\Controllers\Operator\OProfileController::class, 'showTwoFactorQr'])->name('2fa.qr');
 });
@@ -280,6 +280,7 @@ Route::prefix('client')->name('client.')->group(function () {
     Route::get('/appointment/check-availability', [App\Http\Controllers\Client\AppointmentController::class, 'checkAvailability'])->name('appointment.check-availability');
     Route::get('/appointment/get-requirements', [App\Http\Controllers\Client\AppointmentController::class, 'getRequirements'])
     ->name('appointment.get-requirements');
+    Route::post('/appointment/pdf', [App\Http\Controllers\Client\AppointmentController::class, 'pdf'])->name('appointment.pdf');
 });
 
 

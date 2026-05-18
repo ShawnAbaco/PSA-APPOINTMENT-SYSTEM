@@ -353,7 +353,7 @@
         <h4 style="margin: 0 0 15px 0; color: var(--primary); font-size: 1.1rem;">
             <i class="fas fa-clipboard-list"></i> Appointment Summary
         </h4>
-        
+
         <!-- Applicants Section -->
         <div style="margin-bottom: 20px;">
             <div style="background: var(--primary); color: white; padding: 8px 12px; border-radius: 8px; margin-bottom: 10px;">
@@ -363,7 +363,7 @@
                 <!-- Dynamic content will be inserted here -->
             </div>
         </div>
-        
+
         <!-- Schedule Section -->
         <div style="margin-bottom: 20px;">
             <div style="background: var(--primary); color: white; padding: 8px 12px; border-radius: 8px; margin-bottom: 10px;">
@@ -373,7 +373,7 @@
                 <!-- Dynamic content -->
             </div>
         </div>
-        
+
         <!-- Contact Section -->
         <div style="margin-bottom: 20px;">
             <div style="background: var(--primary); color: white; padding: 8px 12px; border-radius: 8px; margin-bottom: 10px;">
@@ -383,8 +383,8 @@
                 <!-- Dynamic content -->
             </div>
         </div>
-        
-        
+
+
     </div>
 
     <div class="confirmation-checkbox" style="margin: 20px 0;">
@@ -1187,9 +1187,9 @@
                     const selectedClass = isSelected ? 'selected' : '';
 
                     html += `
-                <div class="time-slot-option ${disabledClass} ${selectedClass}" 
+                <div class="time-slot-option ${disabledClass} ${selectedClass}"
                      data-client-id="${clientId}"
-                     data-slot-id="${slot.id}" 
+                     data-slot-id="${slot.id}"
                      data-slot-label="${escapeHtml(slot.slot_label)}"
                      data-available="${availableForService}">
                     ${escapeHtml(slot.slot_label)}
@@ -1936,7 +1936,7 @@
     const mobile = document.getElementById('contactMobile').value;
     const name = document.getElementById('contactName').value;
     const email = document.getElementById('contactEmail').value;
-    
+
     // Update applicants list
     document.getElementById('sumClients').textContent = clients.length + ' applicant(s)';
     let applicantsHtml = '';
@@ -1954,14 +1954,14 @@
                     </div>
                 </div>
                 <div style="font-size: 0.8rem; color: var(--gray-500); margin-top: 5px;">
-                    <i class="fas fa-birthday-cake"></i> Birthdate: ${c.birthdate || 'Not provided'} | 
+                    <i class="fas fa-birthday-cake"></i> Birthdate: ${c.birthdate || 'Not provided'} |
                     <i class="fas fa-venus-mars"></i> Sex: ${c.sex || 'Not selected'}
                 </div>
             </div>
         `;
     });
     document.getElementById('sumApplicantsList').innerHTML = applicantsHtml || '<div>No applicants added</div>';
-    
+
     // Update schedule
     let timeSummary = `<div style="margin-bottom: 5px;"><strong>Date:</strong> ${formatDisplayDate(selectedDate)}</div>`;
     timeSummary += `<div><strong>Individual Time Slots:</strong></div>`;
@@ -1970,7 +1970,7 @@
         timeSummary += `<div style="margin-left: 15px; margin-top: 5px;">• ${escapeHtml(getFullName(c))}: <strong>${escapeHtml(slot?.slotLabel || 'Not selected')}</strong></div>`;
     });
     document.getElementById('sumDateTime').innerHTML = timeSummary;
-    
+
     // Update contact
     let contactHtml = `
         <div><strong>Name:</strong> ${escapeHtml(name)}</div>
@@ -1978,7 +1978,7 @@
         ${email ? `<div style="margin-top: 8px;"><strong>Email:</strong> ${escapeHtml(email)}</div>` : ''}
     `;
     document.getElementById('sumContact').innerHTML = contactHtml;
-    
+
     // Update location if available
     // const userCity = document.getElementById('userCity').value;
     // const userAddress = document.getElementById('userAddress').value;
@@ -1991,7 +1991,7 @@
     // } else {
     //     document.getElementById('sumLocationContainer').style.display = 'none';
     // }
-    
+
     showSection(sections.confirm);
     setActiveStep(6);
 };
@@ -2147,7 +2147,7 @@ document.getElementById('successDetails').innerHTML = `
             <h3 style="color: var(--success); margin: 0;">Appointment Successfully Booked!</h3>
             <p style="color: var(--gray-500); margin: 5px 0 0 0;">Please save the information below for your records</p>
         </div>
-        
+
         <!-- Appointment Reference -->
 <div style="background: #f0fdf4; padding: 15px; border-radius: 10px; margin-bottom: 20px; border: 1px solid #bbf7d0;">
     <div style="margin-bottom: 12px;">
@@ -2159,12 +2159,12 @@ document.getElementById('successDetails').innerHTML = `
         <div style="font-size: 1.1rem; font-weight: 700; color: var(--primary); word-break: break-all;">${result.appointment.reference_code}</div>
     </div>
 </div>
-        
+
         <!-- Date & Time -->
         <div style="background: #f8fafc; padding: 12px; border-radius: 10px; margin-bottom: 15px;">
             <p style="margin: 0;"><strong><i class="far fa-calendar-alt"></i> Date:</strong> ${result.appointment.date}</p>
         </div>
-        
+
         <!-- Applicants List -->
 <div style="margin-bottom: 15px;">
     <p style="margin: 0 0 10px 0; font-weight: 600;"><i class="fas fa-users"></i> Applicants (${result.appointment.clients_count})</p>
@@ -2185,7 +2185,7 @@ document.getElementById('successDetails').innerHTML = `
         `).join('')}
     </div>
 </div>
-        
+
         <!-- Contact Information -->
         <div style="background: #f8fafc; padding: 12px; border-radius: 10px; margin-bottom: 15px;">
             <p style="margin: 0 0 8px 0; font-weight: 600;"><i class="fas fa-address-book"></i> Contact Information</p>
@@ -2193,7 +2193,7 @@ document.getElementById('successDetails').innerHTML = `
             <p style="margin: 5px 0 0 0;"><strong>Mobile:</strong> ${result.appointment.contact_mobile}</p>
             ${result.appointment.contact_email ? `<p style="margin: 5px 0 0 0;"><strong>Email:</strong> ${escapeHtml(result.appointment.contact_email)}</p>` : ''}
         </div>
-        
+
         <!-- Office Address -->
         <div style="background: #e3f2fd; padding: 12px; border-radius: 10px; margin-bottom: 15px; text-align: center;">
             <p style="margin: 0; font-size: 0.85rem;">
@@ -2202,7 +2202,7 @@ document.getElementById('successDetails').innerHTML = `
                 Cagayan de Oro City, 9000 Misamis Oriental
             </p>
         </div>
-        
+
         <!-- Reminder -->
         <div style="background: #fef3c7; padding: 12px; border-radius: 10px; border-left: 4px solid #f59e0b;">
             <p style="margin: 0; font-size: 0.85rem; color: #92400e;">
@@ -2211,7 +2211,7 @@ document.getElementById('successDetails').innerHTML = `
                 Bring all required documents for verification.
             </p>
         </div>
-        
+
         <hr style="margin: 15px 0;">
         <p style="text-align: center; color: #dc3545; font-size: 0.85rem; margin: 0;">
             ⚠️ Please save your Reference Code for verification.
@@ -2284,9 +2284,9 @@ document.getElementById('successDetails').innerHTML = `
             <h3 style="color: #4a5568; margin: 5px 0; font-size: 1rem;">National ID System (PhilSys)</h3>
             <p style="color: #718096; margin: 5px 0; font-size: 0.85rem;">Applicant Confirmation Slip</p>
         </div>
-        
+
         <div style="border-top: 2px solid #2c5f8a; margin: 10px 0;"></div>
-        
+
         <div style="padding: 10px 0;">
             <p style="margin: 8px 0;"><strong>Applicant Name:</strong> ${downloadEscapeHtml(client.name)}</p>
             <p style="margin: 8px 0;"><strong>Service:</strong> ${downloadEscapeHtml(client.service_name || client.service)}</p>
@@ -2298,9 +2298,9 @@ document.getElementById('successDetails').innerHTML = `
             <p style="margin: 8px 0;"><strong>Contact Number:</strong> ${downloadEscapeHtml(appointmentData.contact_mobile)}</p>
             ${appointmentData.contact_email ? `<p style="margin: 8px 0;"><strong>Email:</strong> ${downloadEscapeHtml(appointmentData.contact_email)}</p>` : ''}
         </div>
-        
+
         <div style="border-top: 1px solid #e2e8f0; margin: 10px 0;"></div>
-        
+
         <div style="text-align: center; margin: 15px 0;">
             <div style="display: inline-block; padding: 10px; background: white; border: 1px solid #e2e8f0; border-radius: 8px;">
                 <svg width="100" height="100" viewBox="0 0 100 100" style="margin: 0 auto;">
@@ -2309,7 +2309,7 @@ document.getElementById('successDetails').innerHTML = `
                 </svg>
             </div>
         </div>
-        
+
         <div style="margin-top: 15px; padding: 12px; background: #f8fafc; border-radius: 8px; text-align: center;">
             <p style="margin: 0; font-size: 0.8rem; color: #475569;">
                 <strong><i class="fas fa-map-marker-alt"></i> PSA Misamis Oriental Office</strong><br>
@@ -2317,16 +2317,16 @@ document.getElementById('successDetails').innerHTML = `
                 9000 Misamis Oriental, Philippines
             </p>
         </div>
-        
+
         <div style="margin-top: 15px; padding: 12px; background: #fef3c7; border-left: 4px solid #f59e0b; border-radius: 8px;">
             <p style="margin: 0; font-size: 0.8rem; color: #92400e;">
                 <strong><i class="fas fa-clock"></i> Important Reminder:</strong><br>
                 Please arrive at least <strong>15 minutes before</strong> your scheduled appointment time.
             </p>
         </div>
-        
+
         <div style="border-top: 1px solid #e2e8f0; margin: 15px 0 10px 0;"></div>
-        
+
         <div style="text-align: center; padding-top: 10px;">
             <p style="color: #718096; font-size: 10px; margin: 5px 0;">This is a system-generated confirmation for individual applicant.</p>
             <p style="color: #718096; font-size: 10px; margin: 5px 0;">Generated on: ${formattedDateTime}</p>
@@ -2434,17 +2434,18 @@ document.getElementById('successDetails').innerHTML = `
 
 
 
-        // PDF Download - Multi-page PDF
+        // PDF Download - request server to render the authoritative Blade PDF and download
         document.getElementById('downloadPdfBtn').onclick = async () => {
             try {
                 const btn = document.getElementById('downloadPdfBtn');
                 const originalText = btn.innerHTML;
-                btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Generating PDF...';
+                btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Generating...';
                 btn.disabled = true;
 
-                const receipts = await generateAllClientReceipts();
+                const appointment = window.globalAppointmentData || {};
+                const clients = appointment.clients_list || [];
 
-                if (receipts.length === 0) {
+                if (!appointment || clients.length === 0) {
                     Swal.fire({
                         icon: 'warning',
                         title: 'No Data',
@@ -2456,45 +2457,38 @@ document.getElementById('successDetails').innerHTML = `
                     return;
                 }
 
-                const wrapper = document.createElement('div');
-                wrapper.style.cssText = 'background: white; padding: 20px;';
+                const url = "{{ route('client.appointment.pdf') }}";
 
-                for (let i = 0; i < receipts.length; i++) {
-                    wrapper.appendChild(receipts[i]);
-                    if (i < receipts.length - 1) {
-                        const pageBreak = document.createElement('div');
-                        pageBreak.style.cssText = 'page-break-after: always; break-after: page;';
-                        wrapper.appendChild(pageBreak);
-                    }
+                const resp = await fetch(url, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+                    },
+                    body: JSON.stringify({ appointment: appointment, clients: clients })
+                });
+
+                if (!resp.ok) throw new Error('PDF generation failed');
+
+                const blob = await resp.blob();
+                let filename = 'appointment.pdf';
+                const cd = resp.headers.get('content-disposition');
+                if (cd && cd.indexOf('filename=') !== -1) {
+                    filename = cd.split('filename=')[1].replace(/['"]/g, '').trim();
                 }
 
-                document.body.appendChild(wrapper);
-
-                const opt = {
-                    margin: [0.5, 0.5, 0.5, 0.5],
-                    filename: `appointment-receipts-${Date.now()}.pdf`,
-                    image: {
-                        type: 'jpeg',
-                        quality: 0.98
-                    },
-                    html2canvas: {
-                        scale: 2,
-                        useCORS: true
-                    },
-                    jsPDF: {
-                        unit: 'in',
-                        format: 'letter',
-                        orientation: 'portrait'
-                    }
-                };
-
-                await html2pdf().set(opt).from(wrapper).save();
-                document.body.removeChild(wrapper);
+                const link = document.createElement('a');
+                link.href = URL.createObjectURL(blob);
+                link.download = filename;
+                document.body.appendChild(link);
+                link.click();
+                link.remove();
+                URL.revokeObjectURL(link.href);
 
                 Swal.fire({
                     icon: 'success',
                     title: 'Download Complete',
-                    text: `${receipts.length} receipt(s) downloaded as PDF.`,
+                    text: `PDF downloaded successfully.`,
                     confirmButtonColor: '#28a745',
                     timer: 2000
                 });
@@ -2506,7 +2500,7 @@ document.getElementById('successDetails').innerHTML = `
                 Swal.fire({
                     icon: 'error',
                     title: 'Download Failed',
-                    text: 'Failed to generate PDF receipts. Please try again.',
+                    text: 'Failed to generate PDF. Please try again.',
                     confirmButtonColor: '#dc3545'
                 });
                 const btn = document.getElementById('downloadPdfBtn');
@@ -2515,7 +2509,6 @@ document.getElementById('successDetails').innerHTML = `
             }
         };
     </script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 </body>
 
 </html>
