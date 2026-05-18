@@ -66,10 +66,6 @@
                                 <span class="user-stat-label">Staff:</span>
                                 <span class="user-stat-value">{{ $totalStaff }}</span>
                             </div>
-                            <div class="user-stat-item">
-                                <span class="user-stat-label">Active Staff:</span>
-                                <span class="user-stat-value">{{ $activeStaff }}</span>
-                            </div>
                         </div>
                     </div>
                 </div>
