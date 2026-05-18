@@ -18,7 +18,7 @@ class OReportsController extends Controller
         $startDate = $request->get('start_date', Carbon::now()->startOfMonth()->toDateString());
         $endDate = $request->get('end_date', Carbon::now()->endOfMonth()->toDateString());
         
-        // Get status filter (only confirmed or completed allowed for operator)
+        // Get status filter (only pending or completed allowed for operator)
         $statusFilter = $request->get('status', '');
         
         // Convert to Carbon instances for query
@@ -28,9 +28,9 @@ class OReportsController extends Controller
         // Build appointment query with filters 
         $appointmentQuery = Appointment::with(['clients', 'timeSlot'])
             ->whereBetween('appointment_date', [$startDateCarbon, $endDateCarbon])
-            ->whereIn('status', ['confirmed', 'completed']); 
+            ->whereIn('status', ['pending', 'completed']); 
         
-        if ($statusFilter && in_array($statusFilter, ['confirmed', 'completed'])) {
+        if ($statusFilter && in_array($statusFilter, ['pending', 'completed'])) {
             $appointmentQuery->where('status', $statusFilter);
         }
         
@@ -40,22 +40,22 @@ class OReportsController extends Controller
             ->orderBy('time_slot_id', 'asc')
             ->paginate($perPage);
         
-        // Get all appointments for statistics (within date range, only confirmed/completed)
+        // Get all appointments for statistics (within date range, only pending/completed)
         $allAppointments = Appointment::whereBetween('appointment_date', [$startDateCarbon, $endDateCarbon])
-            ->whereIn('status', ['confirmed', 'completed'])
+            ->whereIn('status', ['pending', 'completed'])
             ->get();
         
-        // Summary statistics - ONLY CONFIRMED AND COMPLETED
-        $confirmedAppointments = $allAppointments->where('status', 'confirmed')->count();
+        // Summary statistics - ONLY PENDING AND COMPLETED
+        $pendingAppointments = $allAppointments->where('status', 'pending')->count();
         $completedAppointments = $allAppointments->where('status', 'completed')->count();
         
-        // City Summary with status breakdown (only confirmed and completed)
+        // City Summary with status breakdown (only pending and completed)
         $citySummary = Appointment::whereBetween('appointment_date', [$startDateCarbon, $endDateCarbon])
-            ->whereIn('status', ['confirmed', 'completed'])
+            ->whereIn('status', ['pending', 'completed'])
             ->whereNotNull('user_city')
             ->select(
                 'user_city',
-                DB::raw("SUM(CASE WHEN status = 'confirmed' THEN 1 ELSE 0 END) as confirmed"),
+                DB::raw("SUM(CASE WHEN status = 'pending' THEN 1 ELSE 0 END) as pending"),
                 DB::raw("SUM(CASE WHEN status = 'completed' THEN 1 ELSE 0 END) as completed")
             )
             ->groupBy('user_city')
@@ -63,7 +63,7 @@ class OReportsController extends Controller
         
         // Sort the collection in PHP instead of SQL (to avoid the alias reference error)
         $citySummary = $citySummary->sortByDesc(function($item) {
-            return $item->confirmed + $item->completed;
+            return $item->pending + $item->completed;
         })->values();
         
         // Also get total count for the selected period
@@ -73,7 +73,7 @@ class OReportsController extends Controller
             'appointments',
             'startDate',
             'endDate',
-            'confirmedAppointments',
+            'pendingAppointments',
             'completedAppointments',
             'citySummary',
             'totalBookings',
@@ -95,15 +95,15 @@ class OReportsController extends Controller
         
         $query = Appointment::with(['clients', 'timeSlot'])
             ->whereBetween('appointment_date', [$startDateCarbon, $endDateCarbon])
-            ->whereIn('status', ['confirmed', 'completed']);
+            ->whereIn('status', ['pending', 'completed']);
         
-        if ($statusFilter && in_array($statusFilter, ['confirmed', 'completed'])) {
+        if ($statusFilter && in_array($statusFilter, ['pending', 'completed'])) {
             $query->where('status', $statusFilter);
         }
         
         $appointments = $query->orderBy('appointment_date', 'asc')->get();
         
-        $filename = 'confirmed_completed_report_' . date('Y-m-d_His') . '.csv';
+        $filename = 'pending_completed_report_' . date('Y-m-d_His') . '.csv';
         
         return response()->stream(
             function() use ($appointments) {
@@ -182,17 +182,17 @@ class OReportsController extends Controller
         $endDateCarbon = Carbon::parse($endDate)->endOfDay();
         
         $citySummary = Appointment::whereBetween('appointment_date', [$startDateCarbon, $endDateCarbon])
-            ->whereIn('status', ['confirmed', 'completed'])
+            ->whereIn('status', ['pending', 'completed'])
             ->whereNotNull('user_city')
             ->select(
                 'user_city',
-                DB::raw("SUM(CASE WHEN status = 'confirmed' THEN 1 ELSE 0 END) as confirmed"),
+                DB::raw("SUM(CASE WHEN status = 'pending' THEN 1 ELSE 0 END) as pending"),
                 DB::raw("SUM(CASE WHEN status = 'completed' THEN 1 ELSE 0 END) as completed")
             )
             ->groupBy('user_city')
             ->get()
             ->sortByDesc(function($item) {
-                return $item->confirmed + $item->completed;
+                return $item->pending + $item->completed;
             });
         
         $filename = 'city_summary_' . date('Y-m-d_His') . '.csv';
@@ -206,7 +206,7 @@ class OReportsController extends Controller
                 
                 fputcsv($handle, [
                     'City',
-                    'Confirmed Appointments',
+                    'Pending Appointments',
                     'Completed Appointments',
                     'Total'
                 ]);
@@ -214,9 +214,9 @@ class OReportsController extends Controller
                 foreach ($citySummary as $city) {
                     fputcsv($handle, [
                         $city->user_city,
-                        $city->confirmed,
+                        $city->pending,
                         $city->completed,
-                        $city->confirmed + $city->completed
+                        $city->pending + $city->completed
                     ]);
                 }
                 
@@ -245,9 +245,9 @@ class OReportsController extends Controller
             $endDateCarbon = Carbon::parse($endDate)->endOfDay();
             
             $appointmentQuery = Appointment::whereBetween('appointment_date', [$startDateCarbon, $endDateCarbon])
-                ->whereIn('status', ['confirmed', 'completed']);
+                ->whereIn('status', ['pending', 'completed']);
             
-            if ($statusFilter && in_array($statusFilter, ['confirmed', 'completed'])) {
+            if ($statusFilter && in_array($statusFilter, ['pending', 'completed'])) {
                 $appointmentQuery->where('status', $statusFilter);
             }
             
@@ -259,18 +259,18 @@ class OReportsController extends Controller
             
             $summary = [
                 'total' => $appointments->count(),
-                'confirmed' => $appointments->where('status', 'confirmed')->count(),
+                'pending' => $appointments->where('status', 'pending')->count(),
                 'completed' => $appointments->where('status', 'completed')->count(),
             ];
             
-            // City summary (only confirmed and completed)
+            // City summary (only pending and completed)
             $citySummary = Appointment::whereBetween('appointment_date', [$startDateCarbon, $endDateCarbon])
-                ->whereIn('status', ['confirmed', 'completed'])
+                ->whereIn('status', ['pending', 'completed'])
                 ->whereNotNull('user_city')
                 ->select(
                     'user_city',
                     DB::raw('COUNT(*) as total_bookings'),
-                    DB::raw("SUM(CASE WHEN status = 'confirmed' THEN 1 ELSE 0 END) as confirmed"),
+                    DB::raw("SUM(CASE WHEN status = 'pending' THEN 1 ELSE 0 END) as pending"),
                     DB::raw("SUM(CASE WHEN status = 'completed' THEN 1 ELSE 0 END) as completed")
                 )
                 ->groupBy('user_city')
@@ -293,14 +293,14 @@ class OReportsController extends Controller
                 $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('operator.reports.pdf', $data);
                 $pdf->setPaper('A4', 'landscape');
                 
-                $filename = 'Confirmed_Completed_Report_' . $startDate . '_to_' . $endDate . '.pdf';
+                $filename = 'Pending_Completed_Report_' . $startDate . '_to_' . $endDate . '.pdf';
                 
                 return $pdf->download($filename);
             } else {
                 // Fallback: Force download as HTML file
                 $html = view('operator.reports.pdf', $data)->render();
                 
-                $filename = 'Confirmed_Completed_Report_' . $startDate . '_to_' . $endDate . '.html';
+                $filename = 'Pending_Completed_Report_' . $startDate . '_to_' . $endDate . '.html';
                 
                 return response($html)
                     ->header('Content-Type', 'text/html')
@@ -329,9 +329,9 @@ class OReportsController extends Controller
             $endDateCarbon = Carbon::parse($endDate)->endOfDay();
             
             $appointmentQuery = Appointment::whereBetween('appointment_date', [$startDateCarbon, $endDateCarbon])
-                ->whereIn('status', ['confirmed', 'completed']);
+                ->whereIn('status', ['pending', 'completed']);
             
-            if ($statusFilter && in_array($statusFilter, ['confirmed', 'completed'])) {
+            if ($statusFilter && in_array($statusFilter, ['pending', 'completed'])) {
                 $appointmentQuery->where('status', $statusFilter);
             }
             
@@ -340,19 +340,19 @@ class OReportsController extends Controller
             
             $summary = [
                 'total' => $appointments->count(),
-                'confirmed' => $appointments->where('status', 'confirmed')->count(),
+                'pending' => $appointments->where('status', 'pending')->count(),
                 'completed' => $appointments->where('status', 'completed')->count(),
             ];
             
             $completionRate = $summary['total'] > 0 ? round(($summary['completed'] / $summary['total']) * 100, 1) : 0;
             
             $citySummary = Appointment::whereBetween('appointment_date', [$startDateCarbon, $endDateCarbon])
-                ->whereIn('status', ['confirmed', 'completed'])
+                ->whereIn('status', ['pending', 'completed'])
                 ->whereNotNull('user_city')
                 ->select(
                     'user_city',
                     DB::raw('COUNT(*) as total_bookings'),
-                    DB::raw("SUM(CASE WHEN status = 'confirmed' THEN 1 ELSE 0 END) as confirmed"),
+                    DB::raw("SUM(CASE WHEN status = 'pending' THEN 1 ELSE 0 END) as pending"),
                     DB::raw("SUM(CASE WHEN status = 'completed' THEN 1 ELSE 0 END) as completed")
                 )
                 ->groupBy('user_city')
@@ -364,7 +364,7 @@ class OReportsController extends Controller
             $topCityCount = $citySummary->isNotEmpty() ? $citySummary->first()->total_bookings : 0;
             
             // Set headers for Excel download
-            $filename = 'Confirmed_Completed_Report_' . $startDate . '_to_' . $endDate . '.xls';
+            $filename = 'Pending_Completed_Report_' . $startDate . '_to_' . $endDate . '.xls';
             
             header('Content-Type: application/vnd.ms-excel');
             header('Content-Disposition: attachment; filename="' . $filename . '"');
@@ -375,7 +375,7 @@ class OReportsController extends Controller
             echo '<head>';
             echo '<meta charset="UTF-8">';
             echo '<!--[if gte mso 9]><xml><x:ExcelWorkbook><x:ExcelWorksheets><x:ExcelWorksheet>';
-            echo '<x:Name>Confirmed Completed Report</x:Name>';
+            echo '<x:Name>Pending Completed Report</x:Name>';
             echo '<x:WorksheetOptions><x:DisplayGridlines/></x:WorksheetOptions>';
             echo '</x:ExcelWorksheet></x:ExcelWorksheets></x:ExcelWorkbook></xml><![endif]-->';
             echo '<style>';
@@ -386,7 +386,7 @@ class OReportsController extends Controller
             echo '.header-title { font-size: 16px; font-weight: bold; color: #0F3B6F; text-align: center; }';
             echo '.header-subtitle { font-size: 14px; color: #C49A2C; text-align: center; }';
             echo '.total-row { font-weight: bold; background-color: #C49A2C !important; }';
-            echo '.status-confirmed { background-color: #10B981; color: white; padding: 2px 8px; }';
+            echo '.status-pending { background-color: #10B981; color: white; padding: 2px 8px; }';
             echo '.status-completed { background-color: #3B82F6; color: white; padding: 2px 8px; }';
             echo '.summary-table td { padding: 8px 15px; }';
             echo '.summary-label { font-weight: bold; background-color: #F0F4FF; }';
@@ -411,7 +411,7 @@ class OReportsController extends Controller
             echo '<h3 style="color:#0F3B6F;">SUMMARY STATISTICS</h3>';
             echo '<table class="summary-table" style="width:50%;">';
             echo '<tr><td class="summary-label">Total Bookings</td><td>' . $summary['total'] . '</td></tr>';
-            echo '<tr><td class="summary-label">Confirmed</td><td>' . $summary['confirmed'] . '</td></tr>';
+            echo '<tr><td class="summary-label">Pending</td><td>' . $summary['pending'] . '</td></tr>';
             echo '<tr><td class="summary-label">Completed</td><td>' . $summary['completed'] . '</td></tr>';
             echo '<tr><td class="summary-label">Unique Locations</td><td>' . $uniqueLocations . '</td></tr>';
             echo '<tr><td class="summary-label">Most Booked City</td><td>' . htmlspecialchars($topCity) . ' (' . $topCityCount . ' bookings)</td></tr>';
@@ -493,7 +493,7 @@ class OReportsController extends Controller
                 echo '<tr>';
                 echo '<th>City/Municipality</th>';
                 echo '<th>Total Bookings</th>';
-                echo '<th>Confirmed</th>';
+                echo '<th>Pending</th>';
                 echo '<th>Completed</th>';
                 echo '<th>Completion Rate</th>';
                 echo '</tr>';
@@ -508,7 +508,7 @@ class OReportsController extends Controller
                     echo '<tr>';
                     echo '<td><strong>' . htmlspecialchars($city->user_city) . '</strong></td>';
                     echo '<td style="text-align:center;">' . $city->total_bookings . '</td>';
-                    echo '<td style="text-align:center;">' . $city->confirmed . '</td>';
+                    echo '<td style="text-align:center;">' . $city->pending . '</td>';
                     echo '<td style="text-align:center;">' . $city->completed . '</td>';
                     echo '<td style="text-align:center;">' . $cityCompletionRate . '%</td>';
                     echo '</tr>';

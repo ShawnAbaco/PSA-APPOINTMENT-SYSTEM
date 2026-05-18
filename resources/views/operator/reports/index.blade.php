@@ -7,7 +7,7 @@
         <div class="reports-welcome-section">
             <div>
                 <h1 class="reports-title">Reports & Analytics</h1>
-                <p class="reports-subtitle">Confirmed and Completed Appointments Report</p>
+                <p class="reports-subtitle">Pending and Completed Appointments Report</p>
             </div>
             <div class="reports-date-display">
                 <i class="fas fa-calendar-alt"></i>
@@ -47,7 +47,7 @@
                             <label class="reports-form-label">Status</label>
                             <select name="status" class="reports-form-control">
                                 <option value="">All Status</option>
-                                <option value="confirmed" {{ request('status') == 'confirmed' ? 'selected' : '' }}>Confirmed
+                                <option value="pending" {{ request('status') == 'pending' ? 'selected' : '' }}>Pending
                                 </option>
                                 <option value="completed" {{ request('status') == 'completed' ? 'selected' : '' }}>Completed
                                 </option>
@@ -68,11 +68,13 @@
             <div class="reports-stat-card confirmed-card">
                 <div class="reports-stat-card-content">
                     <div class="reports-stat-info">
-                        <h6 class="reports-stat-label">Confirmed Appointments</h6>
-                        <h2 class="reports-stat-value reports-text-success">{{ $confirmedAppointments ?? 0 }}</h2>
-                        <p class="reports-stat-trend"><i class="fas fa-check-circle"></i> Ready for service</p>
+                        <h6 class="reports-stat-label">Pending Appointments</h6>
+                        <h2 class="stat-value text-warning">{{ $pendingAppointments ?? 0 }}</h2>
+                        <p class="reports-stat-trend"><i class="fas fa-clock"></i> Awaiting pending</p>
                     </div>
-                    <div class="reports-stat-icon-circle success-bg"><i class="fas fa-check-circle"></i></div>
+                    <div class="stat-icon-circle warning-bg">
+                        <i class="fas fa-clock"></i>
+                    </div>
                 </div>
             </div>
 
@@ -80,7 +82,7 @@
                 <div class="reports-stat-card-content">
                     <div class="reports-stat-info">
                         <h6 class="reports-stat-label">Completed Appointments</h6>
-                        <h2 class="reports-stat-value reports-text-info">{{ $completedAppointments ?? 0 }}</h2>
+                        <h2 class="stat-value text-info">{{ $completedAppointments ?? 0 }}</h2>
                         <p class="reports-stat-trend"><i class="fas fa-clipboard-check"></i> Successfully processed</p>
                     </div>
                     <div class="reports-stat-icon-circle info-bg"><i class="fas fa-clipboard-check"></i></div>
@@ -92,7 +94,7 @@
                     <div class="reports-stat-info">
                         <h6 class="reports-stat-label">Total</h6>
                         <h2 class="reports-stat-value reports-text-primary">
-                            {{ ($confirmedAppointments ?? 0) + ($completedAppointments ?? 0) }}
+                            {{ ($pendingAppointments ?? 0) + ($completedAppointments ?? 0) }}
                         </h2>
                         <p class="reports-stat-trend"><i class="fas fa-calendar-alt"></i> Processed appointments</p>
                     </div>
@@ -101,10 +103,10 @@
             </div>
         </div>
 
-        <!-- Status Chart - Confirmed and Completed -->
+        <!-- Status Chart - Pending and Completed -->
         <div class="reports-chart-card reports-mb-4">
             <div class="reports-chart-header">
-                <h5 class="reports-chart-title"><i class="fas fa-chart-bar"></i> Confirmed vs Completed Appointments</h5>
+                <h5 class="reports-chart-title"><i class="fas fa-chart-bar"></i> Pending & Completed Appointments</h5>
             </div>
             <div class="reports-chart-body">
                 <canvas id="appointmentChart"></canvas>
@@ -209,16 +211,16 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
     <script>
-        // Appointment Status Chart - Confirmed and Completed
+        // Appointment Status Chart - Pending and Completed
         const ctx1 = document.getElementById('appointmentChart').getContext('2d');
         new Chart(ctx1, {
             type: 'bar',
             data: {
-                labels: ['Confirmed', 'Completed'],
+                labels: ['Pending', 'Completed'],
                 datasets: [{
                     label: 'Number of Appointments',
-                    data: [{{ $confirmedAppointments ?? 0 }}, {{ $completedAppointments ?? 0 }}],
-                    backgroundColor: ['#10b981', '#3b82f6'],
+                    data: [{{ $pendingAppointments ?? 0 }}, {{ $completedAppointments ?? 0 }}],
+                    backgroundColor: ['#F59E0B', '#3b82f6'],
                     borderRadius: 8,
                     barPercentage: 0.7
                 }]
@@ -295,7 +297,7 @@
             const url = URL.createObjectURL(blob);
             const a = document.createElement('a');
             a.href = url;
-            a.download = `confirmed_completed_report_${new Date().toISOString().split('T')[0]}.csv`;
+            a.download = `pending_completed_report_${new Date().toISOString().split('T')[0]}.csv`;
             a.click();
             URL.revokeObjectURL(url);
             alert('✅ Report exported to CSV successfully!');

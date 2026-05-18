@@ -190,8 +190,8 @@
             text-transform: uppercase;
         }
 
-        .status-confirmed {
-            background: #10b981;
+        .status-pending {
+            background: var(--warning);
         }
 
         .status-completed {
@@ -230,7 +230,7 @@
                 <div class="header-subtitle">Philippine Statistics Authority</div>
             </div>
             <div class="header-logo-cell logo-right">
-                <img src="{{ public_path('images/psa.png') }}" alt="PSA Logo" class="header-logo">
+                <img src="{{ public_path('images/logo1.png') }}" alt="PSA Logo" class="header-logo">
             </div>
         </div>
         <h1>APPOINTMENTS REPORT</h1>
@@ -250,21 +250,18 @@
         <h2>Summary Statistics</h2>
         <div class="summary-grid">
             <div class="summary-card">
-                <div class="label">Confirmed Appointments</div>
-                <div class="value" style="color: #10b981;">{{ $summary['confirmed'] ?? 0 }}</div>
-                <div class="trend"><i class="fas fa-check-circle"></i> Ready for service</div>
+                <div class="label">Pending</div>
+                <div class="value" style="color: #F59E0B;">{{ $summary['pending'] ?? 0 }}</div>
             </div>
             <div class="summary-card">
-                <div class="label">Completed Appointments</div>
+                <div class="label">Completed</div>
                 <div class="value" style="color: #3b82f6;">{{ $summary['completed'] ?? 0 }}</div>
-                <div class="trend"><i class="fas fa-clipboard-check"></i> Successfully processed</div>
             </div>
             <div class="summary-card">
-                <div class="label">Total Processed</div>
+                <div class="label">Total</div>
                 <div class="value" style="color: #0f3b6f;">
-                    {{ ($summary['confirmed'] ?? 0) + ($summary['completed'] ?? 0) }}
+                    {{ ($summary['pending'] ?? 0) + ($summary['completed'] ?? 0) }}
                 </div>
-                <div class="trend"><i class="fas fa-calendar-alt"></i> Total appointments</div>
             </div>
         </div>
     </div>

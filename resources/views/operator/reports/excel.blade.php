@@ -176,8 +176,8 @@
             text-transform: uppercase;
         }
 
-        .status-confirmed {
-            background: #10b981;
+        .status-pending {
+            background: var(--warning);
         }
 
         .status-completed {
@@ -229,7 +229,7 @@
                 <p class="header-agency">Republic of the Philippines</p>
                 <p class="header-title">Philippine Statistics Authority</p>
             </div>
-            <img src="{{ asset('images/psa.png') }}" alt="PSA Logo" class="header-logo">
+            <img src="{{ asset('images/logo1.png') }}" alt="PSA Logo" class="header-logo">
         </div>
         <div class="report-title">CONFIRMED & COMPLETED APPOINTMENTS REPORT</div>
         <div class="report-subtitle">Processed Appointments Status Report</div>
@@ -252,8 +252,8 @@
                 </thead>
                 <tbody>
                     <tr>
-                        <td><strong>Confirmed Appointments</strong></td>
-                        <td style="color: #10b981; font-weight: bold;">{{ $summary['confirmed'] ?? 0 }}</td>
+                        <td><strong>Pending Appointments</strong></td>
+                        <td style="color: var(--warning); font-weight: bold;">{{ $summary['pending'] ?? 0 }}</td>
                     </tr>
                     <tr>
                         <td><strong>Completed Appointments</strong></td>
@@ -262,7 +262,7 @@
                     <tr>
                         <td><strong>Total Processed Appointments</strong></td>
                         <td style="color: #0f3b6f; font-weight: bold;">
-                            {{ ($summary['confirmed'] ?? 0) + ($summary['completed'] ?? 0) }}
+                            {{ ($summary['pending'] ?? 0) + ($summary['completed'] ?? 0) }}
                         </td>
                     </tr>
                 </tbody>
@@ -387,14 +387,14 @@
                 <head>
                     <meta charset="UTF-8">
                     <!--[if gte mso 9]><xml><x:ExcelWorkbook><x:ExcelWorksheets><x:ExcelWorksheet>
-                    <x:Name>Confirmed Completed Report</x:Name>
+                    <x:Name>Pending Completed Report</x:Name>
                     <x:WorksheetOptions><x:DisplayGridlines/></x:WorksheetOptions>
                     </x:ExcelWorksheet></x:ExcelWorksheets></x:ExcelWorkbook></xml><![endif]-->
                     <style>
                         table { border-collapse: collapse; }
                         th, td { padding: 8px; border: 1px solid #000; }
                         th { background-color: #0F3B6F; color: white; }
-                        .status-confirmed { background: #10b981; color: white; padding: 3px 10px; border-radius: 12px; display: inline-block; }
+                        .status-pending { background: #10b981; color: white; padding: 3px 10px; border-radius: 12px; display: inline-block; }
                         .status-completed { background: #3b82f6; color: white; padding: 3px 10px; border-radius: 12px; display: inline-block; }
                         .total-row { font-weight: bold; background-color: #f0f4ff; }
                     </style>
@@ -408,7 +408,7 @@
             const url = window.URL.createObjectURL(blob);
             const a = document.createElement('a');
             a.href = url;
-            a.download = 'confirmed_completed_report_{{ $startDate }}_to_{{ $endDate }}.xls';
+            a.download = 'pending_completed_report_{{ $startDate }}_to_{{ $endDate }}.xls';
             document.body.appendChild(a);
             a.click();
             document.body.removeChild(a);
