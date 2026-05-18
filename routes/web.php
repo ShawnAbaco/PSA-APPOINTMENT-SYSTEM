@@ -204,7 +204,7 @@ Route::middleware(['auth', 'staff'])->prefix('staff')->name('staff.')->group(fun
     Route::put('/applicants/{id}/verify', [App\Http\Controllers\Staff\ClientController::class, 'verify'])->name('applicants.verify');
     Route::put('/applicants/{id}/reference', [App\Http\Controllers\Staff\ClientController::class, 'updateReferenceNumber'])->name('applicants.reference');
     Route::delete('/applicants/{id}', [App\Http\Controllers\Staff\ClientController::class, 'destroy'])->name('applicants.destroy');
-    Route::get('/applicants/export/csv', [App\Http\Controllers\Staff\ClientController::class, 'export'])->name('applicants.export');
+    Route::get('/applicants/export/pdf', [App\Http\Controllers\Staff\ClientController::class, 'export'])->name('applicants.export');
     Route::get('/applicants/search/ajax', [App\Http\Controllers\Staff\ClientController::class, 'search'])->name('applicants.search');
     Route::get('/applicants/statistics/data', [App\Http\Controllers\Staff\ClientController::class, 'statistics'])->name('applicants.statistics');
 

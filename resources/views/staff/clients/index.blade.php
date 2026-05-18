@@ -70,8 +70,8 @@
                     <span class="record-count" id="recordCount">{{ $clients->total() }} records</span>
                 </div>
                 <div class="table-actions">
-                    <a href="{{ route('staff.applicants.export') }}" class="btn-icon" title="Export to CSV">
-                        <i class="fas fa-download"></i>
+                    <a id="exportPdfLink" href="{{ route('staff.applicants.export', request()->query()) }}" class="btn-icon" title="Export to PDF">
+                        <i class="fas fa-file-pdf"></i>
                     </a>
                     <button class="btn-icon" id="refreshBtn" title="Refresh">
                         <i class="fas fa-sync-alt"></i>
@@ -514,6 +514,7 @@
                 }
                 
                 showActiveFilters();
+                updateExportLink();
             }, 300);
         }
 
@@ -608,6 +609,26 @@
             }
         }
 
+        function updateExportLink() {
+            const exportLink = document.getElementById('exportPdfLink');
+            if (!exportLink) return;
+
+            const params = new URLSearchParams();
+            const searchValue = document.getElementById('searchClient')?.value || '';
+            const serviceValue = document.getElementById('serviceFilter')?.value || '';
+            const dateFromValue = document.getElementById('dateFromFilter')?.value || '';
+            const dateToValue = document.getElementById('dateToFilter')?.value || '';
+            const timeSlotValue = document.getElementById('timeSlotFilter')?.value || '';
+
+            if (searchValue) params.set('search', searchValue);
+            if (serviceValue) params.set('service', serviceValue);
+            if (dateFromValue) params.set('date_from', dateFromValue);
+            if (dateToValue) params.set('date_to', dateToValue);
+            if (timeSlotValue) params.set('time_slot_id', timeSlotValue);
+
+            exportLink.href = exportLink.href.split('?')[0] + (params.toString() ? '?' + params.toString() : '');
+        }
+
         function resetAllFilters() {
             document.getElementById('searchClient').value = '';
             document.getElementById('serviceFilter').value = '';
@@ -620,6 +641,7 @@
             });
             
             filterTable();
+            updateExportLink();
         }
 
         function showNotification(message, type = 'success') {
@@ -665,6 +687,7 @@
             document.getElementById('timeSlotFilter')?.addEventListener('change', filterTable);
             document.getElementById('resetFilters')?.addEventListener('click', resetAllFilters);
             document.getElementById('refreshBtn')?.addEventListener('click', () => location.reload());
+            updateExportLink();
 
             // Quick filter buttons
             document.querySelectorAll('.quick-filter-btn').forEach(btn => {
