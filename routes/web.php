@@ -220,7 +220,7 @@ Route::middleware(['auth', 'staff'])->prefix('staff')->name('staff.')->group(fun
     Route::get('/profile/edit', [App\Http\Controllers\Staff\ProfileController::class, 'edit'])->name('edit');
     Route::put('/profile/update', [App\Http\Controllers\Staff\ProfileController::class, 'update'])->name('update');
     Route::get('/profile/change-password', [App\Http\Controllers\Staff\ProfileController::class, 'changePassword'])->name('change-password');
-    Route::post('/profile/password', [App\Http\Controllers\Staff\ProfileController::class, 'updatePassword'])->name('password.update');
+    Route::put('/profile/password', [App\Http\Controllers\Staff\ProfileController::class, 'updatePassword'])->name('password.update');
 
     // 2FA Routes
     Route::post('/profile/2fa/toggle', [App\Http\Controllers\Staff\ProfileController::class, 'toggleTwoFactor'])->name('2fa.toggle');
@@ -264,7 +264,7 @@ Route::middleware(['auth', 'operator'])->prefix('operator')->name('operator.')->
     Route::get('/profile/edit', [App\Http\Controllers\Operator\OProfileController::class, 'edit'])->name('edit');
     Route::put('/profile/update', [App\Http\Controllers\Operator\OProfileController::class, 'update'])->name('update');
     Route::get('/profile/change-password', [App\Http\Controllers\Operator\OProfileController::class, 'changePassword'])->name('change-password');
-    Route::post('/profile/password', [App\Http\Controllers\Operator\OProfileController::class, 'updatePassword'])->name('password.update');
+    Route::put('/profile/password', [App\Http\Controllers\Operator\OProfileController::class, 'updatePassword'])->name('password.update');
 
     // 2FA Routes
     Route::post('/2fa/toggle', [App\Http\Controllers\Operator\OProfileController::class, 'toggleTwoFactor'])->name('2fa.toggle');
