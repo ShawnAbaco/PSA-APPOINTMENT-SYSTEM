@@ -284,7 +284,7 @@ class MailService
                 <div class="reminder">
                     <strong>⏰ Important Reminders:</strong>
                     <ul>
-                        <li>Please arrive at least 15 minutes before your scheduled time</li>
+                        <li>Please arrive at least 30 minutes before your scheduled time</li>
                         <li>Bring valid ID and required documents</li>
                         <li>Bring original documents (no photocopies)</li>
                     </ul>

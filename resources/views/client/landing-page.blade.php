@@ -295,7 +295,7 @@
                         <h2>National ID Appointment Guidelines</h2>
                         <ul>
                             <li>Strictly by appointment – walk-ins accommodated only during off-peak hours.</li>
-                            <li>Arrive 15 minutes before schedule with printed appointment slip or reference number.
+                            <li>Arrive 30 minutes before schedule with printed appointment slip or reference number.
                             </li>
                             <li>Wear a face mask (optional but encouraged) and practice physical distancing.</li>
                             <li>Minors must be accompanied by a parent/legal guardian with valid ID.</li>

@@ -176,7 +176,7 @@
                         <li>Maximum of 4 persons per appointment</li>
                         <li>Each person can select their own service type</li>
                         <li>Bring valid IDs and required documents</li>
-                        <li>Arrive 15 minutes before your scheduled time</li>
+                        <li>Arrive 30 minutes before your scheduled time</li>
                         <li>Click the button below (Start Booking) to set your Appointment.</li>
                     </ul>
                 </div>
@@ -2207,7 +2207,7 @@ document.getElementById('successDetails').innerHTML = `
         <div style="background: #fef3c7; padding: 12px; border-radius: 10px; border-left: 4px solid #f59e0b;">
             <p style="margin: 0; font-size: 0.85rem; color: #92400e;">
                 <strong><i class="fas fa-clock"></i> Important Reminder:</strong><br>
-                Please arrive at least <strong>15 minutes before</strong> your scheduled appointment time.<br>
+                Please arrive at least <strong>30 minutes before</strong> your scheduled appointment time.<br>
                 Bring all required documents for verification.
             </p>
         </div>
@@ -2321,7 +2321,7 @@ document.getElementById('successDetails').innerHTML = `
         <div style="margin-top: 15px; padding: 12px; background: #fef3c7; border-left: 4px solid #f59e0b; border-radius: 8px;">
             <p style="margin: 0; font-size: 0.8rem; color: #92400e;">
                 <strong><i class="fas fa-clock"></i> Important Reminder:</strong><br>
-                Please arrive at least <strong>15 minutes before</strong> your scheduled appointment time.
+                Please arrive at least <strong>30 minutes before</strong> your scheduled appointment time.
             </p>
         </div>
 
