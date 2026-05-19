@@ -8,69 +8,90 @@ use App\Models\Appointment;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Barryvdh\DomPDF\Facade\Pdf;  // ← ADD THIS LINE
+
 
 class ClientController extends Controller
 {
-    /**
-     * Display a listing of all clients.
-     */
-        public function index(Request $request)
-    {
-        $query = AppointmentClient::with('appointment.timeSlot');
-        
-        // Search functionality
-        if ($request->filled('search')) {
-            $search = $request->search;
-            $query->where(function($q) use ($search) {
-                $q->where('first_name', 'like', "%{$search}%")
-                  ->orWhere('last_name', 'like', "%{$search}%")
-                  ->orWhere('middle_name', 'like', "%{$search}%")
-                  ->orWhere('psa_reference_number', 'like', "%{$search}%")
-                  ->orWhere('trn_number', 'like', "%{$search}%");
-            });
-        }
-        
-        // Filter by service (UPDATED: reg, updating, inquiry)
-        if ($request->filled('service')) {
-            $query->where('service', $request->service);
-        }
-        
-        // Filter by sex
-        if ($request->filled('sex')) {
-            $query->where('sex', $request->sex);
-        }
-        
-        // Filter by verification status
-        if ($request->filled('verified')) {
-            $query->where('is_verified', $request->verified === 'true');
-        }
-        
-        // Order by latest first
-        $clients = $query->latest()->paginate(10);
-        
-        // Get service counts for statistics (UPDATED service codes)
-        $serviceCounts = AppointmentClient::selectRaw('service, COUNT(*) as count')
-            ->groupBy('service')
-            ->pluck('count', 'service');
-        
-        $totalClients = AppointmentClient::count();
-        $verifiedClients = AppointmentClient::where('is_verified', true)->count();
-        
-        // Updated service mapping
-        $services = [
-            'reg' => 'National ID Registration',
-            'updating' => 'Correction/Updating',
-            'inquiry' => 'Status Inquiry / TRN Retrieval'
-        ];
-        
-        return view('admin.clients.index', compact(
-            'clients', 
-            'serviceCounts', 
-            'totalClients', 
-            'verifiedClients',
-            'services'
-        ));
+    public function index(Request $request)
+{
+    $query = AppointmentClient::with('appointment.timeSlot');
+    
+    // Search functionality
+    if ($request->filled('search')) {
+        $search = $request->search;
+        $query->where(function($q) use ($search) {
+            $q->where('first_name', 'like', "%{$search}%")
+              ->orWhere('last_name', 'like', "%{$search}%")
+              ->orWhere('middle_name', 'like', "%{$search}%")
+              ->orWhere('psa_reference_number', 'like', "%{$search}%")
+              ->orWhere('trn_number', 'like', "%{$search}%");
+        });
     }
+    
+    // Filter by service
+    if ($request->filled('service')) {
+        $query->where('service', $request->service);
+    }
+    
+    // Filter by sex
+    if ($request->filled('sex')) {
+        $query->where('sex', $request->sex);
+    }
+    
+    // Filter by verification status
+    if ($request->filled('verified')) {
+        $query->where('is_verified', $request->verified === 'true');
+    }
+    
+    // ✅ ADD THIS: Filter by appointment date RANGE
+    if ($request->filled('date_from') && $request->filled('date_to')) {
+        $query->whereHas('appointment', function($q) use ($request) {
+            $q->whereBetween('appointment_date', [$request->date_from, $request->date_to]);
+        });
+    } elseif ($request->filled('date_from')) {
+        $query->whereHas('appointment', function($q) use ($request) {
+            $q->whereDate('appointment_date', '>=', $request->date_from);
+        });
+    } elseif ($request->filled('date_to')) {
+        $query->whereHas('appointment', function($q) use ($request) {
+            $q->whereDate('appointment_date', '<=', $request->date_to);
+        });
+    }
+    
+    // ✅ ADD THIS: Filter by time slot
+    if ($request->filled('time_slot_id')) {
+        $query->whereHas('appointment', function($q) use ($request) {
+            $q->where('time_slot_id', $request->time_slot_id);
+        });
+    }
+    
+    // Order by latest first
+    $clients = $query->latest()->paginate(10);
+    
+    // Get service counts for statistics
+    $serviceCounts = AppointmentClient::selectRaw('service, COUNT(*) as count')
+        ->groupBy('service')
+        ->pluck('count', 'service');
+    
+    $totalClients = AppointmentClient::count();
+    $verifiedClients = AppointmentClient::where('is_verified', true)->count();
+    
+    // Service mapping
+    $services = [
+        'reg' => 'National ID Registration',
+        'updating' => 'Correction/Updating',
+        'inquiry' => 'Status Inquiry / TRN Retrieval'
+    ];
+    
+    return view('admin.clients.index', compact(
+        'clients', 
+        'serviceCounts', 
+        'totalClients', 
+        'verifiedClients',
+        'services'
+    ));
+}
     
     /**
      * Display client details in modal via AJAX.
@@ -248,68 +269,77 @@ class ClientController extends Controller
     }
     
     /**
-     * Export clients to CSV.
-     */
-    public function export(Request $request)
-    {
-        $clients = AppointmentClient::with('appointment.timeSlot')->get();
-        
-        $filename = 'clients_export_' . date('Y-m-d_His') . '.csv';
-        
-        return response()->stream(
-            function() use ($clients) {
-                $handle = fopen('php://output', 'w');
-                
-                // Add CSV headers (UPDATED)
-                fputcsv($handle, [
-                    'ID', 'Client Number', 'First Name', 'Middle Name', 'Last Name', 'Suffix', 
-                    'Sex', 'Birthdate', 'Service', 'Has TRN', 'TRN Number', 'PSA Reference Number', 
-                    'Is Verified', 'Verified At', 'Appointment Number', 'Appointment Date', 
-                    'Appointment Time', 'Appointment Status', 'Created At'
-                ]);
-                
-                // Service name mapping
-                $serviceNames = [
-                    'reg' => 'National ID Registration',
-                    'updating' => 'Correction/Updating',
-                    'inquiry' => 'Status Inquiry / TRN Retrieval'
-                ];
-                
-                foreach ($clients as $client) {
-                    $timeSlotLabel = $client->appointment?->timeSlot?->label ?? 'N/A';
-                    
-                    fputcsv($handle, [
-                        $client->id,
-                        $client->client_number,
-                        $client->first_name,
-                        $client->middle_name,
-                        $client->last_name,
-                        $client->suffix,
-                        $client->sex,
-                        $client->birthdate,
-                        $serviceNames[$client->service] ?? $client->service,
-                        $client->has_trn ? 'Yes' : 'No',
-                        $client->trn_number,
-                        $client->psa_reference_number,
-                        $client->is_verified ? 'Yes' : 'No',
-                        $client->verified_at,
-                        $client->appointment?->appointment_number,
-                        $client->appointment?->appointment_date,
-                        $timeSlotLabel,
-                        $client->appointment?->status,
-                        $client->created_at,
-                    ]);
-                }
-                
-                fclose($handle);
-            },
-            200,
-            [
-                'Content-Type' => 'text/csv',
-                'Content-Disposition' => 'attachment; filename="' . $filename . '"',
-            ]
-        );
+ * Export clients to PDF.
+ */
+public function export(Request $request)
+{
+    $query = AppointmentClient::with('appointment.timeSlot');
+
+    if ($request->filled('search')) {
+        $search = $request->search;
+        $query->where(function($q) use ($search) {
+            $q->where('first_name', 'like', "%{$search}%")
+              ->orWhere('last_name', 'like', "%{$search}%")
+              ->orWhere('middle_name', 'like', "%{$search}%")
+              ->orWhere('psa_reference_number', 'like', "%{$search}%")
+              ->orWhere('trn_number', 'like', "%{$search}%");
+        });
     }
+
+    if ($request->filled('service')) {
+        $query->where('service', $request->service);
+    }
+
+    if ($request->filled('sex')) {
+        $query->where('sex', $request->sex);
+    }
+
+    if ($request->filled('verified')) {
+        $query->where('is_verified', $request->verified === 'true');
+    }
+
+    if ($request->filled('date_from') && $request->filled('date_to')) {
+        $query->whereHas('appointment', function($q) use ($request) {
+            $q->whereBetween('appointment_date', [$request->date_from, $request->date_to]);
+        });
+    } elseif ($request->filled('date_from')) {
+        $query->whereHas('appointment', function($q) use ($request) {
+            $q->whereDate('appointment_date', '>=', $request->date_from);
+        });
+    } elseif ($request->filled('date_to')) {
+        $query->whereHas('appointment', function($q) use ($request) {
+            $q->whereDate('appointment_date', '<=', $request->date_to);
+        });
+    }
+
+    if ($request->filled('time_slot_id')) {
+        $query->whereHas('appointment', function($q) use ($request) {
+            $q->where('time_slot_id', $request->time_slot_id);
+        });
+    }
+
+    $clients = $query
+        ->leftJoin('appointments', 'appointment_clients.appointment_id', '=', 'appointments.id')
+        ->leftJoin('time_slots', 'appointments.time_slot_id', '=', 'time_slots.id')
+        ->select('appointment_clients.*')
+        ->orderBy('appointments.appointment_date')
+        ->orderBy('time_slots.start_time')
+        ->get();
+
+    $serviceNames = [
+        'reg' => 'National ID Registration',
+        'updating' => 'Correction/Updating',
+        'inquiry' => 'Status Inquiry / TRN Retrieval'
+    ];
+
+    $filename = 'clients_export_' . date('Y-m-d_His') . '.pdf';
+
+    // Load the PDF view (use admin.clients.pdf instead of staff.clients.pdf)
+    $pdf = Pdf::loadView('admin.clients.pdf', compact('clients', 'serviceNames'));
+    $pdf->setPaper('A4', 'landscape');
+
+    return $pdf->download($filename);
+}
     
     /**
      * Get client statistics for dashboard.

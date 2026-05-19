@@ -102,6 +102,7 @@ Route::get('/users/{id}/edit-data', function($id) {
     Route::get('/applicants/export/csv', [App\Http\Controllers\Admin\ClientController::class, 'export'])->name('applicants.export');
     Route::get('/applicants/search/ajax', [App\Http\Controllers\Admin\ClientController::class, 'search'])->name('applicants.search');
     Route::get('/applicants/statistics/data', [App\Http\Controllers\Admin\ClientController::class, 'statistics'])->name('applicants.statistics');
+    Route::get('/applicants/export/pdf', [App\Http\Controllers\Admin\ClientController::class, 'export'])->name('applicants.export');
 
 
     Route::get('/appointments/locations', [App\Http\Controllers\Admin\AppointmentController::class, 'getByLocation'])->name('appointments.locations');
@@ -109,6 +110,8 @@ Route::get('/users/{id}/edit-data', function($id) {
     Route::get('/reports/export-location', [App\Http\Controllers\Admin\ReportController::class, 'exportLocationSummary'])->name('reports.export-location');
     Route::get('/appointment/location-stats', [App\Http\Controllers\Client\AppointmentController::class, 'getLocationStats'])->name('appointment.location-stats');
     Route::get('/psa-coordinates', [App\Http\Controllers\Admin\AppointmentController::class, 'getPsaCoordinates'])->name('psa.coordinates');
+
+
 
     // Settings routes
     Route::post('/settings/test-email', [App\Http\Controllers\Admin\SettingsController::class, 'testEmail'])->name('settings.test-email');

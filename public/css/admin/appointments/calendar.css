@@ -34,11 +34,13 @@
     max-width: 1600px;
     margin: 0 auto;
     animation: fadeIn 0.5s ease;
+        background: var(--bg-gradient);
+
 }
 
 /* Welcome Section */
 .calendar-welcome-section {
-    background: var(--primary);
+    background: var(--title);
     border-radius: var(--border-radius);
     padding: 28px 32px;
     margin-bottom: 28px;
