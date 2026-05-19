@@ -472,7 +472,7 @@
             `;
             verifyBtn.style.display = 'none';
 
-            fetch(`/staff/applicants/${clientId}/modal`, {
+            fetch(`/admin/applicants/${clientId}/modal`, {
                     headers: {
                         'X-Requested-With': 'XMLHttpRequest',
                         'Accept': 'text/html',
@@ -530,7 +530,7 @@
         }
 
         function verifyClientFromModal(clientId) {
-            fetch(`/staff/applicants/${clientId}/verify`, {
+            fetch(`/admin/applicants/${clientId}/verify`, {
                     method: 'PUT',
                     headers: {
                         'Content-Type': 'application/json',
@@ -560,7 +560,7 @@
         }
 
         function updateReferenceNumber(clientId, refNumber) {
-            fetch(`/staff/applicants/${clientId}/reference`, {
+            fetch(`/admin/applicants/${clientId}/reference`, {
                     method: 'PUT',
                     headers: {
                         'Content-Type': 'application/json',

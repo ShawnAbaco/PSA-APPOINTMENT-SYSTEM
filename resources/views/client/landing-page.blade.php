@@ -5,7 +5,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes, viewport-fit=cover">
-    <title>PSA | National ID Appointment System</title>
+    <title>PSA | National ID Appointment Management System</title>
     <link rel="icon" type="image/png" sizes="32x32" href="{{ asset('images/psa.png') }}">
     <link
         href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;14..32,400;14..32,500;14..32,600;14..32,700;14..32,800&display=swap"
@@ -27,7 +27,7 @@
                 </div>
                 <div class="logo-text">
                     <span class="psa-title">Philippine Statistics Authority - Misamis Oriental</span>
-                    <span class="psa-sub">National ID Appointment System</span>
+                    <span class="psa-sub">National ID Appointment Management System</span>
                 </div>
             </div>
             <nav class="main-nav">

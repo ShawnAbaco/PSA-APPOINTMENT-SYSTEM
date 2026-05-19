@@ -26,7 +26,6 @@
                     <i class="fas fa-clock"></i>
                     <div>
                         <strong>{{ $pendingCount }} pending account(s)</strong> waiting for approval.
-                        <a href="#pending-accounts" class="user-notice-link">Click here to review them</a>
                     </div>
                     <button type="button" class="user-notice-close" data-bs-dismiss="alert">×</button>
                 </div>

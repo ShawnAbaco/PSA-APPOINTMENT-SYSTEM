@@ -697,7 +697,7 @@
 }
 
 .appt-modal-header-primary {
-    background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%);
+    background: var(--title);
     color: white;
 }
 

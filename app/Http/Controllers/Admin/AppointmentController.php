@@ -48,7 +48,7 @@ class AppointmentController extends Controller
             $query->where('user_city', 'like', '%' . $request->city . '%');
         }
         
-        $appointments = $query->latest()->paginate(10);
+        $appointments = $query->latest()->paginate(50);
         $statuses = ['pending', 'confirmed', 'cancelled', 'completed', 'no_show'];
         
         // Get unique cities for filter dropdown
