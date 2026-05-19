@@ -71,7 +71,7 @@
         <section id="howto" class="howto-section">
             <div class="container">
                 <div class="section-header">
-                    <h2>How to Bulok a National ID Appointment</h2>
+                    <h2>How to Book a National ID Appointment</h2>
                     <p>Follow these simple steps to schedule your appointment in minutes</p>
                 </div>
                 <div class="howto-grid">
