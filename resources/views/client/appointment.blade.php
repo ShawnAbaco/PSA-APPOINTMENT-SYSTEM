@@ -2029,9 +2029,24 @@
             };
 
             document.getElementById('closeSuccessModal').onclick = () => {
-                successModal.style.display = 'none';
-                window.location.href = '/';
-            };
+    successModal.style.display = 'none';
+    // Close the appointment modal if it exists in parent window
+    if (window.parent && window.parent.closeAppointmentModal) {
+        window.parent.closeAppointmentModal();
+    } else if (window.parent) {
+        // Try to close via parent window's modal
+        const parentModal = window.parent.document.getElementById('appointmentModal');
+        if (parentModal) {
+            parentModal.classList.remove('active');
+            window.parent.document.body.classList.remove('modal-open');
+        }
+    }
+    // Or just reset the iframe
+    const iframe = document.getElementById('appointmentIframe');
+    if (iframe && iframe.parentElement) {
+        // If in iframe, let parent handle closing
+    }
+};
 
             document.querySelectorAll('[data-edit]').forEach(btn => {
                 btn.addEventListener('click', (e) => {

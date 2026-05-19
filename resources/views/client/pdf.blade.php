@@ -96,7 +96,7 @@
 
             <div style="border-top:1px solid #e6e6e6; margin:18px 0 12px 0;"></div>
 
-            <div style="font-size:11px; color:#666;">Please arrive at least <strong>15 minutes</strong> before your scheduled time and bring all required documents for verification. This confirmation slip is per applicant; keep it for verification at the PSA office.</div>
+            <div style="font-size:11px; color:#666;">Please arrive at least <strong>30 minutes</strong> before your scheduled time and bring all required documents for verification. This confirmation slip is per applicant; keep it for verification at the PSA office.</div>
 
             <div style="margin-top:18px; font-size:11px; color:#777; text-align:left;">
                 <strong>Office:</strong> Capt. Vicente Roa Street, Brgy. 31, Cagayan de Oro City, 9000 Misamis Oriental<br>
