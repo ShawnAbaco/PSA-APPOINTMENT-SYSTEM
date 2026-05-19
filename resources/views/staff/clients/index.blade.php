@@ -17,11 +17,9 @@
         <!-- Filters Bar -->
         <div class="clients-filters-bar">
             <div class="filter-group">
-                <i class="fas fa-search"></i>
                 <input type="text" id="searchClient" placeholder="Search by name, ID, or TRN..." class="filter-input">
             </div>
             <div class="filter-group">
-                <i class="fas fa-tag"></i>
                 <select id="serviceFilter" class="filter-select">
                     <option value="">All Services</option>
                     <option value="reg">National ID Registration</option>
@@ -30,14 +28,12 @@
                 </select>
             </div>
             <div class="filter-group">
-                <i class="fas fa-calendar-alt"></i>
                 <span style="font-size: 13px; color: #6c757d;">From:</span>
                 <input type="date" id="dateFromFilter" class="filter-input" style="width: 140px;">
                 <span style="font-size: 13px; color: #6c757d;">To:</span>
                 <input type="date" id="dateToFilter" class="filter-input" style="width: 140px;">
             </div>
             <div class="filter-group">
-                <i class="fas fa-clock"></i>
                 <select id="timeSlotFilter" class="filter-select">
                     <option value="">All Time Slots</option>
                     @php
@@ -70,9 +66,9 @@
                     <span class="record-count" id="recordCount">{{ $clients->total() }} records</span>
                 </div>
                 <div class="table-actions">
-                    <a id="exportPdfLink" href="{{ route('staff.applicants.export', request()->query()) }}" class="btn-icon" title="Export to PDF">
-                        <i class="fas fa-file-pdf"></i>
-                    </a>
+                    <button id="exportPdfLink" class="btn-normal" title="Export to PDF">
+                        <i class="fas fa-file-pdf"></i> Export PDF
+                    </button>
                     <button class="btn-icon" id="refreshBtn" title="Refresh">
                         <i class="fas fa-sync-alt"></i>
                     </button>
@@ -236,6 +232,120 @@
 
     <style>
         /* Additional styles */
+        .btn-normal {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 16px;
+            background: linear-gradient(135deg, #d32f2f, #f57c00);
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 8px rgba(211, 47, 47, 0.25);
+        }
+        
+        .btn-normal:hover {
+            background: linear-gradient(135deg, #b71c1c, #e65100);
+            box-shadow: 0 4px 12px rgba(211, 47, 47, 0.35);
+            transform: translateY(-2px);
+        }
+        
+        .btn-normal:active {
+            transform: translateY(0);
+            box-shadow: 0 2px 6px rgba(211, 47, 47, 0.2);
+        }
+        
+        .btn-normal i {
+            font-size: 14px;
+        }
+
+        /* Filters Bar Styles */
+        .clients-filters-bar {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            margin-bottom: 20px;
+            padding: 16px;
+            background: #f8f9fa;
+            border: 1px solid #e9ecef;
+            border-radius: 8px;
+            align-items: flex-end;
+        }
+
+        .filter-group {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            min-width: fit-content;
+        }
+
+        .filter-group i {
+            color: #6c757d;
+            font-size: 14px;
+            flex-shrink: 0;
+        }
+
+        .filter-input,
+        .filter-select {
+            padding: 8px 12px;
+            border: 1px solid #dee2e6;
+            border-radius: 6px;
+            font-size: 13px;
+            background-color: white;
+            color: #495057;
+            transition: all 0.2s ease;
+            font-family: inherit;
+        }
+
+        .filter-input {
+            min-width: 160px;
+        }
+
+        .filter-select {
+            min-width: 180px;
+        }
+
+        .filter-input:focus,
+        .filter-select:focus {
+            outline: none;
+            border-color: #007bff;
+            box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.15);
+        }
+
+        .filter-input::placeholder {
+            color: #adb5bd;
+        }
+
+        .btn-reset {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 8px 14px;
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 6px;
+            font-size: 13px;
+            font-weight: 500;
+            color: #495057;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            flex-shrink: 0;
+        }
+
+        .btn-reset:hover {
+            background: #e9ecef;
+            border-color: #dee2e6;
+            color: #212529;
+        }
+
+        .btn-reset i {
+            font-size: 12px;
+        }
+        
         .time-badge {
             background: #e3f2fd;
             color: #1976d2;
@@ -296,10 +406,39 @@
         
         @media (max-width: 1200px) {
             .clients-filters-bar {
+                gap: 10px;
+                padding: 12px;
+            }
+            
+            .filter-input {
+                min-width: 140px;
+            }
+            
+            .filter-select {
+                min-width: 160px;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .clients-filters-bar {
+                flex-direction: column;
+                gap: 8px;
+            }
+
+            .filter-group {
+                width: 100%;
                 flex-wrap: wrap;
             }
-            .filter-group {
-                flex-wrap: wrap;
+
+            .filter-input,
+            .filter-select {
+                flex: 1;
+                min-width: 120px;
+            }
+
+            .btn-reset {
+                width: 100%;
+                justify-content: center;
             }
         }
     </style>
@@ -679,6 +818,28 @@
                 }
             });
 
+            // Export PDF button
+            const exportPdfBtn = document.getElementById('exportPdfLink');
+            if (exportPdfBtn) {
+                exportPdfBtn.addEventListener('click', function() {
+                    const params = new URLSearchParams();
+                    const searchValue = document.getElementById('searchClient')?.value || '';
+                    const serviceValue = document.getElementById('serviceFilter')?.value || '';
+                    const dateFromValue = document.getElementById('dateFromFilter')?.value || '';
+                    const dateToValue = document.getElementById('dateToFilter')?.value || '';
+                    const timeSlotValue = document.getElementById('timeSlotFilter')?.value || '';
+
+                    if (searchValue) params.set('search', searchValue);
+                    if (serviceValue) params.set('service', serviceValue);
+                    if (dateFromValue) params.set('date_from', dateFromValue);
+                    if (dateToValue) params.set('date_to', dateToValue);
+                    if (timeSlotValue) params.set('time_slot_id', timeSlotValue);
+
+                    const url = "{{ route('staff.applicants.export') }}" + (params.toString() ? '?' + params.toString() : '');
+                    window.location.href = url;
+                });
+            }
+
             // Filter events
             document.getElementById('searchClient')?.addEventListener('keyup', filterTable);
             document.getElementById('serviceFilter')?.addEventListener('change', filterTable);
@@ -687,7 +848,6 @@
             document.getElementById('timeSlotFilter')?.addEventListener('change', filterTable);
             document.getElementById('resetFilters')?.addEventListener('click', resetAllFilters);
             document.getElementById('refreshBtn')?.addEventListener('click', () => location.reload());
-            updateExportLink();
 
             // Quick filter buttons
             document.querySelectorAll('.quick-filter-btn').forEach(btn => {
