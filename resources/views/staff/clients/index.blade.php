@@ -17,21 +17,21 @@
         <!-- Filters Bar -->
         <div class="clients-filters-bar">
             <div class="filter-group">
-                <input type="text" id="searchClient" placeholder="Search by name, ID, or TRN..." class="filter-input">
+                <input type="text" id="searchClient" placeholder="Search by name, ID, or TRN..." class="filter-input" value="{{ request('search', '') }}">
             </div>
             <div class="filter-group">
                 <select id="serviceFilter" class="filter-select">
                     <option value="">All Services</option>
-                    <option value="reg">National ID Registration</option>
-                    <option value="updating">Correction/Updating</option>
-                    <option value="inquiry">Status Inquiry / TRN Retrieval</option>
+                    <option value="reg" {{ request('service') == 'reg' ? 'selected' : '' }}>National ID Registration</option>
+                    <option value="updating" {{ request('service') == 'updating' ? 'selected' : '' }}>Correction/Updating</option>
+                    <option value="inquiry" {{ request('service') == 'inquiry' ? 'selected' : '' }}>Status Inquiry / TRN Retrieval</option>
                 </select>
             </div>
             <div class="filter-group">
                 <span style="font-size: 13px; color: #6c757d;">From:</span>
-                <input type="date" id="dateFromFilter" class="filter-input" style="width: 140px;">
+                <input type="date" id="dateFromFilter" class="filter-input" style="width: 140px;" value="{{ request('date_from', '') }}">
                 <span style="font-size: 13px; color: #6c757d;">To:</span>
-                <input type="date" id="dateToFilter" class="filter-input" style="width: 140px;">
+                <input type="date" id="dateToFilter" class="filter-input" style="width: 140px;" value="{{ request('date_to', '') }}">
             </div>
             <div class="filter-group">
                 <select id="timeSlotFilter" class="filter-select">
@@ -40,7 +40,7 @@
                         $timeSlots = \App\Models\TimeSlot::where('is_active', true)->orderBy('display_order')->get();
                     @endphp
                     @foreach($timeSlots as $slot)
-                        <option value="{{ $slot->id }}">{{ $slot->label }} ({{ $slot->start_time }} - {{ $slot->end_time }})</option>
+                        <option value="{{ $slot->id }}" {{ request('time_slot_id') == $slot->id ? 'selected' : '' }}>{{ $slot->label }} ({{ $slot->start_time }} - {{ $slot->end_time }})</option>
                     @endforeach
                 </select>
             </div>
@@ -79,7 +79,7 @@
                 <table class="clients-table">
                     <thead>
                         <tr>
-                            <th>ID</th>
+                            <th>#</th>
                             <th>Full Name</th>
                             <th>Sex</th>
                             <th>Birthdate</th>
@@ -98,7 +98,7 @@
                                 data-age="{{ \Carbon\Carbon::parse($client->birthdate)->age }}"
                                 data-appointment-date="{{ $client->appointment?->appointment_date ? \Carbon\Carbon::parse($client->appointment->appointment_date)->format('Y-m-d') : '' }}"
                                 data-time-slot-id="{{ $client->appointment?->time_slot_id ?? '' }}">
-                                <td class="client-id">{{ $client->id }}</td>
+                                <td class="client-id">{{ $clients->firstItem() + $loop->index }}</td>
                                 <td class="client-name">
                                     <div class="client-name-info">
                                         <strong>{{ $client->first_name }} {{ $client->last_name }}</strong>
@@ -171,7 +171,7 @@
                             <i class="fas fa-chevron-left"></i> Previous
                         </button>
                     @else
-                        <a href="{{ $clients->previousPageUrl() }}" class="pagination-btn">
+                        <a href="{{ $clients->previousPageUrl() }}&{{ http_build_query(request()->except('page')) }}" class="pagination-btn">
                             <i class="fas fa-chevron-left"></i> Previous
                         </a>
                     @endif
@@ -181,7 +181,7 @@
                     </span>
 
                     @if ($clients->hasMorePages())
-                        <a href="{{ $clients->nextPageUrl() }}" class="pagination-btn">
+                        <a href="{{ $clients->nextPageUrl() }}&{{ http_build_query(request()->except('page')) }}" class="pagination-btn">
                             Next <i class="fas fa-chevron-right"></i>
                         </a>
                     @else
@@ -600,60 +600,27 @@
             return date.toISOString().split('T')[0];
         }
 
-        // Filter table function with date range
+        // Filter table function with date range - now reloads page with filters
         function filterTable() {
             clearTimeout(filterTimeout);
             filterTimeout = setTimeout(() => {
-                const searchTerm = document.getElementById('searchClient')?.value.toLowerCase() || '';
+                const searchTerm = document.getElementById('searchClient')?.value || '';
                 const serviceFilter = document.getElementById('serviceFilter')?.value || '';
                 const dateFrom = document.getElementById('dateFromFilter')?.value || '';
                 const dateTo = document.getElementById('dateToFilter')?.value || '';
                 const timeSlotFilter = document.getElementById('timeSlotFilter')?.value || '';
 
-                const rows = document.querySelectorAll('.client-row');
-                let visibleCount = 0;
+                // Build query parameters
+                const params = new URLSearchParams();
+                if (searchTerm) params.set('search', searchTerm);
+                if (serviceFilter) params.set('service', serviceFilter);
+                if (dateFrom) params.set('date_from', dateFrom);
+                if (dateTo) params.set('date_to', dateTo);
+                if (timeSlotFilter) params.set('time_slot_id', timeSlotFilter);
 
-                rows.forEach(row => {
-                    const clientId = row.querySelector('.client-id')?.textContent || '';
-                    const clientName = row.querySelector('.client-name strong')?.textContent.toLowerCase() || '';
-                    const service = row.getAttribute('data-service') || '';
-                    const appointmentDate = row.getAttribute('data-appointment-date') || '';
-                    const timeSlotId = row.getAttribute('data-time-slot-id') || '';
-
-                    const matchesSearch = !searchTerm || clientId.includes(searchTerm) || clientName.includes(searchTerm);
-                    const matchesService = !serviceFilter || service === serviceFilter;
-                    
-                    // Date range filter
-                    let matchesDateRange = true;
-                    if (dateFrom && appointmentDate) {
-                        matchesDateRange = appointmentDate >= dateFrom;
-                    }
-                    if (dateTo && appointmentDate && matchesDateRange) {
-                        matchesDateRange = appointmentDate <= dateTo;
-                    }
-                    if ((dateFrom || dateTo) && !appointmentDate) {
-                        matchesDateRange = false;
-                    }
-                    
-                    const matchesTimeSlot = !timeSlotFilter || timeSlotId === timeSlotFilter;
-
-                    const shouldShow = matchesSearch && matchesService && matchesDateRange && matchesTimeSlot;
-                    row.style.display = shouldShow ? '' : 'none';
-                    if (shouldShow) visibleCount++;
-                });
-
-                const recordCountSpan = document.getElementById('recordCount');
-                if (recordCountSpan) {
-                    const totalRows = document.querySelectorAll('.client-row').length;
-                    if (visibleCount !== totalRows) {
-                        recordCountSpan.textContent = visibleCount + ' records (filtered)';
-                    } else {
-                        recordCountSpan.textContent = '{{ $clients->total() }} records';
-                    }
-                }
-                
-                showActiveFilters();
-                updateExportLink();
+                // Reload page with filter parameters
+                const url = window.location.pathname + (params.toString() ? '?' + params.toString() : '');
+                window.location.href = url;
             }, 300);
         }
 
@@ -663,7 +630,7 @@
             const dateToInput = document.getElementById('dateToFilter');
             const today = new Date();
             
-            // Clear any existing active classes
+            // Clear all active classes first
             document.querySelectorAll('.quick-filter-btn').forEach(btn => {
                 btn.classList.remove('active');
             });
@@ -715,10 +682,12 @@
                     dateToInput.value = '';
             }
             
-            // Add active class to clicked button if it set a value
+            // Add active class to clicked button immediately for visual feedback
             if (dateFromInput.value) {
                 const clickedBtn = document.querySelector(`.quick-filter-btn[data-quick="${type}"]`);
-                if (clickedBtn) clickedBtn.classList.add('active');
+                if (clickedBtn) {
+                    clickedBtn.classList.add('active');
+                }
             }
             
             filterTable();
@@ -745,6 +714,77 @@
                 }
             } else if (existingIndicator) {
                 existingIndicator.remove();
+            }
+            
+            // Update quick filter button active state
+            updateQuickFilterActiveState();
+        }
+
+        function updateQuickFilterActiveState() {
+            const dateFromInput = document.getElementById('dateFromFilter');
+            const dateToInput = document.getElementById('dateToFilter');
+            const dateFrom = dateFromInput?.value || '';
+            const dateTo = dateToInput?.value || '';
+
+            // Clear all active states first
+            document.querySelectorAll('.quick-filter-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+
+            // If no date range filters, return
+            if (!dateFrom && !dateTo) return;
+
+            const today = new Date();
+            const fromDate = dateFrom ? new Date(dateFrom) : null;
+            const toDate = dateTo ? new Date(dateTo) : null;
+
+            // Helper function to format date as YYYY-MM-DD
+            const formatDate = (date) => date.toISOString().split('T')[0];
+
+            // Check Today
+            if (formatDate(today) === dateFrom && formatDate(today) === dateTo) {
+                document.querySelector('.quick-filter-btn[data-quick="today"]')?.classList.add('active');
+                return;
+            }
+
+            // Check Tomorrow
+            const tomorrow = new Date(today);
+            tomorrow.setDate(tomorrow.getDate() + 1);
+            if (formatDate(tomorrow) === dateFrom && formatDate(tomorrow) === dateTo) {
+                document.querySelector('.quick-filter-btn[data-quick="tomorrow"]')?.classList.add('active');
+                return;
+            }
+
+            // Check This Week
+            const monday = new Date(today);
+            const day = today.getDay();
+            const diffToMonday = today.getDate() - day + (day === 0 ? -6 : 1);
+            monday.setDate(diffToMonday);
+            const sunday = new Date(monday);
+            sunday.setDate(monday.getDate() + 6);
+            if (formatDate(monday) === dateFrom && formatDate(sunday) === dateTo) {
+                document.querySelector('.quick-filter-btn[data-quick="this_week"]')?.classList.add('active');
+                return;
+            }
+
+            // Check Next Week
+            const nextMonday = new Date(today);
+            const nextDay = today.getDay();
+            const nextDiffToMonday = today.getDate() - nextDay + (nextDay === 0 ? -6 : 1) + 7;
+            nextMonday.setDate(nextDiffToMonday);
+            const nextSunday = new Date(nextMonday);
+            nextSunday.setDate(nextMonday.getDate() + 6);
+            if (formatDate(nextMonday) === dateFrom && formatDate(nextSunday) === dateTo) {
+                document.querySelector('.quick-filter-btn[data-quick="next_week"]')?.classList.add('active');
+                return;
+            }
+
+            // Check This Month
+            const firstDay = new Date(today.getFullYear(), today.getMonth(), 1);
+            const lastDay = new Date(today.getFullYear(), today.getMonth() + 1, 0);
+            if (formatDate(firstDay) === dateFrom && formatDate(lastDay) === dateTo) {
+                document.querySelector('.quick-filter-btn[data-quick="this_month"]')?.classList.add('active');
+                return;
             }
         }
 
@@ -780,7 +820,6 @@
             });
             
             filterTable();
-            updateExportLink();
         }
 
         function showNotification(message, type = 'success') {
@@ -848,6 +887,9 @@
             document.getElementById('timeSlotFilter')?.addEventListener('change', filterTable);
             document.getElementById('resetFilters')?.addEventListener('click', resetAllFilters);
             document.getElementById('refreshBtn')?.addEventListener('click', () => location.reload());
+            
+            // Show active filters on page load
+            showActiveFilters();
 
             // Quick filter buttons
             document.querySelectorAll('.quick-filter-btn').forEach(btn => {
