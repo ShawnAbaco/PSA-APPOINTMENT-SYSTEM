@@ -71,7 +71,7 @@
         <section id="howto" class="howto-section">
             <div class="container">
                 <div class="section-header">
-                    <h2>How to Book a National ID Appointment</h2>
+                    <h2>How to Bulok a National ID Appointment</h2>
                     <p>Follow these simple steps to schedule your appointment in minutes</p>
                 </div>
                 <div class="howto-grid">
@@ -448,7 +448,7 @@
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script src="https://unpkg.com/leaflet-routing-machine@3.2.12/dist/leaflet-routing-machine.js"></script>
     <script src="{{ asset('js/landing-page.js') }}"></script>
-    
+
     <script>
         (function() {
             'use strict';
@@ -733,7 +733,7 @@
                 });
             });
         });
-        
+
     </script>
 
 </body>
