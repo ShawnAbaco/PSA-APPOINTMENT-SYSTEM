@@ -194,58 +194,7 @@ class UserController extends Controller
         
         return redirect()->back()->with('success', 'User status updated.');
     }
-
-    // Generate 2FA secret for a user (admin only)
-    public function generateTwoFactor($id)
-    {
-        $user = User::findOrFail($id);
-        $secret = TotpService::generateSecret();
-        $user->update([
-            'two_factor_secret' => $secret,
-            'two_factor_enabled' => true,
-            'two_factor_confirmed_at' => now(),
-        ]);
-
-        if (request()->wantsJson()) {
-            $qr = TotpService::getQrCodeUrl($user->email ?? $user->username, $secret, config('app.name', 'PSA'));
-            return response()->json(['success' => true, 'secret' => $secret, 'qr' => $qr]);
-        }
-
-        // Don't flash the QR or secret into the edit page. Admins should click "Show QR" to view.
-        return redirect()->back()->with('success', 'Two-factor secret generated. Use "Show QR" to view and scan.');
-    }
-
-    // Show QR page for users (admin only) so admin can scan the QR
-    public function showTwoFactorQr($id)
-    {
-        $user = User::findOrFail($id);
-        if (!$user->two_factor_secret) {
-            abort(404, 'Two-factor not configured for this user');
-        }
-        $qr = TotpService::getQrCodeUrl($user->email ?? $user->username, $user->two_factor_secret, config('app.name', 'PSA'));
-        return view('admin.users.two_factor_qr', compact('user', 'qr'));
-    }
-
-    // Revoke 2FA for a user
-    public function revokeTwoFactor($id)
-    {
-        $user = User::findOrFail($id);
-        $user->update([
-            'two_factor_secret' => null,
-            'two_factor_recovery_codes' => null,
-            'two_factor_confirmed_at' => null,
-            'two_factor_enabled' => false,
-        ]);
-
-        if (request()->wantsJson()) {
-            return response()->json(['success' => true]);
-        }
-
-        return redirect()->back()->with('success', 'Two-factor authentication revoked for user.');
-    }
-    
-    // NEW METHODS FOR ACCOUNT APPROVAL
-    
+        
     public function pendingAccounts()
     {
         $pendingUsers = User::where('account_status', 'pending')

@@ -354,18 +354,10 @@ private function getBookedCount($date, $timeSlotId, $service)
     }
 }
 
-    private function formatTimeRange($startTime, $endTime)
-    {
-        try {
-            $start = Carbon::parse($startTime);
-            $end = Carbon::parse($endTime);
-            return $start->format('g:i A') . ' - ' . $end->format('g:i A');
-        } catch (\Exception $e) {
-            return $startTime . ' - ' . $endTime;
-        }
-    }
-
-   public function store(Request $request)
+/**
+ * Store a newly created appointment in storage.
+ */
+public function store(Request $request)
 {
     try {
         Log::info('Store method called', $request->all());
@@ -453,13 +445,11 @@ private function getBookedCount($date, $timeSlotId, $service)
             $appointmentNumber = 'PSA-' . $date . '-' . str_pad($last, 5, '0', STR_PAD_LEFT);
             $referenceCode = 'REF-' . strtoupper(uniqid());
 
-            // Create appointment (time_slot_id is null since each client has their own)
-            // Create appointment (use first client's time slot as the main slot)
+            // Create appointment
             $appointment = new Appointment();
             $appointment->appointment_number = $appointmentNumber;
             $appointment->type = $request->appointment_type;
             $appointment->appointment_date = $request->appointment_date;
-            // Use the first client's time slot ID for the main appointment (since time_slot_id cannot be null)
             $appointment->time_slot_id = $request->clients[0]['time_slot_id'];
             $appointment->contact_name = $request->contact_name;
             $appointment->contact_email = $request->contact_email;
@@ -481,7 +471,6 @@ private function getBookedCount($date, $timeSlotId, $service)
             $appointment->save();
 
             // Store clients with their individual time slots
-            $clientsData = [];
             $clientsList = [];
 
             foreach ($request->clients as $index => $clientData) {
@@ -507,44 +496,58 @@ private function getBookedCount($date, $timeSlotId, $service)
 
                 $client->save();
 
+                // Build full name
                 $fullName = trim($clientData['first_name'] . ' ' . ($clientData['middle_name'] ? $clientData['middle_name'] . ' ' : '') . $clientData['last_name']);
                 if (!empty($clientData['suffix'])) $fullName .= ' ' . $clientData['suffix'];
 
+                // Get time slot label
                 $timeSlot = TimeSlot::find($clientData['time_slot_id']);
                 $timeSlotLabel = $timeSlot ? ($timeSlot->label ?? $this->formatTimeRange($timeSlot->start_time, $timeSlot->end_time)) : 'Time slot selected';
 
                 $clientsList[] = [
                     'client_number' => $clientNumber,
                     'name' => $fullName,
+                    'first_name' => $clientData['first_name'],
+                    'middle_name' => $clientData['middle_name'] ?? null,
+                    'last_name' => $clientData['last_name'],
+                    'suffix' => $clientData['suffix'] ?? null,
                     'service' => $clientData['service'],
                     'service_name' => $this->getServiceName($clientData['service']),
-                    'time_slot' => $timeSlotLabel
+                    'time_slot_id' => $clientData['time_slot_id'],
+                    'time_slot' => $timeSlotLabel,
+                    'time_slot_label' => $timeSlotLabel
                 ];
-
-                $clientsData[] = $clientData;
             }
 
             DB::commit();
 
-            $timeSlotLabel = 'Multiple time slots - see applicant details';
+            // Send email confirmation with individual download buttons (don't let email failure break the response)
             $emailSent = false;
-
+            $emailError = null;
+            
             if ($appointment->contact_email) {
                 try {
-                    $emailSent = $this->mailService->sendAppointmentConfirmation($appointment, $clientsData, $timeSlotLabel);
+                    $emailSent = $this->mailService->sendAppointmentConfirmation($appointment, $clientsList, null);
+                    Log::info('Email sent successfully to: ' . $appointment->contact_email);
                 } catch (\Exception $e) {
+                    $emailError = $e->getMessage();
                     Log::warning('Email sending failed: ' . $e->getMessage());
                 }
             }
 
             $successMessage = 'Appointment created successfully!';
-            if ($emailSent) $successMessage .= ' A confirmation email has been sent to your email address.';
-            elseif ($appointment->contact_email) $successMessage .= ' We could not send a confirmation email. Please save your reference code.';
+            if ($emailSent) {
+                $successMessage .= ' A confirmation email with downloadable appointment slips has been sent to your email address.';
+            } elseif ($appointment->contact_email) {
+                $successMessage .= ' We could not send a confirmation email. Please save your reference code.';
+            }
 
+            // Return JSON response
             return response()->json([
                 'success' => true,
                 'message' => $successMessage,
                 'email_sent' => $emailSent,
+                'email_error' => $emailError,
                 'appointment' => [
                     'number' => $appointment->appointment_number,
                     'reference_code' => $appointment->reference_code,
@@ -561,6 +564,8 @@ private function getBookedCount($date, $timeSlotId, $service)
         } catch (\Exception $e) {
             DB::rollback();
             Log::error('Transaction failed: ' . $e->getMessage());
+            Log::error('Stack trace: ' . $e->getTraceAsString());
+            
             return response()->json([
                 'success' => false,
                 'message' => 'Database error: ' . $e->getMessage()
@@ -569,6 +574,8 @@ private function getBookedCount($date, $timeSlotId, $service)
 
     } catch (\Exception $e) {
         Log::error('Store method error: ' . $e->getMessage());
+        Log::error('Stack trace: ' . $e->getTraceAsString());
+        
         return response()->json([
             'success' => false,
             'message' => 'Server error: ' . $e->getMessage()
@@ -576,26 +583,46 @@ private function getBookedCount($date, $timeSlotId, $service)
     }
 }
 
-    private function getServiceName($code)
-    {
-        $services = [
-            'reg' => 'National ID Registration',
-            'updating' => 'Correction/Updating',
-            'inquiry' => 'Status Inquiry / Retrieval Of TRN / Other Concern'
-        ];
-        return $services[$code] ?? $code;
-    }
+/**
+ * Get service name from service code
+ */
+private function getServiceName($code)
+{
+    $services = [
+        'reg' => 'National ID Registration',
+        'updating' => 'Correction/Updating',
+        'inquiry' => 'Status Inquiry / Retrieval Of TRN / Other Concern'
+    ];
+    return $services[$code] ?? $code;
+}
 
-    private function generateClientNumber()
-    {
-        $year = date('Y');
-        $month = date('m');
-        $last = AppointmentClient::whereYear('created_at', $year)
-            ->whereMonth('created_at', $month)
-            ->count() + 1;
+/**
+ * Generate unique client number
+ */
+private function generateClientNumber()
+{
+    $year = date('Y');
+    $month = date('m');
+    $last = AppointmentClient::whereYear('created_at', $year)
+        ->whereMonth('created_at', $month)
+        ->count() + 1;
 
-        return 'CLN-' . $year . $month . '-' . str_pad($last, 5, '0', STR_PAD_LEFT);
+    return 'CLN-' . $year . $month . '-' . str_pad($last, 5, '0', STR_PAD_LEFT);
+}
+
+/**
+ * Format time range for display
+ */
+private function formatTimeRange($startTime, $endTime)
+{
+    try {
+        $start = Carbon::parse($startTime);
+        $end = Carbon::parse($endTime);
+        return $start->format('g:i A') . ' - ' . $end->format('g:i A');
+    } catch (\Exception $e) {
+        return $startTime . ' - ' . $endTime;
     }
+}
 
     public function getLocationStats(Request $request)
     {

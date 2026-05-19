@@ -83,7 +83,7 @@
                                         <td data-label="Email">{{ $user->email }}</td>
                                         <td data-label="Role">
                                             <span class="user-role-badge user-role-{{ $user->role }}">
-                                                {{ ucfirst($user->role) }}
+                                                {{ ucfirst($user->role) }}  
                                             </span>
                                         </td>
                                         <td data-label="Account Status">

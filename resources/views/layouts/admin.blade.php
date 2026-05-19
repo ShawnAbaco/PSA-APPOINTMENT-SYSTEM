@@ -233,24 +233,6 @@
                     </div>
                 </div>
                 <div class="topbar-right">
-                    <!-- Notification Bell -->
-                    <div class="notification-container">
-                        <button class="notification-bell" id="notificationBell">
-                            <i class="fas fa-bell"></i>
-                            <span class="notification-badge" id="notificationCount">3</span>
-                        </button>
-                        <div class="notification-dropdown" id="notificationDropdown">
-                            <div class="notification-header">
-                                <h6>Notifications</h6>
-                                <button class="mark-all-read" id="markAllRead">Mark all as read</button>
-                            </div>
-                            <div class="notification-list" id="notificationList"></div>
-                            <div class="notification-footer" style="padding: 10px; text-align:center;">
-                                <a href="#" style="color:#CE1126; font-size:0.75rem;">View all</a>
-                            </div>
-                        </div>
-                    </div>
-
                     {{-- <!-- Role Badge -->
                     <span class="role-badge" id="roleBadge"
                         style="cursor: pointer;">{{ ucfirst(Auth::user()->role) }}</span> --}}
@@ -690,51 +672,6 @@
         //  NOTIFICATION MANAGER
         // ============================================================
         class NotificationManager {
-            constructor() {
-                this.notifications = [{
-                        id: 1,
-                        title: 'New Appointment',
-                        message: 'John Doe booked for tomorrow at 10:00 AM',
-                        time: '5 min ago',
-                        type: 'success',
-                        read: false
-                    },
-                    {
-                        id: 2,
-                        title: 'Appointment Reminder',
-                        message: 'You have 3 appointments today',
-                        time: '1 hour ago',
-                        type: 'info',
-                        read: false
-                    },
-                    {
-                        id: 3,
-                        title: 'Schedule Change',
-                        message: 'Your Friday schedule updated',
-                        time: '2 hours ago',
-                        type: 'warning',
-                        read: false
-                    },
-                    {
-                        id: 4,
-                        title: 'Client Feedback',
-                        message: 'New feedback from Maria Santos',
-                        time: '3 hours ago',
-                        type: 'info',
-                        read: true
-                    },
-                    {
-                        id: 5,
-                        title: 'System Update',
-                        message: 'Maintenance tonight at 11 PM',
-                        time: 'Yesterday',
-                        type: 'warning',
-                        read: true
-                    }
-                ];
-                this.unreadCount = this.notifications.filter(n => !n.read).length;
-                this.init();
-            }
             init() {
                 this.render();
                 this.updateBadge();

@@ -202,23 +202,6 @@
                     </div>
                 </div>
                 <div class="topbar-right">
-                    <div class="notification-container">
-                        <button class="notification-bell" id="notificationBell">
-                            <i class="fas fa-bell"></i>
-                            <span class="notification-badge" id="notificationCount">3</span>
-                        </button>
-                        <div class="notification-dropdown" id="notificationDropdown">
-                            <div class="notification-header">
-                                <h6>Notifications</h6>
-                                <button class="mark-all-read" id="markAllRead">Mark all as read</button>
-                            </div>
-                            <div class="notification-list" id="notificationList"></div>
-                            <div class="notification-footer" style="padding: 10px; text-align:center;">
-                                <a href="#" style="color:#CE1126; font-size:0.75rem;">View all</a>
-                            </div>
-                        </div>
-                    </div>
-
                     {{-- <!-- Role Badge -->
                     <span class="role-badge" id="roleBadge"
                         style="cursor: pointer;">{{ ucfirst(Auth::user()->role) }}</span> --}}
@@ -617,51 +600,6 @@
         // NOTIFICATION MANAGER
         // ========================
         class NotificationManager {
-            constructor() {
-                this.notifications = [{
-                        id: 1,
-                        title: 'New Appointment',
-                        message: 'John Doe booked for tomorrow at 10:00 AM',
-                        time: '5 min ago',
-                        type: 'success',
-                        read: false
-                    },
-                    {
-                        id: 2,
-                        title: 'Appointment Reminder',
-                        message: 'You have 3 appointments today',
-                        time: '1 hour ago',
-                        type: 'info',
-                        read: false
-                    },
-                    {
-                        id: 3,
-                        title: 'Schedule Change',
-                        message: 'Your Friday schedule updated',
-                        time: '2 hours ago',
-                        type: 'warning',
-                        read: false
-                    },
-                    {
-                        id: 4,
-                        title: 'Client Feedback',
-                        message: 'New feedback from Maria Santos',
-                        time: '3 hours ago',
-                        type: 'info',
-                        read: true
-                    },
-                    {
-                        id: 5,
-                        title: 'System Update',
-                        message: 'Maintenance tonight at 11 PM',
-                        time: 'Yesterday',
-                        type: 'warning',
-                        read: true
-                    }
-                ];
-                this.unreadCount = this.notifications.filter(n => !n.read).length;
-                this.init();
-            }
             init() {
                 this.render();
                 this.updateBadge();
@@ -837,6 +775,23 @@
             }
         }
 
+                    // Toggle password visibility
+            document.querySelectorAll('.toggle-password').forEach(icon => {
+                icon.addEventListener('click', function() {
+                    const targetId = this.dataset.target;
+                    const input = document.getElementById(targetId);
+                    if (input.type === 'password') {
+                        input.type = 'text';
+                        this.classList.remove('fa-eye-slash');
+                        this.classList.add('fa-eye');
+                    } else {
+                        input.type = 'password';
+                        this.classList.remove('fa-eye');
+                        this.classList.add('fa-eye-slash');
+                    }
+                });
+            });
+
         // Toast
         window.showToast = function(title, message, type = 'info') {
             const container = document.getElementById('toastContainer');
@@ -936,39 +891,94 @@
                 });
             }
 
-            // Password strength, match check, and AJAX submit handlers for modal
+            // Password strength checker
             const newPassword = document.getElementById('newPassword');
             const confirmPassword = document.getElementById('confirmPassword');
             const strengthBar = document.getElementById('strengthBar');
             const strengthText = document.getElementById('strengthText');
             const matchMessage = document.getElementById('matchMessage');
 
-            function updateStrengthDisplay() {
-                if (!newPassword) return;
-                const val = newPassword.value;
+            function checkPasswordStrength(password) {
                 let score = 0;
-                if (val.length >= 8) score++;
-                if (/[A-Z]/.test(val)) score++;
-                if (/[a-z]/.test(val)) score++;
-                if (/[0-9]/.test(val)) score++;
-                if (strengthBar) {
-                    strengthBar.className = 'strength-bar';
-                    if (score <= 1) strengthBar.classList.add('weak');
-                    else if (score === 2) strengthBar.classList.add('moderate');
-                    else strengthBar.classList.add('strong');
+                if (password.length >= 8) score++;
+                if (password.match(/[A-Z]/)) score++;
+                if (password.match(/[a-z]/)) score++;
+                if (password.match(/[0-9]/)) score++;
+                return score;
+            }
+
+            function updateStrengthDisplay() {
+                const password = newPassword ? newPassword.value : '';
+                const score = checkPasswordStrength(password);
+
+                let barClass = '';
+                let textClass = '';
+                let text = '';
+
+                if (password.length === 0) {
+                    barClass = '';
+                    text = '';
+                } else if (score === 1) {
+                    barClass = 'weak';
+                    textClass = 'weak';
+                    text = 'Weak';
+                } else if (score === 2) {
+                    barClass = 'medium';
+                    textClass = 'medium';
+                    text = 'Medium';
+                } else if (score === 3) {
+                    barClass = 'strong';
+                    textClass = 'strong';
+                    text = 'Strong';
+                } else if (score === 4) {
+                    barClass = 'very-strong';
+                    textClass = 'very-strong';
+                    text = 'Very Strong';
                 }
-                if (strengthText) strengthText.textContent = score <= 1 ? 'Weak' : score === 2 ? 'Moderate' :
-                    'Strong';
+
+                if (strengthBar) strengthBar.className = 'strength-bar ' + barClass;
+                if (strengthText) {
+                    strengthText.className = 'strength-text ' + textClass;
+                    strengthText.textContent = text;
+                }
+
+                const reqLength = document.getElementById('reqLength');
+                const reqUppercase = document.getElementById('reqUppercase');
+                const reqLowercase = document.getElementById('reqLowercase');
+                const reqNumber = document.getElementById('reqNumber');
+
+                if (reqLength) {
+                    reqLength.className = password.length >= 8 ? 'requirement valid' : 'requirement invalid';
+                    reqLength.innerHTML = (password.length >= 8 ? '<i class="fas fa-check-circle"></i>' :
+                        '<i class="fas fa-circle"></i>') + ' At least 8 characters';
+                }
+                if (reqUppercase) {
+                    reqUppercase.className = password.match(/[A-Z]/) ? 'requirement valid' : 'requirement invalid';
+                    reqUppercase.innerHTML = (password.match(/[A-Z]/) ? '<i class="fas fa-check-circle"></i>' :
+                        '<i class="fas fa-circle"></i>') + ' At least 1 uppercase letter';
+                }
+                if (reqLowercase) {
+                    reqLowercase.className = password.match(/[a-z]/) ? 'requirement valid' : 'requirement invalid';
+                    reqLowercase.innerHTML = (password.match(/[a-z]/) ? '<i class="fas fa-check-circle"></i>' :
+                        '<i class="fas fa-circle"></i>') + ' At least 1 lowercase letter';
+                }
+                if (reqNumber) {
+                    reqNumber.className = password.match(/[0-9]/) ? 'requirement valid' : 'requirement invalid';
+                    reqNumber.innerHTML = (password.match(/[0-9]/) ? '<i class="fas fa-check-circle"></i>' :
+                        '<i class="fas fa-circle"></i>') + ' At least 1 number';
+                }
             }
 
             function checkPasswordMatch() {
                 if (!newPassword || !confirmPassword || !matchMessage) return;
                 const password = newPassword.value;
                 const confirm = confirmPassword.value;
+
                 if (confirm.length === 0) {
                     matchMessage.innerHTML = '';
                     return;
                 }
+
                 if (password === confirm) {
                     matchMessage.innerHTML =
                         '<i class="fas fa-check-circle" style="color: #10b981;"></i> Passwords match';
@@ -979,7 +989,7 @@
                     matchMessage.style.color = '#ef4444';
                 }
             }
-
+            
             if (newPassword) {
                 newPassword.addEventListener('input', updateStrengthDisplay);
                 newPassword.addEventListener('input', checkPasswordMatch);
