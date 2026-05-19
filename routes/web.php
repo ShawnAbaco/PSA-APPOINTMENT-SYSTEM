@@ -4,27 +4,30 @@ use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Session;
 use App\Http\Controllers\Auth\LoginController;
+use App\Http\Controllers\Auth\RegisterController;
+use App\Http\Controllers\Auth\TwoFactorController;
 use App\Http\Controllers\Web\PageController;
-use App\Http\Controllers\Client\AppointmentController;
+use App\Models\User;
 
+use App\Http\Controllers\Client\AppointmentController;
 
 // FORCE LOGOUT - Complete session and cookie cleanup
 Route::get('/force-logout', function() {
     Auth::logout();
     Session::flush();
     Session::regenerate(true);
-    
+
     $cookies = ['laravel_session', 'XSRF-TOKEN', 'remember_web_59ba36addc2b2f9401580f014c7f58ea4e30989d'];
     foreach ($cookies as $cookie) {
         if (isset($_COOKIE[$cookie])) {
             setcookie($cookie, '', time() - 3600, '/');
         }
     }
-    
+
     foreach ($_COOKIE as $key => $value) {
         setcookie($key, '', time() - 3600, '/');
     }
-    
+
     return response()->json([
         'success' => true,
         'message' => 'Force logout completed!'
@@ -37,78 +40,267 @@ Route::get('/appointment', [AppointmentController::class, 'index'])->name('appoi
 
 // Login routes
 Route::get('/login', [LoginController::class, 'showLoginForm'])->name('login');
+
 Route::post('/login', [LoginController::class, 'login']);
 Route::post('/logout', [LoginController::class, 'logout'])->name('logout');
+
+// Two-Factor authentication public routes (used during login flow)
+Route::get('/2fa/verify', [TwoFactorController::class, 'index'])->name('auth.2fa.verify');
+Route::post('/2fa/verify', [TwoFactorController::class, 'verify'])->name('auth.2fa.verify.post');
+
+Route::get('/register', [RegisterController::class, 'showRegistrationForm'])->name('register');
+Route::post('/register', [RegisterController::class, 'register']);
 
 // Admin routes
 Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(function () {
     // Dashboard
     Route::get('/dashboard', [App\Http\Controllers\Admin\DashboardController::class, 'index'])->name('dashboard');
-    
+
     // Appointments
     Route::get('/appointments', [App\Http\Controllers\Admin\AppointmentController::class, 'index'])->name('appointments.index');
     Route::get('/appointments/{id}', [App\Http\Controllers\Admin\AppointmentController::class, 'show'])->name('appointments.show');
     Route::put('/appointments/{id}/status', [App\Http\Controllers\Admin\AppointmentController::class, 'updateStatus'])->name('appointments.status');
     Route::delete('/appointments/{id}', [App\Http\Controllers\Admin\AppointmentController::class, 'destroy'])->name('appointments.destroy');
-    Route::get('/calendar', [App\Http\Controllers\Admin\AppointmentController::class, 'calendar'])->name('calendar');
+    Route::get('/calendar', [App\Http\Controllers\Admin\CalendarController::class, 'index'])->name('calendar');
+    Route::get('/calendar/time-slots', [App\Http\Controllers\Admin\CalendarController::class, 'getTimeSlotsByDate'])->name('appointments.time-slots');
+Route::get('/calendar/by-time-slot', [App\Http\Controllers\Admin\CalendarController::class, 'getAppointmentsByTimeSlot'])->name('appointments.by-time-slot');
+Route::get('/calendar/slot-data', [App\Http\Controllers\Admin\CalendarController::class, 'getSlotData'])->name('calendar.slot-data');
+Route::get('/calendar/stats', [App\Http\Controllers\Admin\CalendarController::class, 'getStats'])->name('calendar.stats');
 
-    // Add to admin routes
-Route::get('/slots', [App\Http\Controllers\Admin\SettingsController::class, 'manageSlots'])->name('slots.index');
-Route::post('/slots', [App\Http\Controllers\Admin\SettingsController::class, 'createSlot'])->name('slots.store');
-Route::put('/slots/{id}', [App\Http\Controllers\Admin\SettingsController::class, 'updateSlot'])->name('slots.update');
 
-    
-    // Users
-    Route::get('/users', [App\Http\Controllers\Admin\UserController::class, 'index'])->name('users.index');
-    Route::get('/users/create', [App\Http\Controllers\Admin\UserController::class, 'create'])->name('users.create');
-    Route::post('/users', [App\Http\Controllers\Admin\UserController::class, 'store'])->name('users.store');
-    Route::get('/users/{id}/edit', [App\Http\Controllers\Admin\UserController::class, 'edit'])->name('users.edit');
-    Route::put('/users/{id}', [App\Http\Controllers\Admin\UserController::class, 'update'])->name('users.update');
-    Route::delete('/users/{id}', [App\Http\Controllers\Admin\UserController::class, 'destroy'])->name('users.destroy');
-    Route::put('/users/{id}/toggle-status', [App\Http\Controllers\Admin\UserController::class, 'toggleStatus'])->name('users.toggle-status');
-    
+ Route::get('/calendar/{id}/full-details', [App\Http\Controllers\Admin\CalendarController::class, 'getFullDetails'])->name('calendar.full-details');
+    Route::get('/calendar/{id}/json', [App\Http\Controllers\Admin\CalendarController::class, 'getJson'])->name('calendar.json');
+
+    Route::post('/appointments/store', [App\Http\Controllers\Admin\AppointmentController::class, 'store'])->name('appointments.store');
+
+    // Add these to your admin routes group
+
+Route::get('/users/{id}/edit-data', function($id) {
+    $user = User::findOrFail($id);
+    return response()->json($user);
+})->name('users.edit-data');
+
+
+
+    Route::get('/appointment-places', [App\Http\Controllers\Admin\DashboardController::class, 'getAppointmentPlacesAjax']);
+    Route::get('/location-map-data', [App\Http\Controllers\Admin\DashboardController::class, 'getLocationMapDataAjax']);
+    Route::get('/summary-stats', [App\Http\Controllers\Admin\DashboardController::class, 'getSummaryStats']);
+    Route::get('/calendar-data', [App\Http\Controllers\Admin\DashboardController::class, 'getCalendarData'])->name('calendar-data');
+
+    Route::get('/appointments/{id}/modal', [App\Http\Controllers\Admin\AppointmentController::class, 'showModal'])->name('admin.appointments.modal');
+    Route::get('/appointments/{id}/json', [App\Http\Controllers\Admin\CalendarController::class, 'getJson'])->name('admin.appointments.json');
+
+
+    // Applicant routes
+    Route::get('/applicants', [App\Http\Controllers\Admin\ClientController::class, 'index'])->name('applicants.index');
+    Route::get('/applicants/{id}/details', [App\Http\Controllers\Admin\ClientController::class, 'getClientDetails'])->name('applicants.details');
+    Route::get('/applicants/{id}/modal', [App\Http\Controllers\Admin\ClientController::class, 'showModal'])->name('applicants.modal'); // New route for modal
+    Route::put('/applicants/{id}', [App\Http\Controllers\Admin\ClientController::class, 'update'])->name('applicants.update');
+    Route::put('/applicants/{id}/verify', [App\Http\Controllers\Admin\ClientController::class, 'verify'])->name('applicants.verify');
+    Route::put('/applicants/{id}/reference', [App\Http\Controllers\Admin\ClientController::class, 'updateReferenceNumber'])->name('applicants.reference');
+    Route::delete('/applicants/{id}', [App\Http\Controllers\Admin\ClientController::class, 'destroy'])->name('applicants.destroy');
+    Route::get('/applicants/export/csv', [App\Http\Controllers\Admin\ClientController::class, 'export'])->name('applicants.export');
+    Route::get('/applicants/search/ajax', [App\Http\Controllers\Admin\ClientController::class, 'search'])->name('applicants.search');
+    Route::get('/applicants/statistics/data', [App\Http\Controllers\Admin\ClientController::class, 'statistics'])->name('applicants.statistics');
+    Route::get('/applicants/export/pdf', [App\Http\Controllers\Admin\ClientController::class, 'export'])->name('applicants.export');
+
+
+    Route::get('/appointments/locations', [App\Http\Controllers\Admin\AppointmentController::class, 'getByLocation'])->name('appointments.locations');
+    Route::get('/appointments/city-stats', [App\Http\Controllers\Admin\AppointmentController::class, 'cityStatistics'])->name('appointments.city-stats');
+    Route::get('/reports/export-location', [App\Http\Controllers\Admin\ReportController::class, 'exportLocationSummary'])->name('reports.export-location');
+    Route::get('/appointment/location-stats', [App\Http\Controllers\Client\AppointmentController::class, 'getLocationStats'])->name('appointment.location-stats');
+    Route::get('/psa-coordinates', [App\Http\Controllers\Admin\AppointmentController::class, 'getPsaCoordinates'])->name('psa.coordinates');
+
+
+
+    // Settings routes
+    Route::post('/settings/test-email', [App\Http\Controllers\Admin\SettingsController::class, 'testEmail'])->name('settings.test-email');
+    Route::post('/settings/sync-slots', [App\Http\Controllers\Admin\SettingsController::class, 'syncAllSlots'])->name('settings.sync-slots');
+    Route::post('/settings/clear-cache', [App\Http\Controllers\Admin\SettingsController::class, 'clearCache'])->name('settings.clear-cache');
+
+    // Slot Management (Appointment Slots)
+    Route::prefix('slots')->name('slots.')->group(function () {
+        Route::get('/', [App\Http\Controllers\Admin\SlotController::class, 'index'])->name('index');
+        Route::get('/create', [App\Http\Controllers\Admin\SlotController::class, 'create'])->name('create');
+        Route::post('/', [App\Http\Controllers\Admin\SlotController::class, 'store'])->name('store');
+        Route::get('/{id}/edit', [App\Http\Controllers\Admin\SlotController::class, 'edit'])->name('edit');
+        Route::put('/{id}', [App\Http\Controllers\Admin\SlotController::class, 'update'])->name('update');
+        Route::delete('/{id}', [App\Http\Controllers\Admin\SlotController::class, 'destroy'])->name('destroy');
+        Route::post('/bulk-generate', [App\Http\Controllers\Admin\SlotController::class, 'bulkGenerate'])->name('bulk-generate');
+        Route::put('/{id}/toggle-holiday', [App\Http\Controllers\Admin\SlotController::class, 'toggleHoliday'])->name('toggle-holiday');
+        Route::get('/details/{date}', [App\Http\Controllers\Admin\SlotController::class, 'getSlotDetails'])->name('details');
+        Route::get('/json', [App\Http\Controllers\Admin\SlotController::class, 'getSlotsJson'])->name('json');
+        Route::post('/capacity-rules', [App\Http\Controllers\Admin\SlotController::class, 'saveCapacityRules'])->name('capacity-rules');
+
+
+Route::get('/get-default-capacities', [App\Http\Controllers\Admin\SlotController::class, 'getDefaultCapacities'])->name('default-capacities');
+
+    });
+
+    // Time Slots routes (for the settings page)
+    Route::prefix('time-slots')->name('time-slots.')->group(function () {
+        Route::post('/store', [App\Http\Controllers\Admin\SettingsController::class, 'storeTimeSlot'])->name('store');
+        Route::put('/{id}', [App\Http\Controllers\Admin\SettingsController::class, 'updateTimeSlot'])->name('update');
+        Route::delete('/{id}', [App\Http\Controllers\Admin\SettingsController::class, 'destroyTimeSlot'])->name('destroy');
+    });
+
+ // Users
+Route::get('/users', [App\Http\Controllers\Admin\UserController::class, 'index'])->name('users.index');
+Route::get('/users/create', [App\Http\Controllers\Admin\UserController::class, 'create'])->name('users.create');
+Route::post('/users', [App\Http\Controllers\Admin\UserController::class, 'store'])->name('users.store');
+Route::get('/users/{id}/edit', [App\Http\Controllers\Admin\UserController::class, 'edit'])->name('users.edit');
+Route::put('/users/{id}', [App\Http\Controllers\Admin\UserController::class, 'update'])->name('users.update');
+Route::delete('/users/{id}', [App\Http\Controllers\Admin\UserController::class, 'destroy'])->name('users.destroy');
+Route::put('/users/{id}/approve', [App\Http\Controllers\Admin\UserController::class, 'approveAccount'])->name('users.approve');
+Route::put('/users/{id}/reject', [App\Http\Controllers\Admin\UserController::class, 'rejectAccount'])->name('users.reject');
+
+// Soft delete routes for users
+Route::get('/users/trashed', [App\Http\Controllers\Admin\UserController::class, 'trashed'])->name('users.trashed');
+Route::post('/users/{id}/restore', [App\Http\Controllers\Admin\UserController::class, 'restore'])->name('users.restore');
+Route::delete('/users/{id}/force-delete', [App\Http\Controllers\Admin\UserController::class, 'forceDelete'])->name('users.force-delete');
+Route::get('/users/debug-employees', [App\Http\Controllers\Admin\UserController::class, 'debugEmployeeIds'])->name('users.debug-employees');
+
+
     // Reports
     Route::get('/reports', [App\Http\Controllers\Admin\ReportController::class, 'index'])->name('reports.index');
     Route::get('/reports/export', [App\Http\Controllers\Admin\ReportController::class, 'export'])->name('reports.export');
-    
-    // Settings
+    Route::get('/export/pdf', [App\Http\Controllers\Admin\ReportController::class, 'exportPdf'])->name('reports.export.pdf');
+    Route::get('/export/excel', [App\Http\Controllers\Admin\ReportController::class, 'exportExcel'])->name('reports.export.excel');
+
+    // Settings index and update
     Route::get('/settings', [App\Http\Controllers\Admin\SettingsController::class, 'index'])->name('settings.index');
     Route::post('/settings', [App\Http\Controllers\Admin\SettingsController::class, 'update'])->name('settings.update');
+    Route::post('/settings/working-days', [App\Http\Controllers\Admin\SettingsController::class, 'updateWorkingDays'])->name('settings.working-days');
+    Route::post('/settings/appointment', [App\Http\Controllers\Admin\SettingsController::class, 'updateAppointmentSettings'])->name('settings.appointment');
+    Route::post('/settings/appointment/reset', [App\Http\Controllers\Admin\SettingsController::class, 'resetAppointmentSettings'])->name('settings.appointment.reset');
+    Route::post('/settings/capacity-rules', [App\Http\Controllers\Admin\SettingsController::class, 'saveCapacityRules'])->name('settings.capacity-rules');
+
+    // Profile Routes
+    Route::get('/profile', [App\Http\Controllers\Admin\ProfileController::class, 'index'])->name('index');
+    Route::get('/profile/edit', [App\Http\Controllers\Admin\ProfileController::class, 'edit'])->name('edit');
+    Route::put('/profile/update', [App\Http\Controllers\Admin\ProfileController::class, 'update'])->name('update');
+    Route::get('/profile/change-password', [App\Http\Controllers\Admin\ProfileController::class, 'changePassword'])->name('change-password');
+    Route::post('/profile/password', [App\Http\Controllers\Admin\ProfileController::class, 'updatePassword'])->name('password.update');
+
+    // 2FA Routes
+    Route::post('/2fa/toggle', [App\Http\Controllers\Admin\ProfileController::class, 'toggleTwoFactor'])->name('2fa.toggle');
+    Route::get('/2fa/qr', [App\Http\Controllers\Admin\ProfileController::class, 'showTwoFactorQr'])->name('2fa.qr');
+    Route::get('/2fa/status', [App\Http\Controllers\Admin\ProfileController::class, 'checkTwoFactorStatus'])->name('2fa.status');
+
 });
 
 // Staff routes
 Route::middleware(['auth', 'staff'])->prefix('staff')->name('staff.')->group(function () {
     // Dashboard
     Route::get('/dashboard', [App\Http\Controllers\Staff\DashboardController::class, 'index'])->name('dashboard');
-    
+
     // Appointments
     Route::get('/appointments', [App\Http\Controllers\Staff\AppointmentController::class, 'index'])->name('appointments.index');
     Route::get('/appointments/create', [App\Http\Controllers\Staff\AppointmentController::class, 'create'])->name('appointments.create');
     Route::post('/appointments', [App\Http\Controllers\Staff\AppointmentController::class, 'store'])->name('appointments.store');
     Route::get('/appointments/{id}', [App\Http\Controllers\Staff\AppointmentController::class, 'show'])->name('appointments.show');
+    Route::get('/appointments/{id}/edit', [App\Http\Controllers\Staff\AppointmentController::class, 'edit'])->name('appointments.edit');
+    Route::put('/appointments/{id}', [App\Http\Controllers\Staff\AppointmentController::class, 'update'])->name('appointments.update');
     Route::put('/appointments/{id}/confirm', [App\Http\Controllers\Staff\AppointmentController::class, 'confirm'])->name('appointments.confirm');
     Route::put('/appointments/{id}/cancel', [App\Http\Controllers\Staff\AppointmentController::class, 'cancel'])->name('appointments.cancel');
-    Route::put('/appointments/{id}/complete', [App\Http\Controllers\Staff\AppointmentController::class, 'complete'])->name('appointments.complete');
-    
- 
-     // Client routes
-    Route::get('/clients', [App\Http\Controllers\Staff\ClientController::class, 'index'])->name('clients.index');
-    Route::get('/clients/{id}', [App\Http\Controllers\Staff\ClientController::class, 'show'])->name('clients.show');
-    Route::get('/clients/{id}/details', [App\Http\Controllers\Staff\ClientController::class, 'getClientDetails'])->name('clients.details');
-    Route::put('/clients/{id}', [App\Http\Controllers\Staff\ClientController::class, 'update'])->name('clients.update');
-    Route::put('/clients/{id}/verify', [App\Http\Controllers\Staff\ClientController::class, 'verify'])->name('clients.verify');
-    Route::put('/clients/{id}/reference', [App\Http\Controllers\Staff\ClientController::class, 'updateReferenceNumber'])->name('clients.reference');
-    Route::delete('/clients/{id}', [App\Http\Controllers\Staff\ClientController::class, 'destroy'])->name('clients.destroy');
-    Route::get('/clients/export/csv', [App\Http\Controllers\Staff\ClientController::class, 'export'])->name('clients.export');
-    Route::get('/clients/search/ajax', [App\Http\Controllers\Staff\ClientController::class, 'search'])->name('clients.search');
-    Route::get('/clients/statistics/data', [App\Http\Controllers\Staff\ClientController::class, 'statistics'])->name('clients.statistics');
+    Route::delete('/appointments/{id}', [App\Http\Controllers\Staff\AppointmentController::class, 'destroy'])->name('appointments.destroy');
+    Route::get('/appointments/time-slots', [App\Http\Controllers\Staff\AppointmentController::class, 'getTimeSlots'])->name('staff.appointments.time-slots');
+
+    // Applicant routes
+    Route::get('/applicants', [App\Http\Controllers\Staff\ClientController::class, 'index'])->name('applicants.index');
+    Route::get('/applicants/{id}/details', [App\Http\Controllers\Staff\ClientController::class, 'getClientDetails'])->name('applicants.details');
+    Route::get('/applicants/{id}/modal', [App\Http\Controllers\Staff\ClientController::class, 'showModal'])->name('applicants.modal'); // New route for modal
+    Route::put('/applicants/{id}', [App\Http\Controllers\Staff\ClientController::class, 'update'])->name('applicants.update');
+    Route::put('/applicants/{id}/verify', [App\Http\Controllers\Staff\ClientController::class, 'verify'])->name('applicants.verify');
+    Route::put('/applicants/{id}/reference', [App\Http\Controllers\Staff\ClientController::class, 'updateReferenceNumber'])->name('applicants.reference');
+    Route::delete('/applicants/{id}', [App\Http\Controllers\Staff\ClientController::class, 'destroy'])->name('applicants.destroy');
+    Route::get('/applicants/export/pdf', [App\Http\Controllers\Staff\ClientController::class, 'export'])->name('applicants.export');
+    Route::get('/applicants/search/ajax', [App\Http\Controllers\Staff\ClientController::class, 'search'])->name('applicants.search');
+    Route::get('/applicants/statistics/data', [App\Http\Controllers\Staff\ClientController::class, 'statistics'])->name('applicants.statistics');
+
+
+    // Reports routes
+    Route::get('/reports', [App\Http\Controllers\Staff\ReportsController::class, 'index'])->name('reports.index');
+    Route::get('/reports/export', [App\Http\Controllers\Staff\ReportsController::class, 'export'])->name('reports.export');
+    Route::get('/export/pdf', [App\Http\Controllers\Staff\ReportsController::class, 'exportPdf'])->name('reports.export.pdf');
+    Route::get('/export/excel', [App\Http\Controllers\Staff\ReportsController::class, 'exportExcel'])->name('reports.export.excel');
+
+    // Profile Routes
+    Route::get('/profile', [App\Http\Controllers\Staff\ProfileController::class, 'index'])->name('index');
+    Route::get('/profile/edit', [App\Http\Controllers\Staff\ProfileController::class, 'edit'])->name('edit');
+    Route::put('/profile/update', [App\Http\Controllers\Staff\ProfileController::class, 'update'])->name('update');
+    Route::get('/profile/change-password', [App\Http\Controllers\Staff\ProfileController::class, 'changePassword'])->name('change-password');
+    Route::put('/profile/password', [App\Http\Controllers\Staff\ProfileController::class, 'updatePassword'])->name('password.update');
+
+    // 2FA Routes
+    Route::post('/profile/2fa/toggle', [App\Http\Controllers\Staff\ProfileController::class, 'toggleTwoFactor'])->name('2fa.toggle');
+    Route::get('/profile/2fa/qr', [App\Http\Controllers\Staff\ProfileController::class, 'showTwoFactorQr'])->name('2fa.qr');
 });
 
+// Operator routes
+Route::middleware(['auth', 'operator'])->prefix('operator')->name('operator.')->group(function () {
+    // Dashboard
+    Route::get('/dashboard', [App\Http\Controllers\Operator\ODashboardController::class, 'index'])->name('dashboard');
+
+    // Appointments
+    Route::get('/appointments', [App\Http\Controllers\Operator\OAppointmentController::class, 'index'])->name('appointments.index');
+    Route::get('/appointments/create', [App\Http\Controllers\Operator\OAppointmentController::class, 'create'])->name('appointments.create');
+    Route::post('/appointments', [App\Http\Controllers\Operator\OAppointmentController::class, 'store'])->name('appointments.store');
+    Route::get('/appointments/{id}', [App\Http\Controllers\Operator\OAppointmentController::class, 'show'])->name('appointments.show');
+    Route::put('/appointments/{id}/confirm', [App\Http\Controllers\Operator\OAppointmentController::class, 'confirm'])->name('appointments.confirm');
+    Route::put('/appointments/{id}/cancel', [App\Http\Controllers\Operator\OAppointmentController::class, 'cancel'])->name('appointments.cancel');
+    Route::put('/appointments/{id}/complete', [App\Http\Controllers\Operator\OAppointmentController::class, 'complete'])->name('appointments.complete');
+
+    // Applicant routes
+    Route::get('/applicants', [App\Http\Controllers\Operator\OClientController::class, 'index'])->name('applicants.index');
+    Route::get('/applicants/{id}/details', [App\Http\Controllers\Operator\OClientController::class, 'getClientDetails'])->name('applicants.details');
+    Route::get('/applicants/{id}/modal', [App\Http\Controllers\Operator\OClientController::class, 'showModal'])->name('applicants.modal'); // New route for modal
+    Route::put('/applicants/{id}', [App\Http\Controllers\Operator\OClientController::class, 'update'])->name('applicants.update');
+    Route::put('/applicants/{id}/verify', [App\Http\Controllers\Operator\OClientController::class, 'verify'])->name('applicants.verify');
+    Route::put('/applicants/{id}/reference', [App\Http\Controllers\Operator\OClientController::class, 'updateReferenceNumber'])->name('applicants.reference');
+    Route::delete('/applicants/{id}', [App\Http\Controllers\Operator\OClientController::class, 'destroy'])->name('applicants.destroy');
+    Route::get('/applicants/export/csv', [App\Http\Controllers\Operator\OClientController::class, 'export'])->name('applicants.export');
+    Route::get('/applicants/search/ajax', [App\Http\Controllers\Operator\OClientController::class, 'search'])->name('applicants.search');
+    Route::get('/applicants/statistics/data', [App\Http\Controllers\Operator\OClientController::class, 'statistics'])->name('applicants.statistics');
+
+    // Reports routes
+    Route::get('/reports', [App\Http\Controllers\Operator\OReportsController::class, 'index'])->name('reports.index');
+    Route::get('/reports/export', [App\Http\Controllers\Operator\OReportsController::class, 'export'])->name('reports.export');
+    Route::get('/export/pdf', [App\Http\Controllers\Operator\OReportsController::class, 'exportPdf'])->name('reports.export.pdf');
+    Route::get('/export/excel', [App\Http\Controllers\Operator\OReportsController::class, 'exportExcel'])->name('reports.export.excel');
+
+    // Profile Routes
+    Route::get('/profile', [App\Http\Controllers\Operator\OProfileController::class, 'index'])->name('index');
+    Route::get('/profile/edit', [App\Http\Controllers\Operator\OProfileController::class, 'edit'])->name('edit');
+    Route::put('/profile/update', [App\Http\Controllers\Operator\OProfileController::class, 'update'])->name('update');
+    Route::get('/profile/change-password', [App\Http\Controllers\Operator\OProfileController::class, 'changePassword'])->name('change-password');
+    Route::put('/profile/password', [App\Http\Controllers\Operator\OProfileController::class, 'updatePassword'])->name('password.update');
+
+    // 2FA Routes
+    Route::post('/2fa/toggle', [App\Http\Controllers\Operator\OProfileController::class, 'toggleTwoFactor'])->name('2fa.toggle');
+    Route::get('/2fa/qr', [App\Http\Controllers\Operator\OProfileController::class, 'showTwoFactorQr'])->name('2fa.qr');
+});
 
 // Client appointment routes
 Route::prefix('client')->name('client.')->group(function () {
     Route::get('/appointment', [App\Http\Controllers\Client\AppointmentController::class, 'index'])->name('appointment');
     Route::post('/appointment/store', [App\Http\Controllers\Client\AppointmentController::class, 'store'])->name('appointment.store');
     Route::get('/appointment/available-dates', [App\Http\Controllers\Client\AppointmentController::class, 'getAvailableDates'])->name('appointment.available-dates');
+    Route::get('/appointment/available-time-slots', [App\Http\Controllers\Client\AppointmentController::class, 'getAvailableTimeSlots'])->name('appointment.available-time-slots');
     Route::get('/appointment/check-availability', [App\Http\Controllers\Client\AppointmentController::class, 'checkAvailability'])->name('appointment.check-availability');
+    Route::get('/appointment/get-requirements', [App\Http\Controllers\Client\AppointmentController::class, 'getRequirements'])
+    ->name('appointment.get-requirements');
+    Route::post('/appointment/pdf', [App\Http\Controllers\Client\AppointmentController::class, 'pdf'])->name('appointment.pdf');
+});
+
+
+
+// Add this to your routes/web.php temporarily (REMOVE AFTER TESTING)
+Route::get('/debug/working-days', function() {
+    $days = App\Models\WorkingDaysDefault::all();
+    $result = [];
+    foreach ($days as $day) {
+        $result[$day->day_name] = $day->day_type;
+    }
+    return response()->json($result);
 });

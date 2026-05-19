@@ -1,0 +1,588 @@
+-- =====================================================
+-- COMPLETE SAMPLE APPOINTMENT DATA GENERATOR
+-- =====================================================
+
+-- First, let's see what data we have
+-- Check existing time slots
+SELECT * FROM time_slots WHERE is_active = 1;
+
+-- Check existing users (staff who can create appointments)
+SELECT id, username, first_name, last_name, role FROM users WHERE role IN ('admin', 'staff') AND is_active = 1;
+
+-- =====================================================
+-- CLEAN EXISTING DATA (Optional - Uncomment if needed)
+-- =====================================================
+-- SET FOREIGN_KEY_CHECKS=0;
+-- TRUNCATE appointment_clients;
+-- TRUNCATE appointments;
+-- SET FOREIGN_KEY_CHECKS=1;
+
+-- =====================================================
+-- INSERT APPOINTMENTS
+-- =====================================================
+
+-- Get the first staff user ID
+SET @staff_id = (SELECT id FROM users WHERE role = 'staff' AND is_active = 1 LIMIT 1);
+SET @admin_id = (SELECT id FROM users WHERE role = 'admin' LIMIT 1);
+SET @created_by = IFNULL(@staff_id, @admin_id);
+
+-- =====================================================
+-- PART 1: INITIAL SAMPLE APPOINTMENTS
+-- =====================================================
+
+-- Appointment 1: Single Registration - Today (Confirmed)
+INSERT INTO appointments (
+    appointment_number, type, appointment_date, time_slot_id, status,
+    contact_name, contact_email, contact_mobile, reference_code,
+    user_city, user_address,
+    created_by, created_at, updated_at
+) VALUES (
+    CONCAT('PSA-', DATE_FORMAT(NOW(), '%Y%m%d'), '-', LPAD(1, 5, '0')),
+    'single', CURDATE(), 1, 'confirmed',
+    'Juan Dela Cruz', 'juan.delacruz@email.com', '09171234567',
+    CONCAT('REF-', UPPER(SUBSTRING(MD5(RAND()), 1, 10))),
+    'Cagayan de Oro', 'Zone 1, Barangay 23',
+    @created_by, NOW(), NOW()
+);
+
+SET @appointment_id = LAST_INSERT_ID();
+
+INSERT INTO appointment_clients (
+    client_number, appointment_id, first_name, middle_name, last_name, suffix,
+    sex, birthdate, service, requirements_acknowledged, acknowledged_at, created_at, updated_at
+) VALUES (
+    CONCAT('CLN-', DATE_FORMAT(NOW(), '%Y%m'), '-', LPAD(1, 5, '0')),
+    @appointment_id, 'Juan', 'Santos', 'Dela Cruz', NULL,
+    'Male', '1990-05-15', 'reg', TRUE, NOW(), NOW(), NOW()
+);
+
+-- Appointment 2: Single Updating - Tomorrow (Confirmed)
+INSERT INTO appointments (
+    appointment_number, type, appointment_date, time_slot_id, status,
+    contact_name, contact_email, contact_mobile, reference_code,
+    user_city, user_address,
+    created_by, created_at, updated_at
+) VALUES (
+    CONCAT('PSA-', DATE_FORMAT(NOW(), '%Y%m%d'), '-', LPAD(2, 5, '0')),
+    'single', DATE_ADD(CURDATE(), INTERVAL 1 DAY), 2, 'confirmed',
+    'Maria Santos', 'maria.santos@email.com', '09171234568',
+    CONCAT('REF-', UPPER(SUBSTRING(MD5(RAND()), 1, 10))),
+    'Cagayan de Oro', 'Zone 2, Barangay 15',
+    @created_by, NOW(), NOW()
+);
+
+SET @appointment_id = LAST_INSERT_ID();
+
+INSERT INTO appointment_clients (
+    client_number, appointment_id, first_name, middle_name, last_name, suffix,
+    sex, birthdate, service, requirements_acknowledged, acknowledged_at, created_at, updated_at
+) VALUES (
+    CONCAT('CLN-', DATE_FORMAT(NOW(), '%Y%m'), '-', LPAD(2, 5, '0')),
+    @appointment_id, 'Maria', 'Reyes', 'Santos', NULL,
+    'Female', '1988-10-20', 'updating', TRUE, NOW(), NOW(), NOW()
+);
+
+-- Appointment 3: Single Inquiry - 2 days from now (Pending)
+INSERT INTO appointments (
+    appointment_number, type, appointment_date, time_slot_id, status,
+    contact_name, contact_email, contact_mobile, reference_code,
+    user_city, user_address,
+    created_by, created_at, updated_at
+) VALUES (
+    CONCAT('PSA-', DATE_FORMAT(NOW(), '%Y%m%d'), '-', LPAD(3, 5, '0')),
+    'single', DATE_ADD(CURDATE(), INTERVAL 2 DAY), 3, 'pending',
+    'Carlos Reyes', 'carlos.reyes@email.com', '09171234569',
+    CONCAT('REF-', UPPER(SUBSTRING(MD5(RAND()), 1, 10))),
+    'Cagayan de Oro', 'Zone 3, Barangay 8',
+    @created_by, NOW(), NOW()
+);
+
+SET @appointment_id = LAST_INSERT_ID();
+
+INSERT INTO appointment_clients (
+    client_number, appointment_id, first_name, middle_name, last_name, suffix,
+    sex, birthdate, service, requirements_acknowledged, acknowledged_at, created_at, updated_at
+) VALUES (
+    CONCAT('CLN-', DATE_FORMAT(NOW(), '%Y%m'), '-', LPAD(3, 5, '0')),
+    @appointment_id, 'Carlos', 'Mendoza', 'Reyes', 'Jr.',
+    'Male', '1985-03-10', 'inquiry', TRUE, NOW(), NOW(), NOW()
+);
+
+-- Appointment 4: Single Registration - 3 days from now (Pending)
+INSERT INTO appointments (
+    appointment_number, type, appointment_date, time_slot_id, status,
+    contact_name, contact_email, contact_mobile, reference_code,
+    user_city, user_address,
+    created_by, created_at, updated_at
+) VALUES (
+    CONCAT('PSA-', DATE_FORMAT(NOW(), '%Y%m%d'), '-', LPAD(4, 5, '0')),
+    'single', DATE_ADD(CURDATE(), INTERVAL 3 DAY), 4, 'pending',
+    'Ana Lopez', 'ana.lopez@email.com', '09171234570',
+    CONCAT('REF-', UPPER(SUBSTRING(MD5(RAND()), 1, 10))),
+    'Cagayan de Oro', 'Zone 4, Barangay 5',
+    @created_by, NOW(), NOW()
+);
+
+SET @appointment_id = LAST_INSERT_ID();
+
+INSERT INTO appointment_clients (
+    client_number, appointment_id, first_name, middle_name, last_name, suffix,
+    sex, birthdate, service, requirements_acknowledged, acknowledged_at, created_at, updated_at
+) VALUES (
+    CONCAT('CLN-', DATE_FORMAT(NOW(), '%Y%m'), '-', LPAD(4, 5, '0')),
+    @appointment_id, 'Ana', 'Cruz', 'Lopez', NULL,
+    'Female', '1995-07-25', 'reg', TRUE, NOW(), NOW(), NOW()
+);
+
+-- Appointment 5: Single Completed - Yesterday
+INSERT INTO appointments (
+    appointment_number, type, appointment_date, time_slot_id, status,
+    contact_name, contact_email, contact_mobile, reference_code,
+    confirmed_at, completed_at, user_city, user_address,
+    created_by, created_at, updated_at
+) VALUES (
+    CONCAT('PSA-', DATE_FORMAT(DATE_SUB(NOW(), INTERVAL 1 DAY), '%Y%m%d'), '-', LPAD(5, 5, '0')),
+    'single', DATE_SUB(CURDATE(), INTERVAL 1 DAY), 5, 'completed',
+    'Pedro Fernandez', 'pedro.fernandez@email.com', '09171234571',
+    CONCAT('REF-', UPPER(SUBSTRING(MD5(RAND()), 1, 10))),
+    NOW(), NOW(), 'Cagayan de Oro', 'Zone 5, Barangay 12',
+    @created_by, NOW(), NOW()
+);
+
+SET @appointment_id = LAST_INSERT_ID();
+
+INSERT INTO appointment_clients (
+    client_number, appointment_id, first_name, middle_name, last_name, suffix,
+    sex, birthdate, service, requirements_acknowledged, acknowledged_at, created_at, updated_at
+) VALUES (
+    CONCAT('CLN-', DATE_FORMAT(DATE_SUB(NOW(), INTERVAL 1 DAY), '%Y%m'), '-', LPAD(5, 5, '0')),
+    @appointment_id, 'Pedro', 'Garcia', 'Fernandez', NULL,
+    'Male', '1982-12-01', 'reg', TRUE, NOW(), NOW(), NOW()
+);
+
+-- Appointment 6: Single Cancelled - 2 days ago
+INSERT INTO appointments (
+    appointment_number, type, appointment_date, time_slot_id, status,
+    contact_name, contact_email, contact_mobile, reference_code,
+    cancelled_at, cancellation_reason, user_city, user_address,
+    created_by, created_at, updated_at
+) VALUES (
+    CONCAT('PSA-', DATE_FORMAT(DATE_SUB(NOW(), INTERVAL 2 DAY), '%Y%m%d'), '-', LPAD(6, 5, '0')),
+    'single', DATE_SUB(CURDATE(), INTERVAL 2 DAY), 1, 'cancelled',
+    'Luzviminda Gomez', 'luz.gomez@email.com', '09171234572',
+    CONCAT('REF-', UPPER(SUBSTRING(MD5(RAND()), 1, 10))),
+    NOW(), 'Client requested cancellation', 'Cagayan de Oro', 'Zone 6, Barangay 20',
+    @created_by, NOW(), NOW()
+);
+
+SET @appointment_id = LAST_INSERT_ID();
+
+INSERT INTO appointment_clients (
+    client_number, appointment_id, first_name, middle_name, last_name, suffix,
+    sex, birthdate, service, requirements_acknowledged, acknowledged_at, created_at, updated_at
+) VALUES (
+    CONCAT('CLN-', DATE_FORMAT(DATE_SUB(NOW(), INTERVAL 2 DAY), '%Y%m'), '-', LPAD(6, 5, '0')),
+    @appointment_id, 'Luzviminda', 'Santos', 'Gomez', NULL,
+    'Female', '1992-08-14', 'inquiry', TRUE, NOW(), NOW(), NOW()
+);
+
+-- Appointment 7: Multiple - 2 clients (Registration + Updating) - Today (Confirmed)
+INSERT INTO appointments (
+    appointment_number, type, appointment_date, time_slot_id, status,
+    contact_name, contact_email, contact_mobile, reference_code,
+    user_city, user_address,
+    created_by, created_at, updated_at
+) VALUES (
+    CONCAT('PSA-', DATE_FORMAT(NOW(), '%Y%m%d'), '-', LPAD(7, 5, '0')),
+    'multiple', CURDATE(), 2, 'confirmed',
+    'Family Dela Cruz', 'family@delacruz.com', '09171234573',
+    CONCAT('REF-', UPPER(SUBSTRING(MD5(RAND()), 1, 10))),
+    'Cagayan de Oro', 'Zone 7, Barangay 3',
+    @created_by, NOW(), NOW()
+);
+
+SET @appointment_id = LAST_INSERT_ID();
+
+INSERT INTO appointment_clients (
+    client_number, appointment_id, first_name, middle_name, last_name, suffix,
+    sex, birthdate, service, requirements_acknowledged, acknowledged_at, created_at, updated_at
+) VALUES (
+    CONCAT('CLN-', DATE_FORMAT(NOW(), '%Y%m'), '-', LPAD(7, 5, '0')),
+    @appointment_id, 'Jose', 'Manuel', 'Dela Cruz', 'III',
+    'Male', '1995-01-15', 'reg', TRUE, NOW(), NOW(), NOW()
+);
+
+INSERT INTO appointment_clients (
+    client_number, appointment_id, first_name, middle_name, last_name, suffix,
+    sex, birthdate, service, requirements_acknowledged, acknowledged_at, created_at, updated_at
+) VALUES (
+    CONCAT('CLN-', DATE_FORMAT(NOW(), '%Y%m'), '-', LPAD(8, 5, '0')),
+    @appointment_id, 'Maria', 'Clara', 'Dela Cruz', NULL,
+    'Female', '1998-06-20', 'updating', TRUE, NOW(), NOW(), NOW()
+);
+
+-- Appointment 8: Multiple - 3 clients - Tomorrow (Confirmed)
+INSERT INTO appointments (
+    appointment_number, type, appointment_date, time_slot_id, status,
+    contact_name, contact_email, contact_mobile, reference_code,
+    user_city, user_address,
+    created_by, created_at, updated_at
+) VALUES (
+    CONCAT('PSA-', DATE_FORMAT(NOW(), '%Y%m%d'), '-', LPAD(8, 5, '0')),
+    'multiple', DATE_ADD(CURDATE(), INTERVAL 1 DAY), 3, 'confirmed',
+    'Santos Family', 'family@santos.com', '09171234574',
+    CONCAT('REF-', UPPER(SUBSTRING(MD5(RAND()), 1, 10))),
+    'Cagayan de Oro', 'Zone 8, Barangay 17',
+    @created_by, NOW(), NOW()
+);
+
+SET @appointment_id = LAST_INSERT_ID();
+
+INSERT INTO appointment_clients (
+    client_number, appointment_id, first_name, middle_name, last_name, suffix,
+    sex, birthdate, service, requirements_acknowledged, acknowledged_at, created_at, updated_at
+) VALUES (
+    CONCAT('CLN-', DATE_FORMAT(NOW(), '%Y%m'), '-', LPAD(9, 5, '0')),
+    @appointment_id, 'Ramon', 'A.', 'Santos', NULL,
+    'Male', '1980-03-10', 'reg', TRUE, NOW(), NOW(), NOW()
+);
+
+INSERT INTO appointment_clients (
+    client_number, appointment_id, first_name, middle_name, last_name, suffix,
+    sex, birthdate, service, requirements_acknowledged, acknowledged_at, created_at, updated_at
+) VALUES (
+    CONCAT('CLN-', DATE_FORMAT(NOW(), '%Y%m'), '-', LPAD(10, 5, '0')),
+    @appointment_id, 'Elena', 'R.', 'Santos', NULL,
+    'Female', '1982-07-15', 'updating', TRUE, NOW(), NOW(), NOW()
+);
+
+INSERT INTO appointment_clients (
+    client_number, appointment_id, first_name, middle_name, last_name, suffix,
+    sex, birthdate, service, requirements_acknowledged, acknowledged_at, created_at, updated_at
+) VALUES (
+    CONCAT('CLN-', DATE_FORMAT(NOW(), '%Y%m'), '-', LPAD(11, 5, '0')),
+    @appointment_id, 'Ricardo', 'M.', 'Santos', 'Jr.',
+    'Male', '2005-11-25', 'inquiry', TRUE, NOW(), NOW(), NOW()
+);
+
+-- Appointment 9: Multiple - 4 clients - 2 days from now (Pending)
+INSERT INTO appointments (
+    appointment_number, type, appointment_date, time_slot_id, status,
+    contact_name, contact_email, contact_mobile, reference_code,
+    user_city, user_address,
+    created_by, created_at, updated_at
+) VALUES (
+    CONCAT('PSA-', DATE_FORMAT(NOW(), '%Y%m%d'), '-', LPAD(9, 5, '0')),
+    'multiple', DATE_ADD(CURDATE(), INTERVAL 2 DAY), 4, 'pending',
+    'Reyes Family', 'family@reyes.com', '09171234575',
+    CONCAT('REF-', UPPER(SUBSTRING(MD5(RAND()), 1, 10))),
+    'Cagayan de Oro', 'Zone 9, Barangay 28',
+    @created_by, NOW(), NOW()
+);
+
+SET @appointment_id = LAST_INSERT_ID();
+
+INSERT INTO appointment_clients (
+    client_number, appointment_id, first_name, middle_name, last_name, suffix,
+    sex, birthdate, service, requirements_acknowledged, acknowledged_at, created_at, updated_at
+) VALUES (
+    CONCAT('CLN-', DATE_FORMAT(NOW(), '%Y%m'), '-', LPAD(12, 5, '0')),
+    @appointment_id, 'Andres', 'Bonifacio', 'Reyes', NULL,
+    'Male', '1975-11-30', 'reg', TRUE, NOW(), NOW(), NOW()
+);
+
+INSERT INTO appointment_clients (
+    client_number, appointment_id, first_name, middle_name, last_name, suffix,
+    sex, birthdate, service, requirements_acknowledged, acknowledged_at, created_at, updated_at
+) VALUES (
+    CONCAT('CLN-', DATE_FORMAT(NOW(), '%Y%m'), '-', LPAD(13, 5, '0')),
+    @appointment_id, 'Gabriela', 'Silang', 'Reyes', NULL,
+    'Female', '1978-03-19', 'updating', TRUE, NOW(), NOW(), NOW()
+);
+
+INSERT INTO appointment_clients (
+    client_number, appointment_id, first_name, middle_name, last_name, suffix,
+    sex, birthdate, service, requirements_acknowledged, acknowledged_at, created_at, updated_at
+) VALUES (
+    CONCAT('CLN-', DATE_FORMAT(NOW(), '%Y%m'), '-', LPAD(14, 5, '0')),
+    @appointment_id, 'Jose', 'Protacio', 'Rizal', NULL,
+    'Male', '1961-06-19', 'inquiry', TRUE, NOW(), NOW(), NOW()
+);
+
+INSERT INTO appointment_clients (
+    client_number, appointment_id, first_name, middle_name, last_name, suffix,
+    sex, birthdate, service, requirements_acknowledged, acknowledged_at, created_at, updated_at
+) VALUES (
+    CONCAT('CLN-', DATE_FORMAT(NOW(), '%Y%m'), '-', LPAD(15, 5, '0')),
+    @appointment_id, 'Melchora', 'Aquino', 'Reyes', 'Sr.',
+    'Female', '1965-01-06', 'reg', TRUE, NOW(), NOW(), NOW()
+);
+
+-- Appointment 10: Multiple - 2 clients with TRN - 3 days from now (Pending)
+INSERT INTO appointments (
+    appointment_number, type, appointment_date, time_slot_id, status,
+    contact_name, contact_email, contact_mobile, reference_code,
+    user_city, user_address,
+    created_by, created_at, updated_at
+) VALUES (
+    CONCAT('PSA-', DATE_FORMAT(NOW(), '%Y%m%d'), '-', LPAD(10, 5, '0')),
+    'multiple', DATE_ADD(CURDATE(), INTERVAL 3 DAY), 5, 'pending',
+    'Technical Support', 'support@company.com', '09171234576',
+    CONCAT('REF-', UPPER(SUBSTRING(MD5(RAND()), 1, 10))),
+    'Cagayan de Oro', 'Zone 10, Barangay 42',
+    @created_by, NOW(), NOW()
+);
+
+SET @appointment_id = LAST_INSERT_ID();
+
+INSERT INTO appointment_clients (
+    client_number, appointment_id, first_name, middle_name, last_name, suffix,
+    sex, birthdate, service, has_trn, trn_number,
+    requirements_acknowledged, acknowledged_at, created_at, updated_at
+) VALUES (
+    CONCAT('CLN-', DATE_FORMAT(NOW(), '%Y%m'), '-', LPAD(16, 5, '0')),
+    @appointment_id, 'Technical', 'Support', 'User1', NULL,
+    'Male', '1990-01-01', 'inquiry', TRUE, '12345678901234567890123456789',
+    TRUE, NOW(), NOW(), NOW()
+);
+
+INSERT INTO appointment_clients (
+    client_number, appointment_id, first_name, middle_name, last_name, suffix,
+    sex, birthdate, service, has_trn, trn_number,
+    requirements_acknowledged, acknowledged_at, created_at, updated_at
+) VALUES (
+    CONCAT('CLN-', DATE_FORMAT(NOW(), '%Y%m'), '-', LPAD(17, 5, '0')),
+    @appointment_id, 'Technical', 'Support', 'User2', NULL,
+    'Female', '1995-01-01', 'inquiry', FALSE, NULL,
+    TRUE, NOW(), NOW(), NOW()
+);
+
+-- =====================================================
+-- PART 2: ADD MORE TODAY APPOINTMENTS WITH PENDING STATUS
+-- =====================================================
+
+-- Get the last appointment number counter
+SET @last_num = (SELECT COALESCE(MAX(CAST(SUBSTRING_INDEX(appointment_number, '-', -1) AS UNSIGNED)), 10) 
+                 FROM appointments WHERE appointment_number LIKE CONCAT('PSA-', DATE_FORMAT(NOW(), '%Y%m%d'), '-%'));
+
+-- =====================================================
+-- TODAY APPOINTMENT 11: Single Registration - Pending
+-- =====================================================
+SET @counter = @last_num + 1;
+INSERT INTO appointments (
+    appointment_number, type, appointment_date, time_slot_id, status,
+    contact_name, contact_email, contact_mobile, reference_code,
+    user_city, user_address,
+    created_by, created_at, updated_at
+) VALUES (
+    CONCAT('PSA-', DATE_FORMAT(NOW(), '%Y%m%d'), '-', LPAD(@counter, 5, '0')),
+    'single', CURDATE(), 1, 'pending',
+    'Roberto Gomez', 'roberto.gomez@email.com', '09171234577',
+    CONCAT('REF-', UPPER(SUBSTRING(MD5(RAND()), 1, 10))),
+    'Cagayan de Oro', 'Zone 11, Barangay 23',
+    @created_by, NOW(), NOW()
+);
+
+SET @appointment_id = LAST_INSERT_ID();
+
+INSERT INTO appointment_clients (
+    client_number, appointment_id, first_name, middle_name, last_name, suffix,
+    sex, birthdate, service, requirements_acknowledged, acknowledged_at, created_at, updated_at
+) VALUES (
+    CONCAT('CLN-', DATE_FORMAT(NOW(), '%Y%m'), '-', LPAD(100, 5, '0')),
+    @appointment_id, 'Roberto', 'M.', 'Gomez', NULL,
+    'Male', '1985-02-14', 'reg', TRUE, NOW(), NOW(), NOW()
+);
+
+-- =====================================================
+-- TODAY APPOINTMENT 12: Single Updating - Pending
+-- =====================================================
+SET @counter = @counter + 1;
+INSERT INTO appointments (
+    appointment_number, type, appointment_date, time_slot_id, status,
+    contact_name, contact_email, contact_mobile, reference_code,
+    user_city, user_address,
+    created_by, created_at, updated_at
+) VALUES (
+    CONCAT('PSA-', DATE_FORMAT(NOW(), '%Y%m%d'), '-', LPAD(@counter, 5, '0')),
+    'single', CURDATE(), 2, 'pending',
+    'Isabella Cruz', 'isabella.cruz@email.com', '09171234578',
+    CONCAT('REF-', UPPER(SUBSTRING(MD5(RAND()), 1, 10))),
+    'Cagayan de Oro', 'Zone 12, Barangay 15',
+    @created_by, NOW(), NOW()
+);
+
+SET @appointment_id = LAST_INSERT_ID();
+
+INSERT INTO appointment_clients (
+    client_number, appointment_id, first_name, middle_name, last_name, suffix,
+    sex, birthdate, service, requirements_acknowledged, acknowledged_at, created_at, updated_at
+) VALUES (
+    CONCAT('CLN-', DATE_FORMAT(NOW(), '%Y%m'), '-', LPAD(101, 5, '0')),
+    @appointment_id, 'Isabella', 'R.', 'Cruz', NULL,
+    'Female', '1992-07-22', 'updating', TRUE, NOW(), NOW(), NOW()
+);
+
+-- =====================================================
+-- TODAY APPOINTMENT 13: Single Inquiry with TRN - Pending
+-- =====================================================
+SET @counter = @counter + 1;
+INSERT INTO appointments (
+    appointment_number, type, appointment_date, time_slot_id, status,
+    contact_name, contact_email, contact_mobile, reference_code,
+    user_city, user_address,
+    created_by, created_at, updated_at
+) VALUES (
+    CONCAT('PSA-', DATE_FORMAT(NOW(), '%Y%m%d'), '-', LPAD(@counter, 5, '0')),
+    'single', CURDATE(), 3, 'pending',
+    'Fernando Lopez', 'fernando.lopez@email.com', '09171234579',
+    CONCAT('REF-', UPPER(SUBSTRING(MD5(RAND()), 1, 10))),
+    'Cagayan de Oro', 'Zone 13, Barangay 8',
+    @created_by, NOW(), NOW()
+);
+
+SET @appointment_id = LAST_INSERT_ID();
+
+INSERT INTO appointment_clients (
+    client_number, appointment_id, first_name, middle_name, last_name, suffix,
+    sex, birthdate, service, has_trn, trn_number,
+    requirements_acknowledged, acknowledged_at, created_at, updated_at
+) VALUES (
+    CONCAT('CLN-', DATE_FORMAT(NOW(), '%Y%m'), '-', LPAD(102, 5, '0')),
+    @appointment_id, 'Fernando', 'D.', 'Lopez', NULL,
+    'Male', '1988-11-30', 'inquiry', TRUE, '12345678901234567890123456789',
+    TRUE, NOW(), NOW(), NOW()
+);
+
+-- =====================================================
+-- TODAY APPOINTMENT 14: Multiple - 2 clients - Pending
+-- =====================================================
+SET @counter = @counter + 1;
+INSERT INTO appointments (
+    appointment_number, type, appointment_date, time_slot_id, status,
+    contact_name, contact_email, contact_mobile, reference_code,
+    user_city, user_address,
+    created_by, created_at, updated_at
+) VALUES (
+    CONCAT('PSA-', DATE_FORMAT(NOW(), '%Y%m%d'), '-', LPAD(@counter, 5, '0')),
+    'multiple', CURDATE(), 4, 'pending',
+    'Mendoza Family', 'family@mendoza.com', '09171234580',
+    CONCAT('REF-', UPPER(SUBSTRING(MD5(RAND()), 1, 10))),
+    'Cagayan de Oro', 'Zone 14, Barangay 5',
+    @created_by, NOW(), NOW()
+);
+
+SET @appointment_id = LAST_INSERT_ID();
+
+INSERT INTO appointment_clients (
+    client_number, appointment_id, first_name, middle_name, last_name, suffix,
+    sex, birthdate, service, requirements_acknowledged, acknowledged_at, created_at, updated_at
+) VALUES (
+    CONCAT('CLN-', DATE_FORMAT(NOW(), '%Y%m'), '-', LPAD(103, 5, '0')),
+    @appointment_id, 'Antonio', 'C.', 'Mendoza', NULL,
+    'Male', '1978-09-12', 'reg', TRUE, NOW(), NOW(), NOW()
+);
+
+INSERT INTO appointment_clients (
+    client_number, appointment_id, first_name, middle_name, last_name, suffix,
+    sex, birthdate, service, requirements_acknowledged, acknowledged_at, created_at, updated_at
+) VALUES (
+    CONCAT('CLN-', DATE_FORMAT(NOW(), '%Y%m'), '-', LPAD(104, 5, '0')),
+    @appointment_id, 'Teresita', 'R.', 'Mendoza', NULL,
+    'Female', '1980-04-18', 'updating', TRUE, NOW(), NOW(), NOW()
+);
+
+-- =====================================================
+-- TODAY APPOINTMENT 15: Multiple - 3 clients - Pending
+-- =====================================================
+SET @counter = @counter + 1;
+INSERT INTO appointments (
+    appointment_number, type, appointment_date, time_slot_id, status,
+    contact_name, contact_email, contact_mobile, reference_code,
+    user_city, user_address,
+    created_by, created_at, updated_at
+) VALUES (
+    CONCAT('PSA-', DATE_FORMAT(NOW(), '%Y%m%d'), '-', LPAD(@counter, 5, '0')),
+    'multiple', CURDATE(), 5, 'pending',
+    'Villanueva Group', 'group@villanueva.com', '09171234581',
+    CONCAT('REF-', UPPER(SUBSTRING(MD5(RAND()), 1, 10))),
+    'Cagayan de Oro', 'Zone 15, Barangay 12',
+    @created_by, NOW(), NOW()
+);
+
+SET @appointment_id = LAST_INSERT_ID();
+
+INSERT INTO appointment_clients (
+    client_number, appointment_id, first_name, middle_name, last_name, suffix,
+    sex, birthdate, service, requirements_acknowledged, acknowledged_at, created_at, updated_at
+) VALUES (
+    CONCAT('CLN-', DATE_FORMAT(NOW(), '%Y%m'), '-', LPAD(105, 5, '0')),
+    @appointment_id, 'Ramon', 'V.', 'Villanueva', 'Sr.',
+    'Male', '1975-06-25', 'reg', TRUE, NOW(), NOW(), NOW()
+);
+
+INSERT INTO appointment_clients (
+    client_number, appointment_id, first_name, middle_name, last_name, suffix,
+    sex, birthdate, service, requirements_acknowledged, acknowledged_at, created_at, updated_at
+) VALUES (
+    CONCAT('CLN-', DATE_FORMAT(NOW(), '%Y%m'), '-', LPAD(106, 5, '0')),
+    @appointment_id, 'Luz', 'M.', 'Villanueva', NULL,
+    'Female', '1978-11-03', 'updating', TRUE, NOW(), NOW(), NOW()
+);
+
+INSERT INTO appointment_clients (
+    client_number, appointment_id, first_name, middle_name, last_name, suffix,
+    sex, birthdate, service, has_trn, trn_number,
+    requirements_acknowledged, acknowledged_at, created_at, updated_at
+) VALUES (
+    CONCAT('CLN-', DATE_FORMAT(NOW(), '%Y%m'), '-', LPAD(107, 5, '0')),
+    @appointment_id, 'Mario', 'P.', 'Villanueva', 'Jr.',
+    'Male', '2000-08-20', 'inquiry', FALSE, NULL,
+    TRUE, NOW(), NOW(), NOW()
+);
+
+-- =====================================================
+-- VERIFY ALL INSERTED DATA
+-- =====================================================
+
+-- Check all appointments
+SELECT 
+    id, appointment_number, type, appointment_date, time_slot_id, 
+    status, contact_name, reference_code, created_at
+FROM appointments
+ORDER BY appointment_date DESC, id DESC;
+
+-- Check all clients with their appointments
+SELECT 
+    ac.id, ac.client_number, ac.first_name, ac.last_name, ac.service,
+    a.appointment_number, a.appointment_date, a.status
+FROM appointment_clients ac
+JOIN appointments a ON ac.appointment_id = a.id
+ORDER BY a.appointment_date DESC, ac.id;
+
+-- Summary counts
+SELECT 'Total Appointments' as Metric, COUNT(*) as Count FROM appointments
+UNION ALL
+SELECT 'Single Appointments', COUNT(*) FROM appointments WHERE type = 'single'
+UNION ALL
+SELECT 'Multiple Appointments', COUNT(*) FROM appointments WHERE type = 'multiple'
+UNION ALL
+SELECT 'Total Clients', COUNT(*) FROM appointment_clients
+UNION ALL
+SELECT 'Pending', COUNT(*) FROM appointments WHERE status = 'pending'
+UNION ALL
+SELECT 'Confirmed', COUNT(*) FROM appointments WHERE status = 'confirmed'
+UNION ALL
+SELECT 'Completed', COUNT(*) FROM appointments WHERE status = 'completed'
+UNION ALL
+SELECT 'Cancelled', COUNT(*) FROM appointments WHERE status = 'cancelled';
+
+-- Summary of today's appointments by status
+SELECT 
+    status,
+    COUNT(*) as count,
+    SUM(CASE WHEN type = 'single' THEN 1 ELSE 0 END) as single_appointments,
+    SUM(CASE WHEN type = 'multiple' THEN 1 ELSE 0 END) as multiple_appointments
+FROM appointments
+WHERE appointment_date = CURDATE()
+GROUP BY status;

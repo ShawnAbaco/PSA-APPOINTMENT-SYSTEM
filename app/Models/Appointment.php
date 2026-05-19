@@ -1,4 +1,5 @@
 <?php
+// app/Models/Appointment.php
 
 namespace App\Models;
 
@@ -14,7 +15,7 @@ class Appointment extends Model
         'appointment_number',
         'type',
         'appointment_date',
-        'appointment_time',
+        'time_slot_id',
         'status',
         'contact_name',
         'contact_email',
@@ -28,21 +29,32 @@ class Appointment extends Model
         'processed_by',
         'notes',
         'metadata',
+        'user_lat',
+        'user_lng',
+        'user_city',
+        'user_address',
+        'user_zipcode',
     ];
 
     protected $casts = [
         'appointment_date' => 'date',
-        'appointment_time' => 'datetime',
         'confirmed_at' => 'datetime',
         'cancelled_at' => 'datetime',
         'completed_at' => 'datetime',
         'metadata' => 'array',
+        'user_lat' => 'decimal:8',
+        'user_lng' => 'decimal:8',
     ];
 
     // Relationships
     public function clients()
     {
         return $this->hasMany(AppointmentClient::class);
+    }
+
+    public function timeSlot()
+    {
+        return $this->belongsTo(TimeSlot::class);
     }
 
     public function createdBy()
@@ -56,47 +68,17 @@ class Appointment extends Model
     }
 
     // Scopes
-    public function scopePending($query)
-    {
-        return $query->where('status', 'pending');
-    }
-
-    public function scopeConfirmed($query)
-    {
-        return $query->where('status', 'confirmed');
-    }
-
-    public function scopeCompleted($query)
-    {
-        return $query->where('status', 'completed');
-    }
-
-    public function scopeCancelled($query)
-    {
-        return $query->where('status', 'cancelled');
-    }
-
     public function scopeToday($query)
     {
-        return $query->whereDate('appointment_date', now()->toDateString());
+        return $query->whereDate('appointment_date', now());
     }
 
-    // Helper methods
-    public function isPending()
+    public function scopeStatus($query, $status)
     {
-        return $this->status === 'pending';
+        return $query->where('status', $status);
     }
 
-    public function isConfirmed()
-    {
-        return $this->status === 'confirmed';
-    }
-
-    public function isCompleted()
-    {
-        return $this->status === 'completed';
-    }
-
+    // Helpers
     public function isCancelled()
     {
         return $this->status === 'cancelled';

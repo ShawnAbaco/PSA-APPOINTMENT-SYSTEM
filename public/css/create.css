@@ -1,0 +1,577 @@
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            overflow: hidden;
+            padding: 20px;
+        }
+
+        /* CANVAS BACKGROUND */
+        #canvas-bg {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 0;
+            display: block;
+        }
+
+        .vignette {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(ellipse at center, transparent 5%, rgba(0, 0, 0, 0.842) 100%);
+            z-index: 1;
+            pointer-events: none;
+        }
+
+        :root {
+            --psa-red: #CE1126;
+            --psa-blue: #0038A8;
+            --psa-yellow: #FCD116;
+        }
+
+        /* PSA Arrow Style Overlay - Animated Diagonal Stripes */
+        .overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            width: 100%;
+            background:
+                linear-gradient(45deg,
+                    transparent 0%,
+                    transparent 45%,
+                    var(--psa-yellow) 45%,
+                    var(--psa-yellow) 55%,
+                    transparent 55%,
+                    transparent 100%),
+                linear-gradient(135deg,
+                    var(--psa-red) 0%,
+                    var(--psa-red) 30%,
+                    transparent 30%,
+                    transparent 70%,
+                    var(--psa-blue) 70%,
+                    var(--psa-blue) 100%);
+            opacity: 0.15;
+            pointer-events: none;
+            z-index: 2;
+            animation: arrowMove 15s ease-in-out infinite;
+        }
+
+        @keyframes arrowMove {
+
+            0%,
+            100% {
+                transform: translate(0, 0) rotate(0deg);
+            }
+
+            33% {
+                transform: translate(2%, 2%) rotate(2deg);
+            }
+
+            66% {
+                transform: translate(-2%, -2%) rotate(-2deg);
+            }
+        }
+
+        /* Gradient overlay for depth */
+        .gradient-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(circle at 20% 30%, rgba(206, 17, 38, 0.12), rgba(0, 56, 168, 0.18));
+            pointer-events: none;
+            z-index: 1;
+            animation: slowBreathing 8s ease-in-out infinite;
+        }
+
+        @keyframes slowBreathing {
+
+            0%,
+            100% {
+                opacity: 0.5;
+            }
+
+            50% {
+                opacity: 1;
+            }
+        }
+
+        /* REGISTER CARD */
+        .register-wrapper {
+            position: relative;
+            z-index: 20;
+            width: 100%;
+            max-width: 520px;
+            margin: 0 auto;
+            animation: fadeSlideUp 0.7s cubic-bezier(0.2, 0.9, 0.4, 1.1);
+        }
+
+        @keyframes fadeSlideUp {
+            0% {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+
+            100% {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .register-card {
+            background: rgba(255, 255, 255, 0.97);
+            backdrop-filter: blur(12px);
+            border-radius: 48px;
+            padding: 0px 38px;
+            box-shadow: 0 35px 70px -20px rgba(0, 0, 0, 0.4), 0 0 0 1px rgba(206, 17, 38, 0.2);
+            transition: transform 0.35s ease, box-shadow 0.35s ease;
+        }
+
+        .register-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 45px 80px -20px rgba(0, 0, 0, 0.5);
+        }
+
+        .register-header {
+            text-align: center;
+            margin-bottom: 36px;
+        }
+
+        .logo-container {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 20px;
+        }
+
+        .psa-logo-img {
+            width: 521px;
+            height: 100px;
+            background: linear-gradient(0deg, #615c5c, #ffffff00);
+            object-fit: contain;
+            filter: drop-shadow(0 8px 16px rgba(0, 0, 0, 0.15));
+            transition: transform 0.25s ease;
+        }
+
+        .brand-title {
+            font-size: 30px;
+            font-weight: 800;
+            background: linear-gradient(135deg, #0B1E4E, #CE1126);
+            background-clip: text;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 8px;
+            letter-spacing: -0.5px;
+        }
+
+        .subtitle {
+            color: #5a6e8a;
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+        /* Alert styles */
+        .alert-message {
+            background: #FEF2F2;
+            border-left: 5px solid #CE1126;
+            border-radius: 28px;
+            padding: 14px 20px;
+            margin-bottom: 28px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-size: 13px;
+            font-weight: 600;
+            color: #991B1B;
+            animation: gentleShake 0.4s ease;
+        }
+
+        .alert-success {
+            background: #E6F7EC;
+            border-left-color: #2E7D32;
+            color: #1B5E20;
+        }
+
+        @keyframes gentleShake {
+
+            0%,
+            100% {
+                transform: translateX(0);
+            }
+
+            30% {
+                transform: translateX(-4px);
+            }
+
+            60% {
+                transform: translateX(4px);
+            }
+        }
+
+        /* Form inputs */
+        .input-group {
+            position: relative;
+            margin-bottom: 28px;
+        }
+
+        .input-icon {
+            position: absolute;
+            left: 18px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #8A99B4;
+            font-size: 18px;
+            pointer-events: none;
+            z-index: 2;
+            transition: color 0.2s;
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 17px 20px 17px 52px;
+            font-size: 15px;
+            font-weight: 500;
+            border: 2px solid #E9EDF2;
+            border-radius: 40px;
+            background: #FFFFFF;
+            transition: all 0.25s ease;
+            font-family: 'Inter', sans-serif;
+            color: #1E293B;
+        }
+
+        .form-control:focus {
+            outline: none;
+            border-color: #CE1126;
+            box-shadow: 0 0 0 5px rgba(206, 17, 38, 0.12);
+        }
+
+        .floating-label {
+            position: absolute;
+            left: 40px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: transparent;
+            padding: 0 6px;
+            color: #8A99B4;
+            font-size: 18px;
+            font-weight: 500;
+            pointer-events: none;
+            transition: all 0.2s ease;
+            white-space: nowrap;
+        }
+
+        .form-control:focus+.floating-label,
+        .form-control:not(:placeholder-shown)+.floating-label {
+            transform: translateY(-32px) translateX(-12px) scale(0.85);
+            background: white;
+            color: #CE1126;
+            border-radius: 12px;
+            font-weight: 600;
+        }
+
+        .password-toggle {
+            position: absolute;
+            right: 18px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: transparent;
+            border: none;
+            cursor: pointer;
+            color: #8A99B4;
+            font-size: 18px;
+            padding: 0;
+            z-index: 3;
+            transition: color 0.2s;
+        }
+
+        .password-toggle:hover {
+            color: #CE1126;
+        }
+
+        /* Required field indicator */
+        .required-field::after {
+            content: '*';
+            color: #CE1126;
+            margin-left: 4px;
+        }
+
+        .btn-register {
+            width: 100%;
+            background: linear-gradient(105deg, #CE1126, #A31F34);
+            border: none;
+            padding: 16px 22px;
+            border-radius: 50px;
+            color: white;
+            font-weight: 800;
+            font-size: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.2, 0.9, 0.4, 1.1);
+            box-shadow: 0 12px 24px -14px rgba(206, 17, 38, 0.45);
+            margin-bottom: 30px;
+            letter-spacing: 0.8px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn-register::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+            transition: left 0.5s ease;
+        }
+
+        .btn-register:hover::before {
+            left: 100%;
+        }
+
+        .btn-register:hover {
+            transform: translateY(-3px);
+            background: linear-gradient(105deg, #E31B23, #CE1126);
+            box-shadow: 0 18px 30px -12px #CE1126;
+        }
+
+        .btn-register:active {
+            transform: translateY(1px);
+        }
+
+        .btn-register i {
+            transition: transform 0.2s;
+        }
+
+        .btn-register:hover i {
+            transform: translateX(5px);
+        }
+
+        .login-link {
+            text-align: center;
+            margin-top: 16px;
+            font-size: 13px;
+            font-weight: 600;
+        }
+
+        .login-link a {
+            color: #0038A8;
+            text-decoration: none;
+            font-weight: 800;
+            transition: color 0.2s;
+        }
+
+        .login-link a:hover {
+            color: #CE1126;
+            text-decoration: underline;
+        }
+
+        .footer-note {
+            text-align: center;
+            margin-top: 24px;
+            font-size: 11px;
+            color: #7C8BA0;
+            display: flex;
+            justify-content: center;
+            gap: 12px;
+        }
+
+        /* Password strength indicator */
+        .password-strength {
+            margin-top: 8px;
+            margin-bottom: 16px;
+            margin-left: 12px;
+            font-size: 11px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .strength-bar {
+            width: 60px;
+            height: 4px;
+            background: #E2E8F0;
+            border-radius: 4px;
+            overflow: hidden;
+        }
+
+        .strength-fill {
+            height: 100%;
+            width: 0%;
+            transition: width 0.2s, background 0.2s;
+        }
+
+        /* ========== PSA BRANDED LOADING STATE ========== */
+        .psa-loader-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.85);
+            backdrop-filter: blur(8px);
+            z-index: 10000;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+        }
+
+        .psa-loader-modal.show {
+            display: flex;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .psa-loader-container {
+            padding: 35px 40px;
+            text-align: center;
+            position: relative;
+        }
+
+        .psa-loader-logo {
+            width: 100px;
+            height: 100px;
+            object-fit: contain;
+            animation: psaSpin 1.2s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+            filter: drop-shadow(0 0 10px rgba(252, 209, 22, 0.5));
+        }
+
+        @keyframes psaSpin {
+            0% {
+                transform: rotate(0deg) scale(1);
+            }
+
+            50% {
+                transform: rotate(180deg) scale(1.08);
+            }
+
+            100% {
+                transform: rotate(360deg) scale(1);
+            }
+        }
+
+        /* Pulsing ring effect around logo */
+        .psa-loader-container::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 140px;
+            height: 140px;
+            margin-left: -70px;
+            margin-top: -70px;
+            border-radius: 50%;
+            background: transparent;
+            border: 2px solid rgba(252, 209, 22, 0.4);
+            animation: pulseRing 1.5s ease-out infinite;
+            pointer-events: none;
+        }
+
+        @keyframes pulseRing {
+            0% {
+                transform: scale(0.8);
+                opacity: 0.6;
+            }
+
+            100% {
+                transform: scale(1.4);
+                opacity: 0;
+            }
+        }
+
+        .psa-loader-text {
+            color: white;
+            margin-top: 25px;
+            font-weight: 600;
+            letter-spacing: 1px;
+            font-size: 1rem;
+            background: linear-gradient(135deg, #FFE6B0, #FFD966);
+            background-clip: text;
+            -webkit-background-clip: text;
+            color: transparent;
+        }
+
+        .psa-loader-subtext {
+            color: rgba(255, 255, 255, 0.7);
+            font-size: 0.75rem;
+            margin-top: 8px;
+            font-weight: 400;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+
+            to {
+                opacity: 1;
+            }
+        }
+
+        @media (max-width: 550px) {
+            .register-card {
+                padding: 32px 24px;
+                border-radius: 36px;
+            }
+
+            .brand-title {
+                font-size: 26px;
+            }
+
+            .form-control {
+                padding: 15px 15px 15px 50px;
+                font-size: 14px;
+            }
+
+            .floating-label {
+                left: 50px;
+                font-size: 14px;
+            }
+
+            .form-control:focus+.floating-label,
+            .form-control:not(:placeholder-shown)+.floating-label {
+                transform: translateY(-30px) translateX(-10px) scale(0.82);
+            }
+
+            .btn-register {
+                padding: 14px 18px;
+                font-size: 15px;
+            }
+
+            .psa-logo-img {
+                width: 460px;
+                height: 100px;
+            }
+
+            .psa-loader-logo {
+                width: 75px;
+                height: 75px;
+            }
+
+            .psa-loader-container {
+                padding: 25px 30px;
+            }
+
+            .psa-loader-text {
+                font-size: 0.85rem;
+            }
+        }

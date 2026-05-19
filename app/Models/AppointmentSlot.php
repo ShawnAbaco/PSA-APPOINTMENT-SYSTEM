@@ -1,63 +1,34 @@
 <?php
+// app/Models/AppointmentSlot.php
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Carbon\Carbon;
 
 class AppointmentSlot extends Model
 {
-    protected $table = 'appointment_slots';
+    use HasFactory;
 
     protected $fillable = [
         'date',
-        'total_capacity',
-        'booked_count',
-        'available_count',
-        'time_slots',
-        'is_holiday',
-        'is_special_non_working',
+        'time_slot_id',
+        'day_type',
         'notes',
-        'created_by'
+        'created_by',
     ];
 
     protected $casts = [
         'date' => 'date',
-        'time_slots' => 'array',
-        'is_holiday' => 'boolean',
-        'is_special_non_working' => 'boolean',
     ];
 
-    /**
-     * Get available slots for a specific date
-     */
-    public static function getAvailableSlots($date, $defaultCapacity = 20)
+    public function timeSlot()
     {
-        $slot = static::where('date', $date)->first();
-        
-        if (!$slot) {
-            return $defaultCapacity;
-        }
-        
-        if ($slot->is_holiday || $slot->is_special_non_working) {
-            return 0;
-        }
-        
-        return $slot->available_count ?? ($slot->total_capacity - $slot->booked_count);
+        return $this->belongsTo(TimeSlot::class);
     }
-    
-    /**
-     * Check if date is bookable
-     */
-    public static function isBookable($date, $clientCount = 1)
+
+    public function creator()
     {
-        $slot = static::where('date', $date)->first();
-        
-        if ($slot && ($slot->is_holiday || $slot->is_special_non_working)) {
-            return false;
-        }
-        
-        $availableSlots = self::getAvailableSlots($date);
-        return $availableSlots >= $clientCount;
+        return $this->belongsTo(User::class, 'created_by');
     }
 }

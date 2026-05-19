@@ -7,20 +7,35 @@
     <meta name="viewport"
         content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes, viewport-fit=cover">
     <meta name="csrf-token" content="{{ csrf_token() }}">
-    <title>PhilSys · National ID Appointment</title>
+    <title>National ID Appointment System</title>
     <link rel="icon" type="image/png" sizes="32x32" href="{{ asset('images/psa.png') }}">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <link rel="stylesheet" href="{{ asset('css/appointment.css') }}">
+    <!-- SweetAlert2 CSS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
+
+    <!-- Pass service options from controller to JavaScript -->
+    <script>
+        window.serviceOptions = {
+            'reg': 'National ID Registration',
+            'updating': 'Correction/Updating',
+            'inquiry': 'Status Inquiry / Retrieval Of TRN / Other Concern'
+        };
+        window.identityReminders = {
+            'reg': 'The person named below must be the one registering for the National ID.',
+            'updating': 'The person named below must be one of the parents or the authorized representative requesting the correction/update.',
+            'inquiry': 'The person named below must be the one requesting status inquiry, TRN retrieval, or other concern.'
+        };
+    </script>
 </head>
 
 <body>
-
     <!-- PRIVACY NOTICE MODAL -->
     <div class="privacy-overlay" id="privacyModal">
         <div class="privacy-modal">
             <h2>Privacy Notice</h2>
             <p>This system collects and processes limited personal information solely for the purpose of scheduling,
-                managing, and confirming National ID System appointments, in accordance with the <span
+                managing, and confirming National ID Appointment System, in accordance with the <span
                     class="legal-ref">Data Privacy Act of 2012 (RA 10173)</span> and applicable Philippine Statistics
                 Authority (PSA) policies.</p>
             <p>The personal data collected include your full name, email address or mobile number, selected service, and
@@ -41,7 +56,7 @@
     </div>
 
     <!-- REQUIREMENTS MODAL -->
-    <div class="modal-overlay" id="reqModal">
+    <div class="modal-overlay" id="reqModal" style="display: none;">
         <div class="modal-content">
             <div class="modal-header">
                 <h3 id="modalServiceTitle">Requirements</h3>
@@ -52,257 +67,176 @@
         </div>
     </div>
 
-    <!-- SUCCESS MODAL -->
-    <div class="modal-overlay" id="successModal">
-        <div class="modal-content" style="max-width: 600px; text-align: center;">
-            <div class="modal-header">
-                <h3 style="color: var(--success);"><i class="fas fa-check-circle"></i> Appointment Confirmed!</h3>
-                <span class="close-modal" id="closeSuccessModal">&times;</span>
-            </div>
-            <div id="successBody" style="padding: 20px;">
-                <p>Your appointment has been successfully booked.</p>
-                <div id="successDetails"></div>
-                <div style="display: flex; gap: 10px; justify-content: center; margin-top: 20px;">
-                    <button class="btn-next" id="printSummaryBtn" style="background: #6c757d;">
-                        <i class="fas fa-print"></i> Print
-                    </button>
-                    <button class="btn-next" id="downloadPdfBtn" style="background: #dc3545;">
-                        <i class="fas fa-file-pdf"></i> Download PDF
-                    </button>
-                </div>
+<!-- SUCCESS MODAL -->
+<div class="modal-overlay" id="successModal" style="display: none;">
+    <div class="modal-content" style="max-width: 600px; text-align: center;">
+        <div class="modal-header" style="border-bottom: none; padding-bottom: 0; display: flex; justify-content: flex-end;">
+            <span class="close-modal" id="closeSuccessModal">&times;</span>
+        </div>
+        <div id="successBody" style="padding: 20px; padding-top: 0;">
+            <div id="successDetails"></div>
+            <div style="display: flex; gap: 10px; justify-content: center; margin-top: 20px;">
+                <button class="btn-next" id="downloadPngBtn" style="background: #28a745;">
+                    <i class="fas fa-image"></i> Download PNG
+                </button>
+                <button class="btn-next" id="downloadPdfBtn" style="background: #dc3545;">
+                    <i class="fas fa-file-pdf"></i> Download PDF
+                </button>
             </div>
         </div>
     </div>
+</div>
 
     <!-- LOADING OVERLAY -->
-    <div id="loadingOverlay" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); z-index: 9999; align-items: center; justify-content: center;">
+    <div id="loadingOverlay"
+        style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); z-index: 9999; align-items: center; justify-content: center;">
         <div style="background: white; padding: 20px; border-radius: 10px; text-align: center;">
-            <div class="spinner" style="width: 40px; height: 40px; border: 4px solid #f3f3f3; border-top: 4px solid #2c5f8a; border-radius: 50%; animation: spin 1s linear infinite; margin: 0 auto 15px;"></div>
+            <div class="spinner"></div>
             <p>Processing your appointment...</p>
         </div>
     </div>
-
-    <style>
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-        .spinner {
-            width: 40px;
-            height: 40px;
-            border: 4px solid #f3f3f3;
-            border-top: 4px solid #2c5f8a;
-            border-radius: 50%;
-            animation: spin 1s linear infinite;
-        }
-
-        /* Receipt styles for PDF/Print */
-        .receipt-container {
-            font-family: 'Courier New', monospace;
-            max-width: 400px;
-            margin: 0 auto;
-            padding: 20px;
-            background: white;
-        }
-        .receipt-header {
-            text-align: center;
-            border-bottom: 2px solid #2c5f8a;
-            padding-bottom: 15px;
-            margin-bottom: 15px;
-        }
-        .receipt-header img {
-            width: 60px;
-            margin-bottom: 10px;
-        }
-        .receipt-header h2 {
-            color: #2c5f8a;
-            margin: 5px 0;
-            font-size: 18px;
-        }
-        .receipt-header p {
-            margin: 3px 0;
-            font-size: 12px;
-            color: #666;
-        }
-        .receipt-divider {
-            border-top: 1px dashed #999;
-            margin: 15px 0;
-        }
-        .receipt-row {
-            display: flex;
-            justify-content: space-between;
-            margin-bottom: 8px;
-            font-size: 12px;
-        }
-        .receipt-label {
-            font-weight: bold;
-            color: #333;
-        }
-        .receipt-value {
-            color: #555;
-        }
-        .receipt-clients {
-            margin-top: 15px;
-        }
-        .receipt-clients table {
-            width: 100%;
-            font-size: 11px;
-            border-collapse: collapse;
-        }
-        .receipt-clients th, .receipt-clients td {
-            border: 1px solid #ddd;
-            padding: 5px;
-            text-align: left;
-        }
-        .receipt-clients th {
-            background: #f5f5f5;
-        }
-        .receipt-footer {
-            text-align: center;
-            font-size: 10px;
-            color: #999;
-            margin-top: 20px;
-            border-top: 1px dashed #999;
-            padding-top: 15px;
-        }
-        .barcode {
-            font-family: 'Courier New', monospace;
-            letter-spacing: 2px;
-            font-size: 14px;
-            text-align: center;
-            margin: 10px 0;
-        }
-        .qr-code {
-            text-align: center;
-            margin: 15px 0;
-        }
-        @media print {
-            body * {
-                visibility: hidden;
-            }
-            .receipt-container, .receipt-container * {
-                visibility: visible;
-            }
-            .receipt-container {
-                position: absolute;
-                top: 0;
-                left: 0;
-                width: 100%;
-            }
-            .btn-next {
-                display: none;
-            }
-        }
-    </style>
 
     <!-- MAIN APPOINTMENT CARD -->
     <div class="appointment-card">
         <div class="card-header">
             <div class="logos">
-                <div class="logo-placeholder"><i class="fas fa-shield-alt"></i> PSA</div>
-                <span class="logo-sep">|</span>
-                <div class="logo-placeholder"><i class="fas fa-id-card"></i> PhilSys</div>
+                <img src="{{ asset('images/psa-logo.png') }}" alt="PSA Logo" style="height: 60px; width: auto;">
             </div>
-            <div class="header-title">National ID System</div>
-            <div class="center-name"><i class="fas fa-map-pin"></i> PSA CDO - Fixed Registration Center</div>
+            <!-- <div class="header-title">
+                <img src="{{ asset('images/logo.png') }}" alt="National ID System" style="height: 50px; width: auto;">
+            </div> -->
         </div>
 
         <div class="stepper">
-            <div class="step active" id="step1"><span class="step-num">1</span> Type</div>
-            <div class="step" id="step2"><span class="step-num">2</span> Clients</div>
-            <div class="step" id="step3"><span class="step-num">3</span> Schedule</div>
-            <div class="step" id="step4"><span class="step-num">4</span> Contact</div>
-            <div class="step" id="step5"><span class="step-num">5</span> Review</div>
-            <div class="step" id="step6"><span class="step-num">6</span> Confirm</div>
+            <div class="step active" id="step1"><span class="step-num"></span> Guide</div>
+            <div class="step" id="step2"><span class="step-num">1</span> Applicants</div>
+            <div class="step" id="step3"><span class="step-num">2</span> Schedule</div>
+            <div class="step" id="step4"><span class="step-num">3</span> Contact</div>
+            <div class="step" id="step5"><span class="step-num">4</span> Review</div>
+            <div class="step" id="step6"><span class="step-num">5</span> Confirm</div>
+            <div class="step" id="step7"
+                style="margin-left: auto; background: var(--primary); color: white; border: 1px solid var(--primary); padding: 8px 16px; border-radius: 40px; font-weight: 700;">
+                <span>Book your appointment now</span>
+            </div>
         </div>
 
         <div class="content-body">
-            <div class="booking-note">
-                <span><i class="far fa-calendar-alt"></i> Appointment Scheduling</span>
-                <span><strong>Book your appointment now</strong></span>
-            </div>
+            <!-- STEP 1: GUIDE -->
+            <div id="sectionGuide">
+                <div class="guide-step">
+                    <h3><span class="step-number"></span> How to Book an Appointment</h3>
+                    <p>Follow these simple steps to schedule your National ID appointment</p>
+                </div>
 
-            <!-- STEP 1: TYPE -->
-            <div id="sectionType">
-                <div class="section-title">Select Appointment Type</div>
-                <div class="appointment-type-selector">
-                    <div class="type-option selected" id="typeSingle">
-                        <i class="fas fa-user"></i>
-                        <span>Single Appointment</span>
-                        <small>One person, one service</small>
+                <div class="howto-grid">
+                    <div class="howto-card">
+                        <div class="howto-icon">
+                            <i class="fas fa-user-plus"></i>
+                        </div>
+                        <span class="howto-step">STEP 1</span>
+                        <h3>Add Applicants</h3>
+                        <p>Add the person/s who will attend the appointment. Maximum of <strong>4 persons</strong> per
+                            booking.</p>
+                        <small>Each person can select their own service type</small>
                     </div>
-                    <div class="type-option" id="typeMultiple">
-                        <i class="fas fa-users"></i>
-                        <span>Family / Group</span>
-                        <small>2-10 persons, any services</small>
+                    <div class="howto-card">
+                        <div class="howto-icon">
+                            <i class="fas fa-calendar-alt"></i>
+                        </div>
+                        <span class="howto-step">STEP 2</span>
+                        <h3>Select Schedule</h3>
+                        <p>Choose your preferred appointment date and available time slot based on your selected
+                            services.</p>
+                        <small>Real-time slot availability</small>
+                    </div>
+                    <div class="howto-card">
+                        <div class="howto-icon">
+                            <i class="fas fa-phone-alt"></i>
+                        </div>
+                        <span class="howto-step">STEP 3</span>
+                        <h3>Contact Info</h3>
+                        <p>Provide your contact details for appointment confirmation and reminders.</p>
+                        <small>Email & mobile number</small>
+                    </div>
+                    <div class="howto-card">
+                        <div class="howto-icon">
+                            <i class="fas fa-check-double"></i>
+                        </div>
+                        <span class="howto-step">STEP 4</span>
+                        <h3>Review & Confirm</h3>
+                        <p>Double-check all information and confirm your appointment.</p>
+                        <small>Download your confirmation as PNG or PDF</small>
                     </div>
                 </div>
-                <div id="singleServiceSection">
-                    <label>Select Service <span style="color: var(--danger);">*</span></label>
-                    <select id="singleServiceSelect">
-                        <option value="">-- Select Service --</option>
-                        @foreach($services as $service)
-                            <option value="{{ $service->code }}">{{ $service->name }}</option>
-                        @endforeach
-                    </select>
-                    <div id="singleServiceDesc" style="margin-top: 16px; color: var(--gray-500);">
-                        <p><i class="fas fa-info-circle"></i> Select a service to view details.</p>
-                    </div>
-                    <button class="btn-requirements" id="showReqBtnSingle" style="display:none; margin-top: 8px;">
-                        <i class="fas fa-book"></i> View Requirements
-                    </button>
+
+                <div style="background: #e3f2fd; padding: 15px; border-radius: 10px; margin-bottom: 20px;">
+                    <i class="fas fa-info-circle" style="color: #2c5f8a;"></i>
+                    <strong>Important Reminders:</strong>
+                    <ul style="margin-top: 10px; margin-bottom: 0;">
+                        <li>Maximum of 4 persons per appointment</li>
+                        <li>Each person can select their own service type</li>
+                        <li>Bring valid IDs and required documents</li>
+                        <li>Arrive 30 minutes before your scheduled time</li>
+                        <li>Click the button below (Start Booking) to set your Appointment.</li>
+                    </ul>
                 </div>
-                <button class="btn-next" id="nextToClients">Next Step <i class="fas fa-arrow-right"></i></button>
+
+                <button class="btn-next" id="startBookingBtn">Start Booking <i
+                        class="fas fa-arrow-right"></i></button>
             </div>
 
             <!-- STEP 2: CLIENTS -->
             <div id="sectionClients" class="hidden">
-                <div class="section-title"><span id="clientsTitle">Family / Group Members</span></div>
-                <p style="color: var(--gray-500); margin-bottom: 20px;"><span id="clientsSubtitle">Add all persons who will attend.</span></p>
+                <div class="section-title">Applicant Information</div>
+                <p style="color: var(--gray-500); margin-bottom: 20px;">
+                    <i class="fas fa-users"></i> Add the persons who will attend (Maximum 4 persons)
+                </p>
 
-                <div class="req-summary-banner" id="reqSummaryBanner">
-                    <strong><i class="fas fa-clipboard-list"></i> Requirements Status</strong>
-                    <div id="reqSummaryList"></div>
-                </div>
+
 
                 <div class="clients-list" id="clientsList"></div>
 
                 <button class="btn-add-client" id="addClientBtn">
-                    <i class="fas fa-plus-circle"></i> Add Another Person
+                    <i class="fas fa-plus-circle"></i> Add Another Person (Max 4)
                 </button>
 
                 <div id="clientCountContainer"
                     style="margin-top: 20px; padding: 14px; background: var(--gray-50); border-radius: var(--radius); border: 1px solid var(--gray-200);">
                     <p style="display: flex; justify-content: space-between;">
-                        <span><i class="fas fa-users" style="color: var(--primary);"></i> <strong>Total persons:</strong></span>
-                        <span style="font-weight: 700; color: var(--primary);"><span id="clientCount">1</span> / 10</span>
+                        <span><i class="fas fa-users" style="color: var(--primary);"></i> <strong>Total
+                                persons:</strong></span>
+                        <span style="font-weight: 700; color: var(--primary);"><span id="clientCount">1</span> /
+                            4</span>
                     </p>
                 </div>
 
-                <button class="btn-next" id="nextToSchedule">Next: Select Date <i class="fas fa-arrow-right"></i></button>
-                <button class="btn-next back-btn" id="backToTypeFromClients"><i class="fas fa-arrow-left"></i> Back</button>
+                <button class="btn-next" id="nextToSchedule">Next: Select Schedule <i
+                        class="fas fa-arrow-right"></i></button>
             </div>
 
             <!-- STEP 3: SCHEDULE -->
             <div id="sectionSchedule" class="hidden">
-                <div class="section-title">Select Appointment Date</div>
+                <div class="section-title">Select Appointment Date & Time</div>
 
                 <div class="slot-info" id="slotInfo">
                     <i class="fas fa-calendar-check" style="color: var(--primary);"></i>
-                    <span id="slotInfoText">Select an available date</span>
+                    <span id="slotInfoText">Select an available date first</span>
                 </div>
 
                 <div class="calendar-container">
                     <div class="calendar-header">
                         <span class="calendar-month-year" id="calendarMonthYear">Loading...</span>
                         <div class="calendar-nav">
-                            <button class="calendar-nav-btn" id="prevMonthBtn"><i class="fas fa-chevron-left"></i></button>
-                            <button class="calendar-nav-btn" id="nextMonthBtn"><i class="fas fa-chevron-right"></i></button>
+                            <button class="calendar-nav-btn" id="prevMonthBtn"><i
+                                    class="fas fa-chevron-left"></i></button>
+                            <button class="calendar-nav-btn" id="nextMonthBtn"><i
+                                    class="fas fa-chevron-right"></i></button>
                         </div>
                     </div>
                     <div class="calendar-weekdays">
                         <span class="weekday">Mo</span><span class="weekday">Tu</span><span class="weekday">We</span>
-                        <span class="weekday">Th</span><span class="weekday">Fr</span><span class="weekday">Sa</span><span class="weekday">Su</span>
+                        <span class="weekday">Th</span><span class="weekday">Fr</span><span
+                            class="weekday">Sa</span><span class="weekday">Su</span>
                     </div>
                     <div class="calendar-days" id="calendarDays">
                         <div class="loading-spinner">Loading calendar...</div>
@@ -312,11 +246,18 @@
                 <div class="selected-date-display">
                     <i class="far fa-check-circle" style="color: var(--success);"></i>
                     <span>Selected Date:</span>
-                    <span id="selectedDateText" style="font-weight: 600; color: var(--gray-900);">No date selected</span>
+                    <span id="selectedDateText" style="font-weight: 600; color: var(--gray-900);">No date
+                        selected</span>
                 </div>
 
-                <button class="btn-next" id="nextToContact">Next: Contact Info <i class="fas fa-arrow-right"></i></button>
-                <button class="btn-next back-btn" id="backToClients"><i class="fas fa-arrow-left"></i> Back</button>
+                <div id="perApplicantTimeSlotsContainer" style="margin-top: 30px;"></div>
+
+                <div class="btn-group">
+                    <button class="btn-next" id="nextToContact">Next: Contact Info <i
+                            class="fas fa-arrow-right"></i></button>
+                    <button class="btn-next back-btn" id="backToClients"><i class="fas fa-arrow-left"></i>
+                        Back</button>
+                </div>
             </div>
 
             <!-- STEP 4: CONTACT -->
@@ -337,12 +278,25 @@
                 </div>
 
                 <div style="margin-bottom: 20px;">
-                    <label>Mobile Number <span style="color: var(--danger);">*</span></label>
-                    <input type="tel" id="contactMobile" placeholder="09XXXXXXXXX">
+                    <label>Mobile Number</label>
+                    <div
+                        style="display: flex; align-items: center; border: 1px solid var(--gray-200); border-radius: var(--radius); overflow: hidden;">
+                        <span
+                            style="background: var(--gray-100); padding: 10px 12px; font-weight: 500; color: var(--gray-700); border-right: 1px solid var(--gray-200);">+63</span>
+                        <input type="tel" id="contactMobile" name="contact_mobile_suffix"
+                            placeholder="9XXXXXXXXX" maxlength="10" pattern="[0-9]{10}"
+                            oninput="this.value = this.value.replace(/[^0-9]/g, '').slice(0, 10); if(this.value.length > 0 && !this.value.startsWith('9')) this.value = '';"
+                            style="flex: 1; padding: 10px 12px; border: none; outline: none; font-size: 14px;">
+                    </div>
+                    <input type="hidden" name="contact_mobile" id="contactMobileFull">
+                    <small style="color: #666; display: block; margin-top: 5px;">Format: +63 9XXXXXXXXX (10 digits
+                        starting with 9, e.g., 9123456789)</small>
                 </div>
 
-                <button class="btn-next" id="nextToReview">Review Appointment <i class="fas fa-arrow-right"></i></button>
-                <button class="btn-next back-btn" id="backToScheduleFromContact"><i class="fas fa-arrow-left"></i> Back</button>
+                <button class="btn-next" id="nextToReview">Review Appointment <i
+                        class="fas fa-arrow-right"></i></button>
+                <button class="btn-next back-btn" id="backToScheduleFromContact"><i class="fas fa-arrow-left"></i>
+                    Back</button>
             </div>
 
             <!-- STEP 5: REVIEW -->
@@ -352,32 +306,31 @@
                 <div class="review-container">
                     <div class="review-section">
                         <div style="display: flex; justify-content: space-between; margin-bottom: 12px;">
-                            <span class="review-section-title"><i class="fas fa-tag" style="color: var(--primary);"></i> Type</span>
-                            <button class="edit-link" data-edit="type" style="color: var(--secondary);"><i class="fas fa-pen"></i> Edit</button>
-                        </div>
-                        <div><span id="reviewType" style="font-weight: 600;">-</span></div>
-                    </div>
-
-                    <div class="review-section">
-                        <div style="display: flex; justify-content: space-between; margin-bottom: 12px;">
-                            <span class="review-section-title"><i class="fas fa-users" style="color: var(--primary);"></i> Clients (<span id="reviewClientCount">1</span>)</span>
-                            <button class="edit-link" data-edit="clients" style="color: var(--secondary);"><i class="fas fa-pen"></i> Edit</button>
+                            <span class="review-section-title"><i class="fas fa-users"
+                                    style="color: var(--primary);"></i> Applicants (<span
+                                    id="reviewClientCount">1</span>)</span>
+                            <button class="edit-link" data-edit="clients" style="color: var(--secondary);"><i
+                                    class="fas fa-pen"></i> Edit</button>
                         </div>
                         <div id="reviewClientsList"></div>
                     </div>
 
                     <div class="review-section">
                         <div style="display: flex; justify-content: space-between; margin-bottom: 12px;">
-                            <span class="review-section-title"><i class="far fa-calendar-alt" style="color: var(--primary);"></i> Schedule</span>
-                            <button class="edit-link" data-edit="schedule" style="color: var(--secondary);"><i class="fas fa-pen"></i> Edit</button>
+                            <span class="review-section-title"><i class="far fa-calendar-alt"
+                                    style="color: var(--primary);"></i> Schedule</span>
+                            <button class="edit-link" data-edit="schedule" style="color: var(--secondary);"><i
+                                    class="fas fa-pen"></i> Edit</button>
                         </div>
-                        <div><span id="reviewDate" style="font-weight: 600;">-</span></div>
+                        <div><span id="reviewDateTime" style="font-weight: 600;">-</span></div>
                     </div>
 
                     <div class="review-section">
                         <div style="display: flex; justify-content: space-between; margin-bottom: 12px;">
-                            <span class="review-section-title"><i class="fas fa-address-book" style="color: var(--primary);"></i> Contact</span>
-                            <button class="edit-link" data-edit="contact" style="color: var(--secondary);"><i class="fas fa-pen"></i> Edit</button>
+                            <span class="review-section-title"><i class="fas fa-address-book"
+                                    style="color: var(--primary);"></i> Contact</span>
+                            <button class="edit-link" data-edit="contact" style="color: var(--secondary);"><i
+                                    class="fas fa-pen"></i> Edit</button>
                         </div>
                         <div>
                             <span id="reviewContactName" style="font-weight: 600;">-</span><br>
@@ -387,40 +340,75 @@
                     </div>
                 </div>
 
-                <button class="btn-next" id="nextToConfirm">Proceed to Confirm <i class="fas fa-arrow-right"></i></button>
+                <button class="btn-next" id="nextToConfirm">Proceed to Confirm <i
+                        class="fas fa-arrow-right"></i></button>
                 <button class="btn-next back-btn" id="backToContact"><i class="fas fa-arrow-left"></i> Back</button>
             </div>
 
             <!-- STEP 6: CONFIRM -->
-            <div id="sectionConfirm" class="hidden">
-                <div class="section-title">Confirm Appointment</div>
+<div id="sectionConfirm" class="hidden">
+    <div class="section-title">Confirm Appointment</div>
 
-                <div class="summary-box">
-                    <div class="summary-row"><span class="summary-label">Type</span><span class="summary-value" id="sumType">-</span></div>
-                    <div class="summary-row"><span class="summary-label">Clients</span><span class="summary-value" id="sumClients">-</span></div>
-                    <div class="summary-row"><span class="summary-label">Date</span><span class="summary-value" id="sumDate">-</span></div>
-                    <div class="summary-row"><span class="summary-label">Contact</span><span class="summary-value" id="sumContact">-</span></div>
-                </div>
+    <div class="summary-box" style="background: #f8fafc; border-radius: 12px; padding: 20px; margin-bottom: 20px;">
+        <h4 style="margin: 0 0 15px 0; color: var(--primary); font-size: 1.1rem;">
+            <i class="fas fa-clipboard-list"></i> Appointment Summary
+        </h4>
 
-                <div class="confirmation-checkbox">
-                    <input type="checkbox" id="confirmCheckbox">
-                    <label for="confirmCheckbox">
-                        <strong>I confirm that all information is accurate and complete.</strong><br>
-                        <span style="font-size: 0.85rem; color: var(--gray-500);">I have read all service requirements and will bring necessary documents.</span>
-                    </label>
-                </div>
-
-                <button class="btn-next" id="submitRequestBtn" disabled>
-                    <i class="fas fa-check-circle"></i> Confirm & Submit
-                </button>
-
-                <div class="reminder" style="margin-top: 20px;">
-                    <i class="far fa-bell" style="color: var(--warning);"></i>
-                    Reminder: Please save your appointment reference number for verification.
-                </div>
-
-                <button class="btn-next back-btn" id="backToReview"><i class="fas fa-arrow-left"></i> Back</button>
+        <!-- Applicants Section -->
+        <div style="margin-bottom: 20px;">
+            <div style="background: var(--primary); color: white; padding: 8px 12px; border-radius: 8px; margin-bottom: 10px;">
+                <i class="fas fa-users"></i> Applicants (<span id="sumClients">0</span>)
             </div>
+            <div id="sumApplicantsList" style="padding: 10px; background: white; border-radius: 8px; border: 1px solid var(--gray-200);">
+                <!-- Dynamic content will be inserted here -->
+            </div>
+        </div>
+
+        <!-- Schedule Section -->
+        <div style="margin-bottom: 20px;">
+            <div style="background: var(--primary); color: white; padding: 8px 12px; border-radius: 8px; margin-bottom: 10px;">
+                <i class="far fa-calendar-alt"></i> Schedule
+            </div>
+            <div id="sumDateTime" style="padding: 12px; background: white; border-radius: 8px; border: 1px solid var(--gray-200);">
+                <!-- Dynamic content -->
+            </div>
+        </div>
+
+        <!-- Contact Section -->
+        <div style="margin-bottom: 20px;">
+            <div style="background: var(--primary); color: white; padding: 8px 12px; border-radius: 8px; margin-bottom: 10px;">
+                <i class="fas fa-address-book"></i> Contact Information
+            </div>
+            <div id="sumContact" style="padding: 12px; background: white; border-radius: 8px; border: 1px solid var(--gray-200);">
+                <!-- Dynamic content -->
+            </div>
+        </div>
+
+
+    </div>
+
+    <div class="confirmation-checkbox" style="margin: 20px 0;">
+        <input type="checkbox" id="confirmCheckbox">
+        <label for="confirmCheckbox">
+            <strong>I confirm that all information is accurate and complete.</strong><br>
+            <span style="font-size: 0.85rem; color: var(--gray-500);">I have read all service requirements and will bring necessary documents.</span>
+        </label>
+    </div>
+
+    <button class="btn-next" id="submitRequestBtn" disabled>
+        <i class="fas fa-check-circle"></i> Confirm & Submit
+    </button>
+
+    <div class="reminder" style="margin-top: 20px; padding: 12px; background: #fff3cd; border-radius: 8px; border-left: 4px solid #ffc107;">
+        <i class="fas fa-save" style="color: #856404;"></i>
+        <strong style="color: #856404;">Reminder:</strong>
+        <span style="color: #856404;">Please save your appointment reference number and reference code for verification.</span>
+    </div>
+
+    <button class="btn-next back-btn" id="backToReview" style="margin-top: 15px;">
+        <i class="fas fa-arrow-left"></i> Back
+    </button>
+</div>
         </div>
 
         <div class="footer-note">
@@ -430,36 +418,1023 @@
         </div>
     </div>
 
+    <!-- Hidden fields for location data -->
+    <input type="hidden" id="userLat" value="">
+    <input type="hidden" id="userLng" value="">
+    <input type="hidden" id="userCity" value="">
+    <input type="hidden" id="userAddress" value="">
+    <input type="hidden" id="userZipcode" value="">
+
+    <style>
+        /* Per Applicant Time Slot Styles */
+        .applicant-time-slot-card {
+            background: white;
+            border: 1px solid var(--gray-200);
+            border-radius: 12px;
+            margin-bottom: 20px;
+            overflow: hidden;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+            transition: box-shadow 0.2s ease;
+        }
+
+        .applicant-time-slot-card:hover {
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .applicant-time-slot-header {
+            background: linear-gradient(135deg, var(--gray-50) 0%, #f8f9fa 100%);
+            padding: 15px 20px;
+            border-bottom: 1px solid var(--gray-200);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .applicant-time-slot-header i {
+            font-size: 1.3rem;
+            color: var(--primary);
+        }
+
+        .applicant-time-slot-header .applicant-name {
+            font-weight: 600;
+            color: var(--gray-800);
+            font-size: 1rem;
+        }
+
+        .applicant-time-slot-header .applicant-service {
+            font-size: 0.75rem;
+            color: var(--gray-500);
+            margin-left: auto;
+            background: var(--gray-100);
+            padding: 4px 10px;
+            border-radius: 20px;
+        }
+
+        /* Selected time display */
+        .applicant-time-selected {
+            padding: 15px 20px;
+            background: linear-gradient(135deg, #e8f5e9 0%, #c8e6c9 100%);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 10px;
+            border-left: 4px solid var(--success);
+        }
+
+        .applicant-time-selected .selected-time-display {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .applicant-time-selected .selected-time-display i {
+            color: var(--success);
+            font-size: 1.1rem;
+        }
+
+        .applicant-time-selected .selected-time-display span:first-of-type {
+            color: var(--gray-600);
+            font-size: 0.85rem;
+        }
+
+        .applicant-time-selected .selected-time-display .time-value {
+            font-weight: 700;
+            color: var(--gray-800);
+            background: white;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.9rem;
+        }
+
+        /* Change Time button */
+        .btn-change-time {
+            background: white;
+            border: 1px solid var(--gray-300);
+            padding: 8px 16px;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 0.8rem;
+            color: var(--gray-700);
+            transition: all 0.2s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            font-weight: 500;
+        }
+
+        .btn-change-time:hover {
+            background: var(--gray-100);
+            border-color: var(--gray-400);
+            transform: translateY(-1px);
+        }
+
+        .btn-change-time i {
+            font-size: 0.75rem;
+        }
+
+        /* Time options container */
+        .applicant-time-options {
+            padding: 20px;
+            display: none;
+            background: #fafbfc;
+        }
+
+        .applicant-time-options.visible {
+            display: block;
+            animation: fadeIn 0.3s ease;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Time slots grid - 2 columns on mobile, more on desktop */
+        .time-slots-compact {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+            margin-top: 12px;
+        }
+
+        /* Individual time slot option */
+        .time-slot-option {
+            background: white;
+            border: 1px solid var(--gray-300);
+            border-radius: 10px;
+            padding: 10px 12px;
+            cursor: pointer;
+            font-size: 0.85rem;
+            font-weight: 500;
+            transition: all 0.2s ease;
+            color: var(--gray-700);
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.02);
+            text-align: center;
+        }
+
+        .time-slot-option:hover:not(.disabled) {
+            background: var(--primary);
+            border-color: var(--primary);
+            color: white;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .time-slot-option.selected {
+            background: var(--primary);
+            border-color: var(--primary);
+            color: white;
+            box-shadow: 0 2px 4px rgba(0, 123, 255, 0.3);
+        }
+
+        .time-slot-option.disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            background: var(--gray-100);
+            color: var(--gray-500);
+            text-decoration: line-through;
+        }
+
+        .time-slot-option.disabled:hover {
+            background: var(--gray-100);
+            color: var(--gray-500);
+            transform: none;
+            box-shadow: none;
+        }
+
+        /* Slot info messages */
+        .slot-info {
+            background: #e3f2fd;
+            padding: 15px 20px;
+            border-radius: 10px;
+            margin: 15px 0;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            color: #1565c0;
+            font-size: 0.9rem;
+        }
+
+        .slot-info i {
+            font-size: 1.2rem;
+        }
+
+        /* Selected date display */
+        .selected-date-display {
+            background: #f0fdf4;
+            padding: 12px 16px;
+            border-radius: 10px;
+            margin: 20px 0;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 0.9rem;
+            border: 1px solid #bbf7d0;
+        }
+
+        .selected-date-display i {
+            color: var(--success);
+            font-size: 1.1rem;
+        }
+
+        /* Desktop styles - more columns */
+        @media (min-width: 768px) {
+            .time-slots-compact {
+                grid-template-columns: repeat(3, 1fr);
+                gap: 15px;
+            }
+
+            .time-slot-option {
+                padding: 12px 18px;
+                font-size: 0.9rem;
+            }
+        }
+
+        @media (min-width: 1024px) {
+            .time-slots-compact {
+                grid-template-columns: repeat(4, 1fr);
+            }
+        }
+
+        /* Responsive adjustments for mobile */
+        @media (max-width: 768px) {
+            .applicant-time-slot-header {
+                flex-wrap: wrap;
+                gap: 8px;
+            }
+
+            .applicant-time-slot-header .applicant-service {
+                margin-left: 0;
+            }
+
+            .applicant-time-selected {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+
+            .applicant-time-selected .selected-time-display {
+                width: 100%;
+                justify-content: space-between;
+            }
+
+            .btn-change-time {
+                width: 100%;
+                justify-content: center;
+            }
+
+            .time-slots-compact {
+                gap: 10px;
+            }
+
+            .time-slot-option {
+                padding: 10px 12px;
+                font-size: 0.8rem;
+            }
+
+            /* Better touch targets for mobile */
+            .time-slot-option,
+            .btn-change-time {
+                min-height: 44px;
+            }
+        }
+
+        /* Small mobile phones */
+        @media (max-width: 480px) {
+            .time-slots-compact {
+                gap: 8px;
+            }
+
+            .time-slot-option {
+                padding: 8px 10px;
+                font-size: 0.75rem;
+            }
+
+            .applicant-time-options {
+                padding: 15px;
+            }
+        }
+
+        /* Calendar day styles */
+        .calendar-day {
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .calendar-day.available {
+            background: #e8f5e9;
+            color: #2e7d32;
+            font-weight: 500;
+        }
+
+        .calendar-day.available:hover {
+            background: #c8e6c9;
+            transform: scale(1.02);
+        }
+
+        .calendar-day.selected {
+            background: var(--primary);
+            color: white;
+        }
+
+        .calendar-day.disabled {
+            background: #f5f5f5;
+            color: #bdbdbd;
+            cursor: not-allowed;
+        }
+
+        /* Time slots grid inside schedule (if still used) */
+        .time-slots-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+            margin-top: 15px;
+        }
+
+        @media (min-width: 768px) {
+            .time-slots-grid {
+                grid-template-columns: repeat(3, 1fr);
+            }
+        }
+
+        @media (min-width: 1024px) {
+            .time-slots-grid {
+                grid-template-columns: repeat(4, 1fr);
+            }
+        }
+
+        .time-slot-card {
+            background: white;
+            border: 1px solid var(--gray-300);
+            border-radius: 10px;
+            padding: 12px 16px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            text-align: center;
+        }
+
+        .time-slot-card:hover {
+            background: var(--primary);
+            border-color: var(--primary);
+            color: white;
+        }
+
+        .time-slot-card.selected {
+            background: var(--primary);
+            border-color: var(--primary);
+            color: white;
+        }
+
+        /* Loading spinner */
+        .spinner {
+            width: 40px;
+            height: 40px;
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid var(--primary);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto;
+        }
+
+        @keyframes spin {
+            0% {
+                transform: rotate(0deg);
+            }
+
+            100% {
+                transform: rotate(360deg);
+            }
+        }
+
+        /* Birthdate input styling */
+        .birthdate-wrapper {
+            position: relative;
+            width: 100%;
+        }
+
+        .birthdate-format-hint {
+            display: block;
+            font-size: 0.7rem;
+            color: #6c757d;
+            margin-top: 4px;
+            font-style: italic;
+        }
+
+        .birthdate-format-hint i {
+            margin-right: 4px;
+            font-size: 0.65rem;
+        }
+
+        /* Style for view requirements button - Red outline (not clicked yet) */
+        .btn-view-req {
+            background-color: transparent !important;
+            color: #dc3545 !important;
+            border: 2px solid #dc3545 !important;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            width: 100%;
+
+        }
+
+        .btn-view-req:hover {
+            background-color: #dc3545 !important;
+            color: white !important;
+            transform: translateY(-1px);
+        }
+
+        /* Style for view requirements button - Green (clicked/read) */
+        .btn-view-req.requirements-read {
+            background-color: #ffffff !important;
+            color: white !important;
+            border: 2px solid #28a745 !important;
+        }
+
+        .btn-view-req.requirements-read:hover {
+            background-color: #218838 !important;
+            border-color: #218838 !important;
+        }
+
+        .btn-view-req:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .btn-view-req:disabled:hover {
+            background-color: transparent !important;
+            color: #dc3545 !important;
+        }
+
+        /* Style for disabled acknowledgment checkbox */
+        .req-ack-row input:disabled {
+            cursor: not-allowed;
+            opacity: 0.5;
+        }
+
+        .req-ack-row.disabled-checkbox {
+            opacity: 0.6;
+        }
+
+        .req-ack-row .helper-text {
+            display: block;
+            font-size: 0.75rem;
+            color: #dc3545;
+            margin-top: 5px;
+            font-style: italic;
+        }
+
+        /* Style for disabled view requirements button */
+        .btn-view-req:disabled {
+            background-color: #cccccc !important;
+            color: #666666 !important;
+            cursor: not-allowed !important;
+            opacity: 0.6;
+        }
+
+        /* Style for enabled view requirements button */
+        .btn-view-req:enabled {
+            background-color: #white !important;
+            color: black !important;
+            cursor: pointer !important;
+        }
+
+        .btn-view-req:enabled:hover {
+            background-color: lightgray !important;
+            transform: translateY(-1px);
+        }
+
+        /* Loading spinner for modal */
+        .loading-spinner {
+            text-align: center;
+            padding: 40px;
+        }
+
+        .loading-spinner i {
+            font-size: 2rem;
+            color: var(--primary);
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% {
+                transform: rotate(0deg);
+            }
+
+            100% {
+                transform: rotate(360deg);
+            }
+        }
+
+        /* Requirements list styles - simple list without checkboxes */
+        .requirements-simple-list {
+            max-height: 400px;
+            overflow-y: auto;
+            padding: 10px;
+        }
+
+        .requirements-simple-list ul {
+            margin: 0;
+            padding-left: 20px;
+        }
+
+        .requirements-simple-list li {
+            margin-bottom: 10px;
+            line-height: 1.4;
+        }
+
+        .warning-note {
+            background: #fff3cd;
+            border-left: 4px solid #ffc107;
+            padding: 12px;
+            margin-top: 15px;
+            border-radius: 6px;
+            font-size: 0.85rem;
+            color: #856404;
+        }
+
+        .info-note {
+            background: #d1ecf1;
+            border-left: 4px solid #17a2b8;
+            padding: 12px;
+            margin-top: 15px;
+            border-radius: 6px;
+            font-size: 0.85rem;
+            color: #0c5460;
+        }
+
+        .requirements-header h4 {
+            margin-bottom: 10px;
+            color: var(--primary);
+        }
+
+        /* Guide note styles */
+        .guide-note {
+            background: #e7f3ff;
+            border-left: 4px solid #2196F3;
+            padding: 12px;
+            margin-bottom: 20px;
+            border-radius: 6px;
+            font-size: 0.85rem;
+            color: #0c5460;
+        }
+
+        .guide-note i {
+            margin-right: 8px;
+            color: #2196F3;
+        }
+
+        .step-instruction {
+            font-size: 0.8rem;
+            color: #666;
+            margin-top: 5px;
+            text-align: center;
+
+        }
+    </style>
+
+<!-- QR Code Generator -->
+<script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.1/build/qrcode.min.js"></script>
+    <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
+    <!-- SweetAlert2 JS -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script>
         (function() {
             'use strict';
 
-            let appointmentType = 'single';
-            let singleService = 'reg';
-            let singleServiceText = 'National ID Registration';
             let selectedDate = null;
             let availableDatesData = [];
-            
-            const serviceOptions = {
-                'reg': 'National ID Registration',
-                'correction': 'Correction/Updating',
-                'ephilid': 'ePhilID Issuance',
-                'trn': 'TRN Retrieval'
+            let clientTimeSlots = {};
+            let availableTimeSlotsCache = [];
+            let clientTrnData = {};
+            let userLocation = {
+                lat: null,
+                lng: null,
+                city: null,
+                address: null,
+                zipcode: null
+            };
+            let html5QrCode = null;
+            let currentQrClientId = null;
+            let currentRequirementsClientId = null;
+
+            let serviceOptions = window.serviceOptions || {};
+            let identityReminders = window.identityReminders || {};
+
+            const TRN_LENGTH = 29;
+            const MAX_CLIENTS = 4;
+
+            function isValidTrn(trnValue) {
+                if (!trnValue) return false;
+                const cleanTrn = trnValue.replace(/\s/g, '');
+                return /^\d{29}$/.test(cleanTrn);
+            }
+
+            function getServiceName(code) {
+                return serviceOptions[code] || code;
+            }
+
+            function getFullName(c) {
+                const parts = [c.firstName, c.middleName, c.lastName].filter(p => p && p.trim());
+                let fullName = parts.join(' ') || '(No name)';
+                if (c.suffix) fullName += ' ' + c.suffix;
+                return fullName;
+            }
+
+            async function loadAvailableDates() {
+                const services = [...new Set(clients.map(c => c.service))];
+                let url =
+                    `{{ route('client.appointment.available-dates') }}?month=${currentMonth + 1}&year=${currentYear}&client_count=${clients.length}&services=${services.join(',')}`;
+                try {
+                    const response = await fetch(url);
+                    const data = await response.json();
+                    if (data.success) {
+                        availableDatesData = data.dates;
+                        renderCalendar();
+                    } else {
+                        document.getElementById('calendarDays').innerHTML = '<div class="error">' + (data.message ||
+                            'Failed to load available dates') + '</div>';
+                    }
+                } catch (error) {
+                    console.error('Error loading dates:', error);
+                    document.getElementById('calendarDays').innerHTML =
+                        '<div class="error">Failed to load available dates.</div>';
+                }
+            }
+
+            async function loadAvailableTimeSlotsForDate(date) {
+                try {
+                    const selectedServices = [...new Set(clients.map(c => c.service))];
+                    const url =
+                        `{{ route('client.appointment.available-time-slots') }}?date=${date}&services=${selectedServices.join(',')}&client_count=${clients.length}`;
+                    const response = await fetch(url);
+                    const data = await response.json();
+                    if (data.success && data.time_slots && data.time_slots.length > 0) {
+                        availableTimeSlotsCache = data.time_slots;
+                        return availableTimeSlotsCache;
+                    } else {
+                        availableTimeSlotsCache = [];
+                        return [];
+                    }
+                } catch (error) {
+                    console.error('Error loading time slots:', error);
+                    availableTimeSlotsCache = [];
+                    return [];
+                }
+            }
+
+            function renderPerApplicantTimeSlots() {
+                const container = document.getElementById('perApplicantTimeSlotsContainer');
+
+                if (!selectedDate) {
+                    container.innerHTML =
+                        '<div class="slot-info"><i class="fas fa-info-circle"></i> Please select a date first</div>';
+                    return;
+                }
+
+                if (availableTimeSlotsCache.length === 0) {
+                    container.innerHTML =
+                        '<div class="slot-info"><i class="fas fa-exclamation-triangle"></i> No available time slots for this date. Please select another date.</div>';
+                    return;
+                }
+
+                let html = '';
+                clients.forEach((client) => {
+                    const currentSelectedSlot = clientTimeSlots[client.id];
+                    const hasSelectedTime = currentSelectedSlot && currentSelectedSlot.slotId;
+
+                    html += `
+                <div class="applicant-time-slot-card">
+                    <div class="applicant-time-slot-header">
+                        <i class="fas fa-user-circle"></i>
+                        <span class="applicant-name">${escapeHtml(getFullName(client))}</span>
+                        <span class="applicant-service">${getServiceName(client.service)}</span>
+                    </div>
+            `;
+
+                    if (hasSelectedTime) {
+                        html += `
+                    <div class="applicant-time-selected">
+                        <div class="selected-time-display">
+                            <i class="fas fa-check-circle"></i>
+                            <span>Selected Time:</span>
+                            <span class="time-value">${escapeHtml(currentSelectedSlot.slotLabel)}</span>
+                        </div>
+                        <button type="button" class="btn-change-time" data-client-id="${client.id}">
+                            <i class="fas fa-pen"></i> Change Time
+                        </button>
+                    </div>
+                    <div class="applicant-time-options" id="timeOptions_${client.id}" style="display: none;">
+                        <div class="time-slots-compact" id="timeSlotsCompact_${client.id}">
+                            ${generateTimeSlotOptions(client.id)}
+                        </div>
+                    </div>
+                `;
+                    } else {
+                        html += `
+                    <div class="applicant-time-options visible" id="timeOptions_${client.id}">
+                        <div style="margin-bottom: 10px; color: var(--gray-600);">
+                            <i class="fas fa-clock"></i> Select preferred time slot:
+                        </div>
+                        <div class="time-slots-compact" id="timeSlotsCompact_${client.id}">
+                            ${generateTimeSlotOptions(client.id)}
+                        </div>
+                    </div>
+                `;
+                    }
+                    html += `</div>`;
+                });
+
+                container.innerHTML = html;
+
+                document.querySelectorAll('.btn-change-time').forEach(btn => {
+                    btn.addEventListener('click', (e) => {
+                        const clientId = parseInt(btn.dataset.clientId);
+                        const optionsDiv = document.getElementById(`timeOptions_${clientId}`);
+                        const selectedDiv = btn.closest('.applicant-time-selected');
+                        if (optionsDiv) {
+                            optionsDiv.style.display = 'block';
+                            if (selectedDiv) selectedDiv.style.display = 'none';
+                        }
+                    });
+                });
+
+                clients.forEach(client => attachTimeSlotClickHandlers(client.id));
+            }
+
+            function generateTimeSlotOptions(clientId) {
+                const client = clients.find(c => c.id === clientId);
+                if (!client) return '<div>Error: Client not found</div>';
+
+                const currentSelectedSlot = clientTimeSlots[clientId];
+
+                let html = '';
+                availableTimeSlotsCache.forEach(slot => {
+                    const availableForService = slot.service_availability && slot.service_availability[client
+                        .service] > 0;
+                    const isSelected = currentSelectedSlot && currentSelectedSlot.slotId === slot.id;
+                    const disabledClass = !availableForService ? 'disabled' : '';
+                    const selectedClass = isSelected ? 'selected' : '';
+
+                    html += `
+                <div class="time-slot-option ${disabledClass} ${selectedClass}"
+                     data-client-id="${clientId}"
+                     data-slot-id="${slot.id}"
+                     data-slot-label="${escapeHtml(slot.slot_label)}"
+                     data-available="${availableForService}">
+                    ${escapeHtml(slot.slot_label)}
+                </div>
+            `;
+                });
+
+                if (html === '') {
+                    html = '<div class="slot-info">No available time slots for this service on this date.</div>';
+                }
+                return html;
+            }
+
+            function attachTimeSlotClickHandlers(clientId) {
+                const options = document.querySelectorAll(`.time-slot-option[data-client-id="${clientId}"]`);
+                options.forEach(option => {
+                    option.removeEventListener('click', handleTimeSlotClick);
+                    option.addEventListener('click', handleTimeSlotClick);
+                });
+            }
+
+            function handleTimeSlotClick(e) {
+                const option = e.currentTarget;
+                if (option.dataset.available === 'false') {
+                    Swal.fire({
+                        icon: 'warning',
+                        title: 'Slot Unavailable',
+                        text: 'This time slot is fully booked.',
+                        confirmButtonColor: '#dc3545'
+                    });
+                    return;
+                }
+
+                const clientId = parseInt(option.dataset.clientId);
+                const slotId = parseInt(option.dataset.slotId);
+                const slotLabel = option.dataset.slotLabel;
+
+                clientTimeSlots[clientId] = {
+                    slotId: slotId,
+                    slotLabel: slotLabel
+                };
+                renderPerApplicantTimeSlots();
+            }
+
+            function renderCalendar() {
+                const monthNames = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August',
+                    'September', 'October', 'November', 'December'
+                ];
+                document.getElementById('calendarMonthYear').textContent = `${monthNames[currentMonth]} ${currentYear}`;
+                const firstDay = new Date(currentYear, currentMonth, 1);
+                const startDayOfWeek = firstDay.getDay() || 7;
+                const startOffset = startDayOfWeek === 7 ? 0 : startDayOfWeek - 1;
+                const daysInMonth = new Date(currentYear, currentMonth + 1, 0).getDate();
+                let html = '';
+                for (let i = 0; i < startOffset; i++) html += '<div class="calendar-day empty"></div>';
+                const today = new Date();
+                today.setHours(0, 0, 0, 0);
+                for (let d = 1; d <= daysInMonth; d++) {
+                    const date = new Date(currentYear, currentMonth, d);
+                    const dateKey =
+                        `${currentYear}-${String(currentMonth + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
+                    const dateData = availableDatesData ? availableDatesData.find(item => item.date === dateKey) : null;
+                    const isPast = date < today;
+                    const isSelected = selectedDate === dateKey;
+                    let cls = 'calendar-day';
+                    if (isPast) cls += ' disabled';
+                    else if (dateData && dateData.available) cls += ' available';
+                    else if (!dateData) cls += ' disabled';
+                    if (isSelected) cls += ' selected';
+                    html +=
+                        `<div class="${cls}" data-date="${dateKey}" onclick="window.selectDate('${dateKey}')"><div class="day-number">${d}</div></div>`;
+                }
+                document.getElementById('calendarDays').innerHTML = html;
+            }
+
+            window.selectDate = async function(dateKey) {
+                selectedDate = dateKey;
+                clientTimeSlots = {};
+                document.getElementById('selectedDateText').textContent = formatDisplayDate(dateKey);
+                document.getElementById('slotInfoText').innerHTML =
+                    `✓ Date selected. Please choose time slots for each applicant.`;
+                renderCalendar();
+                await loadAvailableTimeSlotsForDate(dateKey);
+                renderPerApplicantTimeSlots();
             };
 
-            const requirementsContent = {
-                'reg': `<h4><i class="fas fa-id-card"></i> National ID Registration</h4><p><strong>PRIMARY DOCUMENTS:</strong></p><ul><li>PSA Birth Certificate + 1 government-issued ID (Passport, UMID, Driver's License)</li></ul><p><strong>SECONDARY DOCUMENTS:</strong></p><ul><li>PSA/LCRO Birth Certificate</li><li>Voter's ID, Postal ID, PhilHealth ID</li><li>Employee ID, School ID, Barangay Certificate</li></ul><p><em>⚠️ Bring original documents.</em></p>`,
-                'correction': `<h4><i class="fas fa-pen"></i> Correction/Updating</h4><p><strong>Required Documents by Field:</strong></p><ul><li><strong>First/Last Name:</strong> Birth Certificate, Marriage Certificate</li><li><strong>Sex/DOB:</strong> Birth Certificate</li><li><strong>Address:</strong> Barangay Certificate + Billing</li></ul><p><em>⚠️ Bring ORIGINAL copies.</em></p>`,
-                'ephilid': `<h4><i class="fas fa-print"></i> ePhilID Printing</h4><p><strong>Requirements:</strong></p><ul><li>Transaction slip or reference number</li></ul><p><strong>Representative:</strong> Authorization letter + IDs</p><p><strong>Minor:</strong> Birth Certificate + Guardian ID</p>`,
-                'trn': `<h4><i class="fas fa-search"></i> TRN Retrieval</h4><p><strong>Provide:</strong></p><ul><li>First, Middle, Last Name</li><li>Date of Birth</li><li>Sex</li></ul><p><em>🔒 Confidential per RA 10173.</em></p>`
-            };
+            // TRN Functions
+            function validateAndStyleTrnInput(clientId) {
+                const trnInput = document.getElementById(`trnNumber_${clientId}`);
+                const charCounter = document.getElementById(`trnCharCounter_${clientId}`);
+                if (!trnInput) return false;
+                const trnValue = trnInput.value;
+                const cleanValue = trnValue.replace(/\s/g, '');
+                const isValid = isValidTrn(cleanValue);
+                const currentLength = cleanValue.length;
+                if (isValid) {
+                    trnInput.classList.remove('trn-invalid');
+                    trnInput.classList.add('trn-valid');
+                    if (charCounter) {
+                        charCounter.classList.remove('invalid');
+                        charCounter.classList.add('valid');
+                        charCounter.innerHTML =
+                            `<i class="fas fa-check-circle"></i> ${currentLength}/${TRN_LENGTH} digits - Valid TRN`;
+                    }
+                    clientTrnData[clientId].trnNumber = cleanValue;
+                    clientTrnData[clientId].isValid = true;
+                    return true;
+                } else {
+                    trnInput.classList.remove('trn-valid');
+                    trnInput.classList.add('trn-invalid');
+                    if (charCounter) {
+                        charCounter.classList.remove('valid');
+                        charCounter.classList.add('invalid');
+                        if (currentLength > 0 && currentLength < TRN_LENGTH) {
+                            charCounter.innerHTML =
+                                `<i class="fas fa-exclamation-triangle"></i> ${currentLength}/${TRN_LENGTH} digits - TRN must be exactly 29 digits`;
+                        } else if (currentLength > TRN_LENGTH) {
+                            charCounter.innerHTML =
+                                `<i class="fas fa-exclamation-triangle"></i> ${currentLength}/${TRN_LENGTH} digits - Too many digits (max ${TRN_LENGTH})`;
+                        } else {
+                            charCounter.innerHTML =
+                                `<i class="fas fa-info-circle"></i> TRN must be exactly 29 digits (0-9 only)`;
+                        }
+                    }
+                    clientTrnData[clientId].trnNumber = trnValue;
+                    clientTrnData[clientId].isValid = false;
+                    return false;
+                }
+            }
 
-            const identityReminders = {
-                'reg': 'The person named below must be the one registering for the National ID.',
-                'correction': 'The person named below must be the one requesting the correction/update.',
-                'ephilid': 'The person named below must be the one claiming the ePhilID.',
-                'trn': 'The person named below must be the one requesting TRN retrieval.'
-            };
+            function createTrnHtml(clientId, hasTrnValue, trnNumberValue) {
+                const isValid = trnNumberValue && isValidTrn(trnNumberValue);
+                const validClass = isValid ? 'trn-valid' : '';
+                const currentLength = trnNumberValue ? trnNumberValue.replace(/\s/g, '').length : 0;
+                return `
+            <div class="trn-field-group" data-client-id="${clientId}">
+                <div class="trn-question"><i class="fas fa-question-circle"></i> DO YOU HAVE A TRN (TRANSACTION REFERENCE NUMBER)?</div>
+                <div class="trn-checkbox-group">
+                    <label><input type="radio" name="hasTrn_${clientId}" value="yes" ${hasTrnValue === true ? 'checked' : ''}> YES</label>
+                    <label><input type="radio" name="hasTrn_${clientId}" value="no" ${hasTrnValue === false ? 'checked' : ''}> NO</label>
+                </div>
+                <div id="trnInputArea_${clientId}" style="display: ${hasTrnValue === true ? 'block' : 'none'};">
+                    <div class="trn-input-group">
+                        <label>TRN NUMBER (29 DIGITS) <span style="color: var(--danger);">*</span></label>
+                        <input type="text" id="trnNumber_${clientId}" placeholder="Enter 29-digit TRN number" class="trn-input ${validClass}" value="${trnNumberValue || ''}" maxlength="29" inputmode="numeric">
+                        <span id="trnCharCounter_${clientId}" class="trn-char-counter ${isValid ? 'valid' : (currentLength > 0 ? 'invalid' : '')}">
+                            ${currentLength > 0 ? (isValid ? `<i class="fas fa-check-circle"></i> ${currentLength}/29 digits - Valid TRN` : `<i class="fas fa-exclamation-triangle"></i> ${currentLength}/29 digits - TRN must be exactly 29 digits`) : `<i class="fas fa-info-circle"></i> TRN must be exactly 29 digits (0-9 only)`}
+                        </span>
+                    </div>
+                    <div class="qr-scan-area">
+                        <p><i class="fas fa-qrcode"></i> OR SCAN QR CODE</p>
+                        <button type="button" class="qr-scan-btn" data-client-id="${clientId}"><i class="fas fa-camera"></i> SCAN QR CODE</button>
+                        <div id="qr-reader_${clientId}" class="qr-reader-container" style="display: none;"></div>
+                    </div>
+                </div>
+            </div>`;
+            }
+
+            function attachTrnEvents(clientId) {
+                const radioYes = document.querySelector(`input[name="hasTrn_${clientId}"][value="yes"]`);
+                const radioNo = document.querySelector(`input[name="hasTrn_${clientId}"][value="no"]`);
+                const trnInputArea = document.getElementById(`trnInputArea_${clientId}`);
+                const trnNumberInput = document.getElementById(`trnNumber_${clientId}`);
+                const scanBtn = document.querySelector(`.qr-scan-btn[data-client-id="${clientId}"]`);
+                if (!clientTrnData[clientId]) clientTrnData[clientId] = {
+                    hasTrn: null,
+                    trnNumber: '',
+                    isValid: false
+                };
+                if (radioYes) radioYes.addEventListener('change', function() {
+                    if (this.checked) {
+                        clientTrnData[clientId].hasTrn = true;
+                        if (trnInputArea) trnInputArea.style.display = 'block';
+                        setTimeout(() => validateAndStyleTrnInput(clientId), 10);
+                    }
+                });
+                if (radioNo) radioNo.addEventListener('change', function() {
+                    if (this.checked) {
+                        clientTrnData[clientId].hasTrn = false;
+                        clientTrnData[clientId].trnNumber = '';
+                        clientTrnData[clientId].isValid = false;
+                        if (trnInputArea) trnInputArea.style.display = 'none';
+                        if (trnNumberInput) trnNumberInput.value = '';
+                    }
+                });
+                if (trnNumberInput) trnNumberInput.addEventListener('input', function(e) {
+                    this.value = this.value.replace(/[^0-9]/g, '');
+                    if (this.value.length > TRN_LENGTH) this.value = this.value.slice(0, TRN_LENGTH);
+                    clientTrnData[clientId].trnNumber = this.value;
+                    validateAndStyleTrnInput(clientId);
+                });
+                if (scanBtn) scanBtn.addEventListener('click', () => startQrScanner(clientId));
+            }
+
+            async function startQrScanner(clientId) {
+                const qrReaderDiv = document.getElementById(`qr-reader_${clientId}`);
+                if (!qrReaderDiv) return;
+                if (html5QrCode && html5QrCode.isScanning) await html5QrCode.stop();
+                qrReaderDiv.style.display = 'block';
+                currentQrClientId = clientId;
+                html5QrCode = new Html5Qrcode(`qr-reader_${clientId}`);
+                try {
+                    await html5QrCode.start({
+                            facingMode: "environment"
+                        }, {
+                            fps: 10,
+                            qrbox: {
+                                width: 250,
+                                height: 250
+                            }
+                        },
+                        (decodedText) => {
+                            const trnInput = document.getElementById(`trnNumber_${clientId}`);
+                            if (trnInput) {
+                                const digitsOnly = decodedText.replace(/[^0-9]/g, '');
+                                const finalTrn = digitsOnly.slice(0, TRN_LENGTH);
+                                trnInput.value = finalTrn;
+                                clientTrnData[clientId].trnNumber = finalTrn;
+                                validateAndStyleTrnInput(clientId);
+                            }
+                            if (html5QrCode && html5QrCode.isScanning) html5QrCode.stop();
+                            qrReaderDiv.style.display = 'none';
+                            alert(clientTrnData[clientId].isValid ? 'QR Code scanned successfully!' :
+                                'QR Code scanned. Please ensure TRN is exactly 29 digits.');
+                        },
+                        (errorMessage) => console.log(`QR Scan error: ${errorMessage}`)
+                    );
+                } catch (err) {
+                    console.error(`Failed to start QR scanner: ${err}`);
+                    alert('Could not access camera. Please grant camera permissions.');
+                    qrReaderDiv.style.display = 'none';
+                }
+            }
+
+            function shouldShowTrnForClient(client) {
+                return client.service === 'inquiry';
+            }
+
+            function validateTrnForClient(client) {
+                if (!shouldShowTrnForClient(client)) return true;
+                const trnData = clientTrnData[client.id];
+                if (!trnData || trnData.hasTrn === null) return false;
+                if (trnData.hasTrn === true && (!trnData.trnNumber || !trnData.isValid)) return false;
+                return true;
+            }
 
             let clients = [{
                 id: 1,
@@ -469,11 +1444,11 @@
                 suffix: '',
                 sex: 'Male',
                 birthdate: '',
-                service: 'reg',
-                reqAcknowledged: false
+                service: '',
+                reqAcknowledged: false,
+                requirementsRead: false
             }];
             let nextClientId = 2;
-
             let currentMonth = new Date().getMonth();
             let currentYear = new Date().getFullYear();
 
@@ -482,15 +1457,40 @@
             const successModal = document.getElementById('successModal');
             const modalTitle = document.getElementById('modalServiceTitle');
             const modalBody = document.getElementById('modalBodyContent');
-            
+
             const sections = {
-                type: document.getElementById('sectionType'),
+                guide: document.getElementById('sectionGuide'),
                 clients: document.getElementById('sectionClients'),
                 schedule: document.getElementById('sectionSchedule'),
                 contact: document.getElementById('sectionContact'),
                 review: document.getElementById('sectionReview'),
                 confirm: document.getElementById('sectionConfirm')
             };
+
+            function loadLocationFromLandingPage() {
+                const stored = localStorage.getItem('userLocation');
+                if (stored) {
+                    try {
+                        const locationData = JSON.parse(stored);
+                        if (locationData.detected === true && locationData.lat && locationData.lng) {
+                            userLocation.lat = locationData.lat;
+                            userLocation.lng = locationData.lng;
+                            userLocation.city = locationData.city || '';
+                            userLocation.address = locationData.address || '';
+                            userLocation.zipcode = locationData.zipcode || '';
+                            document.getElementById('userLat').value = userLocation.lat;
+                            document.getElementById('userLng').value = userLocation.lng;
+                            document.getElementById('userCity').value = userLocation.city;
+                            document.getElementById('userAddress').value = userLocation.address;
+                            document.getElementById('userZipcode').value = userLocation.zipcode;
+                            return true;
+                        }
+                    } catch (e) {
+                        console.error('Error parsing location data:', e);
+                    }
+                }
+                return false;
+            }
 
             function showLoading() {
                 document.getElementById('loadingOverlay').style.display = 'flex';
@@ -510,265 +1510,244 @@
                 });
             }
 
-            function getServiceName(c) {
-                return serviceOptions[c] || c;
+            function isClientFieldsComplete(client) {
+                return client.firstName && client.firstName.trim() !== '' &&
+                    client.lastName && client.lastName.trim() !== '' &&
+                    client.birthdate && client.birthdate !== '' &&
+                    client.sex && client.sex !== '' &&
+                    client.service && client.service !== '';
             }
 
-            function getFullName(c) {
-                const parts = [c.firstName, c.middleName, c.lastName].filter(p => p && p.trim());
-                let fullName = parts.join(' ') || '(No name)';
-                if (c.suffix) fullName += ' ' + c.suffix;
-                return fullName;
-            }
-
-            function allRequirementsAcknowledged() {
-                return clients.every(c => c.reqAcknowledged);
-            }
-
-            function updateReqSummary() {
-                const list = document.getElementById('reqSummaryList');
-                const banner = document.getElementById('reqSummaryBanner');
-                let html = '';
-                let allAcked = true;
-                clients.forEach((c, i) => {
-                    const svc = appointmentType === 'single' ? singleService : c.service;
-                    const acked = c.reqAcknowledged;
-                    if (!acked) allAcked = false;
-                    const displayName = getFullName(c);
-                    html += `<div class="req-item"><i class="fas ${acked ? 'fa-check-circle' : 'fa-exclamation-circle'}" style="color:${acked?'var(--success)':'var(--warning)'};"></i> ${displayName || 'Person '+(i+1)} - ${getServiceName(svc)} ${acked ? '✓' : '(Pending)'}</div>`;
-                });
-                list.innerHTML = html;
-                banner.classList.toggle('complete', allAcked);
-                const nextBtn = document.getElementById('nextToSchedule');
-                if (nextBtn) nextBtn.disabled = !allAcked;
-            }
-
-            async function loadAvailableDates() {
-                const clientCount = appointmentType === 'multiple' ? clients.length : 1;
-                
-                try {
-                    const response = await fetch(`{{ route('client.appointment.available-dates') }}?month=${currentMonth + 1}&year=${currentYear}&client_count=${clientCount}`);
-                    
-                    if (!response.ok) {
-                        throw new Error(`HTTP error! status: ${response.status}`);
-                    }
-                    
-                    const data = await response.json();
-                    
-                    if (data.success) {
-                        availableDatesData = data.dates;
-                        renderCalendar();
+            function updateViewRequirementsButton(clientId) {
+                const client = clients.find(c => c.id == clientId);
+                if (!client) return;
+                const button = document.querySelector(`.btn-view-req[data-id="${clientId}"]`);
+                if (button) {
+                    const isComplete = isClientFieldsComplete(client);
+                    if (isComplete) {
+                        button.disabled = false;
+                        button.style.opacity = '1';
                     } else {
-                        console.error('API returned error:', data.message);
-                        document.getElementById('calendarDays').innerHTML = '<div class="error">' + (data.message || 'Failed to load available dates') + '</div>';
+                        button.disabled = true;
+                        button.style.opacity = '0.6';
                     }
-                } catch (error) {
-                    console.error('Error loading dates:', error);
-                    document.getElementById('calendarDays').innerHTML = '<div class="error">Failed to load available dates. Please try again later.</div>';
+                    if (client.requirementsRead) button.classList.add('requirements-read');
+                    else button.classList.remove('requirements-read');
+                }
+                updateAcknowledgmentCheckbox(clientId);
+            }
+
+            function updateAcknowledgmentCheckbox(clientId) {
+                const client = clients.find(c => c.id == clientId);
+                if (!client) return;
+                const checkbox = document.querySelector(`.req-ack[data-id="${clientId}"]`);
+                const ackRow = document.querySelector(`.req-ack-row[data-client-id="${clientId}"]`);
+                if (checkbox && ackRow) {
+                    const canCheck = isClientFieldsComplete(client) && client.requirementsRead === true;
+                    if (canCheck) {
+                        checkbox.disabled = false;
+                        ackRow.classList.remove('disabled-checkbox');
+                        const existingHelper = ackRow.querySelector('.helper-text');
+                        if (existingHelper) existingHelper.remove();
+                    } else {
+                        checkbox.disabled = true;
+                        ackRow.classList.add('disabled-checkbox');
+                        if (!ackRow.querySelector('.helper-text')) {
+                            const helperText = document.createElement('small');
+                            helperText.className = 'helper-text';
+                            if (!isClientFieldsComplete(client)) helperText.innerHTML =
+                                '<i class="fas fa-info-circle"></i> Please fill in all required fields first.';
+                            else if (!client.requirementsRead) helperText.innerHTML =
+                                '<i class="fas fa-info-circle"></i> Please click "View Requirements" and read the requirements first.';
+                            ackRow.appendChild(helperText);
+                        }
+                    }
                 }
             }
 
-            function renderCalendar() {
-                const monthNames = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
-                document.getElementById('calendarMonthYear').textContent = `${monthNames[currentMonth]} ${currentYear}`;
-                
-                const firstDay = new Date(currentYear, currentMonth, 1);
-                const startDayOfWeek = firstDay.getDay() || 7;
-                const startOffset = startDayOfWeek === 7 ? 0 : startDayOfWeek - 1;
-                const daysInMonth = new Date(currentYear, currentMonth + 1, 0).getDate();
-                
-                let html = '';
-                for (let i = 0; i < startOffset; i++) {
-                    html += '<div class="calendar-day empty"></div>';
-                }
-                
-                const today = new Date();
-                today.setHours(0, 0, 0, 0);
-                
-                for (let d = 1; d <= daysInMonth; d++) {
-                    const date = new Date(currentYear, currentMonth, d);
-                    const dateKey = `${currentYear}-${String(currentMonth + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
-                    const dateData = availableDatesData ? availableDatesData.find(item => item.date === dateKey) : null;
-                    const isPast = date < today;
-                    const isSelected = selectedDate === dateKey;
-                    
-                    let cls = 'calendar-day';
-                    if (isPast) cls += ' disabled';
-                    else if (dateData && dateData.available_slots > 0) cls += ' available';
-                    else if (!dateData) cls += ' disabled';
-                    if (isSelected) cls += ' selected';
-                    
-                    let slotsHtml = '';
-                    if (dateData && !isPast) {
-                        slotsHtml = `<span class="slots-left">${dateData.available_slots}</span>`;
-                    }
-                    
-                    html += `<div class="${cls}" data-date="${dateKey}" data-slots="${dateData ? dateData.available_slots : 0}">${d}${slotsHtml}</div>`;
-                }
-                
-                document.getElementById('calendarDays').innerHTML = html;
-                
-                document.querySelectorAll('.calendar-day.available').forEach(el => {
-                    el.addEventListener('click', () => {
-                        const dateKey = el.dataset.date;
-                        selectedDate = dateKey;
-                        document.getElementById('selectedDateText').textContent = formatDisplayDate(dateKey);
-                        document.getElementById('slotInfoText').innerHTML = `✓ ${el.dataset.slots} slots available for this date.`;
-                        renderCalendar();
+            async function fetchRequirementsFromBackend(serviceCode, birthdate) {
+                try {
+                    let url = `{{ route('client.appointment.get-requirements') }}?service=${serviceCode}`;
+                    if (birthdate) url += `&birthdate=${birthdate}`;
+                    const response = await fetch(url, {
+                        headers: {
+                            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+                            'Accept': 'application/json'
+                        }
                     });
-                });
+                    return await response.json();
+                } catch (error) {
+                    return {
+                        success: false,
+                        message: 'Failed to load requirements'
+                    };
+                }
+            }
+
+            async function showRequirementsModal(clientId) {
+                const client = clients.find(c => c.id == clientId);
+                if (!client || !isClientFieldsComplete(client)) {
+                    await Swal.fire({
+                        icon: 'warning',
+                        title: 'Incomplete Information',
+                        text: 'Please fill in all required fields first.',
+                        confirmButtonColor: '#dc3545'
+                    });
+                    return;
+                }
+                modalTitle.textContent = 'Loading Requirements...';
+                modalBody.innerHTML =
+                    '<div class="loading-spinner"><i class="fas fa-spinner fa-spin"></i> Loading requirements...</div>';
+                reqModal.style.display = 'flex';
+                currentRequirementsClientId = clientId;
+                const result = await fetchRequirementsFromBackend(client.service, client.birthdate);
+                if (result.success && result.html) {
+                    modalTitle.textContent = `${getServiceName(client.service)} Requirements`;
+                    modalBody.innerHTML = result.html;
+                } else {
+                    modalBody.innerHTML =
+                        `<div class="error-message">${result.message || 'Failed to load requirements.'}</div>`;
+                }
             }
 
             function renderClients() {
                 const container = document.getElementById('clientsList');
-                const isMultiple = appointmentType === 'multiple';
-                const addBtn = document.getElementById('addClientBtn');
-                const countContainer = document.getElementById('clientCountContainer');
-
-                if (appointmentType === 'single') {
-                    addBtn.classList.add('hidden');
-                    countContainer.classList.add('hidden');
-                    document.getElementById('clientsTitle').textContent = 'Client Information';
-                    document.getElementById('clientsSubtitle').textContent = 'Enter the details of the person for this appointment.';
-                } else {
-                    addBtn.classList.remove('hidden');
-                    countContainer.classList.remove('hidden');
-                    document.getElementById('clientsTitle').textContent = 'Family / Group Members';
-                    document.getElementById('clientsSubtitle').textContent = 'Add all persons who will attend. Each can select their own service.';
-                }
-
                 container.innerHTML = '';
                 clients.forEach((c, i) => {
-                    const svc = isMultiple ? c.service : singleService;
-                    const reminder = identityReminders[svc] || 'Please ensure the information is accurate.';
-
+                    const showTrn = shouldShowTrnForClient(c);
+                    const trnData = clientTrnData[c.id] || {
+                        hasTrn: null,
+                        trnNumber: '',
+                        isValid: false
+                    };
+                    const isComplete = isClientFieldsComplete(c);
                     const card = document.createElement('div');
                     card.className = 'client-card';
                     card.innerHTML = `
-                        <div class="client-header">
-                            <span class="client-title"><i class="fas fa-user-circle"></i> ${appointmentType === 'single' ? 'Client Information' : 'Person '+(i+1)} ${isMultiple?`<span class="client-service-badge">${getServiceName(svc)}</span>`:''}</span>
-                            <div style="display: flex; gap: 8px;">
-                                <button class="btn-view-req" data-id="${c.id}"><i class="fas fa-book"></i> View Requirements</button>
-                                ${(appointmentType === 'multiple' && clients.length > 1) ? `<button class="btn-remove-client" data-id="${c.id}"><i class="fas fa-trash-alt"></i></button>` : ''}
-                            </div>
-                        </div>
-                        <div class="identity-reminder">
-                            <i class="fas fa-id-card"></i>
-                            <strong>Important:</strong> ${reminder}
-                        </div>
-                        <div class="form-row">
-                            <div class="form-col">
-                                <label>First Name <span style="color: var(--danger);">*</span></label>
-                                <input class="client-firstname" data-id="${c.id}" value="${c.firstName || ''}" placeholder="First Name">
-                            </div>
-                            <div class="form-col">
-                                <label>Middle Name</label>
-                                <input class="client-middlename" data-id="${c.id}" value="${c.middleName || ''}" placeholder="Middle Name">
-                            </div>
-                        </div>
-                        <div class="form-row">
-                            <div class="form-col">
-                                <label>Last Name <span style="color: var(--danger);">*</span></label>
-                                <input class="client-lastname" data-id="${c.id}" value="${c.lastName || ''}" placeholder="Last Name">
-                            </div>
-                            <div class="form-col">
-                                <label>Suffix</label>
-                                <select class="client-suffix" data-id="${c.id}">
-                                    <option value="" ${!c.suffix ? 'selected' : ''}>-- None --</option>
-                                    <option value="Jr." ${c.suffix === 'Jr.' ? 'selected' : ''}>Jr.</option>
-                                    <option value="Sr." ${c.suffix === 'Sr.' ? 'selected' : ''}>Sr.</option>
-                                    <option value="I" ${c.suffix === 'I' ? 'selected' : ''}>I</option>
-                                    <option value="II" ${c.suffix === 'II' ? 'selected' : ''}>II</option>
-                                    <option value="III" ${c.suffix === 'III' ? 'selected' : ''}>III</option>
-                                    <option value="IV" ${c.suffix === 'IV' ? 'selected' : ''}>IV</option>
-                                    <option value="V" ${c.suffix === 'V' ? 'selected' : ''}>V</option>
-                                </select>
-                            </div>
-                        </div>
-                        <div class="form-row">
-                            <div class="form-col">
-                                <label>Sex <span style="color: var(--danger);">*</span></label>
-                                <select class="client-sex" data-id="${c.id}">
-                                    <option value="Male" ${c.sex==='Male'?'selected':''}>Male</option>
-                                    <option value="Female" ${c.sex==='Female'?'selected':''}>Female</option>
-                                </select>
-                            </div>
-                            <div class="form-col">
-                                <label>Birthdate <span style="color: var(--danger);">*</span></label>
-                                <input type="date" class="client-birthdate" data-id="${c.id}" value="${c.birthdate}">
-                            </div>
-                        </div>
-                        ${isMultiple ? `<div class="form-col" style="margin-top: 12px;"><label>Service <span style="color: var(--danger);">*</span></label><select class="client-service" data-id="${c.id}"><option value="reg" ${c.service==='reg'?'selected':''}>National ID Registration</option><option value="correction" ${c.service==='correction'?'selected':''}>Correction/Updating</option><option value="ephilid" ${c.service==='ephilid'?'selected':''}>ePhilID Issuance</option><option value="trn" ${c.service==='trn'?'selected':''}>TRN Retrieval</option></select></div>` : ''}
-                        <div class="req-ack-row ${c.reqAcknowledged ? 'acknowledged' : ''}">
-                            <input type="checkbox" class="req-ack" data-id="${c.id}" ${c.reqAcknowledged ? 'checked' : ''}>
-                            <label>I have read and understood the requirements for <strong>${getServiceName(svc)}</strong>. I will bring all necessary documents.</label>
-                        </div>
-                    `;
+                <div class="client-header">
+                    <span class="client-title"><i class="fas fa-user-circle"></i> Person ${i + 1}</span>
+                    <div style="display: flex; gap: 8px;">${clients.length > 1 ? `<button class="btn-remove-client" data-id="${c.id}"><i class="fas fa-trash-alt"></i></button>` : ''}</div>
+                </div>
+                <div class="identity-reminder"><i class="fas fa-id-card"></i> <strong>Important:</strong> ${identityReminders[c.service] || 'Please ensure the information is accurate.'}</div>
+                <div class="form-row">
+                    <div class="form-col"><label>First Name *</label><input class="client-firstname" data-id="${c.id}" value="${escapeHtml(c.firstName)}" placeholder="First Name"></div>
+                    <div class="form-col"><label>Middle Name</label><input class="client-middlename" data-id="${c.id}" value="${escapeHtml(c.middleName)}" placeholder="Middle Name"></div>
+                </div>
+                <div class="form-row">
+                    <div class="form-col"><label>Last Name *</label><input class="client-lastname" data-id="${c.id}" value="${escapeHtml(c.lastName)}" placeholder="Last Name"></div>
+                    <div class="form-col"><label>Suffix</label><select class="client-suffix" data-id="${c.id}"><option value="">None</option><option value="Jr." ${c.suffix === 'Jr.' ? 'selected' : ''}>Jr.</option><option value="Sr." ${c.suffix === 'Sr.' ? 'selected' : ''}>Sr.</option><option value="I" ${c.suffix === 'I' ? 'selected' : ''}>I</option><option value="II" ${c.suffix === 'II' ? 'selected' : ''}>II</option><option value="III" ${c.suffix === 'III' ? 'selected' : ''}>III</option></select></div>
+                </div>
+                <div class="form-row">
+                    <div class="form-col"><label>Sex *</label><select class="client-sex" data-id="${c.id}"><option value="Male" ${c.sex === 'Male' ? 'selected' : ''}>Male</option><option value="Female" ${c.sex === 'Female' ? 'selected' : ''}>Female</option></select></div>
+                    <div class="form-col"><label>Birthdate *</label><input type="date" class="client-birthdate" data-id="${c.id}" value="${c.birthdate}"></div>
+                </div>
+                <div class="form-col"><label>Service *</label>
+                    <select class="client-service" data-id="${c.id}">
+                        <option value="" disabled ${c.service === '' ? 'selected' : ''}>Select Service</option>
+                        <option value="reg" ${c.service === 'reg' ? 'selected' : ''}>National ID Registration</option>
+                        <option value="updating" ${c.service === 'updating' ? 'selected' : ''}>Correction/Updating</option>
+                        <option value="inquiry" ${c.service === 'inquiry' ? 'selected' : ''}>Status Inquiry / Retrieval Of TRN / Other Concern</option>
+                    </select>
+                </div>
+                ${showTrn ? createTrnHtml(c.id, trnData.hasTrn, trnData.trnNumber) : ''}
+                <button class="btn-view-req ${c.requirementsRead ? 'requirements-read' : ''}" data-id="${c.id}" ${!isComplete ? 'disabled' : ''}><i class="fas fa-book"></i> View Requirements</button>
+                <div class="req-ack-row" data-client-id="${c.id}">
+                    <input type="checkbox" class="req-ack" data-id="${c.id}" ${c.reqAcknowledged ? 'checked' : ''} ${!c.requirementsRead ? 'disabled' : ''}>
+                    <label>I have read and understood the requirements for <strong>${getServiceName(c.service)}</strong>. I will bring all necessary documents.</label>
+                </div>
+            `;
                     container.appendChild(card);
                 });
-
                 attachClientEvents();
                 document.getElementById('clientCount').textContent = clients.length;
-                updateReqSummary();
+            }
+
+            function escapeHtml(str) {
+                if (!str) return '';
+                return str.replace(/[&<>]/g, function(m) {
+                    if (m === '&') return '&amp;';
+                    if (m === '<') return '&lt;';
+                    if (m === '>') return '&gt;';
+                    return m;
+                });
             }
 
             function attachClientEvents() {
-                document.querySelectorAll('.client-firstname').forEach(e => e.addEventListener('input', (ev) => {
-                    const c = clients.find(x => x.id == ev.target.dataset.id);
-                    if (c) c.firstName = ev.target.value;
-                }));
-                document.querySelectorAll('.client-middlename').forEach(e => e.addEventListener('input', (ev) => {
+                document.querySelectorAll('.client-firstname, .client-lastname, .client-sex, .client-birthdate')
+                    .forEach(e => e.addEventListener('change', (ev) => {
+                        const c = clients.find(x => x.id == ev.target.dataset.id);
+                        if (c) {
+                            if (ev.target.classList.contains('client-firstname')) c.firstName = ev.target.value;
+                            if (ev.target.classList.contains('client-lastname')) c.lastName = ev.target.value;
+                            if (ev.target.classList.contains('client-sex')) c.sex = ev.target.value;
+                            if (ev.target.classList.contains('client-birthdate')) c.birthdate = ev.target.value;
+                            updateViewRequirementsButton(c.id);
+                        }
+                    }));
+                document.querySelectorAll('.client-middlename').forEach(e => e.addEventListener('change', (ev) => {
                     const c = clients.find(x => x.id == ev.target.dataset.id);
                     if (c) c.middleName = ev.target.value;
-                }));
-                document.querySelectorAll('.client-lastname').forEach(e => e.addEventListener('input', (ev) => {
-                    const c = clients.find(x => x.id == ev.target.dataset.id);
-                    if (c) c.lastName = ev.target.value;
                 }));
                 document.querySelectorAll('.client-suffix').forEach(e => e.addEventListener('change', (ev) => {
                     const c = clients.find(x => x.id == ev.target.dataset.id);
                     if (c) c.suffix = ev.target.value;
-                }));
-                document.querySelectorAll('.client-sex').forEach(e => e.addEventListener('change', (ev) => {
-                    const c = clients.find(x => x.id == ev.target.dataset.id);
-                    if (c) c.sex = ev.target.value;
-                }));
-                document.querySelectorAll('.client-birthdate').forEach(e => e.addEventListener('input', (ev) => {
-                    const c = clients.find(x => x.id == ev.target.dataset.id);
-                    if (c) c.birthdate = ev.target.value;
                 }));
                 document.querySelectorAll('.client-service').forEach(e => e.addEventListener('change', (ev) => {
                     const c = clients.find(x => x.id == ev.target.dataset.id);
                     if (c) {
                         c.service = ev.target.value;
                         c.reqAcknowledged = false;
+                        c.requirementsRead = false;
+                        if (c.service !== 'inquiry') delete clientTrnData[c.id];
+                        else if (!clientTrnData[c.id]) clientTrnData[c.id] = {
+                            hasTrn: null,
+                            trnNumber: '',
+                            isValid: false
+                        };
                         renderClients();
-                        updateReqSummary();
                     }
                 }));
-                document.querySelectorAll('.req-ack').forEach(e => e.addEventListener('change', (ev) => {
+                document.querySelectorAll('.req-ack').forEach(e => e.addEventListener('change', async (ev) => {
                     const c = clients.find(x => x.id == ev.target.dataset.id);
-                    if (c) {
-                        c.reqAcknowledged = ev.target.checked;
-                        renderClients();
-                        updateReqSummary();
+                    if (c && ev.target.checked && (!isClientFieldsComplete(c) || !c.requirementsRead)) {
+                        ev.target.checked = false;
+                        if (!isClientFieldsComplete(c)) {
+                            await Swal.fire({
+                                icon: 'warning',
+                                title: 'Cannot Acknowledge',
+                                text: 'Please fill in all required fields first.',
+                                confirmButtonColor: '#dc3545'
+                            });
+                        } else if (!c.requirementsRead) {
+                            await Swal.fire({
+                                icon: 'info',
+                                title: 'Requirements Not Read',
+                                text: 'Please click "View Requirements" first.',
+                                confirmButtonColor: '#28a745',
+                                confirmButtonText: 'View Requirements'
+                            }).then((result) => {
+                                if (result.isConfirmed) document.querySelector(
+                                    `.btn-view-req[data-id="${c.id}"]`).click();
+                            });
+                        }
+                        return;
                     }
+                    if (c) c.reqAcknowledged = ev.target.checked;
                 }));
-                document.querySelectorAll('.btn-view-req').forEach(b => b.addEventListener('click', (ev) => {
+                document.querySelectorAll('.btn-view-req').forEach(b => b.addEventListener('click', async (ev) => {
                     const id = ev.target.closest('.btn-view-req').dataset.id;
-                    const client = clients.find(c => c.id == id);
-                    const svc = appointmentType === 'single' ? singleService : client.service;
-                    modalTitle.textContent = `${getServiceName(svc)} Requirements`;
-                    modalBody.innerHTML = requirementsContent[svc] || '<p>Requirements not available.</p>';
-                    reqModal.style.display = 'flex';
+                    await showRequirementsModal(parseInt(id));
                 }));
                 document.querySelectorAll('.btn-remove-client').forEach(b => b.addEventListener('click', (ev) => {
-                    const id = ev.target.closest('.btn-remove-client').dataset.id;
-                    clients = clients.filter(c => c.id != id);
+                    const id = parseInt(ev.target.closest('.btn-remove-client').dataset.id);
+                    clients = clients.filter(c => c.id !== id);
+                    delete clientTrnData[id];
+                    delete clientTimeSlots[id];
                     renderClients();
-                    updateReqSummary();
-                    document.getElementById('clientCount').textContent = clients.length;
                 }));
+                clients.forEach(client => {
+                    if (shouldShowTrnForClient(client)) attachTrnEvents(client.id);
+                });
             }
 
             function setActiveStep(s) {
@@ -780,50 +1759,20 @@
                 s.classList.remove('hidden');
             }
 
-            // Event Listeners
+            // EVENT LISTENERS
             document.getElementById('agreePrivacyBtn').onclick = () => privacyModal.style.display = 'none';
-
-            document.getElementById('typeSingle').onclick = () => {
-                appointmentType = 'single';
-                document.getElementById('typeSingle').classList.add('selected');
-                document.getElementById('typeMultiple').classList.remove('selected');
-                document.getElementById('singleServiceSection').style.display = 'block';
-                if (clients.length > 1) clients = [clients[0]];
-                clients.forEach(c => c.service = singleService);
-                renderClients();
+            document.getElementById('startBookingBtn').onclick = () => {
+                showSection(sections.clients);
+                setActiveStep(2);
             };
-
-            document.getElementById('typeMultiple').onclick = () => {
-                appointmentType = 'multiple';
-                document.getElementById('typeMultiple').classList.add('selected');
-                document.getElementById('typeSingle').classList.remove('selected');
-                document.getElementById('singleServiceSection').style.display = 'none';
-                renderClients();
-            };
-
-            document.getElementById('singleServiceSelect').onchange = function() {
-                singleService = this.value;
-                singleServiceText = serviceOptions[this.value] || '';
-                document.getElementById('singleServiceDesc').innerHTML = this.value ?
-                    `<p style="color: var(--gray-700);"><i class="fas fa-check-circle" style="color: var(--success);"></i> ${singleServiceText} selected. Click 'View Requirements' for details.</p>` :
-                    '<p style="color: var(--gray-500);"><i class="fas fa-info-circle"></i> Select a service.</p>';
-                document.getElementById('showReqBtnSingle').style.display = this.value ? 'block' : 'none';
-                if (appointmentType === 'single') {
-                    clients.forEach(c => c.service = singleService);
-                    renderClients();
-                }
-            };
-
-            document.getElementById('showReqBtnSingle').onclick = () => {
-                modalTitle.textContent = singleServiceText + ' Requirements';
-                modalBody.innerHTML = requirementsContent[singleService] || '';
-                reqModal.style.display = 'flex';
-            };
-
             document.getElementById('addClientBtn').onclick = () => {
-                if (appointmentType === 'single') return;
-                if (clients.length >= 10) {
-                    alert('Maximum 10 persons.');
+                if (clients.length >= MAX_CLIENTS) {
+                    Swal.fire({
+                        icon: 'warning',
+                        title: 'Maximum Reached',
+                        text: `Maximum ${MAX_CLIENTS} persons only.`,
+                        confirmButtonColor: '#dc3545'
+                    });
                     return;
                 }
                 clients.push({
@@ -834,60 +1783,66 @@
                     suffix: '',
                     sex: 'Male',
                     birthdate: '',
-                    service: 'reg',
-                    reqAcknowledged: false
+                    service: '',
+                    reqAcknowledged: false,
+                    requirementsRead: false
                 });
                 renderClients();
-            };
-
-            document.getElementById('nextToClients').onclick = () => {
-                if (appointmentType === 'single' && !singleService) {
-                    alert('Please select a service');
-                    return;
-                }
-                renderClients();
-                showSection(sections.clients);
-                setActiveStep(2);
-            };
-
-            document.getElementById('backToTypeFromClients').onclick = () => {
-                showSection(sections.type);
-                setActiveStep(1);
             };
 
             document.getElementById('nextToSchedule').onclick = () => {
                 for (let c of clients) {
                     if (!c.firstName?.trim() || !c.lastName?.trim()) {
-                        alert('First Name and Last Name are required for all clients');
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Missing Information',
+                            text: 'First Name and Last Name are required.',
+                            confirmButtonColor: '#dc3545'
+                        });
                         return;
                     }
-                    if (!c.sex) {
-                        alert('Please select sex for all clients');
+                    if (!c.sex || !c.birthdate || !c.service) {
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Missing Information',
+                            text: 'Please fill in all fields.',
+                            confirmButtonColor: '#dc3545'
+                        });
                         return;
                     }
-                    if (!c.birthdate) {
-                        alert('Please enter birthdate for all clients');
+                    if (!validateTrnForClient(c)) {
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Missing TRN',
+                            text: `${getFullName(c)}: Please indicate TRN status.`,
+                            confirmButtonColor: '#dc3545'
+                        });
                         return;
                     }
-                    if (appointmentType === 'multiple' && !c.service) {
-                        alert('Please select service for all clients');
+                    if (!c.reqAcknowledged) {
+                        Swal.fire({
+                            icon: 'warning',
+                            title: 'Requirements Not Acknowledged',
+                            text: `Please acknowledge requirements for ${getFullName(c)}.`,
+                            confirmButtonColor: '#dc3545'
+                        });
                         return;
                     }
                 }
-                if (!allRequirementsAcknowledged()) {
-                    alert('Please acknowledge all requirements.');
-                    return;
-                }
+                selectedDate = null;
+                clientTimeSlots = {};
+                availableTimeSlotsCache = [];
                 loadAvailableDates();
                 showSection(sections.schedule);
                 setActiveStep(3);
+                document.getElementById('perApplicantTimeSlotsContainer').innerHTML =
+                    '<div class="slot-info"><i class="fas fa-calendar-alt"></i> Please select a date first</div>';
             };
 
             document.getElementById('backToClients').onclick = () => {
                 showSection(sections.clients);
                 setActiveStep(2);
             };
-            
             document.getElementById('prevMonthBtn').onclick = () => {
                 currentMonth--;
                 if (currentMonth < 0) {
@@ -896,7 +1851,6 @@
                 }
                 loadAvailableDates();
             };
-            
             document.getElementById('nextMonthBtn').onclick = () => {
                 currentMonth++;
                 if (currentMonth > 11) {
@@ -908,7 +1862,22 @@
 
             document.getElementById('nextToContact').onclick = () => {
                 if (!selectedDate) {
-                    alert('Please select an appointment date.');
+                    Swal.fire({
+                        icon: 'warning',
+                        title: 'No Date Selected',
+                        text: 'Please select a date.',
+                        confirmButtonColor: '#dc3545'
+                    });
+                    return;
+                }
+                const missing = clients.filter(c => !clientTimeSlots[c.id]?.slotId);
+                if (missing.length) {
+                    Swal.fire({
+                        icon: 'warning',
+                        title: 'Missing Time Slots',
+                        text: `Please select time slots for: ${missing.map(c => getFullName(c)).join(', ')}`,
+                        confirmButtonColor: '#dc3545'
+                    });
                     return;
                 }
                 showSection(sections.contact);
@@ -918,24 +1887,43 @@
             document.getElementById('backToScheduleFromContact').onclick = () => {
                 showSection(sections.schedule);
                 setActiveStep(3);
+                renderPerApplicantTimeSlots();
             };
 
             document.getElementById('nextToReview').onclick = () => {
                 const name = document.getElementById('contactName').value;
-                const mob = document.getElementById('contactMobile').value;
-                if (!name || !mob) {
-                    alert('Contact name and mobile number are required.');
+                const mobile = document.getElementById('contactMobile').value;
+                if (!name) {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Invalid Contact',
+                        text: 'Please enter a contact name.',
+                        confirmButtonColor: '#dc3545'
+                    });
                     return;
                 }
-                document.getElementById('reviewType').textContent = appointmentType === 'single' ? 'Single' : 'Family / Group';
+                if (mobile && (mobile.length !== 10 || !mobile.startsWith('9'))) {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Invalid Contact',
+                        text: 'Please enter a valid mobile number or leave it blank.',
+                        confirmButtonColor: '#dc3545'
+                    });
+                    return;
+                }
                 document.getElementById('reviewClientCount').textContent = clients.length;
-                document.getElementById('reviewClientsList').innerHTML = clients.map((c, i) =>
-                    `<div class="client-summary-item"><strong>${i+1}. ${getFullName(c)}</strong> - ${getServiceName(appointmentType==='single'?singleService:c.service)}</div>`
-                ).join('');
-                document.getElementById('reviewDate').textContent = formatDisplayDate(selectedDate);
-                document.getElementById('reviewContactName').textContent = name;
-                document.getElementById('reviewContactEmail').textContent = document.getElementById('contactEmail').value || 'Not provided';
-                document.getElementById('reviewContactMobile').textContent = mob;
+                let clientsHtml = '';
+                clients.forEach((c, i) => {
+                    const slot = clientTimeSlots[c.id];
+                    clientsHtml +=
+                        `<div><strong>${i+1}. ${escapeHtml(getFullName(c))}</strong> - ${getServiceName(c.service)}<br><small>Time: ${slot?.slotLabel || 'Not selected'}</small></div>`;
+                });
+                document.getElementById('reviewClientsList').innerHTML = clientsHtml;
+                document.getElementById('reviewDateTime').innerHTML = formatDisplayDate(selectedDate);
+                document.getElementById('reviewContactName').textContent = escapeHtml(name);
+                document.getElementById('reviewContactEmail').textContent = document.getElementById('contactEmail')
+                    .value || 'Not provided';
+                document.getElementById('reviewContactMobile').textContent = mobile ? '+63' + mobile : 'Not provided';
                 showSection(sections.review);
                 setActiveStep(5);
             };
@@ -944,358 +1932,132 @@
                 showSection(sections.contact);
                 setActiveStep(4);
             };
-
             document.getElementById('nextToConfirm').onclick = () => {
-                document.getElementById('sumType').textContent = appointmentType === 'single' ? 'Single' : 'Multiple';
-                document.getElementById('sumClients').textContent = clients.length + ' person(s)';
-                document.getElementById('sumDate').textContent = formatDisplayDate(selectedDate);
-                document.getElementById('sumContact').textContent = document.getElementById('contactName').value + ' / ' + document.getElementById('contactMobile').value;
-                showSection(sections.confirm);
-                setActiveStep(6);
-            };
+    const mobile = document.getElementById('contactMobile').value;
+    const name = document.getElementById('contactName').value;
+    const email = document.getElementById('contactEmail').value;
+
+    // Update applicants list
+    document.getElementById('sumClients').textContent = clients.length + ' applicant(s)';
+    let applicantsHtml = '';
+    clients.forEach((c, index) => {
+        const slot = clientTimeSlots[c.id];
+        applicantsHtml += `
+            <div style="padding: 12px; border-bottom: 1px solid var(--gray-200); ${index === clients.length - 1 ? 'border-bottom: none;' : ''}">
+                <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px;">
+                    <div>
+                        <strong style="font-size: 1rem;">${escapeHtml(getFullName(c))}</strong>
+                        <span style="display: inline-block; background: var(--primary); color: white; padding: 2px 8px; border-radius: 20px; font-size: 0.7rem; margin-left: 8px;">${getServiceName(c.service)}</span>
+                    </div>
+                    <div style="color: var(--success);">
+                        <i class="fas fa-clock"></i> ${escapeHtml(slot?.slotLabel || 'Not selected')}
+                    </div>
+                </div>
+                <div style="font-size: 0.8rem; color: var(--gray-500); margin-top: 5px;">
+                    <i class="fas fa-birthday-cake"></i> Birthdate: ${c.birthdate || 'Not provided'} |
+                    <i class="fas fa-venus-mars"></i> Sex: ${c.sex || 'Not selected'}
+                </div>
+            </div>
+        `;
+    });
+    document.getElementById('sumApplicantsList').innerHTML = applicantsHtml || '<div>No applicants added</div>';
+
+    // Update schedule
+    let timeSummary = `<div style="margin-bottom: 5px;"><strong>Date:</strong> ${formatDisplayDate(selectedDate)}</div>`;
+    timeSummary += `<div><strong>Individual Time Slots:</strong></div>`;
+    clients.forEach(c => {
+        const slot = clientTimeSlots[c.id];
+        timeSummary += `<div style="margin-left: 15px; margin-top: 5px;">• ${escapeHtml(getFullName(c))}: <strong>${escapeHtml(slot?.slotLabel || 'Not selected')}</strong></div>`;
+    });
+    document.getElementById('sumDateTime').innerHTML = timeSummary;
+
+    // Update contact
+    let contactHtml = `
+        <div><strong>Name:</strong> ${escapeHtml(name)}</div>
+        <div style="margin-top: 8px;"><strong>Mobile:</strong> ${mobile ? '+63' + mobile : 'Not provided'}</div>
+        ${email ? `<div style="margin-top: 8px;"><strong>Email:</strong> ${escapeHtml(email)}</div>` : ''}
+    `;
+    document.getElementById('sumContact').innerHTML = contactHtml;
+
+    // Update location if available
+    // const userCity = document.getElementById('userCity').value;
+    // const userAddress = document.getElementById('userAddress').value;
+    // if (userCity || userAddress) {
+    //     let locationHtml = '';
+    //     if (userAddress) locationHtml += `<div><strong>Address:</strong> ${escapeHtml(userAddress)}</div>`;
+    //     if (userCity) locationHtml += `<div style="margin-top: 8px;"><strong>City:</strong> ${escapeHtml(userCity)}</div>`;
+    //     document.getElementById('sumLocation').innerHTML = locationHtml;
+    //     document.getElementById('sumLocationContainer').style.display = 'block';
+    // } else {
+    //     document.getElementById('sumLocationContainer').style.display = 'none';
+    // }
+
+    showSection(sections.confirm);
+    setActiveStep(6);
+};
 
             document.getElementById('backToReview').onclick = () => {
                 showSection(sections.review);
                 setActiveStep(5);
             };
-            
-            document.getElementById('confirmCheckbox').onchange = (e) => {
+
+            document.getElementById('confirmCheckbox').addEventListener('change', function(e) {
                 document.getElementById('submitRequestBtn').disabled = !e.target.checked;
-            };
+            });
 
-            document.getElementById('submitRequestBtn').onclick = async () => {
-                const formData = {
-                    appointment_type: appointmentType,
-                    appointment_date: selectedDate,
-                    contact_name: document.getElementById('contactName').value,
-                    contact_email: document.getElementById('contactEmail').value,
-                    contact_mobile: document.getElementById('contactMobile').value,
-                    clients: clients.map(c => ({
-                        first_name: c.firstName,
-                        middle_name: c.middleName,
-                        last_name: c.lastName,
-                        suffix: c.suffix,
-                        sex: c.sex,
-                        birthdate: c.birthdate,
-                        service: appointmentType === 'single' ? singleService : c.service
-                    }))
-                };
-                
-                showLoading();
-                
-                try {
-                    const response = await fetch('{{ route("client.appointment.store") }}', {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
-                        },
-                        body: JSON.stringify(formData)
-                    });
-                    
-                    const result = await response.json();
-                    
-                    if (result.success) {
-                        // Store appointment data for receipt
-                        window.lastAppointment = {
-                            number: result.appointment.number,
-                            reference_code: result.appointment.reference_code,
-                            date: result.appointment.date,
-                            clients_count: result.appointment.clients_count,
-                            contact_name: formData.contact_name,
-                            contact_email: formData.contact_email,
-                            contact_mobile: formData.contact_mobile,
-                            appointment_date: selectedDate,
-                            clients: formData.clients,
-                            appointment_type: appointmentType,
-                            service: appointmentType === 'single' ? getServiceName(singleService) : 'Multiple Services'
-                        };
-                        
-                        // Generate receipt HTML
-                        const receiptHtml = generateReceiptHTML(window.lastAppointment);
-                        document.getElementById('successDetails').innerHTML = `
-                            <p><strong>Appointment Number:</strong> ${result.appointment.number}</p>
-                            <p><strong>Reference Code:</strong> ${result.appointment.reference_code}</p>
-                            <p><strong>Date:</strong> ${result.appointment.date}</p>
-                            <p><strong>Clients:</strong> ${result.appointment.clients_count} person(s)</p>
-                            <hr>
-                            <p><small>Click Download PDF to save your appointment receipt.</small></p>
-                        `;
-                        
-                        // Store receipt HTML for PDF download
-                        window.receiptHTML = receiptHtml;
-                        
-                        successModal.style.display = 'flex';
-                    } else {
-                        alert('Error: ' + result.message);
+            document.getElementById('closeReqModal').onclick = () => {
+                reqModal.style.display = 'none';
+                currentRequirementsClientId = null;
+            };
+            document.getElementById('understandBtn').onclick = () => {
+                if (currentRequirementsClientId) {
+                    const client = clients.find(c => c.id === currentRequirementsClientId);
+                    if (client) {
+                        client.requirementsRead = true;
+                        renderClients();
+                        Swal.fire({
+                            icon: 'success',
+                            title: 'Requirements Reviewed',
+                            text: 'You may now check the acknowledgment box.',
+                            confirmButtonColor: '#28a745',
+                            timer: 3000
+                        });
                     }
-                } catch (error) {
-                    alert('Failed to submit appointment. Please try again.');
-                } finally {
-                    hideLoading();
+                    currentRequirementsClientId = null;
                 }
+                reqModal.style.display = 'none';
             };
 
-            // Function to generate receipt HTML with QR Code
-            function generateReceiptHTML(data) {
-                const serviceNames = {
-                    'reg': 'National ID Registration',
-                    'correction': 'Correction/Updating',
-                    'ephilid': 'ePhilID Issuance',
-                    'trn': 'TRN Retrieval'
-                };
-                
-                // Build clients table HTML
-                let clientsHtml = '';
-                if (data.clients && data.clients.length > 0) {
-                    data.clients.forEach((client, index) => {
-                        const serviceName = appointmentType === 'single' ? serviceNames[singleService] : serviceNames[client.service];
-                        const middleName = client.middle_name ? ' ' + client.middle_name : '';
-                        const fullName = `${client.last_name}, ${client.first_name}${middleName} ${client.suffix || ''}`.trim();
-                        clientsHtml += `
-                            <tr>
-                                <td style="padding: 8px; border: 1px solid #ddd; text-align: left;">${index + 1}</td>
-                                <td style="padding: 8px; border: 1px solid #ddd; text-align: left;">${fullName}</td>
-                                <td style="padding: 8px; border: 1px solid #ddd; text-align: left;">${serviceName}</td>
-                            </tr>
-                        `;
-                    });
-                }
-                
-                const qrId = 'qrcode_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
-                
-                return `
-                    <div class="receipt-container" id="receiptContainer" style="font-family: 'Courier New', monospace; max-width: 400px; margin: 0 auto; padding: 20px; background: white; border: 1px solid #ddd;">
-                        <div class="receipt-header" style="text-align: center; border-bottom: 2px solid #2c5f8a; padding-bottom: 15px; margin-bottom: 15px;">
-                            <img src="{{ asset('images/psa.png') }}" alt="PSA Logo" style="width: 60px; margin-bottom: 10px;">
-                            <h2 style="color: #2c5f8a; margin: 5px 0; font-size: 18px;">Philippine Statistics Authority</h2>
-                            <p style="margin: 3px 0; font-size: 12px; color: #666;">National ID Appointment System</p>
-                            <p style="margin: 3px 0; font-size: 12px; color: #666;">PSA CDO - Fixed Registration Center</p>
-                        </div>
-                        
-                        <div style="border-top: 1px dashed #999; margin: 15px 0;"></div>
-                        
-                        <div style="display: flex; justify-content: space-between; margin-bottom: 8px; font-size: 12px;">
-                            <span style="font-weight: bold;">Appointment Number:</span>
-                            <span>${data.number}</span>
-                        </div>
-                        <div style="display: flex; justify-content: space-between; margin-bottom: 8px; font-size: 12px;">
-                            <span style="font-weight: bold;">Reference Code:</span>
-                            <span>${data.reference_code}</span>
-                        </div>
-                        <div style="display: flex; justify-content: space-between; margin-bottom: 8px; font-size: 12px;">
-                            <span style="font-weight: bold;">Appointment Date:</span>
-                            <span>${data.date}</span>
-                        </div>
-                        <div style="display: flex; justify-content: space-between; margin-bottom: 8px; font-size: 12px;">
-                            <span style="font-weight: bold;">Appointment Type:</span>
-                            <span>${data.appointment_type === 'single' ? 'Single' : 'Family/Group'}</span>
-                        </div>
-                        <div style="display: flex; justify-content: space-between; margin-bottom: 8px; font-size: 12px;">
-                            <span style="font-weight: bold;">Total Clients:</span>
-                            <span>${data.clients_count} person(s)</span>
-                        </div>
-                        
-                        <div style="border-top: 1px dashed #999; margin: 15px 0;"></div>
-                        
-                        <div style="display: flex; justify-content: space-between; margin-bottom: 8px; font-size: 12px;">
-                            <span style="font-weight: bold;">Contact Person:</span>
-                            <span>${data.contact_name}</span>
-                        </div>
-                        <div style="display: flex; justify-content: space-between; margin-bottom: 8px; font-size: 12px;">
-                            <span style="font-weight: bold;">Contact Number:</span>
-                            <span>${data.contact_mobile}</span>
-                        </div>
-                        ${data.contact_email ? `<div style="display: flex; justify-content: space-between; margin-bottom: 8px; font-size: 12px;">
-                            <span style="font-weight: bold;">Email:</span>
-                            <span>${data.contact_email}</span>
-                        </div>` : ''}
-                        
-                        <div style="border-top: 1px dashed #999; margin: 15px 0;"></div>
-                        
-                        <div style="margin-top: 15px;">
-                            <strong style="display: block; margin-bottom: 10px; font-size: 12px;">Client Information:</strong>
-                            <table style="width: 100%; font-size: 11px; border-collapse: collapse;">
-                                <thead>
-                                    <tr style="background: #f5f5f5;">
-                                        <th style="padding: 8px; border: 1px solid #ddd; text-align: left;">#</th>
-                                        <th style="padding: 8px; border: 1px solid #ddd; text-align: left;">Name</th>
-                                        <th style="padding: 8px; border: 1px solid #ddd; text-align: left;">Service</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    ${clientsHtml}
-                                </tbody>
-                            </table>
-                        </div>
-                        
-                        <div style="border-top: 1px dashed #999; margin: 15px 0;"></div>
-                        
-                        <div style="text-align: center; margin: 15px 0;">
-                            <div id="${qrId}" style="display: inline-block;"></div>
-                            <div style="font-family: monospace; letter-spacing: 2px; font-size: 12px; margin-top: 10px;">${data.reference_code}</div>
-                        </div>
-                        
-                        <div style="border-top: 1px dashed #999; margin: 15px 0;"></div>
-                        
-                        <div style="text-align: center; font-size: 10px; color: #999; margin-top: 20px; padding-top: 15px;">
-                            <p>Please bring this receipt and valid ID on your appointment date.</p>
-                            <p>Arrive 15 minutes before your scheduled time.</p>
-                            <p>For inquiries: misamisoriental@psa.gov.ph | 0956 576 6106</p>
-                            <p>Generated on: ${new Date().toLocaleString()}</p>
-                        </div>
-                    </div>
-                    <script>
-                        (function() {
-                            var qrDiv = document.getElementById('${qrId}');
-                            if (qrDiv && typeof QRCode !== 'undefined') {
-                                new QRCode(qrDiv, {
-                                    text: '${data.reference_code}',
-                                    width: 100,
-                                    height: 100,
-                                    colorDark: '#000000',
-                                    colorLight: '#ffffff',
-                                    correctLevel: QRCode.CorrectLevel.H
-                                });
-                            }
-                        })();
-                    <\/script>
-                `;
-            }
-
-            // Print function
-            document.getElementById('printSummaryBtn').onclick = () => {
-                if (!window.receiptHTML) {
-                    alert('Receipt not ready. Please try again.');
-                    return;
-                }
-                
-                const printWindow = window.open('', '_blank');
-                printWindow.document.write(`
-                    <html>
-                        <head>
-                            <title>PSA Appointment Receipt</title>
-                            <style>
-                                * {
-                                    margin: 0;
-                                    padding: 0;
-                                    box-sizing: border-box;
-                                }
-                                body { 
-                                    font-family: 'Courier New', monospace; 
-                                    margin: 0; 
-                                    padding: 20px; 
-                                    background: white;
-                                }
-                                .receipt-container {
-                                    max-width: 400px;
-                                    margin: 0 auto;
-                                    padding: 20px;
-                                    background: white;
-                                    border: 1px solid #ddd;
-                                }
-                                .receipt-header { text-align: center; border-bottom: 2px solid #2c5f8a; padding-bottom: 15px; margin-bottom: 15px; }
-                                .receipt-header img { width: 60px; margin-bottom: 10px; }
-                                .receipt-header h2 { color: #2c5f8a; margin: 5px 0; font-size: 18px; }
-                                .receipt-header p { margin: 3px 0; font-size: 12px; color: #666; }
-                                .receipt-divider { border-top: 1px dashed #999; margin: 15px 0; }
-                                .receipt-row { display: flex; justify-content: space-between; margin-bottom: 8px; font-size: 12px; }
-                                .receipt-label { font-weight: bold; }
-                                .receipt-clients { margin-top: 15px; }
-                                .receipt-clients table { width: 100%; font-size: 11px; border-collapse: collapse; }
-                                .receipt-clients th, .receipt-clients td { border: 1px solid #ddd; padding: 8px; text-align: left; }
-                                .receipt-clients th { background: #f5f5f5; }
-                                .receipt-footer { text-align: center; font-size: 10px; color: #999; margin-top: 20px; border-top: 1px dashed #999; padding-top: 15px; }
-                                .barcode { font-family: monospace; letter-spacing: 2px; font-size: 14px; text-align: center; margin: 10px 0; }
-                                .qr-code { text-align: center; margin: 15px 0; }
-                                @media print {
-                                    body { margin: 0; padding: 0; }
-                                    .btn-next { display: none; }
-                                }
-                            </style>
-                        </head>
-                        <body>
-                            ${window.receiptHTML}
-                        </body>
-                    </html>
-                `);
-                printWindow.document.close();
-                setTimeout(() => {
-                    printWindow.print();
-                }, 500);
-            };
-
-            // PDF Download function
-            document.getElementById('downloadPdfBtn').onclick = async () => {
-                if (!window.receiptHTML) {
-                    alert('Receipt not ready. Please try again.');
-                    return;
-                }
-                
-                showLoading();
-                
-                try {
-                    // Create a temporary container for the receipt
-                    const container = document.createElement('div');
-                    container.innerHTML = window.receiptHTML;
-                    container.style.position = 'absolute';
-                    container.style.left = '-9999px';
-                    container.style.top = '-9999px';
-                    container.style.width = '400px';
-                    container.style.background = 'white';
-                    document.body.appendChild(container);
-                    
-                    // Wait for QR code to generate
-                    await new Promise(resolve => setTimeout(resolve, 1500));
-                    
-                    // Find the receipt container inside the temporary element
-                    const receiptElement = container.querySelector('#receiptContainer') || container;
-                    
-                    const opt = {
-                        margin: [0.5, 0.5, 0.5, 0.5],
-                        filename: `PSA_Appointment_${window.lastAppointment?.number || 'receipt'}.pdf`,
-                        image: { type: 'jpeg', quality: 0.98 },
-                        html2canvas: { 
-                            scale: 2, 
-                            logging: false, 
-                            useCORS: true,
-                            backgroundColor: '#ffffff'
-                        },
-                        jsPDF: { unit: 'in', format: 'a4', orientation: 'portrait' }
-                    };
-                    
-                    await html2pdf().set(opt).from(receiptElement).save();
-                    
-                    // Clean up
-                    document.body.removeChild(container);
-                    hideLoading();
-                    
-                } catch (err) {
-                    console.error('PDF generation failed:', err);
-                    hideLoading();
-                    alert('Failed to generate PDF. Please try printing instead.');
-                    if (container && container.parentNode) {
-                        document.body.removeChild(container);
-                    }
-                }
-            };
-
-            document.getElementById('closeReqModal').onclick = () => reqModal.style.display = 'none';
-            document.getElementById('understandBtn').onclick = () => reqModal.style.display = 'none';
-            document.getElementById('closeSuccessModal').onclick = () => successModal.style.display = 'none';
+            document.getElementById('closeSuccessModal').onclick = () => {
+    successModal.style.display = 'none';
+    // Close the appointment modal if it exists in parent window
+    if (window.parent && window.parent.closeAppointmentModal) {
+        window.parent.closeAppointmentModal();
+    } else if (window.parent) {
+        // Try to close via parent window's modal
+        const parentModal = window.parent.document.getElementById('appointmentModal');
+        if (parentModal) {
+            parentModal.classList.remove('active');
+            window.parent.document.body.classList.remove('modal-open');
+        }
+    }
+    // Or just reset the iframe
+    const iframe = document.getElementById('appointmentIframe');
+    if (iframe && iframe.parentElement) {
+        // If in iframe, let parent handle closing
+    }
+};
 
             document.querySelectorAll('[data-edit]').forEach(btn => {
                 btn.addEventListener('click', (e) => {
                     const target = e.target.closest('[data-edit]').dataset.edit;
-                    if (target === 'type') {
-                        showSection(sections.type);
-                        setActiveStep(1);
-                    } else if (target === 'clients') {
+                    if (target === 'clients') {
                         showSection(sections.clients);
                         setActiveStep(2);
                     } else if (target === 'schedule') {
                         showSection(sections.schedule);
                         setActiveStep(3);
+                        renderPerApplicantTimeSlots();
                     } else if (target === 'contact') {
                         showSection(sections.contact);
                         setActiveStep(4);
@@ -1303,27 +2065,465 @@
                 });
             });
 
-            // Initialize
-            document.getElementById('singleServiceSelect').value = 'reg';
-            document.getElementById('singleServiceSelect').dispatchEvent(new Event('change'));
             renderClients();
-            
-            window.addEventListener('click', (e) => {
-                if (e.target === reqModal) reqModal.style.display = 'none';
-                if (e.target === successModal) successModal.style.display = 'none';
-            });
-            
-            document.addEventListener('keydown', (e) => {
-                if (e.key === 'Escape') {
-                    reqModal.style.display = 'none';
-                    successModal.style.display = 'none';
-                }
-            });
-        })();
-    </script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js" integrity="sha512-GsLlZN/3F2ErC5ifS5QtgpiJtWd43JWSuIgh7mbzZ8zBps+dvLusV+eNQATqgA/HdeKFVgA5v3S/cIrLF7QnIg==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
-    <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
+            loadLocationFromLandingPage();
 
+            document.getElementById('submitRequestBtn').onclick = async () => {
+                const mobile = document.getElementById('contactMobile').value;
+                if (mobile && (mobile.length !== 10 || !mobile.startsWith('9'))) {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Invalid Mobile',
+                        text: 'Please enter a valid mobile number or leave it blank.',
+                        confirmButtonColor: '#dc3545'
+                    });
+                    return;
+                }
+
+                const clientsData = clients.map(c => {
+                    const timeSlot = clientTimeSlots[c.id];
+                    return {
+                        first_name: c.firstName,
+                        middle_name: c.middleName || null,
+                        last_name: c.lastName,
+                        suffix: c.suffix || null,
+                        sex: c.sex,
+                        birthdate: c.birthdate,
+                        service: c.service,
+                        time_slot_id: timeSlot ? timeSlot.slotId : null,
+                        has_trn: clientTrnData[c.id]?.hasTrn || null,
+                        trn_number: clientTrnData[c.id]?.hasTrn && clientTrnData[c.id]?.isValid ?
+                            clientTrnData[c.id]?.trnNumber : null
+                    };
+                });
+
+                // Debug: Log location values before sending
+                console.log('📍 Location values being submitted:', {
+                    user_lat: document.getElementById('userLat').value,
+                    user_lng: document.getElementById('userLng').value,
+                    user_city: document.getElementById('userCity').value,
+                    user_address: document.getElementById('userAddress').value,
+                    user_zipcode: document.getElementById('userZipcode').value
+                });
+
+                showLoading();
+                try {
+                    const response = await fetch('{{ route('client.appointment.store') }}', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+                        },
+                        body: JSON.stringify({
+                            appointment_date: selectedDate,
+                            contact_name: document.getElementById('contactName').value,
+                            contact_email: document.getElementById('contactEmail').value ||
+                                null,
+                            contact_mobile: '+63' + mobile,
+                            clients: clientsData,
+                            user_lat: document.getElementById('userLat').value || null,
+                            user_lng: document.getElementById('userLng').value || null,
+                            user_city: document.getElementById('userCity').value || null,
+                            user_address: document.getElementById('userAddress').value || null,
+                            user_zipcode: document.getElementById('userZipcode').value || null
+                        })
+                    });
+                    const result = await response.json();
+                    if (result.success) {
+                        // Store appointment data globally for download functions
+                        window.globalAppointmentData = {
+                            appointment_number: result.appointment.number,
+                            reference_code: result.appointment.reference_code,
+                            date: result.appointment.date,
+                            contact_name: result.appointment.contact_name,
+                            contact_mobile: result.appointment.contact_mobile,
+                            contact_email: result.appointment.contact_email,
+                            clients_list: result.appointment.clients_list || []
+                        };
+
+                        // Build clients HTML for display
+                        let clientsHtml = '';
+                        if (window.globalAppointmentData.clients_list && window.globalAppointmentData
+                            .clients_list.length > 0) {
+                            clientsHtml =
+                                '<div style="text-align: left; margin-top: 10px;"><strong>Applicant Details:</strong><ul>';
+                            window.globalAppointmentData.clients_list.forEach(client => {
+                                clientsHtml +=
+                                    `<li><strong>${escapeHtml(client.name)}</strong><br><small>Service: ${client.service_name}</small><br><small>Time: ${client.time_slot}</small></li>`;
+                            });
+                            clientsHtml += '</ul></div>';
+                        }
+
+document.getElementById('successDetails').innerHTML = `
+    <div style="text-align: left;">
+        <!-- Header -->
+        <div style="text-align: center; margin-bottom: 20px; padding-bottom: 15px; border-bottom: 2px solid var(--success);">
+            <i class="fas fa-check-circle" style="font-size: 48px; color: var(--success); margin-bottom: 10px;"></i>
+            <h3 style="color: var(--success); margin: 0;">Appointment Successfully Booked!</h3>
+            <p style="color: var(--gray-500); margin: 5px 0 0 0;">Please save the information below for your records</p>
+        </div>
+
+        <!-- Appointment Reference -->
+<div style="background: #f0fdf4; padding: 15px; border-radius: 10px; margin-bottom: 20px; border: 1px solid #bbf7d0;">
+    <div style="margin-bottom: 12px;">
+        <div style="font-size: 0.85rem; color: var(--gray-600); margin-bottom: 4px;"><strong>Appointment Number</strong></div>
+        <div style="font-size: 1.2rem; font-weight: 700; color: var(--gray-800); word-break: break-all;">${result.appointment.number}</div>
+    </div>
+    <div>
+        <div style="font-size: 0.85rem; color: var(--gray-600); margin-bottom: 4px;"><strong>Reference Code</strong></div>
+        <div style="font-size: 1.1rem; font-weight: 700; color: var(--primary); word-break: break-all;">${result.appointment.reference_code}</div>
+    </div>
+</div>
+
+        <!-- Date & Time -->
+        <div style="background: #f8fafc; padding: 12px; border-radius: 10px; margin-bottom: 15px;">
+            <p style="margin: 0;"><strong><i class="far fa-calendar-alt"></i> Date:</strong> ${result.appointment.date}</p>
+        </div>
+
+        <!-- Applicants List -->
+<div style="margin-bottom: 15px;">
+    <p style="margin: 0 0 10px 0; font-weight: 600;"><i class="fas fa-users"></i> Applicants (${result.appointment.clients_count})</p>
+    <div style="max-height: 300px; overflow-y: auto;">
+        ${result.appointment.clients_list.map(client => `
+            <div style="background: #f8fafc; padding: 12px; border-radius: 8px; margin-bottom: 10px; border-left: 3px solid var(--primary);">
+                <div style="font-weight: 600; margin-bottom: 8px;">${escapeHtml(client.name)}</div>
+                <div style="margin-bottom: 6px;">
+                    <span style="background: var(--primary); color: white; padding: 3px 10px; border-radius: 20px; font-size: 0.7rem; display: inline-block;">${client.service_name}</span>
+                </div>
+                <div style="font-size: 0.8rem; color: var(--gray-700); margin-bottom: 4px;">
+                    <i class="fas fa-id-card" style="width: 20px;"></i> Client #: ${client.client_number}
+                </div>
+                <div style="font-size: 0.8rem; color: var(--gray-700);">
+                    <i class="fas fa-clock" style="width: 20px;"></i> Time: ${client.time_slot}
+                </div>
+            </div>
+        `).join('')}
+    </div>
+</div>
+
+        <!-- Contact Information -->
+        <div style="background: #f8fafc; padding: 12px; border-radius: 10px; margin-bottom: 15px;">
+            <p style="margin: 0 0 8px 0; font-weight: 600;"><i class="fas fa-address-book"></i> Contact Information</p>
+            <p style="margin: 0;"><strong>Name:</strong> ${escapeHtml(result.appointment.contact_name)}</p>
+            <p style="margin: 5px 0 0 0;"><strong>Mobile:</strong> ${result.appointment.contact_mobile}</p>
+            ${result.appointment.contact_email ? `<p style="margin: 5px 0 0 0;"><strong>Email:</strong> ${escapeHtml(result.appointment.contact_email)}</p>` : ''}
+        </div>
+
+        <!-- Office Address -->
+        <div style="background: #e3f2fd; padding: 12px; border-radius: 10px; margin-bottom: 15px; text-align: center;">
+            <p style="margin: 0; font-size: 0.85rem;">
+                <strong><i class="fas fa-map-marker-alt"></i> PSA Misamis Oriental Office</strong><br>
+                Capt. Vicente Roa Street, Brgy. 31,<br>
+                Cagayan de Oro City, 9000 Misamis Oriental
+            </p>
+        </div>
+
+        <!-- Reminder -->
+        <div style="background: #fef3c7; padding: 12px; border-radius: 10px; border-left: 4px solid #f59e0b;">
+            <p style="margin: 0; font-size: 0.85rem; color: #92400e;">
+                <strong><i class="fas fa-clock"></i> Important Reminder:</strong><br>
+                Please arrive at least <strong>30 minutes before</strong> your scheduled appointment time.<br>
+                Bring all required documents for verification.
+            </p>
+        </div>
+
+        <hr style="margin: 15px 0;">
+        <p style="text-align: center; color: #dc3545; font-size: 0.85rem; margin: 0;">
+            ⚠️ Please save your Reference Code for verification.
+        </p>
+    </div>
+`;
+                        successModal.style.display = 'flex';
+                    } else {
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Error',
+                            text: result.message,
+                            confirmButtonColor: '#dc3545'
+                        });
+                    }
+                } catch (error) {
+                    console.error('Submission error:', error);
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error',
+                        text: 'Submission failed: ' + (error.message || 'Unknown error'),
+                        confirmButtonColor: '#dc3545'
+                    });
+                } finally {
+                    hideLoading();
+                }
+            };
+        })();
+
+        // DOWNLOAD FUNCTIONS
+        // ==================== DOWNLOAD FUNCTIONS - MULTI-RECEIPT ====================
+
+        // Local escape function for downloads (self-contained)
+        function downloadEscapeHtml(str) {
+            if (!str) return '';
+            return String(str).replace(/[&<>]/g, function(m) {
+                if (m === '&') return '&amp;';
+                if (m === '<') return '&lt;';
+                if (m === '>') return '&gt;';
+                return m;
+            });
+        }
+
+        async function captureClientReceipt(client, appointmentData) {
+            const receiptContainer = document.createElement('div');
+            receiptContainer.style.cssText = `
+        background: white;
+        padding: 30px;
+        border-radius: 12px;
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        max-width: 500px;
+        margin: 0 auto;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+        page-break-after: always;
+        break-inside: avoid;
+    `;
+
+            const now = new Date();
+            const formattedDateTime = now.toLocaleString('en-US', {
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit'
+            });
+
+            receiptContainer.innerHTML = `
+        <div style="text-align: center; margin-bottom: 20px;">
+            <h2 style="color: #2c5f8a; margin: 0; font-size: 1.3rem;">Philippine Statistics Authority</h2>
+            <h3 style="color: #4a5568; margin: 5px 0; font-size: 1rem;">National ID System (PhilSys)</h3>
+            <p style="color: #718096; margin: 5px 0; font-size: 0.85rem;">Applicant Confirmation Slip</p>
+        </div>
+
+        <div style="border-top: 2px solid #2c5f8a; margin: 10px 0;"></div>
+
+        <div style="padding: 10px 0;">
+            <p style="margin: 8px 0;"><strong>Applicant Name:</strong> ${downloadEscapeHtml(client.name)}</p>
+            <p style="margin: 8px 0;"><strong>Service:</strong> ${downloadEscapeHtml(client.service_name || client.service)}</p>
+            <p style="margin: 8px 0;"><strong>Appointment Number:</strong> ${downloadEscapeHtml(appointmentData.appointment_number)}</p>
+            <p style="margin: 8px 0;"><strong>Reference Code:</strong> ${downloadEscapeHtml(appointmentData.reference_code)}</p>
+            <p style="margin: 8px 0;"><strong>Date:</strong> ${downloadEscapeHtml(appointmentData.date)}</p>
+            <p style="margin: 8px 0;"><strong>Time Slot:</strong> ${downloadEscapeHtml(client.time_slot || 'Time slot selected')}</p>
+            <p style="margin: 8px 0;"><strong>Contact Person:</strong> ${downloadEscapeHtml(appointmentData.contact_name)}</p>
+            <p style="margin: 8px 0;"><strong>Contact Number:</strong> ${downloadEscapeHtml(appointmentData.contact_mobile)}</p>
+            ${appointmentData.contact_email ? `<p style="margin: 8px 0;"><strong>Email:</strong> ${downloadEscapeHtml(appointmentData.contact_email)}</p>` : ''}
+        </div>
+
+        <div style="border-top: 1px solid #e2e8f0; margin: 10px 0;"></div>
+
+        <div style="text-align: center; margin: 15px 0;">
+            <div style="display: inline-block; padding: 10px; background: white; border: 1px solid #e2e8f0; border-radius: 8px;">
+                <svg width="100" height="100" viewBox="0 0 100 100" style="margin: 0 auto;">
+                    <rect width="100" height="100" fill="white"/>
+                    <text x="50" y="50" text-anchor="middle" dominant-baseline="middle" font-size="8" fill="black">${downloadEscapeHtml(appointmentData.reference_code)}</text>
+                </svg>
+            </div>
+        </div>
+
+        <div style="margin-top: 15px; padding: 12px; background: #f8fafc; border-radius: 8px; text-align: center;">
+            <p style="margin: 0; font-size: 0.8rem; color: #475569;">
+                <strong><i class="fas fa-map-marker-alt"></i> PSA Misamis Oriental Office</strong><br>
+                Capt. Vicente Roa Street, Brgy. 31, Cagayan de Oro City,<br>
+                9000 Misamis Oriental, Philippines
+            </p>
+        </div>
+
+        <div style="margin-top: 15px; padding: 12px; background: #fef3c7; border-left: 4px solid #f59e0b; border-radius: 8px;">
+            <p style="margin: 0; font-size: 0.8rem; color: #92400e;">
+                <strong><i class="fas fa-clock"></i> Important Reminder:</strong><br>
+                Please arrive at least <strong>30 minutes before</strong> your scheduled appointment time.
+            </p>
+        </div>
+
+        <div style="border-top: 1px solid #e2e8f0; margin: 15px 0 10px 0;"></div>
+
+        <div style="text-align: center; padding-top: 10px;">
+            <p style="color: #718096; font-size: 10px; margin: 5px 0;">This is a system-generated confirmation for individual applicant.</p>
+            <p style="color: #718096; font-size: 10px; margin: 5px 0;">Generated on: ${formattedDateTime}</p>
+            <p style="color: #718096; font-size: 10px; margin: 5px 0;">© ${new Date().getFullYear()} Philippine Statistics Authority</p>
+        </div>
+    `;
+
+            return receiptContainer;
+        }
+
+        async function generateAllClientReceipts() {
+            const appointmentData = window.globalAppointmentData;
+            if (!appointmentData || !appointmentData.clients_list || appointmentData.clients_list.length === 0) {
+                return [];
+            }
+
+            const receipts = [];
+            for (let i = 0; i < appointmentData.clients_list.length; i++) {
+                const client = appointmentData.clients_list[i];
+                const receipt = await captureClientReceipt(client, appointmentData);
+                receipts.push(receipt);
+            }
+            return receipts;
+        }
+
+
+        // PNG Download - Multiple images
+        document.getElementById('downloadPngBtn').onclick = async () => {
+            try {
+                const btn = document.getElementById('downloadPngBtn');
+                const originalText = btn.innerHTML;
+                btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Generating PNGs...';
+                btn.disabled = true;
+
+                if (typeof html2canvas === 'undefined') {
+                    await new Promise((resolve) => {
+                        const script = document.createElement('script');
+                        script.src =
+                            'https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js';
+                        script.onload = resolve;
+                        document.head.appendChild(script);
+                    });
+                }
+
+                const receipts = await generateAllClientReceipts();
+
+                if (receipts.length === 0) {
+                    Swal.fire({
+                        icon: 'warning',
+                        title: 'No Data',
+                        text: 'No appointment data found. Please submit an appointment first.',
+                        confirmButtonColor: '#dc3545'
+                    });
+                    btn.innerHTML = originalText;
+                    btn.disabled = false;
+                    return;
+                }
+
+                for (let i = 0; i < receipts.length; i++) {
+                    const receipt = receipts[i];
+                    document.body.appendChild(receipt);
+
+                    const canvas = await html2canvas(receipt, {
+                        scale: 2,
+                        backgroundColor: '#ffffff',
+                        logging: false,
+                        useCORS: true
+                    });
+
+                    document.body.removeChild(receipt);
+
+                    const link = document.createElement('a');
+                    const clientName = (window.globalAppointmentData.clients_list[i].name || 'applicant').replace(
+                        /\s/g, '_');
+                    link.download = `appointment-${clientName}-${Date.now()}.png`;
+                    link.href = canvas.toDataURL('image/png');
+                    link.click();
+
+                    await new Promise(resolve => setTimeout(resolve, 500));
+                }
+
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Download Complete',
+                    text: `${receipts.length} receipt(s) downloaded successfully.`,
+                    confirmButtonColor: '#28a745',
+                    timer: 2000
+                });
+
+                btn.innerHTML = originalText;
+                btn.disabled = false;
+            } catch (error) {
+                console.error('PNG download error:', error);
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Download Failed',
+                    text: 'Failed to generate PNG receipts. Please try again.',
+                    confirmButtonColor: '#dc3545'
+                });
+                const btn = document.getElementById('downloadPngBtn');
+                btn.innerHTML = '<i class="fas fa-image"></i> Download PNG';
+                btn.disabled = false;
+            }
+        };
+
+
+
+        // PDF Download - request server to render the authoritative Blade PDF and download
+        document.getElementById('downloadPdfBtn').onclick = async () => {
+            try {
+                const btn = document.getElementById('downloadPdfBtn');
+                const originalText = btn.innerHTML;
+                btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Generating...';
+                btn.disabled = true;
+
+                const appointment = window.globalAppointmentData || {};
+                const clients = appointment.clients_list || [];
+
+                if (!appointment || clients.length === 0) {
+                    Swal.fire({
+                        icon: 'warning',
+                        title: 'No Data',
+                        text: 'No appointment data found. Please submit an appointment first.',
+                        confirmButtonColor: '#dc3545'
+                    });
+                    btn.innerHTML = originalText;
+                    btn.disabled = false;
+                    return;
+                }
+
+                const url = "{{ route('client.appointment.pdf') }}";
+
+                const resp = await fetch(url, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+                    },
+                    body: JSON.stringify({ appointment: appointment, clients: clients })
+                });
+
+                if (!resp.ok) throw new Error('PDF generation failed');
+
+                const blob = await resp.blob();
+                let filename = 'appointment.pdf';
+                const cd = resp.headers.get('content-disposition');
+                if (cd && cd.indexOf('filename=') !== -1) {
+                    filename = cd.split('filename=')[1].replace(/['"]/g, '').trim();
+                }
+
+                const link = document.createElement('a');
+                link.href = URL.createObjectURL(blob);
+                link.download = filename;
+                document.body.appendChild(link);
+                link.click();
+                link.remove();
+                URL.revokeObjectURL(link.href);
+
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Download Complete',
+                    text: `PDF downloaded successfully.`,
+                    confirmButtonColor: '#28a745',
+                    timer: 2000
+                });
+
+                btn.innerHTML = originalText;
+                btn.disabled = false;
+            } catch (error) {
+                console.error('PDF download error:', error);
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Download Failed',
+                    text: 'Failed to generate PDF. Please try again.',
+                    confirmButtonColor: '#dc3545'
+                });
+                const btn = document.getElementById('downloadPdfBtn');
+                btn.innerHTML = '<i class="fas fa-file-pdf"></i> Download PDF';
+                btn.disabled = false;
+            }
+        };
+    </script>
 </body>
 
 </html>

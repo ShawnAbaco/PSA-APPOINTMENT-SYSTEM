@@ -1,4 +1,3 @@
-{{-- resources/views/staff/appointments/index.blade.php --}}
 @extends('layouts.staff')
 
 @section('content')
@@ -14,15 +13,15 @@
             </div>
         </div>
 
-        <!-- Stats Grid with Sample Data -->
+        <!-- Stats Grid with Real Data -->
         <div class="stats-grid">
             <div class="stat-card">
                 <div class="stat-card-content">
                     <div class="stat-info">
-                        <h6 class="stat-label">Today's Appointments</h6>
-                        <h2 class="stat-value">8</h2>
-                        <p class="stat-trend trend-up">
-                            <i class="fas fa-arrow-up"></i> +12% from yesterday
+                        <h6 class="stat-label">Today</h6>
+                        <h2 class="stat-value">{{ $todayAppointments }}</h2>
+                        <p class="stat-trend trend-neutral">
+                            <i class="fas fa-calendar-day"></i> Scheduled for today
                         </p>
                     </div>
                     <div class="stat-icon-circle">
@@ -34,10 +33,10 @@
             <div class="stat-card">
                 <div class="stat-card-content">
                     <div class="stat-info">
-                        <h6 class="stat-label">Pending Approval</h6>
-                        <h2 class="stat-value text-warning">5</h2>
+                        <h6 class="stat-label">Pending</h6>
+                        <h2 class="stat-value text-warning">{{ $pendingAppointments }}</h2>
                         <p class="stat-trend trend-neutral">
-                            <i class="fas fa-minus"></i> Awaiting action
+                            <i class="fas fa-clock"></i> Awaiting action
                         </p>
                     </div>
                     <div class="stat-icon-circle warning-bg">
@@ -50,9 +49,9 @@
                 <div class="stat-card-content">
                     <div class="stat-info">
                         <h6 class="stat-label">Confirmed</h6>
-                        <h2 class="stat-value text-success">24</h2>
-                        <p class="stat-trend trend-up">
-                            <i class="fas fa-arrow-up"></i> +5% this week
+                        <h2 class="stat-value text-success">{{ $confirmedAppointments }}</h2>
+                        <p class="stat-trend trend-neutral">
+                            <i class="fas fa-check-circle"></i> Ready for service
                         </p>
                     </div>
                     <div class="stat-icon-circle success-bg">
@@ -65,13 +64,28 @@
                 <div class="stat-card-content">
                     <div class="stat-info">
                         <h6 class="stat-label">Completed</h6>
-                        <h2 class="stat-value text-info">156</h2>
-                        <p class="stat-trend trend-up">
-                            <i class="fas fa-arrow-up"></i> +23% total
+                        <h2 class="stat-value text-info">{{ $completedAppointments }}</h2>
+                        <p class="stat-trend trend-neutral">
+                            <i class="fas fa-check-double"></i> Successfully completed
                         </p>
                     </div>
                     <div class="stat-icon-circle info-bg">
                         <i class="fas fa-check-double"></i>
+                    </div>
+                </div>
+            </div>
+
+            <div class="stat-card">
+                <div class="stat-card-content">
+                    <div class="stat-info">
+                        <h6 class="stat-label">Total Appointments</h6>
+                        <h2 class="stat-value">{{ $totalAppointments }}</h2>
+                        <p class="stat-trend trend-neutral">
+                            <i class="fas fa-chart-line"></i> All time total
+                        </p>
+                    </div>
+                    <div class="stat-icon-circle">
+                        <i class="fas fa-chart-line"></i>
                     </div>
                 </div>
             </div>
@@ -87,6 +101,7 @@
                         Appointment Trends
                     </h5>
                     <select class="chart-filter" id="trendFilter">
+                        <option value="daily">Daily</option>
                         <option value="weekly">This Week</option>
                         <option value="monthly">This Month</option>
                         <option value="yearly">This Year</option>
@@ -114,99 +129,42 @@
 
         <!-- Dashboard Grid -->
         <div class="dashboard-grid">
-            <!-- Upcoming Schedule Card -->
-            <div class="schedule-card">
+            <!-- Recent Appointments Card -->
+            <div class="recent-appointments-card">
                 <div class="card-header">
                     <h5 class="card-title">
-                        <i class="fas fa-calendar-week"></i>
-                        Upcoming Schedule
+                        <i class="fas fa-calendar-alt"></i>
+                        Recent Appointments
                     </h5>
-                    <a href="#" class="view-link">
+                    <a href="{{ route('staff.appointments.index') }}" class="view-link">
                         View All <i class="fas fa-arrow-right"></i>
                     </a>
                 </div>
-                <div class="schedule-list">
-                    <div class="schedule-item">
-                        <div class="schedule-time">
-                            <i class="far fa-clock"></i>
-                            10:00 AM
+                <div class="appointments-list">
+                    @forelse($recentAppointments as $appointment)
+                        <div class="appointment-item"
+                            onclick="window.location='{{ route('staff.appointments.show', $appointment->id) }}'">
+                            <div class="appointment-time">
+                                <i class="far fa-calendar-alt"></i>
+                                {{ date('M d, Y', strtotime($appointment->appointment_date)) }}
+                                <span
+                                    class="appointment-time-small">{{ date('h:i A', strtotime($appointment->appointment_time ?? '09:00')) }}</span>
+                            </div>
+                            <div class="appointment-info">
+                                <div class="appointment-title">{{ $appointment->appointment_number }}</div>
+                                <div class="appointment-subtitle">{{ $appointment->contact_name }} -
+                                    {{ $appointment->clients->count() }} applicant(s)</div>
+                            </div>
+                            <span class="status-badge status-{{ $appointment->status }}">
+                                {{ ucfirst($appointment->status) }}
+                            </span>
                         </div>
-                        <div class="schedule-info">
-                            <div class="schedule-title">APT-2024-001</div>
-                            <div class="schedule-subtitle">John Smith - 2 clients</div>
+                    @empty
+                        <div class="appointments-empty">
+                            <i class="fas fa-calendar-times"></i>
+                            <p>No appointments found</p>
                         </div>
-                        <span class="status-badge status-confirmed">Confirmed</span>
-                    </div>
-                    <div class="schedule-item">
-                        <div class="schedule-time">
-                            <i class="far fa-clock"></i>
-                            11:30 AM
-                        </div>
-                        <div class="schedule-info">
-                            <div class="schedule-title">APT-2024-002</div>
-                            <div class="schedule-subtitle">Emma Wilson - 1 client</div>
-                        </div>
-                        <span class="status-badge status-pending">Pending</span>
-                    </div>
-                    <div class="schedule-item">
-                        <div class="schedule-time">
-                            <i class="far fa-clock"></i>
-                            02:00 PM
-                        </div>
-                        <div class="schedule-info">
-                            <div class="schedule-title">APT-2024-003</div>
-                            <div class="schedule-subtitle">Michael Brown - 3 clients</div>
-                        </div>
-                        <span class="status-badge status-confirmed">Confirmed</span>
-                    </div>
-                    <div class="schedule-item">
-                        <div class="schedule-time">
-                            <i class="far fa-clock"></i>
-                            03:30 PM
-                        </div>
-                        <div class="schedule-info">
-                            <div class="schedule-title">APT-2024-004</div>
-                            <div class="schedule-subtitle">Lisa Davis - 1 client</div>
-                        </div>
-                        <span class="status-badge status-completed">Completed</span>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Performance Summary Card -->
-            <div class="performance-card">
-                <div class="card-header">
-                    <h5 class="card-title">
-                        <i class="fas fa-trophy"></i>
-                        Performance Summary
-                    </h5>
-                </div>
-                <div class="performance-stats">
-                    <div class="performance-item">
-                        <div class="performance-label">Completion Rate</div>
-                        <div class="performance-value">94%</div>
-                        <div class="progress-bar">
-                            <div class="progress-fill" style="width: 94%"></div>
-                        </div>
-                    </div>
-                    <div class="performance-item">
-                        <div class="performance-label">On-Time Rate</div>
-                        <div class="performance-value">88%</div>
-                        <div class="progress-bar">
-                            <div class="progress-fill" style="width: 88%"></div>
-                        </div>
-                    </div>
-                    <div class="performance-item">
-                        <div class="performance-label">Client Satisfaction</div>
-                        <div class="performance-value">4.8/5</div>
-                        <div class="rating-stars">
-                            <i class="fas fa-star"></i>
-                            <i class="fas fa-star"></i>
-                            <i class="fas fa-star"></i>
-                            <i class="fas fa-star"></i>
-                            <i class="fas fa-star-half-alt"></i>
-                        </div>
-                    </div>
+                    @endforelse
                 </div>
             </div>
         </div>
@@ -216,15 +174,33 @@
 @push('scripts')
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script>
+        // Real data from PHP
+        const dailyData = @json($dailyChartData ?? []);
+        const dailyLabels = @json($dailyChartLabels ?? []);
+        const weeklyData = @json($weeklyChartData ?? []);
+        const weeklyLabels = @json($weeklyChartLabels ?? []);
+        const monthlyData = @json($monthlyChartData ?? []);
+        const monthlyLabels = @json($monthlyChartLabels ?? []);
+        const yearlyData = @json($yearlyChartData ?? []);
+        const yearlyLabels = @json($yearlyChartLabels ?? []);
+
+        // Status counts for pie chart
+        const statusCounts = {
+            pending: {{ $pendingAppointments }},
+            confirmed: {{ $confirmedAppointments }},
+            completed: {{ $completedAppointments }},
+            cancelled: {{ $cancelledAppointments ?? 0 }}
+        };
+
         // Appointment Trends Chart
         const trendsCtx = document.getElementById('appointmentTrendsChart').getContext('2d');
         let trendsChart = new Chart(trendsCtx, {
             type: 'line',
             data: {
-                labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
+                labels: weeklyLabels.length ? weeklyLabels : ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
                 datasets: [{
                     label: 'Appointments',
-                    data: [12, 19, 15, 17, 14, 10, 8],
+                    data: weeklyData.length ? weeklyData : [0, 0, 0, 0, 0, 0, 0],
                     borderColor: '#0F3B6F',
                     backgroundColor: 'rgba(15, 59, 111, 0.1)',
                     tension: 0.4,
@@ -258,7 +234,8 @@
                             color: '#f3f4f6'
                         },
                         ticks: {
-                            stepSize: 5
+                            stepSize: 1,
+                            precision: 0
                         }
                     },
                     x: {
@@ -277,7 +254,12 @@
             data: {
                 labels: ['Pending', 'Confirmed', 'Completed', 'Cancelled'],
                 datasets: [{
-                    data: [5, 24, 156, 3],
+                    data: [
+                        statusCounts.pending,
+                        statusCounts.confirmed,
+                        statusCounts.completed,
+                        statusCounts.cancelled
+                    ],
                     backgroundColor: ['#F59E0B', '#10B981', '#3B82F6', '#EF4444'],
                     borderWidth: 0,
                     hoverOffset: 10
@@ -294,35 +276,52 @@
                             usePointStyle: true,
                             pointStyle: 'circle'
                         }
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                const label = context.label || '';
+                                const value = context.raw || 0;
+                                const total = statusCounts.pending + statusCounts.confirmed + statusCounts
+                                    .completed + statusCounts.cancelled;
+                                const percentage = total > 0 ? Math.round((value / total) * 100) : 0;
+                                return `${label}: ${value} (${percentage}%)`;
+                            }
+                        }
                     }
                 },
                 cutout: '65%'
             }
         });
 
-        // Chart filter functionality (demo)
+        // Chart filter functionality
         document.getElementById('trendFilter').addEventListener('change', function(e) {
             const value = e.target.value;
             let newData = [];
+            let newLabels = [];
 
-            if (value === 'weekly') {
-                newData = [12, 19, 15, 17, 14, 10, 8];
-                trendsChart.data.labels = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
-            } else if (value === 'monthly') {
-                newData = [45, 52, 48, 60, 55, 58, 62, 70, 65, 68, 72, 75, 80, 78, 82, 85, 88, 90, 92, 85, 88, 84,
-                    82, 79, 75, 72, 68, 65, 62, 58
+            if (value === 'daily') {
+                newData = dailyData.length ? dailyData : [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
+                newLabels = dailyLabels.length ? dailyLabels : ['9AM', '10AM', '11AM', '12PM', '1PM', '2PM', '3PM',
+                    '4PM', '5PM', '6PM', '7PM', '8PM'
                 ];
-                trendsChart.data.labels = Array.from({
+            } else if (value === 'weekly') {
+                newData = weeklyData.length ? weeklyData : [0, 0, 0, 0, 0, 0, 0];
+                newLabels = weeklyLabels.length ? weeklyLabels : ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+            } else if (value === 'monthly') {
+                newData = monthlyData.length ? monthlyData : Array(30).fill(0);
+                newLabels = monthlyLabels.length ? monthlyLabels : Array.from({
                     length: 30
-                }, (_, i) => `Day ${i+1}`);
-            } else {
-                newData = [120, 135, 148, 160, 175, 190, 210, 225, 240, 260, 280, 310];
-                trendsChart.data.labels = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct',
-                    'Nov', 'Dec'
+                }, (_, i) => i + 1);
+            } else if (value === 'yearly') {
+                newData = yearlyData.length ? yearlyData : [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
+                newLabels = yearlyLabels.length ? yearlyLabels : ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul',
+                    'Aug', 'Sep', 'Oct', 'Nov', 'Dec'
                 ];
             }
 
             trendsChart.data.datasets[0].data = newData;
+            trendsChart.data.labels = newLabels;
             trendsChart.update();
         });
     </script>

@@ -3,916 +3,150 @@
 
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes, viewport-fit=cover">
     <title>Admin Panel - PSA Appointment System</title>
+    <link rel="icon" type="image/png" sizes="32x32" href="{{ asset('images/psa.png') }}">
+    <!-- Fonts and Icons - Only essential external resources -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <link rel="stylesheet" href="{{ asset('css/admin/dashboard.css') }}">
+    <link rel="stylesheet" href="{{ asset('css/admin/admin-stbar.css') }}">
+
+    {{-- appointment css link --}}
+    <link rel="stylesheet" href="{{ asset('css/admin/appointments/appointments.css') }}">
+    <link rel="stylesheet" href="{{ asset('css/admin/clients/client.css') }}">
+    <link rel="stylesheet" href="{{ asset('css/admin/clients/show.css') }}">
+
+    <link rel="stylesheet" href="{{ asset('css/admin/appointments/calendar.css') }}">
+
+    {{-- users css link --}}
+    <link rel="stylesheet" href="{{ asset('css/admin/users/user.css') }}">
+
+    {{-- slots css link --}}
+    <link rel="stylesheet" href="{{ asset('css/admin/slots/slot.css') }}">
+
+    {{-- reports css link --}}
+    <link rel="stylesheet" href="{{ asset('css/admin/reports/report.css') }}">
+
+    {{-- settings css link --}}
+    <link rel="stylesheet" href="{{ asset('css/admin/settings/setting.css') }}">
+
+    {{-- profile css link --}}
+    <link rel="stylesheet" href="{{ asset('css/admin/profile/index.css') }}">
+    <link rel="stylesheet" href="{{ asset('css/admin/profile/change-password.css') }}">
+    <link rel="stylesheet" href="{{ asset('css/admin/profile/edit.css') }}">
+
+    <meta name="csrf-token" content="{{ csrf_token() }}">
+
     <style>
-        /* Your provided CSS goes here */
-        :root {
-            --psa-primary: #0f3b6f;
-            --psa-primary-dark: #0a2c52;
-            --psa-accent: #c49a2c;
-            --psa-accent-light: #e0b54b;
-            --psa-gray-light: #f1f5f9;
-            --psa-gray: #e2e8f0;
-            --text-dark: #0f172a;
-            --text-muted: #475569;
-            --success: #10b981;
-            --warning: #f59e0b;
-            --danger: #ef4444;
-            --info: #3b82f6;
-            --shadow-sm: 0 4px 6px -1px rgb(0 0 0 / 0.05), 0 2px 4px -2px rgb(0 0 0 / 0.05);
-            --shadow-md: 0 10px 15px -3px rgb(0 0 0 / 0.08), 0 4px 6px -4px rgb(0 0 0 / 0.08);
-            --shadow-lg: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
+        /* Footer Styles */
+        .admin-footer {
+            background: white;
+            border-top: 1px solid var(--gray-200);
+            padding: 20px 30px;
+            margin-top: auto;
         }
 
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        body {
-            font-family: 'Inter', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: #f8fafc;
-            color: var(--text-dark);
-            line-height: 1.5;
-        }
-
-        /* Container Layout */
-        .staff-container {
+        .footer-content {
             display: flex;
-            min-height: 100vh;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 20px;
         }
 
-        /* Sidebar Styles */
-        .staff-sidebar {
-            width: 280px;
-            background: linear-gradient(135deg, var(--psa-primary) 0%, var(--psa-primary-dark) 100%);
-            position: fixed;
-            height: 100vh;
-            overflow-y: auto;
-            transition: all 0.3s ease;
-            z-index: 100;
-        }
-
-        .sidebar-header {
-            padding: 24px 20px;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-        }
-
-        .sidebar-header h4 {
-            color: white;
-            font-weight: 700;
-            margin: 0;
+        .footer-copyright {
             display: flex;
             align-items: center;
             gap: 10px;
+            color: var(--gray-600);
+            font-size: 13px;
         }
 
-        .sidebar-header h4 i {
-            color: var(--psa-accent);
+        .footer-copyright i {
+            color: #CE1126;
+            font-size: 16px;
         }
 
-        .sidebar-nav {
-            padding: 20px 16px;
-        }
-
-        .nav-item {
-            margin-bottom: 8px;
-        }
-
-        .nav-link {
+        .footer-links {
             display: flex;
             align-items: center;
-            gap: 12px;
-            padding: 12px 16px;
-            color: rgba(255, 255, 255, 0.8);
-            text-decoration: none;
-            border-radius: 12px;
-            transition: all 0.3s;
-            font-weight: 500;
-            width: 100%;
-            background: none;
-            border: none;
-            cursor: pointer;
-        }
-
-        .nav-link i {
-            width: 22px;
-            font-size: 1.1rem;
-        }
-
-        .nav-link:hover {
-            background: rgba(255, 255, 255, 0.1);
-            color: white;
-        }
-
-        .nav-link.active {
-            background: rgba(255, 255, 255, 0.15);
-            color: white;
-            border-left: 3px solid var(--psa-accent);
-        }
-
-        .sidebar-divider {
-            height: 1px;
-            background: rgba(255, 255, 255, 0.1);
-            margin: 16px 0;
-        }
-
-        .logout-btn {
-            color: #ffc107;
-        }
-
-        .logout-btn:hover {
-            background: rgba(255, 193, 7, 0.1);
-            color: #ffc107;
-        }
-
-        /* Main Content */
-        .staff-main {
-            flex: 1;
-            margin-left: 280px;
-            min-height: 100vh;
-            background: #f8fafc;
-        }
-
-        /* Top Bar with Notifications */
-        .staff-topbar {
-            background: white;
-            padding: 16px 24px;
-            box-shadow: var(--shadow-sm);
-            position: sticky;
-            top: 0;
-            z-index: 99;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            flex-wrap: wrap;
-            gap: 16px;
-        }
-
-        .topbar-left {
-            display: flex;
-            align-items: center;
-            gap: 20px;
-        }
-
-        .welcome-text h5 {
-            font-size: 1rem;
-            font-weight: 600;
-            color: var(--text-dark);
-            margin: 0;
-        }
-
-        .topbar-right {
-            display: flex;
-            align-items: center;
-            gap: 20px;
-        }
-
-        /* Notification Bell */
-        .notification-container {
-            position: relative;
-        }
-
-        .notification-bell {
-            background: none;
-            border: none;
-            font-size: 1.25rem;
-            cursor: pointer;
-            color: var(--text-muted);
-            padding: 8px;
-            border-radius: 50%;
-            transition: all 0.2s;
-            position: relative;
-        }
-
-        .notification-bell:hover {
-            background: var(--psa-gray-light);
-            color: var(--psa-primary);
-        }
-
-        .notification-badge {
-            position: absolute;
-            top: 0;
-            right: 0;
-            background: var(--danger);
-            color: white;
-            font-size: 0.65rem;
-            font-weight: 600;
-            padding: 2px 6px;
-            border-radius: 20px;
-            min-width: 18px;
-            text-align: center;
-        }
-
-        /* Notification Dropdown */
-        .notification-dropdown {
-            position: absolute;
-            top: 45px;
-            right: 0;
-            width: 380px;
-            background: white;
-            border-radius: 20px;
-            box-shadow: var(--shadow-lg);
-            border: 1px solid var(--psa-gray);
-            opacity: 0;
-            visibility: hidden;
-            transform: translateY(-10px);
-            transition: all 0.3s ease;
-            z-index: 1000;
-        }
-
-        .notification-dropdown.show {
-            opacity: 1;
-            visibility: visible;
-            transform: translateY(0);
-        }
-
-        .notification-header {
-            padding: 16px 20px;
-            border-bottom: 1px solid var(--psa-gray);
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .notification-header h6 {
-            font-size: 1rem;
-            font-weight: 600;
-            margin: 0;
-        }
-
-        .mark-all-read {
-            background: none;
-            border: none;
-            color: var(--psa-primary);
-            font-size: 0.75rem;
-            cursor: pointer;
-            font-weight: 500;
-        }
-
-        .mark-all-read:hover {
-            text-decoration: underline;
-        }
-
-        .notification-list {
-            max-height: 400px;
-            overflow-y: auto;
-        }
-
-        .notification-item {
-            padding: 14px 20px;
-            border-bottom: 1px solid var(--psa-gray);
-            display: flex;
-            gap: 12px;
-            cursor: pointer;
-            transition: background 0.2s;
-        }
-
-        .notification-item:hover {
-            background: var(--psa-gray-light);
-        }
-
-        .notification-item.unread {
-            background: rgba(59, 130, 246, 0.05);
-        }
-
-        .notification-icon {
-            width: 40px;
-            height: 40px;
-            border-radius: 12px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            flex-shrink: 0;
-        }
-
-        .notification-icon.success {
-            background: rgba(16, 185, 129, 0.1);
-            color: var(--success);
-        }
-
-        .notification-icon.warning {
-            background: rgba(245, 158, 11, 0.1);
-            color: var(--warning);
-        }
-
-        .notification-icon.info {
-            background: rgba(59, 130, 242, 0.1);
-            color: var(--info);
-        }
-
-        .notification-icon.danger {
-            background: rgba(239, 68, 68, 0.1);
-            color: var(--danger);
-        }
-
-        .notification-content {
-            flex: 1;
-        }
-
-        .notification-title {
-            font-size: 0.875rem;
-            font-weight: 600;
-            color: var(--text-dark);
-            margin-bottom: 4px;
-        }
-
-        .notification-message {
-            font-size: 0.75rem;
-            color: var(--text-muted);
-            margin-bottom: 4px;
-        }
-
-        .notification-time {
-            font-size: 0.65rem;
-            color: var(--text-muted);
-        }
-
-        .notification-footer {
-            padding: 12px 20px;
-            border-top: 1px solid var(--psa-gray);
-            text-align: center;
-        }
-
-        .view-all-link {
-            color: var(--psa-primary);
-            text-decoration: none;
-            font-size: 0.875rem;
-            font-weight: 500;
-        }
-
-        .role-badge {
-            background: var(--psa-primary);
-            color: white;
-            padding: 6px 14px;
-            border-radius: 40px;
-            font-size: 0.75rem;
-            font-weight: 600;
-        }
-
-        /* Content Area */
-        .staff-content {
-            padding: 24px;
-        }
-
-        /* Alert Styles */
-        .alert {
-            padding: 16px 20px;
-            border-radius: 16px;
-            margin-bottom: 24px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            animation: slideIn 0.3s ease;
-        }
-
-        @keyframes slideIn {
-            from {
-                transform: translateY(-20px);
-                opacity: 0;
-            }
-
-            to {
-                transform: translateY(0);
-                opacity: 1;
-            }
-        }
-
-        .alert-success {
-            background: #ecfdf5;
-            border-left: 4px solid var(--success);
-            color: #065f46;
-        }
-
-        .alert-danger {
-            background: #fef2f2;
-            border-left: 4px solid var(--danger);
-            color: #991b1b;
-        }
-
-        .alert-info {
-            background: #eff6ff;
-            border-left: 4px solid var(--info);
-            color: #1e40af;
-        }
-
-        .alert-close {
-            background: none;
-            border: none;
-            font-size: 1.25rem;
-            cursor: pointer;
-            color: inherit;
-            opacity: 0.6;
-            padding: 4px 8px;
-        }
-
-        .alert-close:hover {
-            opacity: 1;
-        }
-
-        /* Stat Cards */
-        .stats-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
             gap: 24px;
-            margin-bottom: 32px;
+            flex-wrap: wrap;
         }
 
-        .stat-card {
-            background: white;
-            padding: 24px;
-            border-radius: 20px;
-            box-shadow: var(--shadow-sm);
-            transition: transform 0.2s, box-shadow 0.2s;
-            border: 1px solid var(--psa-gray);
-            cursor: pointer;
-        }
-
-        .stat-card:hover {
-            transform: translateY(-2px);
-            box-shadow: var(--shadow-md);
-        }
-
-        .stat-icon {
-            width: 48px;
-            height: 48px;
-            background: rgba(15, 59, 111, 0.1);
-            border-radius: 16px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin-bottom: 16px;
-        }
-
-        .stat-icon i {
-            font-size: 1.5rem;
-            color: var(--psa-primary);
-        }
-
-        .stat-value {
-            font-size: 2rem;
-            font-weight: 800;
-            color: var(--text-dark);
-            margin-bottom: 4px;
-        }
-
-        .stat-label {
-            color: var(--text-muted);
-            font-size: 0.875rem;
-        }
-
-        /* Table Styles */
-        .table-container {
-            background: white;
-            border-radius: 20px;
-            overflow-x: auto;
-            box-shadow: var(--shadow-sm);
-            border: 1px solid var(--psa-gray);
-        }
-
-        .data-table {
-            width: 100%;
-            border-collapse: collapse;
-            min-width: 600px;
-        }
-
-        .data-table th {
-            background: var(--psa-gray-light);
-            padding: 14px 16px;
-            text-align: left;
-            font-weight: 600;
-            color: var(--text-dark);
-            font-size: 0.875rem;
-        }
-
-        .data-table td {
-            padding: 12px 16px;
-            border-bottom: 1px solid var(--psa-gray);
-            color: var(--text-muted);
-            font-size: 0.875rem;
-        }
-
-        .data-table tr:hover {
-            background: var(--psa-gray-light);
-        }
-
-        /* Status Badges */
-        .status-badge {
-            display: inline-block;
-            padding: 4px 12px;
-            border-radius: 40px;
-            font-size: 0.75rem;
-            font-weight: 600;
-        }
-
-        .status-pending {
-            background: #fef3c7;
-            color: #92400e;
-        }
-
-        .status-confirmed {
-            background: #d1fae5;
-            color: #065f46;
-        }
-
-        .status-completed {
-            background: #dbeafe;
-            color: #1e40af;
-        }
-
-        .status-cancelled {
-            background: #fee2e2;
-            color: #991b1b;
-        }
-
-        /* Buttons */
-        .btn {
+        .footer-links a {
+            color: var(--gray-600);
+            text-decoration: none;
+            font-size: 13px;
+            transition: var(--transition);
             display: inline-flex;
             align-items: center;
-            gap: 8px;
-            padding: 8px 16px;
-            border-radius: 10px;
-            font-weight: 500;
-            text-decoration: none;
-            transition: all 0.2s;
-            cursor: pointer;
-            border: none;
-            font-size: 0.875rem;
+            gap: 6px;
         }
 
-        .btn-sm {
-            padding: 6px 12px;
-            font-size: 0.75rem;
+        .footer-links a:hover {
+            color: var(--primary);
         }
 
-        .btn-primary {
-            background: var(--psa-primary);
-            color: white;
-        }
-
-        .btn-primary:hover {
-            background: var(--psa-primary-dark);
-        }
-
-        .btn-outline {
-            background: transparent;
-            border: 1px solid var(--psa-gray);
-            color: var(--text-dark);
-        }
-
-        .btn-outline:hover {
-            background: var(--psa-gray-light);
-        }
-
-        .btn-danger {
-            background: var(--danger);
-            color: white;
-        }
-
-        .btn-danger:hover {
-            background: #dc2626;
-        }
-
-        .btn-success {
-            background: var(--success);
-            color: white;
-        }
-
-        /* Form Styles */
-        .form-group {
-            margin-bottom: 20px;
-        }
-
-        .form-label {
-            display: block;
-            margin-bottom: 8px;
-            font-weight: 500;
-            color: var(--text-dark);
-            font-size: 0.875rem;
-        }
-
-        .form-control {
-            width: 100%;
-            padding: 10px 14px;
-            border: 1px solid var(--psa-gray);
-            border-radius: 12px;
-            font-size: 0.875rem;
-            transition: all 0.2s;
-            font-family: inherit;
-        }
-
-        .form-control:focus {
-            outline: none;
-            border-color: var(--psa-primary);
-            box-shadow: 0 0 0 3px rgba(15, 59, 111, 0.1);
-        }
-
-        select.form-control {
-            cursor: pointer;
-        }
-
-        textarea.form-control {
-            resize: vertical;
-        }
-
-        /* Map Container */
-        .map-container {
-            height: 400px;
-            border-radius: 20px;
-            overflow: hidden;
-            margin-bottom: 24px;
-            border: 1px solid var(--psa-gray);
-        }
-
-        .leaflet-map {
-            height: 100%;
-            width: 100%;
-        }
-
-        /* Toast Notification */
-        .toast-container {
-            position: fixed;
-            top: 80px;
-            right: 20px;
-            z-index: 9999;
-        }
-
-        .toast-notification {
-            background: white;
-            border-radius: 12px;
-            padding: 12px 16px;
-            margin-bottom: 10px;
-            box-shadow: var(--shadow-lg);
+        .footer-datetime {
             display: flex;
             align-items: center;
-            gap: 12px;
-            min-width: 300px;
-            animation: slideInRight 0.3s ease;
-            border-left: 4px solid;
-        }
-
-        @keyframes slideInRight {
-            from {
-                transform: translateX(100%);
-                opacity: 0;
-            }
-
-            to {
-                transform: translateX(0);
-                opacity: 1;
-            }
-        }
-
-        .toast-success {
-            border-left-color: var(--success);
-        }
-
-        .toast-error {
-            border-left-color: var(--danger);
-        }
-
-        .toast-warning {
-            border-left-color: var(--warning);
-        }
-
-        .toast-info {
-            border-left-color: var(--info);
-        }
-
-        .toast-icon {
-            font-size: 1.25rem;
-        }
-
-        .toast-content {
-            flex: 1;
-        }
-
-        .toast-title {
-            font-weight: 600;
-            font-size: 0.875rem;
-            margin-bottom: 2px;
-        }
-
-        .toast-message {
-            font-size: 0.75rem;
-            color: var(--text-muted);
-        }
-
-        .toast-close {
-            background: none;
-            border: none;
-            cursor: pointer;
-            color: var(--text-muted);
-        }
-
-        /* Row/Column Grid System */
-        .row {
-            display: flex;
-            flex-wrap: wrap;
-            margin: -12px;
-        }
-
-        .col {
-            flex: 1;
-            padding: 12px;
-        }
-
-        .col-2 {
-            flex: 0 0 16.666%;
-        }
-
-        .col-3 {
-            flex: 0 0 25%;
-        }
-
-        .col-4 {
-            flex: 0 0 33.333%;
-        }
-
-        .col-6 {
-            flex: 0 0 50%;
-        }
-
-        .col-8 {
-            flex: 0 0 66.666%;
-        }
-
-        .col-10 {
-            flex: 0 0 83.333%;
-        }
-
-        .col-12 {
-            flex: 0 0 100%;
-        }
-
-        /* Utilities */
-        .text-center {
-            text-align: center;
-        }
-
-        .text-right {
-            text-align: right;
-        }
-
-        .mt-2 {
-            margin-top: 8px;
-        }
-
-        .mt-3 {
-            margin-top: 16px;
-        }
-
-        .mt-4 {
-            margin-top: 24px;
-        }
-
-        .mb-2 {
-            margin-bottom: 8px;
-        }
-
-        .mb-3 {
-            margin-bottom: 16px;
-        }
-
-        .mb-4 {
-            margin-bottom: 24px;
-        }
-
-        .p-3 {
-            padding: 16px;
-        }
-
-        .px-4 {
-            padding-left: 24px;
-            padding-right: 24px;
-        }
-
-        .d-flex {
-            display: flex;
-        }
-
-        .justify-content-between {
-            justify-content: space-between;
-        }
-
-        .align-items-center {
-            align-items: center;
-        }
-
-        .gap-2 {
-            gap: 8px;
-        }
-
-        .gap-3 {
             gap: 16px;
+            color: var(--gray-600);
+            font-size: 13px;
         }
 
-        .w-100 {
-            width: 100%;
+        .footer-datetime div {
+            display: flex;
+            align-items: center;
+            gap: 6px;
         }
 
-        /* Card */
-        .card {
-            background: white;
+        .footer-datetime i {
+            color: var(--primary);
+            font-size: 12px;
+        }
+
+        .footer-version {
+            background: var(--gray-100);
+            padding: 4px 10px;
             border-radius: 20px;
-            box-shadow: var(--shadow-sm);
-            border: 1px solid var(--psa-gray);
-            overflow: hidden;
+            font-size: 11px;
+            color: var(--gray-600);
         }
 
-        .card-header {
-            padding: 16px 20px;
-            border-bottom: 1px solid var(--psa-gray);
-            background: white;
-            font-weight: 600;
-        }
-
-        .card-body {
-            padding: 20px;
-        }
-
-        /* Responsive */
         @media (max-width: 768px) {
-            .staff-sidebar {
-                width: 70px;
-            }
-
-            .staff-sidebar .sidebar-header h4 span,
-            .staff-sidebar .nav-link span {
-                display: none;
-            }
-
-            .staff-sidebar .sidebar-header h4 i {
-                font-size: 1.5rem;
-            }
-
-            .staff-sidebar .nav-link {
-                justify-content: center;
-            }
-
-            .staff-sidebar .nav-link i {
-                margin: 0;
-            }
-
-            .staff-main {
-                margin-left: 70px;
-            }
-
-            .stats-grid {
-                grid-template-columns: 1fr;
-            }
-
-            .notification-dropdown {
-                width: 320px;
-                right: -60px;
-            }
-
-            .col-2,
-            .col-3,
-            .col-4,
-            .col-6,
-            .col-8,
-            .col-10 {
-                flex: 0 0 100%;
-            }
-        }
-
-        @media (max-width: 480px) {
-            .staff-topbar {
+            .footer-content {
                 flex-direction: column;
                 text-align: center;
             }
 
-            .staff-content {
-                padding: 16px;
+            .footer-links {
+                justify-content: center;
             }
 
-            .stat-card {
-                padding: 16px;
+            .footer-datetime {
+                justify-content: center;
             }
 
-            .notification-dropdown {
-                width: 280px;
-                right: -80px;
+            .admin-footer {
+                padding: 16px 20px;
             }
         }
     </style>
+
 </head>
 
 <body>
-    <div class="staff-container">
-        <!-- Sidebar -->
-        <div class="staff-sidebar">
+    <div class="admin-container">
+        <!-- Sidebar with Logo and Logout at Bottom -->
+        <div class="admin-sidebar" id="adminSidebar">
             <div class="sidebar-header">
-                <h4>
-                    <i class="fas fa-id-card"></i>
-                    <span>PSA Admin</span>
-                </h4>
+                <div class="logo-container">
+                    <img src="{{ asset('images/psa.png') }}" alt="PSA Logo" class="sidebar-logo">
+                    <h4>Philippine<br>Statistics Authority</h4>
+                </div>
             </div>
             <div class="sidebar-nav">
                 <div class="nav-item">
@@ -930,6 +164,13 @@
                     </a>
                 </div>
                 <div class="nav-item">
+                    <a href="{{ route('admin.applicants.index') }}"
+                        class="nav-link {{ request()->routeIs('admin.applicants.*') ? 'active' : '' }}">
+                        <i class="fas fa-users"></i>
+                        <span>Applicants</span>
+                    </a>
+                </div>
+                <div class="nav-item">
                     <a href="{{ route('admin.calendar') }}"
                         class="nav-link {{ request()->routeIs('admin.calendar') ? 'active' : '' }}">
                         <i class="fas fa-calendar-alt"></i>
@@ -941,6 +182,13 @@
                         class="nav-link {{ request()->routeIs('admin.users.*') ? 'active' : '' }}">
                         <i class="fas fa-users"></i>
                         <span>Users Management</span>
+                    </a>
+                </div>
+                <div class="nav-item">
+                    <a href="{{ route('admin.slots.index') }}"
+                        class="nav-link {{ request()->routeIs('admin.slots.*') ? 'active' : '' }}">
+                        <i class="fas fa-calendar-week"></i>
+                        <span>Slot Management</span>
                     </a>
                 </div>
                 <div class="nav-item">
@@ -957,62 +205,65 @@
                         <span>Settings</span>
                     </a>
                 </div>
-
                 <div class="sidebar-divider"></div>
-
-                <div class="nav-item">
-                    <form method="POST" action="{{ route('logout') }}" class="w-100">
-                        @csrf
-                        <button type="submit" class="nav-link logout-btn">
-                            <i class="fas fa-sign-out-alt"></i>
-                            <span>Logout</span>
-                        </button>
-                    </form>
-                </div>
+                <div style="flex: 1;"></div>
+            </div>
+            <!-- Logout at bottom with loading state -->
+            <div class="logout-wrapper">
+                <form method="POST" action="{{ route('logout') }}" id="logoutForm">
+                    @csrf
+                    <button type="submit" class="nav-link logout-btn" id="logoutBtn">
+                        <i class="fas fa-sign-out-alt"></i>
+                        <span>Logout</span>
+                        <div class="btn-loader"></div>
+                    </button>
+                </form>
             </div>
         </div>
 
         <!-- Main Content -->
-        <div class="staff-main">
-            <!-- Top Bar -->
-            <div class="staff-topbar">
+        <div class="admin-main">
+            <div class="admin-topbar">
                 <div class="topbar-left">
-                    <div class="welcome-text">
-                        <h5>Welcome, {{ Auth::user()->first_name }} {{ Auth::user()->last_name }}</h5>
+                    <button class="mobile-menu-btn" id="mobileMenuToggle">
+                        <i class="fas fa-bars"></i>
+                    </button>
+                    <div class="welcome-text" style="text-transform: uppercase;">
+                        <h5>Welcome, {{ Auth::user()->role }}</h5>
                     </div>
                 </div>
                 <div class="topbar-right">
-                    <span class="role-badge">{{ ucfirst(Auth::user()->role) }}</span>
+                    {{-- <!-- Role Badge -->
+                    <span class="role-badge" id="roleBadge"
+                        style="cursor: pointer;">{{ ucfirst(Auth::user()->role) }}</span> --}}
 
-                    <!-- Notification Bell (optional - can be implemented later) -->
-                    <div class="notification-container">
-                        <button class="notification-bell" id="notificationBell">
-                            <i class="far fa-bell"></i>
-                            <span class="notification-badge" id="notificationCount" style="display: none;">0</span>
-                        </button>
-                        <div class="notification-dropdown" id="notificationDropdown">
-                            <div class="notification-header">
-                                <h6>Notifications</h6>
-                                <button class="mark-all-read">Mark all as read</button>
+                    <!-- User Full Name -->
+                    <span class="user-fullname" id="userFullName"
+                        style="cursor: pointer; font-weight: 500; color: var(--gray-700);">
+                        {{ Auth::user()->first_name }} {{ Auth::user()->last_name }}
+                    </span>
+
+                    <!-- Profile Picture -->
+                    <div class="profile-pic-container" id="profilePicContainer" style="cursor: pointer;">
+                        @php
+                            $avatarPath = Auth::user()->profile_photo ?? null;
+                            $userInitial = strtoupper(substr(Auth::user()->first_name, 0, 1));
+                        @endphp
+                        @if ($avatarPath && file_exists(public_path('storage/' . $avatarPath)))
+                            <img src="{{ asset('storage/' . $avatarPath) }}" alt="Profile" class="topbar-avatar"
+                                style="width: 40px; height: 40px; border-radius: 50%; object-fit: cover; border: 2px solid var(--primary);">
+                        @else
+                            <div class="topbar-avatar-placeholder"
+                                style="width: 40px; height: 40px; border-radius: 50%; background: linear-gradient(135deg, rgb(78, 0, 9), rgb(0, 31, 94)); color: white; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 16px; border: 2px solid var(--primary);">
+                                {{ $userInitial }}
                             </div>
-                            <div class="notification-list" id="notificationList">
-                                <!-- Notifications will be loaded here -->
-                                <div class="notification-item">
-                                    <div class="notification-content">
-                                        <div class="notification-title">No new notifications</div>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="notification-footer">
-                                <a href="#" class="view-all-link">View all notifications</a>
-                            </div>
-                        </div>
+                        @endif
                     </div>
                 </div>
             </div>
 
             <!-- Content Area -->
-            <div class="staff-content">
+            <div class="admin-content">
                 <!-- Alert Messages -->
                 @if (session('success'))
                     <div class="alert alert-success alert-dismissible" role="alert">
@@ -1020,96 +271,1407 @@
                         <button type="button" class="alert-close" data-dismiss="alert">&times;</button>
                     </div>
                 @endif
-
                 @if (session('error'))
                     <div class="alert alert-danger alert-dismissible" role="alert">
                         {{ session('error') }}
                         <button type="button" class="alert-close" data-dismiss="alert">&times;</button>
                     </div>
                 @endif
-
                 @yield('content')
             </div>
+
+            <!-- Footer -->
+            <footer class="admin-footer">
+                <div class="footer-content">
+                    <div class="footer-copyright">
+                        <i class="fas fa-copyright"></i>
+                        <span>{{ date('Y') }} Philippine Statistics Authority. All rights reserved.</span>
+                    </div>
+                    <div class="footer-links">
+                        <a href="#" id="aboutLink">
+                            <i class="fas fa-info-circle"></i>
+                            About
+                        </a>
+                        <a href="#" id="helpLink">
+                            <i class="fas fa-question-circle"></i>
+                            Help
+                        </a>
+                        <a href="#" id="privacyLink">
+                            <i class="fas fa-shield-alt"></i>
+                            Privacy Policy
+                        </a>
+                        <a href="#" id="contactLink">
+                            <i class="fas fa-envelope"></i>
+                            Contact
+                        </a>
+                    </div>
+                    <div class="footer-datetime">
+                        <div class="footer-date">
+                            <i class="fas fa-calendar-day"></i>
+                            <span id="currentDate"></span>
+                        </div>
+                        <div class="footer-time">
+                            <i class="fas fa-clock"></i>
+                            <span id="currentTime"></span>
+                        </div>
+                        <div class="footer-version">
+                            <i class="fas fa-code-branch"></i>
+                            v1.0.0
+                        </div>
+                    </div>
+                </div>
+            </footer>
+        </div>
+    </div>
+
+    <!-- Profile Modal -->
+    <div class="profile-modal" id="profileModal">
+        <div class="profile-modal-content">
+            <div class="profile-modal-header">
+                <h3><i class="fas fa-user-circle"></i> My Profile</h3>
+                <button class="profile-modal-close" id="closeProfileModal">&times;</button>
+            </div>
+            <div class="profile-modal-body">
+                <!-- Tabs -->
+                <div class="profile-tabs">
+                    <button class="profile-tab active" data-tab="view-tab">Profile</button>
+                    <button class="profile-tab" data-tab="edit-tab">Edit Profile</button>
+                    <button class="profile-tab" data-tab="password-tab">Change Password</button>
+                    <button class="profile-tab" data-tab="twofa-tab">2FA Security</button>
+                </div>
+
+                <!-- View Profile Tab -->
+                <div class="tab-pane active" id="view-tab">
+                    <div class="profile-view-header">
+                        @php
+                            $avatarPath = Auth::user()->profile_photo ?? null;
+                            $userInitial = strtoupper(substr(Auth::user()->first_name, 0, 1));
+                        @endphp
+                        @if ($avatarPath && file_exists(public_path('storage/' . $avatarPath)))
+                            <img src="{{ asset('storage/' . $avatarPath) }}" alt="Profile"
+                                class="profile-view-avatar" id="modalAvatar">
+                        @else
+                            <div class="profile-view-avatar-placeholder" id="modalAvatarPlaceholder">
+                                {{ $userInitial }}</div>
+                            <img style="display:none" class="profile-view-avatar" id="modalAvatar">
+                        @endif
+                        <h4 class="profile-view-name">{{ Auth::user()->first_name }} {{ Auth::user()->last_name }}
+                        </h4>
+                        <span class="profile-view-role">{{ ucfirst(Auth::user()->role) }}</span>
+                    </div>
+
+                    <div class="info-grid">
+                        <div class="info-item">
+                            <div class="info-icon"><i class="fas fa-envelope"></i></div>
+                            <div class="info-content">
+                                <div class="info-label">Email Address</div>
+                                <div class="info-value" id="viewEmail">{{ Auth::user()->email }}</div>
+                            </div>
+                        </div>
+                        <div class="info-item">
+                            <div class="info-icon"><i class="fas fa-phone"></i></div>
+                            <div class="info-content">
+                                <div class="info-label">Contact Number</div>
+                                <div class="info-value" id="viewContact">
+                                    {{ Auth::user()->contact_number ?? 'Not set' }}</div>
+                            </div>
+                        </div>
+                        <div class="info-item">
+                            <div class="info-icon"><i class="fas fa-calendar-alt"></i></div>
+                            <div class="info-content">
+                                <div class="info-label">Member Since</div>
+                                <div class="info-value">{{ Auth::user()->created_at->format('F d, Y') }}</div>
+                            </div>
+                        </div>
+                        <div class="info-item">
+                            <div class="info-icon"><i class="fas fa-id-badge"></i></div>
+                            <div class="info-content">
+                                <div class="info-label">User ID</div>
+                                <div class="info-value">#{{ Auth::user()->id }}</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Edit Profile Tab -->
+                <div class="tab-pane" id="edit-tab">
+                    <form id="profileUpdateForm" method="POST" action="{{ route('admin.update') }}"
+                        enctype="multipart/form-data">
+                        @csrf
+                        @method('PUT')
+
+                        <div class="avatar-section">
+                            @php
+                                $currentAvatar = Auth::user()->profile_photo ?? null;
+                                $avatarUrl =
+                                    $currentAvatar && file_exists(public_path('storage/' . $currentAvatar))
+                                        ? asset('storage/' . $currentAvatar)
+                                        : null;
+                            @endphp
+                            @if ($avatarUrl)
+                                <img src="{{ $avatarUrl }}" alt="Profile" class="avatar-preview"
+                                    id="editAvatarPreview">
+                            @else
+                                <div class="avatar-placeholder" id="editAvatarPlaceholder">{{ $userInitial }}</div>
+                                <img style="display:none" class="avatar-preview" id="editAvatarPreview">
+                            @endif
+                            <div>
+                                <label class="upload-btn">
+                                    <i class="fas fa-camera"></i> Change Photo
+                                    <input type="file" name="profile_photo" id="profilePhotoInput"
+                                        accept="image/*" style="display: none;">
+                                </label>
+                                <small style="display: block; margin-top: 5px; color: #6b7280; font-size: 11px;">Max
+                                    2MB. JPG, PNG only</small>
+                            </div>
+                        </div>
+
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>First Name <span class="required">*</span></label>
+                                <input type="text" name="first_name" id="editFirstName"
+                                    value="{{ old('first_name', Auth::user()->first_name) }}" required>
+                            </div>
+                            <div class="form-group">
+                                <label>Last Name <span class="required">*</span></label>
+                                <input type="text" name="last_name" id="editLastName"
+                                    value="{{ old('last_name', Auth::user()->last_name) }}" required>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label>Email Address <span class="required">*</span></label>
+                            <input type="email" name="email" id="editEmail"
+                                value="{{ old('email', Auth::user()->email) }}" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label>Contact Number</label>
+                            <input type="text" name="contact_number" id="editContact"
+                                value="{{ old('contact_number', Auth::user()->contact_number) }}"
+                                placeholder="e.g., 09123456789">
+                        </div>
+
+                        <div class="action-buttons">
+                            <button type="submit" class="btn-save" id="saveProfileBtn">Save Changes</button>
+                            <button type="button" class="btn-cancel cancel-edit">Cancel</button>
+                        </div>
+                    </form>
+                </div>
+
+                <!-- Change Password Tab -->
+                <div class="tab-pane" id="password-tab">
+                    <form id="passwordUpdateForm" method="POST" action="{{ route('admin.password.update') }}">
+                        @csrf
+                        @method('PUT')
+
+                        <div class="form-group">
+                            <label>Current Password <span class="required">*</span></label>
+                            <div class="password-input-wrapper">
+                                <input type="password" name="current_password" id="currentPassword" required>
+                                <i class="fas fa-eye-slash toggle-password" data-target="currentPassword"></i>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label>New Password <span class="required">*</span></label>
+                            <div class="password-input-wrapper">
+                                <input type="password" name="new_password" id="newPassword" required>
+                                <i class="fas fa-eye-slash toggle-password" data-target="newPassword"></i>
+                            </div>
+                            <div class="password-strength">
+                                <div class="strength-bar" id="strengthBar"></div>
+                                <div class="strength-text" id="strengthText"></div>
+                            </div>
+                        </div>
+
+                        <div class="password-requirements">
+                            <p>Password Requirements:</p>
+                            <div class="requirement" id="reqLength"><i class="fas fa-circle"></i> At least 8
+                                characters</div>
+                            <div class="requirement" id="reqUppercase"><i class="fas fa-circle"></i> At least 1
+                                uppercase letter</div>
+                            <div class="requirement" id="reqLowercase"><i class="fas fa-circle"></i> At least 1
+                                lowercase letter</div>
+                            <div class="requirement" id="reqNumber"><i class="fas fa-circle"></i> At least 1 number
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label>Confirm New Password <span class="required">*</span></label>
+                            <div class="password-input-wrapper">
+                                <input type="password" name="new_password_confirmation" id="confirmPassword"
+                                    required>
+                                <i class="fas fa-eye-slash toggle-password" data-target="confirmPassword"></i>
+                            </div>
+                            <div id="matchMessage" style="font-size: 11px; margin-top: 5px;"></div>
+                        </div>
+
+                        <div class="action-buttons">
+                            <button type="submit" class="btn-save" id="savePasswordBtn">Update Password</button>
+                            <button type="button" class="btn-cancel cancel-password">Cancel</button>
+                        </div>
+                    </form>
+                </div>
+
+                <!-- Two-Factor Authentication Tab -->
+                <div class="tab-pane" id="twofa-tab">
+                    <div class="twofa-container">
+                        <div class="twofa-header">
+                            <div>
+                                <h4><i class="fas fa-shield-alt"></i> Two-Factor Authentication</h4>
+                            </div>
+                            <div>
+                                <span id="twoFactorStatus"
+                                    class="twofa-status {{ Auth::user()->two_factor_enabled ? 'enabled' : 'disabled' }}">
+                                    {{ Auth::user()->two_factor_enabled ? 'Enabled' : 'Disabled' }}
+                                </span>
+                                <button id="manage2faBtn" class="btn-manage" style="margin-left: 10px;">
+                                    <i class="fas fa-cog"></i> Manage
+                                </button>
+                            </div>
+                        </div>
+                        <p class="twofa-description">
+                            Two-factor authentication adds an extra layer of security to your account.
+                            Once enabled, you'll need to provide a verification code from your authenticator app when
+                            logging in.
+                        </p>
+
+                        <div id="twoFactorPanel" style="display: none;">
+                            <div class="radio-group">
+                                <label>
+                                    <input type="radio" name="2fa_action" value="enable"
+                                        {{ !Auth::user()->two_factor_enabled ? 'checked' : '' }}>
+                                    <i class="fas fa-check-circle"></i> Enable 2FA
+                                </label>
+                                <label>
+                                    <input type="radio" name="2fa_action" value="disable"
+                                        {{ Auth::user()->two_factor_enabled ? 'checked' : '' }}>
+                                    <i class="fas fa-ban"></i> Disable 2FA
+                                </label>
+                            </div>
+
+                            <div style="display: flex; gap: 10px; margin-bottom: 20px;">
+                                <button id="apply2faBtn" class="btn-save">
+                                    <i class="fas fa-check"></i> Apply Changes
+                                </button>
+                                <button id="showQrBtn" class="btn-manage"
+                                    style="display: {{ Auth::user()->two_factor_enabled ? 'inline-block' : 'none' }};">
+                                    <i class="fas fa-key"></i> Show QR-Code Key
+                                </button>
+                            </div>
+
+                            <div id="qrPreview" style="display: none;" class="qr-preview">
+                                <center><img id="qrImage" class="qr-image" src="" alt="QR Code"></center>
+                                <div id="qrSecret" class="qr-secret"></div>
+                                {{-- <div id="recoveryCodes" class="recovery-codes" style="display: none;">
+                                    <strong><i class="fas fa-key"></i> Recovery Codes (store securely)</strong>
+                                    <ul id="recoveryList"></ul>
+                                    <small>⚠️ These codes can be used to log in if you lose access to your authenticator
+                                        app.</small>
+                                </div> --}}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- PSA LOADER MODAL -->
+    <div class="psa-loader-modal" id="psaLoaderModal">
+        <div class="psa-loader-container">
+            <img src="{{ asset('images/psa.png') }}" alt="PSA Loading" class="psa-loader-logo">
         </div>
     </div>
 
     <!-- Toast Container -->
     <div class="toast-container" id="toastContainer"></div>
 
+    <!-- JavaScript -->
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script>
-        // Alert auto-dismiss
-        document.querySelectorAll('.alert-dismissible').forEach(alert => {
-            setTimeout(() => {
-                alert.style.opacity = '0';
-                setTimeout(() => alert.remove(), 300);
-            }, 5000);
-        });
-
-        // Notification dropdown toggle
-        const bell = document.getElementById('notificationBell');
-        const dropdown = document.getElementById('notificationDropdown');
-
-        if (bell) {
-            bell.addEventListener('click', (e) => {
-                e.stopPropagation();
-                dropdown.classList.toggle('show');
-            });
-
-            document.addEventListener('click', () => {
-                dropdown.classList.remove('show');
-            });
-
-            dropdown.addEventListener('click', (e) => {
-                e.stopPropagation();
-            });
+        // ============================================================
+        //  PSA LOADER CONTROLS 
+        // ============================================================
+        function showPSALoader(customText = null) {
+            const loader = document.getElementById('psaLoaderModal');
+            const loaderText = document.querySelector('.psa-loader-text');
+            if (loaderText && customText) {
+                loaderText.textContent = customText;
+            } else if (loaderText) {
+                loaderText.textContent = 'Loading...';
+            }
+            if (loader) loader.classList.add('show');
+            document.body.style.overflow = 'hidden';
         }
 
-        // Toast notification function
-        function showToast(title, message, type = 'success') {
-            const toastContainer = document.getElementById('toastContainer');
-            const toast = document.createElement('div');
-            toast.className = `toast-notification toast-${type}`;
+        function hidePSALoader() {
+            const loader = document.getElementById('psaLoaderModal');
+            if (loader) loader.classList.remove('show');
+            document.body.style.overflow = '';
+        }
 
-            let icon = '';
-            switch (type) {
-                case 'success':
-                    icon = 'fa-check-circle';
-                    break;
-                case 'error':
-                    icon = 'fa-exclamation-circle';
-                    break;
-                case 'warning':
-                    icon = 'fa-exclamation-triangle';
-                    break;
-                default:
-                    icon = 'fa-info-circle';
+        // ============================================================
+        //  DATE & TIME UPDATE
+        // ============================================================
+        function updateDateTime() {
+            const now = new Date();
+
+            const dateOptions = {
+                weekday: 'long',
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric'
+            };
+            const dateElement = document.getElementById('currentDate');
+            if (dateElement) {
+                dateElement.textContent = now.toLocaleDateString('en-US', dateOptions);
             }
 
-            toast.innerHTML = `
-                <div class="toast-icon">
-                    <i class="fas ${icon}"></i>
-                </div>
-                <div class="toast-content">
-                    <div class="toast-title">${title}</div>
-                    <div class="toast-message">${message}</div>
-                </div>
-                <button class="toast-close" onclick="this.parentElement.remove()">
-                    <i class="fas fa-times"></i>
-                </button>
-            `;
-
-            toastContainer.appendChild(toast);
-
-            setTimeout(() => {
-                toast.style.opacity = '0';
-                setTimeout(() => toast.remove(), 300);
-            }, 5000);
+            const timeOptions = {
+                hour: '2-digit',
+                minute: '2-digit',
+                second: '2-digit',
+                hour12: true
+            };
+            const timeElement = document.getElementById('currentTime');
+            if (timeElement) {
+                timeElement.textContent = now.toLocaleTimeString('en-US', timeOptions);
+            }
         }
 
-        // Make showToast available globally
-        window.showToast = showToast;
+        updateDateTime();
+        setInterval(updateDateTime, 1000);
+
+        // ============================================================
+        //  TOAST NOTIFICATION 
+        // ============================================================
+        window.showToast = function(title, message, type = 'info') {
+            const container = document.getElementById('toastContainer');
+            if (!container) return;
+            const toast = document.createElement('div');
+            toast.className = 'toast';
+            let icon = 'fa-info-circle';
+            if (type === 'success') icon = 'fa-check-circle';
+            if (type === 'warning') icon = 'fa-exclamation-triangle';
+            if (type === 'error') icon = 'fa-times-circle';
+            toast.innerHTML =
+                `<i class="fas ${icon}" style="color:#FCD116;"></i><div><strong>${escapeHtml(title)}</strong><br/><small>${escapeHtml(message)}</small></div>`;
+            container.appendChild(toast);
+            setTimeout(() => toast.remove(), 4000);
+        };
+
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        // ============================================================
+        //  NOTIFICATION MANAGER
+        // ============================================================
+        class NotificationManager {
+            init() {
+                this.render();
+                this.updateBadge();
+                this.attach();
+                setInterval(() => this.demoNew(), 35000);
+            }
+            render() {
+                const container = document.getElementById('notificationList');
+                if (!container) return;
+                if (this.notifications.length === 0) {
+                    container.innerHTML = `<div style="padding:30px;text-align:center;">No notifications</div>`;
+                    return;
+                }
+                container.innerHTML = this.notifications.map(n => `
+            <div class="notification-item ${!n.read ? 'unread' : ''}" data-id="${n.id}">
+                <div class="notification-icon ${n.type}"><i class="fas ${this.getIcon(n.type)}"></i></div>
+                <div class="notification-content">
+                    <div class="notification-title">${escapeHtml(n.title)}</div>
+                    <div class="notification-message">${escapeHtml(n.message)}</div>
+                    <div class="notification-time">${escapeHtml(n.time)}</div>
+                </div>
+            </div>
+        `).join('');
+                document.querySelectorAll('.notification-item').forEach(el => {
+                    el.addEventListener('click', () => this.markRead(parseInt(el.dataset.id)));
+                });
+            }
+            getIcon(type) {
+                if (type === 'success') return 'fa-check-circle';
+                if (type === 'warning') return 'fa-exclamation-triangle';
+                return 'fa-info-circle';
+            }
+            updateBadge() {
+                const badge = document.getElementById('notificationCount');
+                if (badge) {
+                    badge.textContent = this.unreadCount;
+                    badge.style.display = this.unreadCount > 0 ? 'flex' : 'none';
+                }
+            }
+            markRead(id) {
+                const n = this.notifications.find(x => x.id === id);
+                if (n && !n.read) {
+                    n.read = true;
+                    this.unreadCount--;
+                    this.render();
+                    this.updateBadge();
+                    showToast('Notification', 'Marked as read', 'info');
+                }
+            }
+            markAllRead() {
+                this.notifications.forEach(n => n.read = true);
+                this.unreadCount = 0;
+                this.render();
+                this.updateBadge();
+                showToast('Notifications', 'All marked as read', 'success');
+            }
+            demoNew() {
+                const msgs = [{
+                        title: 'New Booking',
+                        message: 'Client requested appointment',
+                        type: 'success'
+                    },
+                    {
+                        title: 'Reminder',
+                        message: 'Appointment in 20 min',
+                        type: 'warning'
+                    },
+                    {
+                        title: 'Info',
+                        message: 'System health check passed',
+                        type: 'info'
+                    }
+                ];
+                const r = msgs[Math.floor(Math.random() * msgs.length)];
+                this.add(r.title, r.message, r.type);
+            }
+            add(title, message, type) {
+                const newN = {
+                    id: Date.now(),
+                    title,
+                    message,
+                    time: 'Just now',
+                    type,
+                    read: false
+                };
+                this.notifications.unshift(newN);
+                this.unreadCount++;
+                this.render();
+                this.updateBadge();
+                showToast(title, message, type);
+            }
+            attach() {
+                const bell = document.getElementById('notificationBell');
+                const dropdown = document.getElementById('notificationDropdown');
+                const markBtn = document.getElementById('markAllRead');
+                if (bell) bell.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    dropdown.classList.toggle('show');
+                });
+                if (markBtn) markBtn.addEventListener('click', () => this.markAllRead());
+                document.addEventListener('click', (e) => {
+                    if (!bell?.contains(e.target) && !dropdown?.contains(e.target)) dropdown?.classList.remove(
+                        'show');
+                });
+            }
+        }
+
+        // ============================================================
+        //  FOOTER LINK HANDLERS
+        // ============================================================
+        function initFooterLinks() {
+            const aboutLink = document.getElementById('aboutLink');
+            const helpLink = document.getElementById('helpLink');
+            const privacyLink = document.getElementById('privacyLink');
+            const contactLink = document.getElementById('contactLink');
+
+            // Profile modal triggers - these will open the profile modal
+            const roleBadge = document.getElementById('roleBadge');
+            const userFullName = document.getElementById('userFullName');
+            const profilePicContainer = document.getElementById('profilePicContainer');
+
+            function openProfileModal(e) {
+                if (e) e.preventDefault();
+                const modal = document.getElementById('profileModal');
+                if (modal) {
+                    modal.classList.add('active');
+                    document.body.style.overflow = 'hidden';
+                }
+            }
+
+            // Attach click events to open profile modal (not role badge separately)
+            if (roleBadge) {
+                roleBadge.addEventListener('click', openProfileModal);
+            }
+            if (userFullName) {
+                userFullName.addEventListener('click', openProfileModal);
+            }
+            if (profilePicContainer) {
+                profilePicContainer.addEventListener('click', openProfileModal);
+            }
+
+            // Footer links
+            if (aboutLink) {
+                aboutLink.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    showToast('About',
+                        'PSA Appointment System v1.0.0<br>Developed for Philippine Statistics Authority', 'info'
+                    );
+                });
+            }
+
+            if (helpLink) {
+                helpLink.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    showToast('Help',
+                        'For assistance, contact your system administrator or refer to the user manual.', 'info'
+                    );
+                });
+            }
+
+            if (privacyLink) {
+                privacyLink.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    showToast('Privacy Policy',
+                        'All data is handled in accordance with Data Privacy Act of 2012 (RA 10173).', 'info');
+                });
+            }
+
+            if (contactLink) {
+                contactLink.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    showToast('Contact', 'Email: support@psa.gov.ph<br>Phone: (088) 856-1234', 'info');
+                });
+            }
+        }
+
+        // Function to check if 2FA is really enabled
+        async function check2FAStatus() {
+            try {
+                const response = await fetch('{{ route('admin.2fa.status') }}', {
+                    headers: {
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+                        'Accept': 'application/json'
+                    }
+                });
+                const data = await response.json();
+                return data.enabled === true;
+            } catch (error) {
+                console.error('Error checking 2FA status:', error);
+                return false;
+            }
+        }
+
+        // Modified fetch2FADetails function
+        async function fetch2FADetails() {
+            try {
+                // First check if 2FA is really enabled
+                const isEnabled = await check2FAStatus();
+
+                if (!isEnabled) {
+                    console.log('2FA is not enabled, skipping QR fetch');
+                    if (typeof showToast !== 'undefined') {
+                        showToast('Information', '2FA is not enabled yet. Please enable it first.', 'info');
+                    }
+                    return false;
+                }
+
+                const response = await fetch('{{ route('admin.2fa.qr') }}', {
+                    headers: {
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+                        'Accept': 'application/json'
+                    }
+                });
+
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    throw new Error(errorData.message || 'Failed to fetch 2FA details');
+                }
+
+                const data = await response.json();
+
+                if (data.success) {
+                    display2FADetails(data);
+                    return true;
+                } else {
+                    console.warn('2FA details not available:', data.message);
+                    if (typeof showToast !== 'undefined') {
+                        showToast('Information', data.message || '2FA details not available', 'info');
+                    }
+                    return false;
+                }
+            } catch (error) {
+                console.error('Error fetching 2FA details:', error);
+                if (typeof showToast !== 'undefined') {
+                    showToast('Error', error.message || 'Failed to load 2FA details', 'error');
+                }
+                return false;
+            }
+        }
+
+        // ============================================================
+        //  MOBILE SIDEBAR TOGGLE 
+        // ============================================================
+        function initMobileSidebar() {
+            const toggleBtn = document.getElementById('mobileMenuToggle');
+            const sidebar = document.getElementById('adminSidebar');
+            if (!toggleBtn || !sidebar) return;
+            toggleBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                sidebar.classList.toggle('sidebar-open');
+            });
+            document.addEventListener('click', function(event) {
+                if (window.innerWidth <= 768) {
+                    if (!sidebar.contains(event.target) && !toggleBtn.contains(event.target)) {
+                        sidebar.classList.remove('sidebar-open');
+                    }
+                }
+            });
+        }
+
+        // ============================================================
+        //  LOGOUT HANDLER WITH LOADING STATE
+        // ============================================================
+        function initLogoutHandler() {
+            const logoutForm = document.getElementById('logoutForm');
+            const logoutBtn = document.getElementById('logoutBtn');
+
+            if (logoutForm && logoutBtn) {
+                logoutForm.addEventListener('submit', function(e) {
+                    logoutBtn.classList.add('loading');
+                    showPSALoader('Logging out...');
+                    logoutBtn.disabled = true;
+                });
+            }
+        }
+
+        // ============================================================
+        //  FORM SUBMIT LOADER
+        // ============================================================
+        function bindFormLoaders() {
+            const forms = document.querySelectorAll('form:not(#logoutForm)');
+            forms.forEach(form => {
+                form.addEventListener('submit', function(e) {
+                    showPSALoader('Submitting form...');
+                });
+            });
+        }
+
+        // ============================================================
+        //  NAVIGATION LINK LOADER
+        // ============================================================
+        function bindNavigationLoaders() {
+            const navLinks = document.querySelectorAll('.nav-link:not(.logout-btn)');
+            navLinks.forEach(link => {
+                link.addEventListener('click', function(e) {
+                    const href = this.getAttribute('href');
+                    if (href && href !== '#' && !href.startsWith('javascript')) {
+                        showPSALoader('Loading page...');
+                    }
+                });
+            });
+        }
+
+        // ============================================================
+        //  AJAX GLOBAL LOADER
+        // ============================================================
+        if (typeof $ !== 'undefined') {
+            $(document).ajaxStart(function() {
+                showPSALoader('Processing request...');
+            });
+            $(document).ajaxStop(function() {
+                hidePSALoader();
+            });
+            $(document).ajaxError(function() {
+                hidePSALoader();
+            });
+        }
+
+        // ============================================================
+        //  PAGE LOAD COMPLETE
+        // ============================================================
+        window.addEventListener('load', function() {
+            setTimeout(() => hidePSALoader(), 500);
+        });
+
+        window.addEventListener('pageshow', function() {
+            hidePSALoader();
+        });
+
+        // ============================================================
+        //  DOM CONTENT LOADED - Initialize all components
+        // ============================================================
+        document.addEventListener('DOMContentLoaded', function() {
+            window.notificationManager = new NotificationManager();
+            initMobileSidebar();
+            bindFormLoaders();
+            bindNavigationLoaders();
+            initLogoutHandler();
+            initFooterLinks();
+
+            // Profile Modal Functionality
+            const profileModal = document.getElementById('profileModal');
+            const closeModalBtn = document.getElementById('closeProfileModal');
+
+            if (closeModalBtn) {
+                closeModalBtn.addEventListener('click', function() {
+                    profileModal.classList.remove('active');
+                    document.body.style.overflow = '';
+                });
+            }
+
+            if (profileModal) {
+                profileModal.addEventListener('click', function(e) {
+                    if (e.target === profileModal) {
+                        profileModal.classList.remove('active');
+                        document.body.style.overflow = '';
+                    }
+                });
+            }
+
+            // Tab switching
+            const tabs = document.querySelectorAll('.profile-tab');
+            tabs.forEach(tab => {
+                tab.addEventListener('click', function() {
+                    const tabId = this.dataset.tab;
+                    tabs.forEach(t => t.classList.remove('active'));
+                    this.classList.add('active');
+                    document.querySelectorAll('.tab-pane').forEach(pane => pane.classList.remove(
+                        'active'));
+                    document.getElementById(tabId).classList.add('active');
+                });
+            });
+
+            // Cancel buttons
+            document.querySelectorAll('.cancel-edit, .cancel-password').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    document.querySelector('.profile-tab[data-tab="view-tab"]').click();
+                });
+            });
+
+            // Avatar preview
+            const photoInput = document.getElementById('profilePhotoInput');
+            const editAvatarPreview = document.getElementById('editAvatarPreview');
+            const editAvatarPlaceholder = document.getElementById('editAvatarPlaceholder');
+
+            if (photoInput) {
+                photoInput.addEventListener('change', function(e) {
+                    const file = e.target.files[0];
+                    if (file) {
+                        if (file.size > 2 * 1024 * 1024) {
+                            alert('File size must be less than 2MB');
+                            this.value = '';
+                            return;
+                        }
+                        const reader = new FileReader();
+                        reader.onload = function(event) {
+                            if (editAvatarPreview) {
+                                editAvatarPreview.src = event.target.result;
+                                editAvatarPreview.style.display = 'block';
+                            }
+                            if (editAvatarPlaceholder) editAvatarPlaceholder.style.display = 'none';
+                        };
+                        reader.readAsDataURL(file);
+                    }
+                });
+            }
+
+            // Toggle password visibility
+            document.querySelectorAll('.toggle-password').forEach(icon => {
+                icon.addEventListener('click', function() {
+                    const targetId = this.dataset.target;
+                    const input = document.getElementById(targetId);
+                    if (input.type === 'password') {
+                        input.type = 'text';
+                        this.classList.remove('fa-eye-slash');
+                        this.classList.add('fa-eye');
+                    } else {
+                        input.type = 'password';
+                        this.classList.remove('fa-eye');
+                        this.classList.add('fa-eye-slash');
+                    }
+                });
+            });
+
+            // Password strength checker
+            const newPassword = document.getElementById('newPassword');
+            const confirmPassword = document.getElementById('confirmPassword');
+            const strengthBar = document.getElementById('strengthBar');
+            const strengthText = document.getElementById('strengthText');
+            const matchMessage = document.getElementById('matchMessage');
+
+            function checkPasswordStrength(password) {
+                let score = 0;
+                if (password.length >= 8) score++;
+                if (password.match(/[A-Z]/)) score++;
+                if (password.match(/[a-z]/)) score++;
+                if (password.match(/[0-9]/)) score++;
+                return score;
+            }
+
+            function updateStrengthDisplay() {
+                const password = newPassword ? newPassword.value : '';
+                const score = checkPasswordStrength(password);
+
+                let barClass = '';
+                let textClass = '';
+                let text = '';
+
+                if (password.length === 0) {
+                    barClass = '';
+                    text = '';
+                } else if (score === 1) {
+                    barClass = 'weak';
+                    textClass = 'weak';
+                    text = 'Weak';
+                } else if (score === 2) {
+                    barClass = 'medium';
+                    textClass = 'medium';
+                    text = 'Medium';
+                } else if (score === 3) {
+                    barClass = 'strong';
+                    textClass = 'strong';
+                    text = 'Strong';
+                } else if (score === 4) {
+                    barClass = 'very-strong';
+                    textClass = 'very-strong';
+                    text = 'Very Strong';
+                }
+
+                if (strengthBar) strengthBar.className = 'strength-bar ' + barClass;
+                if (strengthText) {
+                    strengthText.className = 'strength-text ' + textClass;
+                    strengthText.textContent = text;
+                }
+
+                const reqLength = document.getElementById('reqLength');
+                const reqUppercase = document.getElementById('reqUppercase');
+                const reqLowercase = document.getElementById('reqLowercase');
+                const reqNumber = document.getElementById('reqNumber');
+
+                if (reqLength) {
+                    reqLength.className = password.length >= 8 ? 'requirement valid' : 'requirement invalid';
+                    reqLength.innerHTML = (password.length >= 8 ? '<i class="fas fa-check-circle"></i>' :
+                        '<i class="fas fa-circle"></i>') + ' At least 8 characters';
+                }
+                if (reqUppercase) {
+                    reqUppercase.className = password.match(/[A-Z]/) ? 'requirement valid' : 'requirement invalid';
+                    reqUppercase.innerHTML = (password.match(/[A-Z]/) ? '<i class="fas fa-check-circle"></i>' :
+                        '<i class="fas fa-circle"></i>') + ' At least 1 uppercase letter';
+                }
+                if (reqLowercase) {
+                    reqLowercase.className = password.match(/[a-z]/) ? 'requirement valid' : 'requirement invalid';
+                    reqLowercase.innerHTML = (password.match(/[a-z]/) ? '<i class="fas fa-check-circle"></i>' :
+                        '<i class="fas fa-circle"></i>') + ' At least 1 lowercase letter';
+                }
+                if (reqNumber) {
+                    reqNumber.className = password.match(/[0-9]/) ? 'requirement valid' : 'requirement invalid';
+                    reqNumber.innerHTML = (password.match(/[0-9]/) ? '<i class="fas fa-check-circle"></i>' :
+                        '<i class="fas fa-circle"></i>') + ' At least 1 number';
+                }
+            }
+
+            function checkPasswordMatch() {
+                if (!newPassword || !confirmPassword || !matchMessage) return;
+                const password = newPassword.value;
+                const confirm = confirmPassword.value;
+
+                if (confirm.length === 0) {
+                    matchMessage.innerHTML = '';
+                    return;
+                }
+
+                if (password === confirm) {
+                    matchMessage.innerHTML =
+                        '<i class="fas fa-check-circle" style="color: #10b981;"></i> Passwords match';
+                    matchMessage.style.color = '#10b981';
+                } else {
+                    matchMessage.innerHTML =
+                        '<i class="fas fa-exclamation-circle" style="color: #ef4444;"></i> Passwords do not match';
+                    matchMessage.style.color = '#ef4444';
+                }
+            }
+
+            if (newPassword) {
+                newPassword.addEventListener('input', updateStrengthDisplay);
+                newPassword.addEventListener('input', checkPasswordMatch);
+            }
+            if (confirmPassword) {
+                confirmPassword.addEventListener('input', checkPasswordMatch);
+            }
+
+            // Profile Update Form Submission (AJAX)
+            const profileForm = document.getElementById('profileUpdateForm');
+            if (profileForm) {
+                profileForm.addEventListener('submit', function(e) {
+                    e.preventDefault();
+
+                    const formData = new FormData(this);
+                    const saveBtn = document.getElementById('saveProfileBtn');
+
+                    saveBtn.disabled = true;
+                    saveBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving...';
+
+                    formData.append('_method', 'PUT');
+                    fetch(this.action, {
+                            method: 'POST',
+                            headers: {
+                                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')
+                                    .content,
+                                'X-Requested-With': 'XMLHttpRequest'
+                            },
+                            body: formData
+                        })
+                        .then(response => response.json())
+                        .then(data => {
+                            if (data.success) {
+                                document.querySelector('.profile-view-name').textContent = document
+                                    .getElementById('editFirstName').value + ' ' + document
+                                    .getElementById('editLastName').value;
+                                document.getElementById('viewEmail').textContent = document
+                                    .getElementById('editEmail').value;
+                                document.getElementById('viewContact').textContent = document
+                                    .getElementById('editContact').value || 'Not set';
+
+                                const editPreview = document.getElementById('editAvatarPreview');
+                                if (editPreview && editPreview.style.display !== 'none') {
+                                    const viewAvatar = document.getElementById('modalAvatar');
+                                    const viewPlaceholder = document.getElementById(
+                                        'modalAvatarPlaceholder');
+                                    if (viewAvatar) {
+                                        viewAvatar.src = editPreview.src;
+                                        viewAvatar.style.display = 'block';
+                                    }
+                                    if (viewPlaceholder) viewPlaceholder.style.display = 'none';
+                                }
+
+                                const editTab = document.getElementById('edit-tab');
+                                const successAlert = document.createElement('div');
+                                successAlert.className = 'alert alert-success';
+                                successAlert.innerHTML = data.message +
+                                    '<button type="button" class="alert-close" onclick="this.parentElement.remove()">&times;</button>';
+                                editTab.insertBefore(successAlert, editTab.firstChild);
+
+                                saveBtn.disabled = false;
+                                saveBtn.innerHTML = '<i class="fas fa-save"></i> Save Changes';
+                                hidePSALoader();
+
+                                setTimeout(() => {
+                                    document.querySelector('.profile-tab[data-tab="view-tab"]')
+                                        .click();
+                                }, 1500);
+                            } else {
+                                alert(data.message || 'Something went wrong');
+                                saveBtn.disabled = false;
+                                saveBtn.innerHTML = '<i class="fas fa-save"></i> Save Changes';
+                                hidePSALoader();
+                            }
+                        })
+                        .catch(error => {
+                            alert('Network error occurred');
+                            saveBtn.disabled = false;
+                            saveBtn.innerHTML = '<i class="fas fa-save"></i> Save Changes';
+                            hidePSALoader();
+                        });
+                });
+            }
+
+            // Password Update Form Submission (AJAX)
+            const passwordForm = document.getElementById('passwordUpdateForm');
+            if (passwordForm) {
+                passwordForm.addEventListener('submit', function(e) {
+                    e.preventDefault();
+
+                    const password = newPassword.value;
+                    const confirm = confirmPassword.value;
+
+                    if (password !== confirm) {
+                        alert('Passwords do not match!');
+                        return;
+                    }
+
+                    if (password.length < 8) {
+                        alert('Password must be at least 8 characters!');
+                        return;
+                    }
+
+                    const saveBtn = document.getElementById('savePasswordBtn');
+                    saveBtn.disabled = true;
+                    saveBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Updating...';
+
+                    fetch(this.action, {
+                            method: 'POST',
+                            headers: {
+                                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')
+                                    .content,
+                                'Content-Type': 'application/json',
+                                'X-Requested-With': 'XMLHttpRequest'
+                            },
+                            body: JSON.stringify({
+                                current_password: document.getElementById('currentPassword')
+                                    .value,
+                                new_password: password,
+                                new_password_confirmation: confirm
+                            })
+                        })
+                        .then(response => response.json())
+                        .then(data => {
+                            if (data.success) {
+                                const passwordTab = document.getElementById('password-tab');
+                                const successAlert = document.createElement('div');
+                                successAlert.className = 'alert alert-success';
+                                successAlert.innerHTML = data.message +
+                                    '<button type="button" class="alert-close" onclick="this.parentElement.remove()">&times;</button>';
+                                passwordTab.insertBefore(successAlert, passwordTab.firstChild);
+
+                                passwordForm.reset();
+                                if (strengthBar) strengthBar.className = 'strength-bar';
+                                if (strengthText) strengthText.textContent = '';
+                                if (matchMessage) matchMessage.innerHTML = '';
+
+                                saveBtn.disabled = false;
+                                saveBtn.innerHTML = '<i class="fas fa-save"></i> Update Password';
+                                hidePSALoader();
+
+                                setTimeout(() => {
+                                    document.querySelector('.profile-tab[data-tab="view-tab"]')
+                                        .click();
+                                }, 2000);
+                            } else {
+                                alert(data.message || 'Current password is incorrect');
+                                saveBtn.disabled = false;
+                                saveBtn.innerHTML = '<i class="fas fa-save"></i> Update Password';
+                                hidePSALoader();
+                            }
+                        })
+                        .catch(error => {
+                            alert('Network error occurred');
+                            saveBtn.disabled = false;
+                            saveBtn.innerHTML = '<i class="fas fa-save"></i> Update Password';
+                            hidePSALoader();
+                        });
+                });
+            }
+
+            // ============================================================
+            //  TWO-FACTOR AUTHENTICATION CODE (UPDATED)
+            // ============================================================
+            const manage2faBtn = document.getElementById('manage2faBtn');
+            const twoFactorPanel = document.getElementById('twoFactorPanel');
+            const apply2faBtn = document.getElementById('apply2faBtn');
+            const showQrBtn = document.getElementById('showQrBtn');
+            const qrPreview = document.getElementById('qrPreview');
+            const qrImage = document.getElementById('qrImage');
+            const qrSecret = document.getElementById('qrSecret');
+            const twoFactorStatus = document.getElementById('twoFactorStatus');
+            const recoveryCodes = document.getElementById('recoveryCodes');
+            const recoveryList = document.getElementById('recoveryList');
+
+            if (manage2faBtn) {
+                manage2faBtn.addEventListener('click', () => {
+                    if (twoFactorPanel) {
+                        twoFactorPanel.style.display = twoFactorPanel.style.display === 'none' ? 'block' :
+                            'none';
+                    }
+                });
+            }
+
+            // Function to display 2FA details
+            function display2FADetails(data) {
+                console.log('Displaying 2FA details:', data);
+
+                if (qrPreview) {
+                    // Show QR code if available
+                    if (data.qr_image || data.qr) {
+                        if (qrImage) {
+                            qrImage.src = data.qr_image || data.qr;
+                            qrImage.style.display = 'block';
+                        }
+                        // Remove manual setup instructions if they exist
+                        const existingManual = qrPreview.querySelector('.manual-setup');
+                        if (existingManual) existingManual.remove();
+                    } else {
+                        // If no QR code, hide image and show instructions
+                        if (qrImage) qrImage.style.display = 'none';
+
+                        // Display manual setup instructions
+                        const manualInstructions = document.createElement('div');
+                        manualInstructions.className = 'manual-setup';
+                        manualInstructions.style.cssText =
+                            'background: #fff3cd; padding: 12px; border-radius: 8px; margin-top: 10px;';
+                        manualInstructions.innerHTML = `
+                    <strong><i class="fas fa-info-circle"></i> Manual Setup Required:</strong><br>
+                    <p style="margin: 8px 0; font-size: 13px;">Your authenticator app may not support QR codes. Use these details instead:</p>
+                    <div style="background: white; padding: 10px; border-radius: 6px; margin: 10px 0;">
+                        <strong>Key (Secret):</strong> <code style="font-size: 14px; word-break: break-all;">${escapeHtml(data.secret)}</code>
+                    </div>
+                    <p style="font-size: 12px; margin: 5px 0;"><i class="fas fa-mobile-alt"></i> In your authenticator app, select "Manual Entry" and enter the details above.</p>
+                `;
+
+                        // Remove previous manual instructions if any
+                        const existingManual = qrPreview.querySelector('.manual-setup');
+                        if (existingManual) existingManual.remove();
+                        qrPreview.appendChild(manualInstructions);
+                    }
+
+                    if (qrSecret && data.secret) {
+                        qrSecret.textContent = data.secret;
+                        qrSecret.style.display = 'block';
+                    }
+
+                    // Make sure QR preview is visible
+                    qrPreview.style.display = 'block';
+                    qrPreview.style.visibility = 'visible';
+
+                    // Scroll to QR code
+                    qrPreview.scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'nearest'
+                    });
+                }
+
+                if (recoveryCodes && data.recovery_codes && data.recovery_codes.length > 0) {
+                    if (recoveryList) {
+                        recoveryList.innerHTML = '';
+                        data.recovery_codes.forEach(code => {
+                            const li = document.createElement('li');
+                            li.textContent = code;
+                            recoveryList.appendChild(li);
+                        });
+                    }
+                    recoveryCodes.style.display = 'block';
+                }
+            }
+
+            // Function to fetch 2FA details
+            async function fetch2FADetails() {
+                try {
+                    const response = await fetch('{{ route('admin.2fa.qr') }}', {
+                        headers: {
+                            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+                            'Accept': 'application/json'
+                        }
+                    });
+
+                    if (!response.ok) {
+                        throw new Error('Failed to fetch 2FA details');
+                    }
+
+                    const data = await response.json();
+
+                    if (data.success) {
+                        display2FADetails(data);
+                        return true;
+                    } else {
+                        console.warn('2FA details not available:', data.message);
+                        return false;
+                    }
+                } catch (error) {
+                    console.error('Error fetching 2FA details:', error);
+                    if (typeof showToast !== 'undefined') {
+                        showToast('Error', 'Failed to load 2FA details', 'error');
+                    }
+                    return false;
+                }
+            }
+
+            if (apply2faBtn) {
+                apply2faBtn.addEventListener('click', async () => {
+                    const action = document.querySelector('input[name="2fa_action"]:checked');
+                    if (!action) {
+                        if (typeof showToast !== 'undefined') {
+                            showToast('Two-Factor', 'Please select enable or disable first', 'warning');
+                        } else {
+                            alert('Please select enable or disable first');
+                        }
+                        return;
+                    }
+
+                    if (action.value === 'disable') {
+                        if (!confirm(
+                                '⚠️ Warning: Disabling 2FA will make your account less secure.\n\nAre you sure you want to disable two-factor authentication?'
+                            )) {
+                            return;
+                        }
+                    }
+
+                    const btnText = apply2faBtn.innerHTML;
+                    apply2faBtn.disabled = true;
+                    apply2faBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processing...';
+
+                    try {
+                        const response = await fetch('{{ route('admin.2fa.toggle') }}', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'X-CSRF-TOKEN': document.querySelector(
+                                    'meta[name="csrf-token"]').content,
+                                'Accept': 'application/json'
+                            },
+                            body: JSON.stringify({
+                                action: action.value
+                            })
+                        });
+
+                        const data = await response.json();
+
+                        if (data.success) {
+                            // Update status display
+                            if (twoFactorStatus) {
+                                twoFactorStatus.textContent = data.enabled ? 'Enabled' : 'Disabled';
+                                twoFactorStatus.className =
+                                    `twofa-status ${data.enabled ? 'enabled' : 'disabled'}`;
+                            }
+
+                            // Update radio buttons
+                            const enableRadio = document.querySelector(
+                                'input[name="2fa_action"][value="enable"]');
+                            const disableRadio = document.querySelector(
+                                'input[name="2fa_action"][value="disable"]');
+                            if (enableRadio && disableRadio) {
+                                if (data.enabled) {
+                                    disableRadio.checked = true;
+                                } else {
+                                    enableRadio.checked = true;
+                                }
+                            }
+
+                            // Show/hide QR button
+                            if (showQrBtn) {
+                                showQrBtn.style.display = data.enabled ? 'inline-block' : 'none';
+                            }
+
+                            if (data.enabled) {
+                                // Display QR and recovery codes from response
+                                if (data.qr_image || data.qr) {
+                                    display2FADetails(data);
+                                } else {
+                                    // If not in response, fetch them
+                                    setTimeout(async () => {
+                                        await fetch2FADetails();
+                                    }, 500);
+                                }
+
+                                if (typeof showToast !== 'undefined') {
+                                    showToast('Success',
+                                        '2FA has been enabled! Please scan the QR code with your authenticator app.',
+                                        'success');
+                                }
+                            } else {
+                                // Hide QR preview when disabled
+                                if (qrPreview) {
+                                    qrPreview.style.display = 'none';
+                                    // Remove manual instructions
+                                    const existingManual = qrPreview.querySelector('.manual-setup');
+                                    if (existingManual) existingManual.remove();
+                                }
+                                if (recoveryCodes) recoveryCodes.style.display = 'none';
+                                if (qrImage) qrImage.src = '';
+                                if (qrSecret) qrSecret.textContent = '';
+
+                                if (typeof showToast !== 'undefined') {
+                                    showToast('Success', '2FA has been disabled', 'success');
+                                }
+                            }
+                        } else {
+                            if (typeof showToast !== 'undefined') {
+                                showToast('Error', data.message || 'Unable to update 2FA settings',
+                                    'error');
+                            } else {
+                                alert(data.message || 'Unable to update 2FA settings');
+                            }
+                        }
+                    } catch (error) {
+                        console.error('2FA toggle error:', error);
+                        if (typeof showToast !== 'undefined') {
+                            showToast('Error', 'Network error occurred. Please try again.', 'error');
+                        } else {
+                            alert('Network error occurred. Please try again.');
+                        }
+                    } finally {
+                        apply2faBtn.disabled = false;
+                        apply2faBtn.innerHTML = btnText;
+                    }
+                });
+            }
+
+            if (showQrBtn) {
+                showQrBtn.addEventListener('click', async () => {
+                    const btnText = showQrBtn.innerHTML;
+                    showQrBtn.disabled = true;
+                    showQrBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Loading...';
+
+                    try {
+                        const response = await fetch('{{ route('admin.2fa.qr') }}', {
+                            headers: {
+                                'X-CSRF-TOKEN': document.querySelector(
+                                    'meta[name="csrf-token"]').content,
+                                'Accept': 'application/json'
+                            }
+                        });
+
+                        const data = await response.json();
+
+                        if (data.success) {
+                            if (qrPreview.style.display === 'none' || qrPreview.style.display === '') {
+                                display2FADetails(data);
+                            } else {
+                                qrPreview.style.display = 'none';
+                                if (recoveryCodes) recoveryCodes.style.display = 'none';
+                            }
+                        } else {
+                            if (typeof showToast !== 'undefined') {
+                                showToast('Information',
+                                    '2FA is not enabled yet. Please enable it first.', 'info');
+                            }
+                        }
+                    } catch (error) {
+                        console.error('Error fetching QR code:', error);
+                        if (typeof showToast !== 'undefined') {
+                            showToast('Error', 'Failed to load QR code. Please try again.', 'error');
+                        }
+                    } finally {
+                        showQrBtn.disabled = false;
+                        showQrBtn.innerHTML = btnText;
+                    }
+                });
+            }
+
+            // When Two-Factor tab is opened, check if 2FA is enabled and fetch details
+            const twofaTab = document.querySelector('.profile-tab[data-tab="twofa-tab"]');
+            if (twofaTab) {
+                twofaTab.addEventListener('click', async function() {
+                    // If 2FA is enabled, fetch the QR and recovery codes
+                    const statusElement = document.getElementById('twoFactorStatus');
+                    if (statusElement && statusElement.textContent === 'Enabled') {
+                        // Small delay to ensure tab content is visible
+                        setTimeout(async () => {
+                            await fetch2FADetails();
+                        }, 100);
+                    }
+                });
+            }
+
+            window.showPSALoader = showPSALoader;
+            window.hidePSALoader = hidePSALoader;
+
+            setTimeout(() => {
+                document.querySelectorAll('.alert').forEach(alert => {
+                    alert.style.opacity = '0';
+                    alert.style.transition = 'opacity 0.3s';
+                    setTimeout(() => alert.remove(), 300);
+                });
+            }, 4000);
+
+            document.querySelectorAll('.alert-close').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    this.parentElement.remove();
+                });
+            });
+        });
     </script>
     @stack('scripts')
 </body>

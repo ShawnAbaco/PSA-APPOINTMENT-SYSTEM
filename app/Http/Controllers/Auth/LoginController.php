@@ -1,4 +1,5 @@
 <?php
+// app/Http/Controllers/Auth/LoginController.php
 
 namespace App\Http\Controllers\Auth;
 
@@ -17,6 +18,9 @@ class LoginController extends Controller
             } elseif ($user->role === 'staff') {
                 return redirect()->route('staff.dashboard');
             }
+             elseif ($user->role === 'staff') {
+                return redirect()->route('staff.dashboard');
+            }
         }
         
         return view('auth.login');
@@ -33,6 +37,26 @@ class LoginController extends Controller
         
         if (Auth::attempt([$field => $request->username, 'password' => $request->password], $request->remember)) {
             $user = Auth::user();
+
+            // If user has two-factor enabled, require token step on separate page
+            if ($user->two_factor_enabled && $user->two_factor_secret) {
+                // store pending user id and logout
+                session(['2fa:user:id' => $user->id]);
+                Auth::logout();
+                return redirect()->route('auth.2fa.verify');
+            }
+            
+            // Check if account is approved
+            if ($user->account_status === 'pending') {
+                Auth::logout();
+                return back()->withErrors(['username' => 'Your account is pending approval. Please wait for admin approval.']);
+            }
+            
+            if ($user->account_status === 'rejected') {
+                Auth::logout();
+                $reason = $user->rejection_reason ? ' Reason: ' . $user->rejection_reason : '';
+                return back()->withErrors(['username' => 'Your account has been rejected.' . $reason]);
+            }
             
             if (!$user->is_active) {
                 Auth::logout();
@@ -48,6 +72,8 @@ class LoginController extends Controller
                 return redirect()->route('admin.dashboard');
             } elseif ($user->role === 'staff') {
                 return redirect()->route('staff.dashboard');
+            } elseif ($user->role === 'operator') {
+                return redirect()->route('operator.dashboard');
             }
             
             return redirect('/');

@@ -4,32 +4,43 @@ namespace Database\Seeders;
 
 use Illuminate\Database\Seeder;
 use App\Models\AppointmentSlot;
-use App\Models\Setting;
+use App\Models\TimeSlot;
 use Carbon\Carbon;
 
 class AppointmentSlotSeeder extends Seeder
 {
     public function run()
     {
-        $defaultCapacity = 20;
-        $capacitySetting = Setting::where('key', 'appointment.daily_capacity')->first();
-        if ($capacitySetting) {
-            $defaultCapacity = (int)$capacitySetting->value;
+        $timeSlots = TimeSlot::where('is_active', true)
+            ->orderBy('display_order')
+            ->get();
+
+        if ($timeSlots->isEmpty()) {
+            $this->command->error('No time slots found. Run TimeSlotSeeder first.');
+            return;
         }
-        
-        // Generate slots for next 90 days
+
+        $generated = 0;
+
         for ($i = 0; $i < 90; $i++) {
             $date = Carbon::today()->addDays($i);
-            
-            AppointmentSlot::firstOrCreate(
-                ['date' => $date->format('Y-m-d')],
-                [
-                    'total_capacity' => $defaultCapacity,
-                    'booked_count' => 0,
-                    'available_count' => $defaultCapacity,
-                    'is_holiday' => false,
-                ]
-            );
+
+            foreach ($timeSlots as $slot) {
+                AppointmentSlot::firstOrCreate(
+                    [
+                        'date' => $date->format('Y-m-d'),
+                        'time_slot_id' => $slot->id,
+                    ],
+                    [
+                        'day_type' => 'working',
+                        'notes' => null,
+                    ]
+                );
+
+                $generated++;
+            }
         }
+
+        $this->command->info("Generated {$generated} appointment slots (90 days).");
     }
 }

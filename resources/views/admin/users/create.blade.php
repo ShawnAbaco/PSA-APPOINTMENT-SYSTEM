@@ -42,18 +42,16 @@
                     <div class="col-md-6 mb-3">
                         <label>Role *</label>
                         <select name="role" class="form-control" required>
-                            <option value="user">User</option>
-                            <option value="staff">Staff</option>
-                            <option value="admin">Admin</option>
+                            <option value="user">User (No Employee ID)</option>
+                            <option value="operator">Operator (Auto-generates PSA-OPERATOR-XXX)</option>
+                            <option value="staff">Staff (Auto-generates PSA-STAFF-XXX)</option>
+                            <option value="admin">Admin (Auto-generates PSA-ADMIN-XXX)</option>
                         </select>
+                        <small class="text-muted">Employee ID will be automatically generated based on the selected role</small>
                     </div>
                 </div>
                 
                 <div class="row">
-                    <div class="col-md-6 mb-3">
-                        <label>Employee ID (Optional)</label>
-                        <input type="text" name="employee_id" class="form-control">
-                    </div>
                     <div class="col-md-6 mb-3">
                         <label>Contact Number</label>
                         <input type="text" name="contact_number" class="form-control">

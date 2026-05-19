@@ -7,6 +7,7 @@ use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
+use App\Services\TotpService;
 
 class UserSeeder extends Seeder
 {
@@ -15,7 +16,7 @@ class UserSeeder extends Seeder
      */
     public function run(): void
     {
-        // Admin User
+        // Admin User - Always approved, no need for approval
         DB::table('users')->insert([
             'employee_id' => 'PSA-ADMIN-001',
             'username' => 'admin',
@@ -29,117 +30,40 @@ class UserSeeder extends Seeder
             'alternate_contact' => null,
             'role' => 'admin',
             'is_active' => true,
+            'account_status' => 'approved',
+            'rejection_reason' => null,
             'position' => 'IT Administrator',
             'department' => 'Information Technology',
             'profile_photo' => null,
             'permissions' => json_encode(['*']),
+            'two_factor_enabled' => false,
+            'two_factor_secret' => null,
+            'two_factor_confirmed_at' => null,
             'email_verified_at' => now(),
             'last_login_at' => null,
             'last_login_ip' => null,
             'created_by' => null,
             'updated_by' => null,
+            'approved_by' => null,
+            'approved_at' => null,
+            'rejected_by' => null,
+            'rejected_at' => null,
             'remember_token' => Str::random(10),
             'created_at' => now(),
             'updated_at' => now(),
+            'deleted_at' => null,
         ]);
 
-        // Staff User 1 - Registration Officer
-        DB::table('users')->insert([
-            'employee_id' => 'PSA-STAFF-001',
-            'username' => 'juan.delacruz',
-            'first_name' => 'Juan',
-            'middle_name' => 'Santos',
-            'last_name' => 'Dela Cruz',
-            'suffix' => null,
-            'email' => 'juan.delacruz@psa.gov.ph',
-            'password' => Hash::make('staff123'),
-            'contact_number' => '09171234568',
-            'alternate_contact' => '09221234567',
-            'role' => 'staff',
-            'is_active' => true,
-            'position' => 'Registration Officer',
-            'department' => 'PhilSys Registry Office',
-            'profile_photo' => null,
-            'permissions' => json_encode([
-                'view_appointments',
-                'create_appointments',
-                'update_appointments',
-                'cancel_appointments',
-                'confirm_appointments',
-                'view_reports'
-            ]),
-            'email_verified_at' => now(),
-            'last_login_at' => null,
-            'last_login_ip' => null,
-            'created_by' => 1,
-            'updated_by' => 1,
-            'remember_token' => Str::random(10),
-            'created_at' => now(),
-            'updated_at' => now(),
-        ]);
 
-        // Staff User 2 - Encoder
-        DB::table('users')->insert([
-            'employee_id' => 'PSA-STAFF-002',
-            'username' => 'maria.santos',
-            'first_name' => 'Maria',
-            'middle_name' => 'Reyes',
-            'last_name' => 'Santos',
-            'suffix' => null,
-            'email' => 'maria.santos@psa.gov.ph',
-            'password' => Hash::make('staff123'),
-            'contact_number' => '09171234569',
-            'alternate_contact' => null,
-            'role' => 'staff',
-            'is_active' => true,
-            'position' => 'Data Encoder',
-            'department' => 'PhilSys Registry Office',
-            'profile_photo' => null,
-            'permissions' => json_encode([
-                'view_appointments',
-                'create_appointments',
-                'update_appointments',
-            ]),
-            'email_verified_at' => now(),
-            'last_login_at' => null,
-            'last_login_ip' => null,
-            'created_by' => 1,
-            'updated_by' => 1,
-            'remember_token' => Str::random(10),
-            'created_at' => now(),
-            'updated_at' => now(),
-        ]);
 
-        // Regular User
-        DB::table('users')->insert([
-            'employee_id' => null,
-            'username' => 'john_doe',
-            'first_name' => 'John',
-            'middle_name' => 'Michael',
-            'last_name' => 'Doe',
-            'suffix' => 'Jr.',
-            'email' => 'john.doe@example.com',
-            'password' => Hash::make('user123'),
-            'contact_number' => '09171234570',
-            'alternate_contact' => null,
-            'role' => 'user',
-            'is_active' => true,
-            'position' => null,
-            'department' => null,
-            'profile_photo' => null,
-            'permissions' => json_encode([
-                'view_own_appointments',
-                'create_appointments',
-                'cancel_own_appointments',
-            ]),
-            'email_verified_at' => now(),
-            'last_login_at' => null,
-            'last_login_ip' => null,
-            'created_by' => 1,
-            'updated_by' => 1,
-            'remember_token' => Str::random(10),
-            'created_at' => now(),
-            'updated_at' => now(),
-        ]);
+        $this->command->info('Users seeded successfully!');
+        $this->command->warn('=============================================');
+        $this->command->warn('Default Login Credentials:');
+        $this->command->warn('Admin:    admin / admin123 (APPROVED - Can login immediately)');
+        $this->command->warn('=============================================');
+        $this->command->warn('To approve pending accounts:');
+        $this->command->warn('1. Login as admin');
+        $this->command->warn('2. Go to User Management > Pending Approvals tab');
+        $this->command->warn('3. Click Approve for carlos.reyes account');
     }
 }

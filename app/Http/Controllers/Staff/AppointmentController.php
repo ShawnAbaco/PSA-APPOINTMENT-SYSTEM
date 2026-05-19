@@ -1,141 +1,608 @@
 <?php
-// app/Http/Controllers/Staff/AppointmentController.php
 
 namespace App\Http\Controllers\Staff;
 
 use App\Http\Controllers\Controller;
 use App\Models\Appointment;
 use App\Models\AppointmentClient;
-use App\Models\Service;
-use Illuminate\Http\Request;
+use App\Models\TimeSlot;
+use App\Models\SlotCapacityOverride;
+use App\Models\WorkingDaysDefault;
+use App\Models\WorkingDaysOverride;
 use Carbon\Carbon;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Validator;
 
 class AppointmentController extends Controller
 {
     public function index(Request $request)
-    {
-        $query = Appointment::with('clients');
-        
-        if ($request->filled('status')) {
-            $query->where('status', $request->status);
-        }
-        
-        if ($request->filled('date')) {
-            $query->whereDate('appointment_date', $request->date);
-        }
-        
-        $appointments = $query->latest()->paginate(20);
-        $statuses = ['pending', 'confirmed', 'cancelled', 'completed', 'no_show'];
-        
-        return view('staff.appointments.index', compact('appointments', 'statuses'));
+{
+    $perPage = $request->get('per_page', 10);
+    
+    // Start query with only pending and confirmed appointments
+    $query = Appointment::with('clients', 'timeSlot')
+        ->whereIn('status', ['pending', 'confirmed']);
+    
+    // Apply filters if present
+    if ($request->filled('status')) {
+        $query->where('status', $request->status);
     }
     
-    public function show($id)
-    {
-        $appointment = Appointment::with('clients')->findOrFail($id);
-        return view('staff.appointments.show', compact('appointment'));
+    if ($request->filled('date')) {
+        $query->whereDate('appointment_date', $request->date);
     }
+    
+    if ($request->filled('search')) {
+        $search = $request->search;
+        $query->where(function($q) use ($search) {
+            $q->where('appointment_number', 'like', "%{$search}%")
+              ->orWhere('contact_name', 'like', "%{$search}%")
+              ->orWhere('contact_mobile', 'like', "%{$search}%");
+        });
+    }
+    
+    if ($request->filled('week_filter')) {
+        $today = Carbon::today();
+        switch ($request->week_filter) {
+            case 'today':
+                $query->whereDate('appointment_date', $today);
+                break;
+            case 'tomorrow':
+                $query->whereDate('appointment_date', $today->copy()->addDay());
+                break;
+            case 'this_week':
+                $query->whereBetween('appointment_date', [
+                    $today->copy()->startOfWeek(), 
+                    $today->copy()->endOfWeek()
+                ]);
+                break;
+            case 'next_week':
+                $query->whereBetween('appointment_date', [
+                    $today->copy()->addWeek()->startOfWeek(), 
+                    $today->copy()->addWeek()->endOfWeek()
+                ]);
+                break;
+            case 'this_month':
+                $query->whereMonth('appointment_date', $today->month)
+                      ->whereYear('appointment_date', $today->year);
+                break;
+        }
+    }
+    
+    // Order by date and time
+    $appointments = $query->orderByRaw("FIELD(status, 'pending', 'confirmed')")
+    ->orderBy('appointment_date', 'asc')
+    ->orderBy('time_slot_id', 'asc')
+    ->paginate($perPage);
+    
+    return view('staff.appointments.index', compact('appointments'));
+}
     
     public function create()
     {
-        $services = Service::where('is_active', true)->get();
-        return view('staff.appointments.create', compact('services'));
+        $timeSlots = TimeSlot::where('is_active', true)
+            ->orderBy('display_order')
+            ->get();
+        
+        return view('staff.appointments.create', compact('timeSlots'));
     }
     
     public function store(Request $request)
     {
-        $validated = $request->validate([
-            'appointment_date' => 'required|date',
-            'contact_name' => 'required',
-            'contact_mobile' => 'required',
-            'contact_email' => 'nullable|email',
-            'clients' => 'required|array',
-            'clients.*.first_name' => 'required',
-            'clients.*.last_name' => 'required',
-            'clients.*.sex' => 'required',
-            'clients.*.birthdate' => 'required|date',
-            'clients.*.service' => 'required',
+        $validator = Validator::make($request->all(), [
+            'contact_name' => 'required|string|max:255',
+            'contact_mobile' => 'required|string|max:20',
+            'contact_email' => 'nullable|email|max:255',
+            'appointment_date' => 'required|date|after_or_equal:today',
+            'time_slot_id' => 'required|exists:time_slots,id',
+            'clients' => 'required|array|min:1|max:10',
+            'clients.*.first_name' => 'required|string|max:255',
+            'clients.*.last_name' => 'required|string|max:255',
+            'clients.*.sex' => 'required|in:Male,Female',
+            'clients.*.birthdate' => 'required|date|before:today',
+            'clients.*.service' => 'required|in:reg,updating,inquiry',
+            'clients.*.has_trn' => 'nullable|boolean',
+            'clients.*.trn_number' => 'nullable|string|size:29|regex:/^\d+$/',
         ]);
         
-        $appointment = Appointment::create([
-            'appointment_number' => $this->generateAppointmentNumber(),
-            'type' => count($validated['clients']) > 1 ? 'multiple' : 'single',
-            'appointment_date' => $validated['appointment_date'],
-            'contact_name' => $validated['contact_name'],
-            'contact_email' => $validated['contact_email'],
-            'contact_mobile' => $validated['contact_mobile'],
-            'reference_code' => $this->generateReferenceCode(),
-            'status' => 'confirmed',
-            'confirmed_at' => now(),
-            'created_by' => auth()->id(),
-            'processed_by' => auth()->id(),
-        ]);
+        if ($validator->fails()) {
+            if ($request->ajax() || $request->wantsJson()) {
+                return response()->json([
+                    'success' => false,
+                    'errors' => $validator->errors()
+                ], 422);
+            }
+            return redirect()->back()
+                ->withErrors($validator)
+                ->withInput();
+        }
         
-        foreach ($validated['clients'] as $client) {
-            AppointmentClient::create([
-                'appointment_id' => $appointment->id,
-                'first_name' => $client['first_name'],
-                'middle_name' => $client['middle_name'] ?? null,
-                'last_name' => $client['last_name'],
-                'suffix' => $client['suffix'] ?? null,
-                'sex' => $client['sex'],
-                'birthdate' => $client['birthdate'],
-                'service' => $client['service'],
-                'requirements_acknowledged' => true,
-                'acknowledged_at' => now(),
+        // Check if the date is a working day
+        if (!$this->isWorkingDay($request->appointment_date)) {
+            if ($request->ajax() || $request->wantsJson()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Cannot book appointments on non-working days.'
+                ], 400);
+            }
+            return redirect()->back()
+                ->with('error', 'Cannot book appointments on non-working days.')
+                ->withInput();
+        }
+        
+        // Check capacity for the selected time slot
+        $capacityCheck = $this->checkCapacity($request->appointment_date, $request->time_slot_id, $request->clients);
+        if (!$capacityCheck['available']) {
+            if ($request->ajax() || $request->wantsJson()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => $capacityCheck['message']
+                ], 400);
+            }
+            return redirect()->back()
+                ->with('error', $capacityCheck['message'])
+                ->withInput();
+        }
+        
+        DB::beginTransaction();
+        
+        try {
+            // Generate appointment number
+            $date = Carbon::now()->format('Ymd');
+            $last = Appointment::whereDate('created_at', Carbon::today())->count() + 1;
+            $appointmentNumber = 'PSA-' . $date . '-' . str_pad($last, 5, '0', STR_PAD_LEFT);
+            $referenceCode = 'REF-' . strtoupper(uniqid());
+            
+            // Create appointment
+            $appointment = new Appointment();
+            $appointment->appointment_number = $appointmentNumber;
+            $appointment->type = count($request->clients) > 1 ? 'multiple' : 'single';
+            $appointment->appointment_date = $request->appointment_date;
+            $appointment->time_slot_id = $request->time_slot_id;
+            $appointment->contact_name = $request->contact_name;
+            $appointment->contact_email = $request->contact_email;
+            $appointment->contact_mobile = $request->contact_mobile;
+            $appointment->reference_code = $referenceCode;
+            $appointment->status = 'pending';
+            $appointment->created_by = auth()->id();
+            $appointment->save();
+            
+            // Create clients
+            foreach ($request->clients as $clientData) {
+                $client = new AppointmentClient();
+                $client->client_number = $this->generateClientNumber();
+                $client->appointment_id = $appointment->id;
+                $client->first_name = $clientData['first_name'];
+                $client->middle_name = $clientData['middle_name'] ?? null;
+                $client->last_name = $clientData['last_name'];
+                $client->suffix = $clientData['suffix'] ?? null;
+                $client->sex = $clientData['sex'];
+                $client->birthdate = $clientData['birthdate'];
+                $client->service = $clientData['service'];
+                $client->requirements_acknowledged = true;
+                $client->acknowledged_at = now();
+                
+                if ($clientData['service'] === 'inquiry') {
+                    $client->has_trn = $clientData['has_trn'] ?? null;
+                    $client->trn_number = ($clientData['has_trn'] ?? false) ? ($clientData['trn_number'] ?? null) : null;
+                }
+                
+                $client->save();
+            }
+            
+            DB::commit();
+            
+            if ($request->ajax() || $request->wantsJson()) {
+                return response()->json([
+                    'success' => true,
+                    'message' => 'Appointment created successfully!',
+                    'appointment' => $appointment
+                ]);
+            }
+            
+            return redirect()->route('staff.appointments.index')
+                ->with('success', 'Appointment created successfully!');
+            
+        } catch (\Exception $e) {
+            DB::rollback();
+            \Log::error('Appointment creation failed: ' . $e->getMessage());
+            
+            if ($request->ajax() || $request->wantsJson()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Failed to create appointment: ' . $e->getMessage()
+                ], 500);
+            }
+            
+            return redirect()->back()
+                ->with('error', 'Failed to create appointment: ' . $e->getMessage())
+                ->withInput();
+        }
+    }
+    
+    public function show($id)
+    {
+        $appointment = Appointment::with(['clients', 'timeSlot', 'createdBy'])
+            ->findOrFail($id);
+        
+        if (request()->ajax() || request()->wantsJson()) {
+            return response()->json([
+                'success' => true,
+                'data' => $appointment
             ]);
         }
         
-        return redirect()->route('staff.appointments.show', $appointment->id)
-            ->with('success', 'Appointment created successfully.');
+        return view('staff.appointments.show', compact('appointment'));
     }
     
-    public function confirm($id)
+        public function edit($id)
+{
+    $appointment = Appointment::with(['clients', 'timeSlot'])->findOrFail($id);
+    $timeSlots = TimeSlot::where('is_active', true)
+        ->orderBy('display_order')
+        ->get();
+    
+    if (request()->ajax() || request()->wantsJson()) {
+        return response()->json([
+            'success' => true,
+            'data' => [
+                'appointment' => $appointment,
+                'timeSlots' => $timeSlots
+            ]
+        ]);
+    }
+    
+    return view('staff.appointments.edit', compact('appointment', 'timeSlots'));
+}
+    
+    public function update(Request $request, $id)
+{
+    $appointment = Appointment::findOrFail($id);
+    
+    $validator = Validator::make($request->all(), [
+        'contact_name' => '|string|max:255',
+        'appointment_date' => 'date',
+        'time_slot_id' => 'required|exists:time_slots,id',
+    ]);
+    
+    if ($validator->fails()) {
+        if ($request->ajax() || $request->wantsJson()) {
+            return response()->json([
+                'success' => false,
+                'errors' => $validator->errors()
+            ], 422);
+        }
+        return redirect()->back()
+            ->withErrors($validator)
+            ->withInput();
+    }
+    
+    // If date or time slot changed, check capacity
+    if ($appointment->appointment_date != $request->appointment_date || 
+        $appointment->time_slot_id != $request->time_slot_id) {
+        
+        $clients = $appointment->clients->toArray();
+        $capacityCheck = $this->checkCapacity($request->appointment_date, $request->time_slot_id, $clients);
+        
+        if (!$capacityCheck['available']) {
+            if ($request->ajax() || $request->wantsJson()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => $capacityCheck['message']
+                ], 400);
+            }
+            return redirect()->back()
+                ->with('error', $capacityCheck['message'])
+                ->withInput();
+        }
+    }
+    
+    $appointment->contact_name = $request->contact_name;
+    $appointment->contact_mobile = $request->contact_mobile;
+    $appointment->contact_email = $request->contact_email;
+    $appointment->appointment_date = $request->appointment_date;
+    $appointment->time_slot_id = $request->time_slot_id;
+    $appointment->status = $request->status;
+    $appointment->save();
+    
+    if ($request->ajax() || $request->wantsJson()) {
+        return response()->json([
+            'success' => true,
+            'message' => 'Appointment updated successfully!',
+            'appointment' => $appointment
+        ]);
+    }
+    
+    return redirect()->route('staff.appointments.show', $appointment->id)
+        ->with('success', 'Appointment updated successfully!');
+}
+    
+    
+    public function confirm($id, Request $request)
     {
+        try {
+            $appointment = Appointment::findOrFail($id);
+            
+            if ($appointment->status !== 'pending') {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Only pending appointments can be confirmed.'
+                ], 400);
+            }
+            
+            $appointment->status = 'confirmed';
+            $appointment->confirmed_at = now();
+            $appointment->processed_by = auth()->id();
+            $appointment->save();
+            
+            return response()->json([
+                'success' => true,
+                'message' => 'Appointment confirmed successfully!',
+                'appointment' => $appointment
+            ]);
+            
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to confirm appointment: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+    
+    public function cancel($id, Request $request)
+    {
+        try {
+            $appointment = Appointment::findOrFail($id);
+            
+            if (!in_array($appointment->status, ['pending', 'confirmed'])) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Only pending or confirmed appointments can be cancelled.'
+                ], 400);
+            }
+            
+            $appointment->status = 'cancelled';
+            $appointment->cancelled_at = now();
+            $appointment->cancellation_reason = $request->input('reason', 'Cancelled by staff');
+            $appointment->processed_by = auth()->id();
+            $appointment->save();
+            
+            return response()->json([
+                'success' => true,
+                'message' => 'Appointment cancelled successfully!',
+                'appointment' => $appointment
+            ]);
+            
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to cancel appointment: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+    
+    public function complete($id, Request $request)
+    {
+        try {
+            $appointment = Appointment::findOrFail($id);
+            
+            if ($appointment->status !== 'confirmed') {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Only confirmed appointments can be marked as completed.'
+                ], 400);
+            }
+            
+            $appointment->status = 'completed';
+            $appointment->completed_at = now();
+            $appointment->processed_by = auth()->id();
+            $appointment->save();
+            
+            if ($request->ajax() || $request->wantsJson()) {
+                return response()->json([
+                    'success' => true,
+                    'message' => 'Appointment marked as completed!',
+                    'appointment' => $appointment
+                ]);
+            }
+            
+            return redirect()->back()
+                ->with('success', 'Appointment marked as completed!');
+                
+        } catch (\Exception $e) {
+            if ($request->ajax() || $request->wantsJson()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Failed to complete appointment: ' . $e->getMessage()
+                ], 500);
+            }
+            
+            return redirect()->back()
+                ->with('error', 'Failed to complete appointment: ' . $e->getMessage());
+        }
+    }
+    
+    public function destroy($id, Request $request)
+{
+    try {
         $appointment = Appointment::findOrFail($id);
-        $appointment->update([
-            'status' => 'confirmed',
-            'confirmed_at' => now(),
-            'processed_by' => auth()->id(),
+        
+        if (!in_array($appointment->status, ['pending', 'confirmed', 'cancelled', 'completed'])) {
+            return response()->json([
+                'success' => false,
+                'message' => 'This appointment cannot be deleted.'
+            ], 400);
+        }
+        
+        $appointment->delete();
+        
+        return response()->json([
+            'success' => true,
+            'message' => 'Appointment deleted successfully.'
         ]);
         
-        return redirect()->back()->with('success', 'Appointment confirmed.');
+    } catch (\Exception $e) {
+        return response()->json([
+            'success' => false,
+            'message' => 'Failed to delete appointment: ' . $e->getMessage()
+        ], 500);
     }
+    return redirect()->route('staff.appointments.index')
+        ->with('success', 'Appointment deleted successfully.');
+}
     
-    public function cancel(Request $request, $id)
+    /**
+     * Check if a date is a working day
+     */
+    private function isWorkingDay($date)
     {
-        $appointment = Appointment::findOrFail($id);
-        $appointment->update([
-            'status' => 'cancelled',
-            'cancelled_at' => now(),
-            'cancellation_reason' => $request->reason,
-            'processed_by' => auth()->id(),
-        ]);
+        $carbonDate = Carbon::parse($date);
         
-        return redirect()->back()->with('success', 'Appointment cancelled.');
-    }
-    
-    public function complete($id)
-    {
-        $appointment = Appointment::findOrFail($id);
-        $appointment->update([
-            'status' => 'completed',
-            'completed_at' => now(),
-            'processed_by' => auth()->id(),
-        ]);
+        // Check override first
+        $override = WorkingDaysOverride::where('date', $carbonDate->format('Y-m-d'))->first();
+        if ($override) {
+            return $override->is_working;
+        }
         
-        return redirect()->back()->with('success', 'Appointment marked as completed.');
+        // Check default
+        $dayOfWeek = $carbonDate->dayOfWeek == 0 ? 7 : $carbonDate->dayOfWeek;
+        $default = WorkingDaysDefault::where('day_of_week', $dayOfWeek)->first();
+        
+        return $default ? $default->is_working : false;
     }
     
-    private function generateAppointmentNumber()
+    /**
+     * Check capacity for a specific date, time slot, and clients
+     */
+    private function checkCapacity($date, $timeSlotId, $clients)
     {
-        $date = Carbon::now()->format('Ymd');
-        $last = Appointment::whereDate('created_at', Carbon::today())->count() + 1;
-        return "PSA-{$date}-" . str_pad($last, 5, '0', STR_PAD_LEFT);
+        // Group clients by service
+        $clientsByService = [];
+        foreach ($clients as $client) {
+            $service = $client['service'];
+            if (!isset($clientsByService[$service])) {
+                $clientsByService[$service] = 0;
+            }
+            $clientsByService[$service]++;
+        }
+        
+        // Get capacity from override or calculate from rules
+        $override = SlotCapacityOverride::where('date', $date)
+            ->where('time_slot_id', $timeSlotId)
+            ->first();
+        
+        if ($override) {
+            $capacities = [
+                'reg' => $override->reg_capacity ?? 0,
+                'updating' => $override->updating_capacity ?? 0,
+                'inquiry' => $override->inquiry_capacity ?? 0,
+            ];
+        } else {
+            // Get day type and default rules
+            $dayType = $this->getDayTypeForDate($date);
+            
+            $rule = DB::table('slot_capacity_rules')
+                ->where('time_slot_id', $timeSlotId)
+                ->where('day_type', $dayType)
+                ->first();
+            
+            if ($rule) {
+                $capacities = [
+                    'reg' => $rule->reg_capacity ?? 0,
+                    'updating' => $rule->updating_capacity ?? 0,
+                    'inquiry' => $rule->inquiry_capacity ?? 0,
+                ];
+            } else {
+                $capacities = ['reg' => 0, 'updating' => 0, 'inquiry' => 0];
+            }
+        }
+        
+        // Get current booked counts
+        $bookedCounts = AppointmentClient::whereHas('appointment', function($query) use ($date, $timeSlotId) {
+            $query->whereDate('appointment_date', $date)
+                  ->where('time_slot_id', $timeSlotId)
+                  ->whereIn('status', ['pending', 'confirmed']);
+        })
+        ->selectRaw('service, COUNT(*) as count')
+        ->groupBy('service')
+        ->pluck('count', 'service')
+        ->toArray();
+        
+        // Check each service
+        foreach ($clientsByService as $service => $needed) {
+            $capacity = $capacities[$service] ?? 0;
+            $booked = $bookedCounts[$service] ?? 0;
+            $available = $capacity - $booked;
+            
+            if ($available < $needed) {
+                $serviceNames = [
+                    'reg' => 'Registration',
+                    'updating' => 'Correction/Updating',
+                    'inquiry' => 'Status Inquiry'
+                ];
+                return [
+                    'available' => false,
+                    'message' => "Not enough capacity for {$serviceNames[$service]}. Only {$available} slots available, you need {$needed}."
+                ];
+            }
+        }
+        
+        return ['available' => true, 'message' => ''];
     }
     
-    private function generateReferenceCode()
+    /**
+     * Get day type for a specific date
+     */
+    private function getDayTypeForDate($date)
     {
-        return 'REF-' . strtoupper(uniqid());
+        $carbonDate = Carbon::parse($date);
+        
+        // Check override first
+        $override = WorkingDaysOverride::where('date', $carbonDate->format('Y-m-d'))->first();
+        if ($override) {
+            return $override->is_working ? 'weekday' : 'holiday';
+        }
+        
+        // Check default
+        $dayOfWeek = $carbonDate->dayOfWeek;
+        $default = WorkingDaysDefault::where('day_of_week', $dayOfWeek)->first();
+        
+        if (!$default || !$default->is_working) {
+            if ($dayOfWeek == 6) return 'saturday';
+            if ($dayOfWeek == 0) return 'sunday';
+            return 'holiday';
+        }
+        
+        return 'weekday';
     }
+    
+    /**
+     * Generate unique client number
+     */
+    private function generateClientNumber()
+    {
+        $year = date('Y');
+        $month = date('m');
+        
+        $last = AppointmentClient::whereYear('created_at', $year)
+            ->whereMonth('created_at', $month)
+            ->count() + 1;
+        
+        return 'CLN-' . $year . $month . '-' . str_pad($last, 5, '0', STR_PAD_LEFT);
+    }
+
+    public function getTimeSlots()
+{
+    $timeSlots = TimeSlot::where('is_active', true)
+        ->orderBy('display_order')
+        ->get();
+    
+    return response()->json([
+        'success' => true,
+        'timeSlots' => $timeSlots
+    ]);
+}
+
+
 }

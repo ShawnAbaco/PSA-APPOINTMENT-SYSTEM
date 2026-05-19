@@ -1,13 +1,16 @@
 // public/js/landing-page.js
 
-const psaLat = 8.4815315;
-const psaLng = 124.6549067;
+const psaLat = 8.482432;
+const psaLng = 124.655153;
 
 let map;
 let routingControl = null;
 let userMarker = null;
 let psaMarker = null;
 let userLatLng = null;
+
+// Variable to track if Ctrl key is pressed
+let ctrlPressed = false;
 
 const psaIconCustom = L.divIcon({
     html: '<div class="custom-psa-marker"><img src="/images/psa.png" alt="PSA Logo"></div>',
@@ -68,8 +71,8 @@ function initMap() {
                 <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 8px;">
                     <img src="/images/psa.png" style="width: 40px; height: 40px; border-radius: 50%; border: 2px solid #c49a2c; background: white; padding: 2px;">
                     <div>
-                        <strong style="font-size: 1rem;">PSA Misamis Oriental</strong><br>
-                        <small style="font-size: 0.7rem; opacity: 0.9;">National ID Registration Center</small>
+                        <strong style="font-size: 1rem;">PSA - Misamis Oriental</strong><br>
+                        <small style="font-size: 0.7rem; opacity:   0.9;">Fixed Registration Center</small>
                     </div>
                 </div>
             </div>
@@ -83,7 +86,7 @@ function initMap() {
                     <span>🕒 Mon-Fri 8AM-5PM</span>
                 </div>
                 <div style="margin-top: 8px; font-size: 0.75rem; color: #0f3b6f; background: #e8f0fe; padding: 6px; border-radius: 8px; text-align: center;">
-                    National ID | ePhilID | Civil Registry
+                    NID Registration | Updating | Status Inquiry
                 </div>
             </div>
         </div>
@@ -110,6 +113,78 @@ function initMap() {
         weight: 1.5,
         dashArray: '8, 6'
     }).addTo(map);
+
+    // ============================================
+    // CTRL + SCROLL ZOOM IMPLEMENTATION
+    // ============================================
+    
+    // Disable default scroll wheel zoom initially
+    map.scrollWheelZoom.disable();
+    
+    // Listen for keydown events on the window
+    window.addEventListener('keydown', function(e) {
+        if (e.key === 'Control' || e.keyCode === 17) {
+            ctrlPressed = true;
+            // Enable zoom when Ctrl is pressed
+            if (!map.scrollWheelZoom.enabled()) {
+                map.scrollWheelZoom.enable();
+            }
+        }
+    });
+    
+    // Listen for keyup events on the window
+    window.addEventListener('keyup', function(e) {
+        if (e.key === 'Control' || e.keyCode === 17) {
+            ctrlPressed = false;
+            // Disable zoom when Ctrl is released
+            if (map.scrollWheelZoom.enabled()) {
+                map.scrollWheelZoom.disable();
+            }
+        }
+    });
+    
+    // Handle window blur (when user clicks outside, release Ctrl state)
+    window.addEventListener('blur', function() {
+        ctrlPressed = false;
+        if (map.scrollWheelZoom.enabled()) {
+            map.scrollWheelZoom.disable();
+        }
+    });
+    
+    // Prevent default scroll behavior on map container to avoid page scrolling
+    const mapContainer = document.getElementById('liveMap');
+    if (mapContainer) {
+        mapContainer.addEventListener('wheel', function(e) {
+            if (!e.ctrlKey) {
+                e.preventDefault();
+                return false;
+            }
+        }, { passive: false });
+    }
+    
+    // Add a custom control to show Ctrl+Zoom hint
+    const CtrlZoomControl = L.Control.extend({
+        options: {
+            position: 'bottomright'
+        },
+        
+        onAdd: function(map) {
+            const container = L.DomUtil.create('div', 'ctrl-zoom-control');
+            container.innerHTML = `
+                <div style="background: rgba(0,0,0,0.75); backdrop-filter: blur(4px); color: white; padding: 8px 14px; border-radius: 30px; font-size: 12px; font-family: monospace; display: flex; align-items: center; gap: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.2); pointer-events: none;">
+                    <kbd style="background: #333; border-radius: 4px; padding: 2px 8px; font-weight: bold; color: #ffd700; font-size: 11px;">Ctrl</kbd>
+                    <span style="font-size: 12px;">+</span>
+                    <i class="fas fa-mouse-pointer" style="font-size: 12px;"></i>
+                    <span>Scroll to zoom map</span>
+                </div>
+            `;
+            return container;
+        }
+    });
+    
+    map.addControl(new CtrlZoomControl());
+    
+    console.log('Map initialized with Ctrl+Scroll zoom - Zoom only works when holding Ctrl key');
 }
 
 function autoDetectAndRoute() {
@@ -324,3 +399,4 @@ document.addEventListener('DOMContentLoaded', () => {
     setActiveNavLink();
     initSmoothScroll();
 });
+
