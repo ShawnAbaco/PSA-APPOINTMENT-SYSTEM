@@ -278,14 +278,19 @@
                             </div>
                         </div>
 
-                        <div class="slots-form-group">
-                            <label class="slots-form-label">Time Slot *</label>
-                            <select name="time_slot_id" id="bulk_time_slot_id" class="slots-form-control" required>
-                                <option value="">Select Time Slot</option>
+                        <div class="slots-form-group" id="bulkTimeSlotsSelectorGroup">
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                                <label class="slots-form-label" style="margin-bottom: 0;">Time Slots *</label>
+                                <button type="button" class="slots-btn slots-btn-sm slots-btn-outline-primary" id="bulkSelectAllTimeSlots" style="font-size: 12px; padding: 4px 8px;">Select All</button>
+                            </div>
+                            <div class="slots-checkbox-group" style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; padding: 10px; background: #f8f9fa; border-radius: 6px;">
                                 @foreach ($timeSlots as $timeSlot)
-                                    <option value="{{ $timeSlot->id }}">{{ $timeSlot->label }}</option>
+                                    <label class="slots-checkbox">
+                                        <input type="checkbox" name="time_slot_ids[]" value="{{ $timeSlot->id }}" class="bulk-time-slot-checkbox">
+                                        <span>{{ $timeSlot->label }}</span>
+                                    </label>
                                 @endforeach
-                            </select>
+                            </div>
                         </div>
 
                         <div class="slots-form-row">
@@ -1161,12 +1166,66 @@
 
     // Bulk Generate Form
     const bulkGenerateBtn = document.getElementById('slotsBulkGenerateBtn');
-    if(bulkGenerateBtn) bulkGenerateBtn.addEventListener('click', () => openModal('slotsBulkGenerateModal'));
+    if (bulkGenerateBtn) bulkGenerateBtn.addEventListener('click', () => openModal('slotsBulkGenerateModal'));
+    
+    const bulkSelectAllBtn = document.getElementById('bulkSelectAllTimeSlots');
+    if (bulkSelectAllBtn) {
+        bulkSelectAllBtn.addEventListener('click', function(e) {
+            e.preventDefault();
+            const checkboxes = document.querySelectorAll('input[name="time_slot_ids[]"]');
+            const allChecked = Array.from(checkboxes).every(cb => cb.checked);
+            
+            checkboxes.forEach(cb => cb.checked = !allChecked);
+            bulkSelectAllBtn.textContent = allChecked ? 'Select All' : 'Deselect All';
+        });
+    }
+    
+    const bulkTimeSlotCheckboxes = document.querySelectorAll('input[name="time_slot_ids[]"]');
+    bulkTimeSlotCheckboxes.forEach(checkbox => {
+        checkbox.addEventListener('change', function() {
+            if (bulkSelectAllBtn) {
+                const allChecked = Array.from(bulkTimeSlotCheckboxes).every(cb => cb.checked);
+                bulkSelectAllBtn.textContent = allChecked ? 'Deselect All' : 'Select All';
+            }
+            
+            if (this.checked) {
+                updateBulkCapacityFields(this.value);
+            }
+        });
+    });
+    
+    async function updateBulkCapacityFields(timeSlotId) {
+        if (!timeSlotId) return;
+        
+        try {
+            const response = await fetch(`/admin/slots/default-capacities?time_slot_id=${timeSlotId}`);
+            const data = await response.json();
+            
+            if (data.success) {
+                const regInput = document.querySelector('#slotsBulkGenerateForm input[name="reg_capacity"]');
+                const updatingInput = document.querySelector('#slotsBulkGenerateForm input[name="updating_capacity"]');
+                const inquiryInput = document.querySelector('#slotsBulkGenerateForm input[name="inquiry_capacity"]');
+                
+                if (regInput) regInput.value = data.reg_capacity ?? 4;
+                if (updatingInput) updatingInput.value = data.updating_capacity ?? 4;
+                if (inquiryInput) inquiryInput.value = data.inquiry_capacity ?? 4;
+            }
+        } catch (error) {
+            console.error('Error loading bulk slot capacities:', error);
+        }
+    }
     
     const bulkGenerateForm = document.getElementById('slotsBulkGenerateForm');
-    if(bulkGenerateForm) {
+    if (bulkGenerateForm) {
         bulkGenerateForm.addEventListener('submit', async function(e) {
             e.preventDefault();
+            
+            const selectedTimeSlots = document.querySelectorAll('input[name="time_slot_ids[]"]:checked');
+            if (selectedTimeSlots.length === 0) {
+                alert('Please select at least one time slot');
+                return;
+            }
+            
             const formData = new FormData(this);
             formData.append('_token', document.querySelector('meta[name="slots-csrf-token"]').content);
 

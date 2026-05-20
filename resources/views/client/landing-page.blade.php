@@ -5,7 +5,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes, viewport-fit=cover">
-    <title>PSA | National ID Appointment Management System</title>
+    <title>PSA | PhilSys Appointment Management System</title>
     <link rel="icon" type="image/png" sizes="32x32" href="{{ asset('images/psa.png') }}">
     <link
         href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;14..32,400;14..32,500;14..32,600;14..32,700;14..32,800&display=swap"
@@ -15,7 +15,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <link rel="stylesheet" href="{{ asset('css/landing-page.css') }}">
 </head>
-
+<>
 <body>
 
     <header class="site-header">
@@ -27,7 +27,7 @@
                 </div>
                 <div class="logo-text">
                     <span class="psa-title">Philippine Statistics Authority - Misamis Oriental</span>
-                    <span class="psa-sub">National ID Appointment Management System</span>
+                    <span class="psa-sub">PhilSys Appointment Management System</span>
                 </div>
             </div>
             <nav class="main-nav">
@@ -48,7 +48,7 @@
         <section id="home" class="hero-section">
             <div class="container hero-grid">
                 <div class="hero-content">
-                    <div class="badge">PhilSys - National ID Appointment System</div>
+                    <div class="badge">PhilSys - PhilSys Appointment System</div>
                     <h1>Step into the future with <span class="highlight">National ID</span> registration</h1>
                     <p>Schedule your PhilSys registration, ePhilID printing, or data correction appointment. Secure your
                         Philippine Identification System credentials with ease.</p>
@@ -321,23 +321,42 @@
         </section>
 
         <footer class="site-footer">
-            <div class="container">
-                <div class="footer-content">
-                    <div class="footer-logo">
-                        <span style="font-weight:700;">Philippine Statistics Authority - Misamis Oriental</span>
-                        <small style="display:block;">PhilSys – Philippine Identification System</small>
-                    </div>
-                    <div class="footer-links">
-                        <a href="#" id="privacyPolicyLink">Privacy Policy</a>
-                        <a href="#" id="dataPrivacyActLink">Data Privacy Act</a>
-                        <a href="javascript:void(0)" id="footerBookBtn">Book Appointment</a>
-                    </div>
-                </div>
-                <div class="copyright">
-                    &copy; 2025 PSA - Misamis Oriental. All rights reserved. | RA 11055 (PhilSys Act)
-                </div>
+    <div class="container">
+        <div class="footer-content">
+            <div class="footer-logo">
+                <span style="font-weight:700;">
+                    Philippine Statistics Authority - Misamis Oriental
+                </span>
+                <small style="display:block;">
+                    PhilSys – Philippine Identification System
+                </small>
             </div>
-        </footer>
+
+            <div class="footer-links">
+                <a href="#" id="privacyPolicyLink">Privacy Policy</a>
+                <a href="#" id="dataPrivacyActLink">Data Privacy Act</a>
+                <a href="javascript:void(0)" id="footerBookBtn">
+                    Book Appointment
+                </a>
+            </div>
+        </div>
+
+        <div class="copyright" style="margin-top: 8px; text-align: center;">
+    <div class="copyright-text">
+        <i class="fas fa-copyright"></i>
+        2026 PSA - Misamis Oriental | PhilSys Appointment Management System. All rights reserved. | RA 11055 (PhilSys Act)
+    </div>
+    <div class="copyright-devs">
+        <i class="fas fa-code"></i>
+        Developed by Shawn Laurence M. Abaco | Kent Zyrone L. Flores
+    </div>
+    <div class="copyright-version">
+        <i class="fas fa-code-branch"></i>
+        Version v1.0.0
+    </div>
+</div>
+    </div>
+</footer>
     </main>
 
     <!-- Privacy Policy Modal -->
@@ -428,8 +447,8 @@
     <div id="appointmentModal" class="appointment-modal-overlay">
         <div class="appointment-modal-container">
             <div class="appointment-modal-header">
-                <h3><img src="{{ asset('images/psa.png') }}" alt="PSA" style="height: 40px;">National ID
-                    Appointment System</h3>
+                <h3><img src="{{ asset('images/psa.png') }}" alt="PSA" style="height: 40px;">PhilSys
+                    Appointment Management System</h3>
                 <button class="close-appointment-modal" id="closeAppointmentModalBtn">
                     <i class="fas fa-times"></i>
                 </button>
