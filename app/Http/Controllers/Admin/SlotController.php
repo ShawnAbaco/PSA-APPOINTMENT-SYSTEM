@@ -113,26 +113,6 @@ class SlotController extends Controller
             
             DB::beginTransaction();
             
-            // Get default rule to validate minimum capacity
-            $defaultRule = SlotCapacityRule::where('time_slot_id', $request->time_slot_id)
-                ->where('day_type', 'working')
-                ->first();
-            
-            $minReg = $defaultRule->reg_capacity ?? 0;
-            $minUpdating = $defaultRule->updating_capacity ?? 0;
-            $minInquiry = $defaultRule->inquiry_capacity ?? 0;
-            
-            // Validate that capacity is not less than default rule
-            if ($request->reg_capacity < $minReg && $request->day_type !== 'holiday') {
-                throw new \Exception("Registration capacity cannot be less than the default rule value of {$minReg}");
-            }
-            if ($request->updating_capacity < $minUpdating && $request->day_type !== 'holiday') {
-                throw new \Exception("Updating capacity cannot be less than the default rule value of {$minUpdating}");
-            }
-            if ($request->inquiry_capacity < $minInquiry && $request->day_type !== 'holiday') {
-                throw new \Exception("Inquiry capacity cannot be less than the default rule value of {$minInquiry}");
-            }
-            
             // Check if slot already exists
             $existingSlot = AppointmentSlot::where('date', $request->date)
                 ->where('time_slot_id', $request->time_slot_id)
@@ -254,15 +234,6 @@ class SlotController extends Controller
             
             DB::beginTransaction();
             
-            // Get default rule to validate minimum capacity
-            $defaultRule = SlotCapacityRule::where('time_slot_id', $request->time_slot_id)
-                ->where('day_type', 'working')
-                ->first();
-            
-            $minReg = $defaultRule->reg_capacity ?? 0;
-            $minUpdating = $defaultRule->updating_capacity ?? 0;
-            $minInquiry = $defaultRule->inquiry_capacity ?? 0;
-            
             // Check booked counts
             $bookedCounts = AppointmentClient::whereHas('appointment', function($query) use ($slot) {
                 $query->whereDate('appointment_date', $slot->date)
@@ -286,17 +257,6 @@ class SlotController extends Controller
             }
             if ($request->inquiry_capacity < $inquiryBooked) {
                 throw new \Exception("Inquiry capacity cannot be less than currently booked ({$inquiryBooked})");
-            }
-            
-            // Validate that capacity is not less than default rule (if no override exists or if reducing)
-            if ($request->reg_capacity < $minReg && $request->day_type !== 'holiday') {
-                throw new \Exception("Registration capacity cannot be less than the default rule value of {$minReg}");
-            }
-            if ($request->updating_capacity < $minUpdating && $request->day_type !== 'holiday') {
-                throw new \Exception("Updating capacity cannot be less than the default rule value of {$minUpdating}");
-            }
-            if ($request->inquiry_capacity < $minInquiry && $request->day_type !== 'holiday') {
-                throw new \Exception("Inquiry capacity cannot be less than the default rule value of {$minInquiry}");
             }
             
             $slot->time_slot_id = $validated['time_slot_id'];

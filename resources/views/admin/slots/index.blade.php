@@ -121,7 +121,7 @@
         <div class="slots-modal-dialog slots-modal-lg">
             <div class="slots-modal-content">
                 <div class="slots-modal-header slots-modal-header-primary">
-                    <h5 class="slots-modal-title"><i class="fas fa-plus-circle"></i> Create Appointment Slot</h5>
+                    <h5 class="slots-modal-title"><i class="fas fa-plus-circle"></i> Create Appointment Slots</h5>
                     <span class="slots-modal-close" data-dismiss="modal">&times;</span>
                 </div>
                 <div class="slots-modal-body">
@@ -139,48 +139,52 @@
                                 <input type="date" name="date" id="create_date" class="slots-form-control" required>
                             </div>
                             <div class="slots-form-group">
-                                <label class="slots-form-label">Time Slot *</label>
-                                <select name="time_slot_id" id="create_time_slot_id" class="slots-form-control" required>
-                                    <option value="">Select Time Slot</option>
-                                    @foreach ($timeSlots as $timeSlot)
-                                        <option value="{{ $timeSlot->id }}">{{ $timeSlot->label }}</option>
-                                    @endforeach
+                                <label class="slots-form-label">Day Type *</label>
+                                <select name="day_type" id="create_day_type" class="slots-form-control" required>
+                                    <option value="working">Working Day</option>
+                                    <option value="non_working">Non-Working Day</option>
                                 </select>
                             </div>
                         </div>
 
-                        <div class="slots-form-group">
-                            <label class="slots-form-label">Day Type *</label>
-                            <select name="day_type" id="create_day_type" class="slots-form-control" required>
-                                <option value="working">Working Day</option>
-                                <option value="non_working">Non-Working Day</option>
-                                <option value="holiday">Holiday (No Appointments)</option>
-                            </select>
-                        </div>
-
-                        <div class="slots-form-row" id="createCapacityFields">
-                            <div class="slots-form-group">
-                                <label class="slots-form-label">Registration (R) Capacity</label>
-                                <input type="number" name="reg_capacity" id="create_reg_capacity" class="slots-form-control" value="4" min="0" max="100">
+                        <div class="slots-form-group" id="timeSlotsSelectorGroup">
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                                <label class="slots-form-label" style="margin-bottom: 0;">Time Slots *</label>
+                                <button type="button" class="slots-btn slots-btn-sm slots-btn-outline-primary" id="selectAllTimeSlots" style="font-size: 12px; padding: 4px 8px;">Select All</button>
                             </div>
-                            <div class="slots-form-group">
-                                <label class="slots-form-label">Updating (U) Capacity</label>
-                                <input type="number" name="updating_capacity" id="create_updating_capacity" class="slots-form-control" value="4" min="0" max="100">
-                            </div>
-                            <div class="slots-form-group">
-                                <label class="slots-form-label">Inquiry (S) Capacity</label>
-                                <input type="number" name="inquiry_capacity" id="create_inquiry_capacity" class="slots-form-control" value="4" min="0" max="100">
+                            <div class="slots-checkbox-group" style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; padding: 10px; background: #f8f9fa; border-radius: 6px;">
+                                @foreach ($timeSlots as $timeSlot)
+                                    <label class="slots-checkbox">
+                                        <input type="checkbox" name="time_slot_ids" value="{{ $timeSlot->id }}" class="time-slot-checkbox">
+                                        <span>{{ $timeSlot->label }}</span>
+                                    </label>
+                                @endforeach
                             </div>
                         </div>
 
-                        <div class="slots-form-group">
-                            <label class="slots-form-label">Notes</label>
-                            <textarea name="notes" class="slots-form-control" rows="2" placeholder="Optional notes"></textarea>
+                        <div class="slots-form-row" id="capacityFields">
+                            <div class="slots-form-group">
+                                <label class="slots-form-label">Registration (R) Capacity *</label>
+                                <input type="number" name="reg_capacity" id="reg_capacity" class="slots-form-control" value="4" min="0" max="100" required>
+                            </div>
+                            <div class="slots-form-group">
+                                <label class="slots-form-label">Updating (U) Capacity *</label>
+                                <input type="number" name="updating_capacity" id="updating_capacity" class="slots-form-control" value="4" min="0" max="100" required>
+                            </div>
+                            <div class="slots-form-group">
+                                <label class="slots-form-label">Inquiry (S) Capacity *</label>
+                                <input type="number" name="inquiry_capacity" id="inquiry_capacity" class="slots-form-control" value="4" min="0" max="100" required>
+                            </div>
+                        </div>
+
+                        <div class="slots-form-group" id="notesGroup" style="display: none;">
+                            <label class="slots-form-label">Notes <span style="font-weight: normal; color: #6c757d;">(optional)</span></label>
+                            <textarea name="notes" class="slots-form-control" rows="2" placeholder="e.g. holiday, special event, etc."></textarea>
                         </div>
 
                         <div class="slots-modal-footer">
                             <button type="button" class="slots-btn slots-btn-secondary" data-dismiss="modal">Cancel</button>
-                            <button type="submit" class="slots-btn slots-btn-primary">Create Slot</button>
+                            <button type="submit" class="slots-btn slots-btn-primary">Create Slots</button>
                         </div>
                     </form>
                 </div>
@@ -358,7 +362,7 @@
                             <i class="fas fa-info-circle"></i>
                             <strong>Date:</strong> <span id="edit_slot_date"></span><br>
                             <strong>Currently Booked:</strong> <span id="edit_booked_count">0</span> clients<br>
-                            <small>Note: Capacity cannot be reduced below currently booked numbers or default rule values.</small>
+                            <small>Note: Capacity cannot be reduced below currently booked numbers.</small>
                         </div>
 
                         <div class="edit-slot-form-row">
@@ -436,12 +440,22 @@
         .slots-btn { padding: 8px 16px; border-radius: 6px; font-size: 14px; font-weight: 500; cursor: pointer; border: none; transition: all 0.3s; }
         .slots-btn-primary { background: #4361ee; color: white; }
         .slots-btn-primary:hover { background: #3a56d4; }
+        .slots-btn-primary:disabled { background: #a6aef8; cursor: not-allowed; opacity: 0.6; }
         .slots-btn-outline-primary { background: transparent; border: 1px solid #4361ee; color: #4361ee; }
         .slots-btn-outline-primary:hover { background: #4361ee; color: white; }
+        .slots-btn-outline-primary:disabled { border-color: #a6aef8; color: #a6aef8; cursor: not-allowed; opacity: 0.6; }
         .slots-btn-outline-success { background: transparent; border: 1px solid #28a745; color: #28a745; }
         .slots-btn-outline-success:hover { background: #28a745; color: white; }
+        .slots-btn-outline-success:disabled { border-color: #a6d6a6; color: #a6d6a6; cursor: not-allowed; opacity: 0.6; }
         .slots-btn-outline-secondary { background: transparent; border: 1px solid #6c757d; color: #6c757d; }
         .slots-btn-outline-secondary:hover { background: #6c757d; color: white; }
+        .slots-btn-outline-secondary:disabled { border-color: #c3c5c7; color: #c3c5c7; cursor: not-allowed; opacity: 0.6; }
+        .slots-btn-secondary { background: #6c757d; color: white; }
+        .slots-btn-secondary:hover { background: #5a6268; }
+        .slots-btn-secondary:disabled { background: #a6aeb3; cursor: not-allowed; opacity: 0.6; }
+        .slots-btn-success { background: #28a745; color: white; }
+        .slots-btn-success:hover { background: #218838; }
+        .slots-btn-success:disabled { background: #9dd19e; cursor: not-allowed; opacity: 0.6; }
         .slots-btn-sm { padding: 5px 12px; font-size: 12px; }
         .slots-calendar-wrapper { overflow-x: auto; }
         .slots-calendar-weekdays { display: grid; grid-template-columns: repeat(7, 1fr); background: #f8f9fa; border-radius: 8px; margin-bottom: 10px; }
@@ -486,6 +500,8 @@
         .slots-alert-info { background: #e7f3ff; color: #004085; border: 1px solid #b8daff; }
         .slots-checkbox-group { display: flex; flex-wrap: wrap; gap: 15px; }
         .slots-checkbox { display: flex; align-items: center; gap: 5px; cursor: pointer; }
+        .slots-checkbox input[type="checkbox"] { cursor: pointer; width: 18px; height: 18px; accent-color: #4361ee; }
+        .slots-checkbox span { user-select: none; }
         .slots-day-type-badge { display: inline-block; padding: 4px 10px; border-radius: 20px; font-size: 12px; font-weight: 500; }
         .slots-day-type-badge.working { background: #d4edda; color: #155724; }
         .slots-day-type-badge.non_working { background: #fff3cd; color: #856404; }
@@ -553,6 +569,7 @@
     let slotsCurrentDate = new Date();
     let slotsData = {};
     let defaultRules = {};
+    let slotsIsLoading = false;
 
     // Display working days
     const workingDaysMeta = document.querySelector('meta[name="slots-working-days"]');
@@ -576,6 +593,9 @@
     }
 
     function slotsLoadSlots() {
+        if (slotsIsLoading) return;
+        
+        slotsIsLoading = true;
         const year = slotsCurrentDate.getFullYear();
         const month = slotsCurrentDate.getMonth() + 1;
         const monthNames = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
@@ -583,7 +603,12 @@
         if(monthNameElem) monthNameElem.textContent = `${monthNames[slotsCurrentDate.getMonth()]} ${year}`;
 
         fetch(`/admin/slots/json?month=${month}&year=${year}`)
-            .then(response => response.json())
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                return response.json();
+            })
             .then(data => {
                 slotsData = data.slots || {};
                 defaultRules = data.default_rules || {};
@@ -593,8 +618,11 @@
                 console.error('Error loading slots:', error);
                 const calendarDays = document.getElementById('slotsCalendarDays');
                 if(calendarDays) {
-                    calendarDays.innerHTML = '<div class="slots-loading-state"><i class="fas fa-exclamation-triangle"></i><p>Failed to load slots.</p></div>';
+                    calendarDays.innerHTML = '<div class="slots-loading-state"><i class="fas fa-exclamation-triangle"></i><p>Failed to load slots. Please refresh the page.</p></div>';
                 }
+            })
+            .finally(() => {
+                slotsIsLoading = false;
             });
     }
 
@@ -760,9 +788,9 @@
                     document.getElementById('edit_updating_available').innerHTML = (slot.updating_capacity - (slot.updating_booked || 0));
                     document.getElementById('edit_inquiry_available').innerHTML = (slot.inquiry_capacity - (slot.inquiry_booked || 0));
                     
-                    const minReg = Math.max(defaultCap.reg, slot.reg_booked || 0);
-                    const minUpdating = Math.max(defaultCap.updating, slot.updating_booked || 0);
-                    const minInquiry = Math.max(defaultCap.inquiry, slot.inquiry_booked || 0);
+                    const minReg = slot.reg_booked || 0;
+                    const minUpdating = slot.updating_booked || 0;
+                    const minInquiry = slot.inquiry_booked || 0;
                     
                     document.getElementById('edit_reg_min').innerHTML = minReg;
                     document.getElementById('edit_updating_min').innerHTML = minUpdating;
@@ -943,12 +971,44 @@
     const addSlotBtn = document.getElementById('slotsAddSingleSlotBtn');
     if(addSlotBtn) addSlotBtn.addEventListener('click', () => openModal('slotsCreateSlotModal'));
     
+    // Select All button for time slots
+    const selectAllBtn = document.getElementById('selectAllTimeSlots');
+    if (selectAllBtn) {
+        selectAllBtn.addEventListener('click', function(e) {
+            e.preventDefault();
+            const checkboxes = document.querySelectorAll('input[name="time_slot_ids"]');
+            const allChecked = Array.from(checkboxes).every(cb => cb.checked);
+            
+            checkboxes.forEach(cb => cb.checked = !allChecked);
+            selectAllBtn.textContent = allChecked ? 'Select All' : 'Deselect All';
+        });
+    }
+    
     const createForm = document.getElementById('slotsCreateForm');
     if(createForm) {
         createForm.addEventListener('submit', async function(e) {
             e.preventDefault();
-            const formData = new FormData(this);
-            formData.append('_token', document.querySelector('meta[name="slots-csrf-token"]').content);
+            
+            const date = document.getElementById('create_date')?.value;
+            const dayType = document.getElementById('create_day_type')?.value;
+            const regCapacity = document.getElementById('reg_capacity')?.value || 4;
+            const updatingCapacity = document.getElementById('updating_capacity')?.value || 4;
+            const inquiryCapacity = document.getElementById('inquiry_capacity')?.value || 4;
+            const notes = document.querySelector('textarea[name="notes"]')?.value || '';
+            
+            // Get all checked time slot IDs
+            const checkedCheckboxes = document.querySelectorAll('input[name="time_slot_ids"]:checked');
+            const selectedTimeSlotIds = Array.from(checkedCheckboxes).map(cb => cb.value);
+            
+            if (!date) {
+                alert('Please select a date');
+                return;
+            }
+            
+            if (selectedTimeSlotIds.length === 0) {
+                alert('Please select at least one time slot');
+                return;
+            }
 
             const submitBtn = this.querySelector('button[type="submit"]');
             const originalHtml = submitBtn.innerHTML;
@@ -956,22 +1016,57 @@
             submitBtn.disabled = true;
 
             try {
-                const response = await fetch('{{ route("admin.slots.store") }}', { 
-                    method: 'POST', 
-                    body: formData,
-                    headers: { 'X-Requested-With': 'XMLHttpRequest' }
-                });
-                const data = await response.json();
-                if (data.success) {
-                    alert('Slot created successfully!');
+                let successCount = 0;
+                let failureCount = 0;
+                
+                // Create a slot for each selected time slot
+                for (const timeSlotId of selectedTimeSlotIds) {
+                    const slotData = {
+                        date: date,
+                        time_slot_id: timeSlotId,
+                        day_type: dayType,
+                        reg_capacity: parseInt(regCapacity) || 0,
+                        updating_capacity: parseInt(updatingCapacity) || 0,
+                        inquiry_capacity: parseInt(inquiryCapacity) || 0,
+                        notes: notes
+                    };
+                    
+                    try {
+                        const response = await fetch('{{ route("admin.slots.store") }}', { 
+                            method: 'POST', 
+                            body: JSON.stringify(slotData),
+                            headers: { 
+                                'Content-Type': 'application/json',
+                                'X-CSRF-TOKEN': document.querySelector('meta[name="slots-csrf-token"]').content,
+                                'X-Requested-With': 'XMLHttpRequest' 
+                            }
+                        });
+                        const data = await response.json();
+                        if (data.success) {
+                            successCount++;
+                        } else {
+                            failureCount++;
+                        }
+                    } catch (error) {
+                        console.error('Error creating slot:', error);
+                        failureCount++;
+                    }
+                }
+                
+                if (failureCount === 0) {
+                    alert(`All ${successCount} slot(s) created successfully!`);
+                    createForm.reset();
+                    // Uncheck all time slot checkboxes
+                    document.querySelectorAll('input[name="time_slot_ids"]').forEach(cb => cb.checked = false);
                     closeModal('slotsCreateSlotModal');
                     location.reload();
                 } else {
-                    alert(data.message || 'Error creating slot');
+                    alert(`${successCount} created, ${failureCount} failed`);
+                    location.reload();
                 }
             } catch (error) {
                 console.error('Error:', error);
-                alert('Error connecting to server');
+                alert('Error creating slots');
             } finally {
                 submitBtn.innerHTML = originalHtml;
                 submitBtn.disabled = false;
@@ -986,6 +1081,12 @@
             e.preventDefault();
             const slotId = document.getElementById('edit_slot_id').value;
             const formData = new FormData(this);
+            
+            // Explicitly add capacity values to ensure they're included
+            formData.set('reg_capacity', document.getElementById('edit_reg_capacity')?.value || 0);
+            formData.set('updating_capacity', document.getElementById('edit_updating_capacity')?.value || 0);
+            formData.set('inquiry_capacity', document.getElementById('edit_inquiry_capacity')?.value || 0);
+            
             formData.append('_token', document.querySelector('meta[name="slots-csrf-token"]').content);
             formData.append('_method', 'PUT');
 
@@ -1094,8 +1195,6 @@
             } finally {
                 submitBtn.innerHTML = originalHtml;
                 submitBtn.disabled = false;
-                                submitBtn.innerHTML = originalHtml;
-                submitBtn.disabled = false;
             }
         });
     }
@@ -1109,38 +1208,40 @@
     const createDayType = document.getElementById('create_day_type');
     if(createDayType) {
         createDayType.addEventListener('change', function() {
-            const capacityFields = document.getElementById('createCapacityFields');
-            if (this.value === 'holiday' || this.value === 'non_working') {
-                capacityFields.style.display = 'none';
-                document.getElementById('create_reg_capacity').value = 0;
-                document.getElementById('create_updating_capacity').value = 0;
-                document.getElementById('create_inquiry_capacity').value = 0;
+            const capacityFields = document.getElementById('capacityFields');
+            const timeSlotsGroup = document.getElementById('timeSlotsSelectorGroup');
+            const notesGroup = document.getElementById('notesGroup');
+            
+            if (this.value === 'working') {
+                // Working day - show time slots and capacity fields, hide notes
+                if (timeSlotsGroup) timeSlotsGroup.style.display = 'block';
+                if (capacityFields) capacityFields.style.display = 'flex';
+                if (notesGroup) notesGroup.style.display = 'none';
+                
+                // Uncheck all time slot checkboxes for working day
+                document.querySelectorAll('input[name="time_slot_ids"]').forEach(cb => cb.checked = false);
+                
+                // Set default capacity values
+                document.getElementById('reg_capacity').value = 4;
+                document.getElementById('updating_capacity').value = 4;
+                document.getElementById('inquiry_capacity').value = 4;
+                
+                // Reset button text
+                const selectAllBtn = document.getElementById('selectAllTimeSlots');
+                if (selectAllBtn) selectAllBtn.textContent = 'Select All';
             } else {
-                capacityFields.style.display = 'flex';
-                document.getElementById('create_reg_capacity').value = 4;
-                document.getElementById('create_updating_capacity').value = 4;
-                document.getElementById('create_inquiry_capacity').value = 4;
-            }
-        });
-    }
-
-    // Time slot change handler for create form - load default capacities
-    const createTimeSlot = document.getElementById('create_time_slot_id');
-    if(createTimeSlot) {
-        createTimeSlot.addEventListener('change', async function() {
-            const timeSlotId = this.value;
-            if (timeSlotId && document.getElementById('create_day_type').value === 'working') {
-                try {
-                    const response = await fetch(`/admin/slots/default-capacities?time_slot_id=${timeSlotId}`);
-                    const data = await response.json();
-                    if (data.success) {
-                        document.getElementById('create_reg_capacity').value = data.reg_capacity;
-                        document.getElementById('create_updating_capacity').value = data.updating_capacity;
-                        document.getElementById('create_inquiry_capacity').value = data.inquiry_capacity;
-                    }
-                } catch (error) {
-                    console.error('Error loading default capacities:', error);
-                }
+                // Non-working day - hide time slots and capacity fields, show notes
+                if (timeSlotsGroup) timeSlotsGroup.style.display = 'none';
+                if (capacityFields) capacityFields.style.display = 'none';
+                if (notesGroup) notesGroup.style.display = 'block';
+                
+                // Auto-select all time slot checkboxes (hidden, but values set)
+                document.querySelectorAll('input[name="time_slot_ids"]').forEach(cb => cb.checked = true);
+                
+                // Set capacity values to 0 for non-working day
+                document.getElementById('reg_capacity').value = 0;
+                document.getElementById('updating_capacity').value = 0;
+                document.getElementById('inquiry_capacity').value = 0;
             }
         });
     }
@@ -1168,13 +1269,34 @@
     const todayBtn = document.getElementById('slotsTodayBtn');
     
     if(prevMonthBtn) {
-        prevMonthBtn.addEventListener('click', () => { slotsCurrentDate.setMonth(slotsCurrentDate.getMonth() - 1); slotsLoadSlots(); });
+        prevMonthBtn.addEventListener('click', () => { 
+            if (!slotsIsLoading) {
+                prevMonthBtn.disabled = true;
+                slotsCurrentDate.setMonth(slotsCurrentDate.getMonth() - 1); 
+                slotsLoadSlots();
+                setTimeout(() => prevMonthBtn.disabled = false, 500);
+            }
+        });
     }
     if(nextMonthBtn) {
-        nextMonthBtn.addEventListener('click', () => { slotsCurrentDate.setMonth(slotsCurrentDate.getMonth() + 1); slotsLoadSlots(); });
+        nextMonthBtn.addEventListener('click', () => { 
+            if (!slotsIsLoading) {
+                nextMonthBtn.disabled = true;
+                slotsCurrentDate.setMonth(slotsCurrentDate.getMonth() + 1); 
+                slotsLoadSlots();
+                setTimeout(() => nextMonthBtn.disabled = false, 500);
+            }
+        });
     }
     if(todayBtn) {
-        todayBtn.addEventListener('click', () => { slotsCurrentDate = new Date(); slotsLoadSlots(); });
+        todayBtn.addEventListener('click', () => { 
+            if (!slotsIsLoading) {
+                todayBtn.disabled = true;
+                slotsCurrentDate = new Date(); 
+                slotsLoadSlots();
+                setTimeout(() => todayBtn.disabled = false, 500);
+            }
+        });
     }
 
     // Load default capacities when editing time slot changes
@@ -1188,9 +1310,9 @@
                     const response = await fetch(`/admin/slots/default-capacities?time_slot_id=${timeSlotId}`);
                     const data = await response.json();
                     if (data.success && window.minCapacities) {
-                        const newMinReg = Math.max(data.reg_capacity, window.currentBooked?.reg || 0);
-                        const newMinUpdating = Math.max(data.updating_capacity, window.currentBooked?.updating || 0);
-                        const newMinInquiry = Math.max(data.inquiry_capacity, window.currentBooked?.inquiry || 0);
+                        const newMinReg = window.currentBooked?.reg || 0;
+                        const newMinUpdating = window.currentBooked?.updating || 0;
+                        const newMinInquiry = window.currentBooked?.inquiry || 0;
                         
                         window.minCapacities = {
                             reg: newMinReg,
