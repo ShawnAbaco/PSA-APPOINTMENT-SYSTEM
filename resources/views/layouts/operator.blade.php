@@ -28,112 +28,176 @@
     <link rel="stylesheet" href="{{ asset('css/operator/profile/edit.css') }}">
 
     <style>
-        /* Footer Styles */
-        .operator-footer {
-            background: white;
-            border-top: 1px solid #e4e7eb;
-            padding: 20px 30px;
-            margin-top: auto;
-        }
+        /* Footer Copyright Styles - Uniform */
+.operator-footer {
+    background: white;
+    border-top: 1px solid #e4e7eb;
+    padding: 20px 30px;
+    margin-top: auto;
+}
 
-        .footer-content {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            flex-wrap: wrap;
-            gap: 20px;
-        }
+.footer-content {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
 
-        .footer-copyright {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            color: #6c757d;
-            font-size: 13px;
-        }
+.footer-centered {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    gap: 8px;
+}
 
-        .footer-copyright i {
-            color: #CE1126;
-            font-size: 16px;
-        }
+.footer-copyright {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    color: #6c757d;
+    font-size: 13px;
+    flex-wrap: wrap;
+}
 
-        .footer-links {
-            display: flex;
-            align-items: center;
-            gap: 24px;
-            flex-wrap: wrap;
-        }
+.footer-copyright i {
+    color: #CE1126;
+    font-size: 14px;
+}
 
-        .footer-links a {
-            color: #6c757d;
-            text-decoration: none;
-            font-size: 13px;
-            transition: all 0.3s ease;
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
-        }
+.footer-devs {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    font-size: 12px;
+    color: #6c757d;
+    opacity: 0.85;
+    flex-wrap: wrap;
+}
 
-        .footer-links a:hover {
-            color: #0f3b6f;
-        }
+.footer-devs i {
+    color: #0f3b6f;
+    font-size: 12px;
+}
 
-        .footer-datetime {
-            display: flex;
-            align-items: center;
-            gap: 16px;
-            color: #6c757d;
-            font-size: 13px;
-        }
+.footer-links {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 24px;
+    flex-wrap: wrap;
+    margin: 4px 0;
+}
 
-        .footer-datetime div {
-            display: flex;
-            align-items: center;
-            gap: 6px;
-        }
+.footer-links a {
+    color: #6c757d;
+    text-decoration: none;
+    font-size: 13px;
+    transition: all 0.3s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+}
 
-        .footer-datetime i {
-            color: #0f3b6f;
-            font-size: 12px;
-        }
+.footer-links a:hover {
+    color: #0f3b6f;
+}
 
-        .footer-version {
-            background: #f5f6f8;
-            padding: 4px 10px;
-            border-radius: 20px;
-            font-size: 11px;
-            color: #6c757d;
-        }
+.footer-version {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    font-size: 11px;
+    font-weight: 500;
+    color: #0f3b6f;
+    background: rgba(15, 59, 111, 0.08);
+    padding: 4px 12px;
+    border-radius: 20px;
+    margin-top: 4px;
+}
 
-        @media (max-width: 768px) {
-            .footer-content {
-                flex-direction: column;
-                text-align: center;
-            }
+.footer-version i {
+    font-size: 10px;
+}
 
-            .footer-links {
-                justify-content: center;
-            }
+/* Mobile Responsive */
+@media (max-width: 768px) {
+    .operator-footer {
+        padding: 16px 20px;
+    }
+    
+    .footer-links {
+        gap: 16px;
+        flex-wrap: wrap;
+    }
+    
+    .footer-copyright {
+        font-size: 11px;
+    }
+    
+    .footer-copyright i {
+        font-size: 12px;
+    }
+    
+    .footer-devs {
+        font-size: 10px;
+        flex-direction: column;
+        gap: 4px;
+    }
+    
+    .footer-devs i {
+        font-size: 10px;
+    }
+    
+    .footer-links a {
+        font-size: 11px;
+    }
+    
+    .footer-version {
+        font-size: 10px;
+    }
+}
 
-            .footer-datetime {
-                justify-content: center;
-            }
+@media (max-width: 480px) {
+    .footer-copyright {
+        font-size: 9px;
+        flex-direction: column;
+        gap: 4px;
+    }
+    
+    .footer-devs {
+        font-size: 9px;
+    }
+    
+    .footer-links {
+        gap: 12px;
+        flex-wrap: wrap;
+        justify-content: center;
+    }
+    
+    .footer-links a {
+        font-size: 10px;
+    }
+    
+    .footer-version {
+        font-size: 9px;
+        padding: 3px 10px;
+    }
+}
 
-            .operator-footer {
-                padding: 16px 20px;
-            }
-        }
+/* Ensure operator-main takes full height to push footer down */
+.operator-main {
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+}
 
-        /* Ensure operator-main takes full height to push footer down */
-        .operator-main {
-            display: flex;
-            flex-direction: column;
-            min-height: 100vh;
-        }
-
-        .operator-content {
-            flex: 1;
-        }
+.operator-content {
+    flex: 1;
+}
     </style>
 </head>
 
@@ -252,47 +316,51 @@
                 @yield('content')
             </div>
 
-            <!-- Footer -->
-            <footer class="operator-footer">
-                <div class="footer-content">
-                    <div class="footer-copyright">
-                        <i class="fas fa-copyright"></i>
-                        <span>{{ date('Y') }} Philippine Statistics Authority. All rights reserved.</span>
-                    </div>
-                    <div class="footer-links">
-                        <a href="#" id="aboutLink">
-                            <i class="fas fa-info-circle"></i>
-                            About
-                        </a>
-                        <a href="#" id="helpLink">
-                            <i class="fas fa-question-circle"></i>
-                            Help
-                        </a>
-                        <a href="#" id="privacyLink">
-                            <i class="fas fa-shield-alt"></i>
-                            Privacy Policy
-                        </a>
-                        <a href="#" id="contactLink">
-                            <i class="fas fa-envelope"></i>
-                            Contact
-                        </a>
-                    </div>
-                    <div class="footer-datetime">
-                        <div class="footer-date">
-                            <i class="fas fa-calendar-day"></i>
-                            <span id="currentDate"></span>
-                        </div>
-                        <div class="footer-time">
-                            <i class="fas fa-clock"></i>
-                            <span id="currentTime"></span>
-                        </div>
-                        <div class="footer-version">
-                            <i class="fas fa-code-branch"></i>
-                            v1.0.0
-                        </div>
-                    </div>
-                </div>
-            </footer>
+           
+<!-- FOOTER - Fully Centered -->
+<footer class="operator-footer">
+    <div class="footer-content">
+        <div class="footer-centered">
+            <div class="footer-copyright">
+                <i class="fas fa-copyright"></i>
+                <span>
+                    2026 PSA Misamis Oriental | PhilSys Appointment Management System. All rights reserved.
+                </span>
+            </div>
+            
+            <div class="footer-devs">
+                <i class="fas fa-code"></i>
+                <span>
+                    Developed by Shawn Laurence M. Abaco | Kent Zyrone L. Flores
+                </span>
+            </div>
+            
+            <div class="footer-links">
+                <a href="#" id="aboutLink">
+                    <i class="fas fa-info-circle"></i>
+                    About
+                </a>
+                <a href="#" id="helpLink">
+                    <i class="fas fa-question-circle"></i>
+                    Help
+                </a>
+                <a href="#" id="privacyLink">
+                    <i class="fas fa-shield-alt"></i>
+                    Privacy Policy
+                </a>
+                <a href="#" id="contactLink">
+                    <i class="fas fa-envelope"></i>
+                    Contact
+                </a>
+            </div>
+            
+            <div class="footer-version">
+                <i class="fas fa-code-branch"></i>
+                v1.0.0
+            </div>
+        </div>
+    </div>
+</footer>
         </div>
     </div>
 

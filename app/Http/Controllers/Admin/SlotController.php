@@ -358,7 +358,8 @@ class SlotController extends Controller
             $validated = $request->validate([
                 'start_date' => 'required|date|after_or_equal:today',
                 'end_date' => 'required|date|after_or_equal:start_date',
-                'time_slot_id' => 'required|exists:time_slots,id',
+                'time_slot_ids' => 'required|array|min:1',
+                'time_slot_ids.*' => 'required|exists:time_slots,id',
                 'reg_capacity' => 'required|integer|min:0|max:100',
                 'updating_capacity' => 'required|integer|min:0|max:100',
                 'inquiry_capacity' => 'required|integer|min:0|max:100',
@@ -369,6 +370,11 @@ class SlotController extends Controller
             $startDate = Carbon::parse($request->start_date);
             $endDate = Carbon::parse($request->end_date);
             $selectedDays = $request->days ?? [1, 2, 3, 4, 5];
+            $selectedTimeSlotIds = collect($request->input('time_slot_ids', []))
+                ->filter()
+                ->unique()
+                ->values()
+                ->all();
             $created = 0;
             $updated = 0;
             $skipped = 0;
@@ -384,63 +390,65 @@ class SlotController extends Controller
                     continue;
                 }
                 
-                $existing = AppointmentSlot::where('date', $date->format('Y-m-d'))
-                    ->where('time_slot_id', $request->time_slot_id)
-                    ->first();
-                
-                if ($existing) {
-                    // Update existing slot - but don't create override unless values differ from rules
-                    $existing->day_type = 'working';
-                    $existing->notes = null;
-                    $existing->updated_at = now();
-                    $existing->save();
-                    
-                    // Only create override if values are different from default rules
-                    $defaultRule = SlotCapacityRule::where('time_slot_id', $request->time_slot_id)
-                        ->where('day_type', 'working')
+                foreach ($selectedTimeSlotIds as $timeSlotId) {
+                    $existing = AppointmentSlot::where('date', $date->format('Y-m-d'))
+                        ->where('time_slot_id', $timeSlotId)
                         ->first();
                     
-                    $shouldCreateOverride = false;
-                    if ($defaultRule) {
-                        if ($defaultRule->reg_capacity != $request->reg_capacity ||
-                            $defaultRule->updating_capacity != $request->updating_capacity ||
-                            $defaultRule->inquiry_capacity != $request->inquiry_capacity) {
+                    if ($existing) {
+                        // Update existing slot - but don't create override unless values differ from rules
+                        $existing->day_type = 'working';
+                        $existing->notes = null;
+                        $existing->updated_at = now();
+                        $existing->save();
+                        
+                        // Only create override if values are different from default rules
+                        $defaultRule = SlotCapacityRule::where('time_slot_id', $timeSlotId)
+                            ->where('day_type', 'working')
+                            ->first();
+                        
+                        $shouldCreateOverride = false;
+                        if ($defaultRule) {
+                            if ($defaultRule->reg_capacity != $request->reg_capacity ||
+                                $defaultRule->updating_capacity != $request->updating_capacity ||
+                                $defaultRule->inquiry_capacity != $request->inquiry_capacity) {
+                                $shouldCreateOverride = true;
+                            }
+                        } else {
                             $shouldCreateOverride = true;
                         }
+                        
+                        if ($shouldCreateOverride) {
+                            SlotCapacityOverride::updateOrCreate(
+                                [
+                                    'date' => $date->format('Y-m-d'),
+                                    'time_slot_id' => $timeSlotId,
+                                ],
+                                [
+                                    'day_type' => 'working',
+                                    'reason' => 'Bulk generated',
+                                    'reg_capacity' => $request->reg_capacity,
+                                    'updating_capacity' => $request->updating_capacity,
+                                    'inquiry_capacity' => $request->inquiry_capacity,
+                                    'updated_at' => now(),
+                                ]
+                            );
+                        }
+                        $updated++;
                     } else {
-                        $shouldCreateOverride = true;
+                        // Create new slot - but don't create override, just use rules
+                        AppointmentSlot::create([
+                            'date' => $date->format('Y-m-d'),
+                            'time_slot_id' => $timeSlotId,
+                            'day_type' => 'working',
+                            'notes' => null,
+                            'created_by' => auth()->id(),
+                            'created_at' => now(),
+                            'updated_at' => now(),
+                        ]);
+                        
+                        $created++;
                     }
-                    
-                    if ($shouldCreateOverride) {
-                        SlotCapacityOverride::updateOrCreate(
-                            [
-                                'date' => $date->format('Y-m-d'),
-                                'time_slot_id' => $request->time_slot_id,
-                            ],
-                            [
-                                'day_type' => 'working',
-                                'reason' => 'Bulk generated',
-                                'reg_capacity' => $request->reg_capacity,
-                                'updating_capacity' => $request->updating_capacity,
-                                'inquiry_capacity' => $request->inquiry_capacity,
-                                'updated_at' => now(),
-                            ]
-                        );
-                    }
-                    $updated++;
-                } else {
-                    // Create new slot - but don't create override, just use rules
-                    AppointmentSlot::create([
-                        'date' => $date->format('Y-m-d'),
-                        'time_slot_id' => $request->time_slot_id,
-                        'day_type' => 'working',
-                        'notes' => null,
-                        'created_by' => auth()->id(),
-                        'created_at' => now(),
-                        'updated_at' => now(),
-                    ]);
-                    
-                    $created++;
                 }
             }
             

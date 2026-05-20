@@ -7,7 +7,7 @@
     <meta name="viewport"
         content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes, viewport-fit=cover">
     <meta name="csrf-token" content="{{ csrf_token() }}">
-    <title>National ID Appointment System</title>
+    <title>PhilSys Appointment Management System</title>
     <link rel="icon" type="image/png" sizes="32x32" href="{{ asset('images/psa.png') }}">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <link rel="stylesheet" href="{{ asset('css/appointment.css') }}">
@@ -35,7 +35,7 @@
         <div class="privacy-modal">
             <h2>Privacy Notice</h2>
             <p>This system collects and processes limited personal information solely for the purpose of scheduling,
-                managing, and confirming National ID Appointment System, in accordance with the <span
+                managing, and confirming PhilSys Appointment Management System, in accordance with the <span
                     class="legal-ref">Data Privacy Act of 2012 (RA 10173)</span> and applicable Philippine Statistics
                 Authority (PSA) policies.</p>
             <p>The personal data collected include your full name, email address or mobile number, selected service, and
@@ -412,10 +412,19 @@
         </div>
 
         <div class="footer-note">
-            <span><i class="far fa-copyright"></i> Philippine Statistics Authority</span>
-            <span>National ID System (PhilSys) · Official Portal</span>
-            <span>© {{ date('Y') }} All Rights Reserved</span>
-        </div>
+    <div class="copyright-text">
+        <i class="fas fa-copyright"></i>
+        2026 PSA - Misamis Oriental | PhilSys Appointment Management System. All rights reserved. | RA 11055 (PhilSys Act)
+    </div>
+    <div class="copyright-devs">
+        <i class="fas fa-code"></i>
+        Developed by Shawn Laurence M. Abaco | Kent Zyrone L. Flores
+    </div>
+    <div class="copyright-version">
+        <i class="fas fa-code-branch"></i>
+        Version v1.0.0
+    </div>
+</div>
     </div>
 
     <!-- Hidden fields for location data -->
@@ -2296,7 +2305,7 @@ document.getElementById('successDetails').innerHTML = `
             receiptContainer.innerHTML = `
         <div style="text-align: center; margin-bottom: 20px;">
             <h2 style="color: #2c5f8a; margin: 0; font-size: 1.3rem;">Philippine Statistics Authority</h2>
-            <h3 style="color: #4a5568; margin: 5px 0; font-size: 1rem;">National ID System (PhilSys)</h3>
+            <h3 style="color: #4a5568; margin: 5px 0; font-size: 1rem;">PhilSys Appointment Management System</h3>
             <p style="color: #718096; margin: 5px 0; font-size: 0.85rem;">Applicant Confirmation Slip</p>
         </div>
 

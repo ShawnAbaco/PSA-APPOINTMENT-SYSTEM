@@ -39,101 +39,115 @@
     <meta name="csrf-token" content="{{ csrf_token() }}">
 
     <style>
-        /* Footer Styles */
-        .admin-footer {
-            background: white;
-            border-top: 1px solid var(--gray-200);
-            padding: 20px 30px;
-            margin-top: auto;
-        }
+      /* Footer Styles - Fully Centered */
+.admin-footer {
+    background: white;
+    border-top: 1px solid var(--gray-200);
+    padding: 20px 30px;
+    margin-top: auto;
+}
 
-        .footer-content {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            flex-wrap: wrap;
-            gap: 20px;
-        }
+.footer-content {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
 
-        .footer-copyright {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            color: var(--gray-600);
-            font-size: 13px;
-        }
+.footer-centered {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    gap: 8px;
+}
 
-        .footer-copyright i {
-            color: #CE1126;
-            font-size: 16px;
-        }
+.footer-copyright {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    color: var(--gray-600);
+    font-size: 13px;
+    flex-wrap: wrap;
+}
 
-        .footer-links {
-            display: flex;
-            align-items: center;
-            gap: 24px;
-            flex-wrap: wrap;
-        }
+.footer-copyright i {
+    color: #CE1126;
+    font-size: 14px;
+}
 
-        .footer-links a {
-            color: var(--gray-600);
-            text-decoration: none;
-            font-size: 13px;
-            transition: var(--transition);
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
-        }
+.footer-devs {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    font-size: 12px;
+    color: var(--gray-600);
+    opacity: 0.85;
+    flex-wrap: wrap;
+}
 
-        .footer-links a:hover {
-            color: var(--primary);
-        }
+.footer-devs i {
+    color: var(--primary);
+    font-size: 12px;
+}
 
-        .footer-datetime {
-            display: flex;
-            align-items: center;
-            gap: 16px;
-            color: var(--gray-600);
-            font-size: 13px;
-        }
+.footer-links {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 24px;
+    flex-wrap: wrap;
+}
 
-        .footer-datetime div {
-            display: flex;
-            align-items: center;
-            gap: 6px;
-        }
+.footer-links a {
+    color: var(--gray-600);
+    text-decoration: none;
+    font-size: 13px;
+    transition: var(--transition);
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+}
 
-        .footer-datetime i {
-            color: var(--primary);
-            font-size: 12px;
-        }
+.footer-links a:hover {
+    color: var(--primary);
+}
 
-        .footer-version {
-            background: var(--gray-100);
-            padding: 4px 10px;
-            border-radius: 20px;
-            font-size: 11px;
-            color: var(--gray-600);
-        }
+.footer-version {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    font-size: 11px;
+    font-weight: 500;
+    color: var(--gray-500);
+    background: transparent;
+    padding: 4px 8px;
+    margin-top: 4px;
+}
 
-        @media (max-width: 768px) {
-            .footer-content {
-                flex-direction: column;
-                text-align: center;
-            }
+.footer-version i {
+    font-size: 10px;
+    color: var(--primary);
+}
 
-            .footer-links {
-                justify-content: center;
-            }
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .admin-footer {
+        padding: 16px 20px;
+    }
+    
+    .footer-links {
+        gap: 16px;
+    }
+    
+    .footer-copyright {
+        font-size: 11px;
+    }
+}
 
-            .footer-datetime {
-                justify-content: center;
-            }
-
-            .admin-footer {
-                padding: 16px 20px;
-            }
-        }
     </style>
 
 </head>
@@ -233,10 +247,6 @@
                     </div>
                 </div>
                 <div class="topbar-right">
-                    {{-- <!-- Role Badge -->
-                    <span class="role-badge" id="roleBadge"
-                        style="cursor: pointer;">{{ ucfirst(Auth::user()->role) }}</span> --}}
-
                     <!-- User Full Name -->
                     <span class="user-fullname" id="userFullName"
                         style="cursor: pointer; font-weight: 500; color: var(--gray-700);">
@@ -280,47 +290,50 @@
                 @yield('content')
             </div>
 
-            <!-- Footer -->
-            <footer class="admin-footer">
-                <div class="footer-content">
-                    <div class="footer-copyright">
-                        <i class="fas fa-copyright"></i>
-                        <span>{{ date('Y') }} Philippine Statistics Authority. All rights reserved.</span>
-                    </div>
-                    <div class="footer-links">
-                        <a href="#" id="aboutLink">
-                            <i class="fas fa-info-circle"></i>
-                            About
-                        </a>
-                        <a href="#" id="helpLink">
-                            <i class="fas fa-question-circle"></i>
-                            Help
-                        </a>
-                        <a href="#" id="privacyLink">
-                            <i class="fas fa-shield-alt"></i>
-                            Privacy Policy
-                        </a>
-                        <a href="#" id="contactLink">
-                            <i class="fas fa-envelope"></i>
-                            Contact
-                        </a>
-                    </div>
-                    <div class="footer-datetime">
-                        <div class="footer-date">
-                            <i class="fas fa-calendar-day"></i>
-                            <span id="currentDate"></span>
-                        </div>
-                        <div class="footer-time">
-                            <i class="fas fa-clock"></i>
-                            <span id="currentTime"></span>
-                        </div>
-                        <div class="footer-version">
-                            <i class="fas fa-code-branch"></i>
-                            v1.0.0
-                        </div>
-                    </div>
-                </div>
-            </footer>
+<!-- FOOTER - Fully Centered -->
+<footer class="admin-footer">
+    <div class="footer-content">
+        <div class="footer-centered">
+            <div class="footer-copyright">
+                <i class="fas fa-copyright"></i>
+                <span>
+                    2026 PSA Misamis Oriental | PhilSys Appointment Management System. All rights reserved.
+                </span>
+            </div>
+            
+            <div class="footer-devs">
+                <i class="fas fa-code"></i>
+                <span>
+                    Developed by Shawn Laurence M. Abaco | Kent Zyrone L. Flores
+                </span>
+            </div>
+            
+            <div class="footer-links">
+                <a href="#" id="aboutLink">
+                    <i class="fas fa-info-circle"></i>
+                    About
+                </a>
+                <a href="#" id="helpLink">
+                    <i class="fas fa-question-circle"></i>
+                    Help
+                </a>
+                <a href="#" id="privacyLink">
+                    <i class="fas fa-shield-alt"></i>
+                    Privacy Policy
+                </a>
+                <a href="#" id="contactLink">
+                    <i class="fas fa-envelope"></i>
+                    Contact
+                </a>
+                
+            </div>
+            <div class="footer-version">
+                <i class="fas fa-code-branch"></i>
+                v1.0.0
+            </div>
+        </div>
+    </div>
+</footer>
         </div>
     </div>
 
@@ -564,12 +577,6 @@
                             <div id="qrPreview" style="display: none;" class="qr-preview">
                                 <center><img id="qrImage" class="qr-image" src="" alt="QR Code"></center>
                                 <div id="qrSecret" class="qr-secret"></div>
-                                {{-- <div id="recoveryCodes" class="recovery-codes" style="display: none;">
-                                    <strong><i class="fas fa-key"></i> Recovery Codes (store securely)</strong>
-                                    <ul id="recoveryList"></ul>
-                                    <small>⚠️ These codes can be used to log in if you lose access to your authenticator
-                                        app.</small>
-                                </div> --}}
                             </div>
                         </div>
                     </div>
@@ -596,12 +603,6 @@
         // ============================================================
         function showPSALoader(customText = null) {
             const loader = document.getElementById('psaLoaderModal');
-            const loaderText = document.querySelector('.psa-loader-text');
-            if (loaderText && customText) {
-                loaderText.textContent = customText;
-            } else if (loaderText) {
-                loaderText.textContent = 'Loading...';
-            }
             if (loader) loader.classList.add('show');
             document.body.style.overflow = 'hidden';
         }
@@ -611,38 +612,6 @@
             if (loader) loader.classList.remove('show');
             document.body.style.overflow = '';
         }
-
-        // ============================================================
-        //  DATE & TIME UPDATE
-        // ============================================================
-        function updateDateTime() {
-            const now = new Date();
-
-            const dateOptions = {
-                weekday: 'long',
-                year: 'numeric',
-                month: 'long',
-                day: 'numeric'
-            };
-            const dateElement = document.getElementById('currentDate');
-            if (dateElement) {
-                dateElement.textContent = now.toLocaleDateString('en-US', dateOptions);
-            }
-
-            const timeOptions = {
-                hour: '2-digit',
-                minute: '2-digit',
-                second: '2-digit',
-                hour12: true
-            };
-            const timeElement = document.getElementById('currentTime');
-            if (timeElement) {
-                timeElement.textContent = now.toLocaleTimeString('en-US', timeOptions);
-            }
-        }
-
-        updateDateTime();
-        setInterval(updateDateTime, 1000);
 
         // ============================================================
         //  TOAST NOTIFICATION 
@@ -669,118 +638,7 @@
         }
 
         // ============================================================
-        //  NOTIFICATION MANAGER
-        // ============================================================
-        class NotificationManager {
-            init() {
-                this.render();
-                this.updateBadge();
-                this.attach();
-                setInterval(() => this.demoNew(), 35000);
-            }
-            render() {
-                const container = document.getElementById('notificationList');
-                if (!container) return;
-                if (this.notifications.length === 0) {
-                    container.innerHTML = `<div style="padding:30px;text-align:center;">No notifications</div>`;
-                    return;
-                }
-                container.innerHTML = this.notifications.map(n => `
-            <div class="notification-item ${!n.read ? 'unread' : ''}" data-id="${n.id}">
-                <div class="notification-icon ${n.type}"><i class="fas ${this.getIcon(n.type)}"></i></div>
-                <div class="notification-content">
-                    <div class="notification-title">${escapeHtml(n.title)}</div>
-                    <div class="notification-message">${escapeHtml(n.message)}</div>
-                    <div class="notification-time">${escapeHtml(n.time)}</div>
-                </div>
-            </div>
-        `).join('');
-                document.querySelectorAll('.notification-item').forEach(el => {
-                    el.addEventListener('click', () => this.markRead(parseInt(el.dataset.id)));
-                });
-            }
-            getIcon(type) {
-                if (type === 'success') return 'fa-check-circle';
-                if (type === 'warning') return 'fa-exclamation-triangle';
-                return 'fa-info-circle';
-            }
-            updateBadge() {
-                const badge = document.getElementById('notificationCount');
-                if (badge) {
-                    badge.textContent = this.unreadCount;
-                    badge.style.display = this.unreadCount > 0 ? 'flex' : 'none';
-                }
-            }
-            markRead(id) {
-                const n = this.notifications.find(x => x.id === id);
-                if (n && !n.read) {
-                    n.read = true;
-                    this.unreadCount--;
-                    this.render();
-                    this.updateBadge();
-                    showToast('Notification', 'Marked as read', 'info');
-                }
-            }
-            markAllRead() {
-                this.notifications.forEach(n => n.read = true);
-                this.unreadCount = 0;
-                this.render();
-                this.updateBadge();
-                showToast('Notifications', 'All marked as read', 'success');
-            }
-            demoNew() {
-                const msgs = [{
-                        title: 'New Booking',
-                        message: 'Client requested appointment',
-                        type: 'success'
-                    },
-                    {
-                        title: 'Reminder',
-                        message: 'Appointment in 20 min',
-                        type: 'warning'
-                    },
-                    {
-                        title: 'Info',
-                        message: 'System health check passed',
-                        type: 'info'
-                    }
-                ];
-                const r = msgs[Math.floor(Math.random() * msgs.length)];
-                this.add(r.title, r.message, r.type);
-            }
-            add(title, message, type) {
-                const newN = {
-                    id: Date.now(),
-                    title,
-                    message,
-                    time: 'Just now',
-                    type,
-                    read: false
-                };
-                this.notifications.unshift(newN);
-                this.unreadCount++;
-                this.render();
-                this.updateBadge();
-                showToast(title, message, type);
-            }
-            attach() {
-                const bell = document.getElementById('notificationBell');
-                const dropdown = document.getElementById('notificationDropdown');
-                const markBtn = document.getElementById('markAllRead');
-                if (bell) bell.addEventListener('click', (e) => {
-                    e.stopPropagation();
-                    dropdown.classList.toggle('show');
-                });
-                if (markBtn) markBtn.addEventListener('click', () => this.markAllRead());
-                document.addEventListener('click', (e) => {
-                    if (!bell?.contains(e.target) && !dropdown?.contains(e.target)) dropdown?.classList.remove(
-                        'show');
-                });
-            }
-        }
-
-        // ============================================================
-        //  FOOTER LINK HANDLERS
+        //  FOOTER LINK HANDLERS (date/time removed)
         // ============================================================
         function initFooterLinks() {
             const aboutLink = document.getElementById('aboutLink');
@@ -788,8 +646,6 @@
             const privacyLink = document.getElementById('privacyLink');
             const contactLink = document.getElementById('contactLink');
 
-            // Profile modal triggers - these will open the profile modal
-            const roleBadge = document.getElementById('roleBadge');
             const userFullName = document.getElementById('userFullName');
             const profilePicContainer = document.getElementById('profilePicContainer');
 
@@ -802,113 +658,32 @@
                 }
             }
 
-            // Attach click events to open profile modal (not role badge separately)
-            if (roleBadge) {
-                roleBadge.addEventListener('click', openProfileModal);
-            }
-            if (userFullName) {
-                userFullName.addEventListener('click', openProfileModal);
-            }
-            if (profilePicContainer) {
-                profilePicContainer.addEventListener('click', openProfileModal);
-            }
+            if (userFullName) userFullName.addEventListener('click', openProfileModal);
+            if (profilePicContainer) profilePicContainer.addEventListener('click', openProfileModal);
 
-            // Footer links
             if (aboutLink) {
                 aboutLink.addEventListener('click', (e) => {
                     e.preventDefault();
-                    showToast('About',
-                        'PSA Appointment System v1.0.0<br>Developed for Philippine Statistics Authority', 'info'
-                    );
+                    showToast('About', 'PSA Appointment System v1.0.0<br>Developed for Philippine Statistics Authority', 'info');
                 });
             }
-
             if (helpLink) {
                 helpLink.addEventListener('click', (e) => {
                     e.preventDefault();
-                    showToast('Help',
-                        'For assistance, contact your system administrator or refer to the user manual.', 'info'
-                    );
+                    showToast('Help', 'For assistance, contact your system administrator or refer to the user manual.', 'info');
                 });
             }
-
             if (privacyLink) {
                 privacyLink.addEventListener('click', (e) => {
                     e.preventDefault();
-                    showToast('Privacy Policy',
-                        'All data is handled in accordance with Data Privacy Act of 2012 (RA 10173).', 'info');
+                    showToast('Privacy Policy', 'All data is handled in accordance with Data Privacy Act of 2012 (RA 10173).', 'info');
                 });
             }
-
             if (contactLink) {
                 contactLink.addEventListener('click', (e) => {
                     e.preventDefault();
                     showToast('Contact', 'Email: support@psa.gov.ph<br>Phone: (088) 856-1234', 'info');
                 });
-            }
-        }
-
-        // Function to check if 2FA is really enabled
-        async function check2FAStatus() {
-            try {
-                const response = await fetch('{{ route('admin.2fa.status') }}', {
-                    headers: {
-                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
-                        'Accept': 'application/json'
-                    }
-                });
-                const data = await response.json();
-                return data.enabled === true;
-            } catch (error) {
-                console.error('Error checking 2FA status:', error);
-                return false;
-            }
-        }
-
-        // Modified fetch2FADetails function
-        async function fetch2FADetails() {
-            try {
-                // First check if 2FA is really enabled
-                const isEnabled = await check2FAStatus();
-
-                if (!isEnabled) {
-                    console.log('2FA is not enabled, skipping QR fetch');
-                    if (typeof showToast !== 'undefined') {
-                        showToast('Information', '2FA is not enabled yet. Please enable it first.', 'info');
-                    }
-                    return false;
-                }
-
-                const response = await fetch('{{ route('admin.2fa.qr') }}', {
-                    headers: {
-                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
-                        'Accept': 'application/json'
-                    }
-                });
-
-                if (!response.ok) {
-                    const errorData = await response.json();
-                    throw new Error(errorData.message || 'Failed to fetch 2FA details');
-                }
-
-                const data = await response.json();
-
-                if (data.success) {
-                    display2FADetails(data);
-                    return true;
-                } else {
-                    console.warn('2FA details not available:', data.message);
-                    if (typeof showToast !== 'undefined') {
-                        showToast('Information', data.message || '2FA details not available', 'info');
-                    }
-                    return false;
-                }
-            } catch (error) {
-                console.error('Error fetching 2FA details:', error);
-                if (typeof showToast !== 'undefined') {
-                    showToast('Error', error.message || 'Failed to load 2FA details', 'error');
-                }
-                return false;
             }
         }
 
@@ -938,7 +713,6 @@
         function initLogoutHandler() {
             const logoutForm = document.getElementById('logoutForm');
             const logoutBtn = document.getElementById('logoutBtn');
-
             if (logoutForm && logoutBtn) {
                 logoutForm.addEventListener('submit', function(e) {
                     logoutBtn.classList.add('loading');
@@ -949,80 +723,22 @@
         }
 
         // ============================================================
-        //  FORM SUBMIT LOADER
-        // ============================================================
-        function bindFormLoaders() {
-            const forms = document.querySelectorAll('form:not(#logoutForm)');
-            forms.forEach(form => {
-                form.addEventListener('submit', function(e) {
-                    showPSALoader('Submitting form...');
-                });
-            });
-        }
-
-        // ============================================================
-        //  NAVIGATION LINK LOADER
-        // ============================================================
-        function bindNavigationLoaders() {
-            const navLinks = document.querySelectorAll('.nav-link:not(.logout-btn)');
-            navLinks.forEach(link => {
-                link.addEventListener('click', function(e) {
-                    const href = this.getAttribute('href');
-                    if (href && href !== '#' && !href.startsWith('javascript')) {
-                        showPSALoader('Loading page...');
-                    }
-                });
-            });
-        }
-
-        // ============================================================
-        //  AJAX GLOBAL LOADER
-        // ============================================================
-        if (typeof $ !== 'undefined') {
-            $(document).ajaxStart(function() {
-                showPSALoader('Processing request...');
-            });
-            $(document).ajaxStop(function() {
-                hidePSALoader();
-            });
-            $(document).ajaxError(function() {
-                hidePSALoader();
-            });
-        }
-
-        // ============================================================
-        //  PAGE LOAD COMPLETE
-        // ============================================================
-        window.addEventListener('load', function() {
-            setTimeout(() => hidePSALoader(), 500);
-        });
-
-        window.addEventListener('pageshow', function() {
-            hidePSALoader();
-        });
-
-        // ============================================================
-        //  DOM CONTENT LOADED - Initialize all components
+        //  DOM CONTENT LOADED - Initialize components
         // ============================================================
         document.addEventListener('DOMContentLoaded', function() {
-            window.notificationManager = new NotificationManager();
             initMobileSidebar();
-            bindFormLoaders();
-            bindNavigationLoaders();
             initLogoutHandler();
             initFooterLinks();
 
-            // Profile Modal Functionality
+            // Profile Modal close logic
             const profileModal = document.getElementById('profileModal');
             const closeModalBtn = document.getElementById('closeProfileModal');
-
             if (closeModalBtn) {
                 closeModalBtn.addEventListener('click', function() {
                     profileModal.classList.remove('active');
                     document.body.style.overflow = '';
                 });
             }
-
             if (profileModal) {
                 profileModal.addEventListener('click', function(e) {
                     if (e.target === profileModal) {
@@ -1032,15 +748,14 @@
                 });
             }
 
-            // Tab switching
+            // Tab switching for profile
             const tabs = document.querySelectorAll('.profile-tab');
             tabs.forEach(tab => {
                 tab.addEventListener('click', function() {
                     const tabId = this.dataset.tab;
                     tabs.forEach(t => t.classList.remove('active'));
                     this.classList.add('active');
-                    document.querySelectorAll('.tab-pane').forEach(pane => pane.classList.remove(
-                        'active'));
+                    document.querySelectorAll('.tab-pane').forEach(pane => pane.classList.remove('active'));
                     document.getElementById(tabId).classList.add('active');
                 });
             });
@@ -1052,11 +767,10 @@
                 });
             });
 
-            // Avatar preview
+            // Avatar preview logic
             const photoInput = document.getElementById('profilePhotoInput');
             const editAvatarPreview = document.getElementById('editAvatarPreview');
             const editAvatarPlaceholder = document.getElementById('editAvatarPlaceholder');
-
             if (photoInput) {
                 photoInput.addEventListener('change', function(e) {
                     const file = e.target.files[0];
@@ -1079,585 +793,10 @@
                 });
             }
 
-            // Toggle password visibility
-            document.querySelectorAll('.toggle-password').forEach(icon => {
-                icon.addEventListener('click', function() {
-                    const targetId = this.dataset.target;
-                    const input = document.getElementById(targetId);
-                    if (input.type === 'password') {
-                        input.type = 'text';
-                        this.classList.remove('fa-eye-slash');
-                        this.classList.add('fa-eye');
-                    } else {
-                        input.type = 'password';
-                        this.classList.remove('fa-eye');
-                        this.classList.add('fa-eye-slash');
-                    }
-                });
-            });
-
-            // Password strength checker
-            const newPassword = document.getElementById('newPassword');
-            const confirmPassword = document.getElementById('confirmPassword');
-            const strengthBar = document.getElementById('strengthBar');
-            const strengthText = document.getElementById('strengthText');
-            const matchMessage = document.getElementById('matchMessage');
-
-            function checkPasswordStrength(password) {
-                let score = 0;
-                if (password.length >= 8) score++;
-                if (password.match(/[A-Z]/)) score++;
-                if (password.match(/[a-z]/)) score++;
-                if (password.match(/[0-9]/)) score++;
-                return score;
-            }
-
-            function updateStrengthDisplay() {
-                const password = newPassword ? newPassword.value : '';
-                const score = checkPasswordStrength(password);
-
-                let barClass = '';
-                let textClass = '';
-                let text = '';
-
-                if (password.length === 0) {
-                    barClass = '';
-                    text = '';
-                } else if (score === 1) {
-                    barClass = 'weak';
-                    textClass = 'weak';
-                    text = 'Weak';
-                } else if (score === 2) {
-                    barClass = 'medium';
-                    textClass = 'medium';
-                    text = 'Medium';
-                } else if (score === 3) {
-                    barClass = 'strong';
-                    textClass = 'strong';
-                    text = 'Strong';
-                } else if (score === 4) {
-                    barClass = 'very-strong';
-                    textClass = 'very-strong';
-                    text = 'Very Strong';
-                }
-
-                if (strengthBar) strengthBar.className = 'strength-bar ' + barClass;
-                if (strengthText) {
-                    strengthText.className = 'strength-text ' + textClass;
-                    strengthText.textContent = text;
-                }
-
-                const reqLength = document.getElementById('reqLength');
-                const reqUppercase = document.getElementById('reqUppercase');
-                const reqLowercase = document.getElementById('reqLowercase');
-                const reqNumber = document.getElementById('reqNumber');
-
-                if (reqLength) {
-                    reqLength.className = password.length >= 8 ? 'requirement valid' : 'requirement invalid';
-                    reqLength.innerHTML = (password.length >= 8 ? '<i class="fas fa-check-circle"></i>' :
-                        '<i class="fas fa-circle"></i>') + ' At least 8 characters';
-                }
-                if (reqUppercase) {
-                    reqUppercase.className = password.match(/[A-Z]/) ? 'requirement valid' : 'requirement invalid';
-                    reqUppercase.innerHTML = (password.match(/[A-Z]/) ? '<i class="fas fa-check-circle"></i>' :
-                        '<i class="fas fa-circle"></i>') + ' At least 1 uppercase letter';
-                }
-                if (reqLowercase) {
-                    reqLowercase.className = password.match(/[a-z]/) ? 'requirement valid' : 'requirement invalid';
-                    reqLowercase.innerHTML = (password.match(/[a-z]/) ? '<i class="fas fa-check-circle"></i>' :
-                        '<i class="fas fa-circle"></i>') + ' At least 1 lowercase letter';
-                }
-                if (reqNumber) {
-                    reqNumber.className = password.match(/[0-9]/) ? 'requirement valid' : 'requirement invalid';
-                    reqNumber.innerHTML = (password.match(/[0-9]/) ? '<i class="fas fa-check-circle"></i>' :
-                        '<i class="fas fa-circle"></i>') + ' At least 1 number';
-                }
-            }
-
-            function checkPasswordMatch() {
-                if (!newPassword || !confirmPassword || !matchMessage) return;
-                const password = newPassword.value;
-                const confirm = confirmPassword.value;
-
-                if (confirm.length === 0) {
-                    matchMessage.innerHTML = '';
-                    return;
-                }
-
-                if (password === confirm) {
-                    matchMessage.innerHTML =
-                        '<i class="fas fa-check-circle" style="color: #10b981;"></i> Passwords match';
-                    matchMessage.style.color = '#10b981';
-                } else {
-                    matchMessage.innerHTML =
-                        '<i class="fas fa-exclamation-circle" style="color: #ef4444;"></i> Passwords do not match';
-                    matchMessage.style.color = '#ef4444';
-                }
-            }
-
-            if (newPassword) {
-                newPassword.addEventListener('input', updateStrengthDisplay);
-                newPassword.addEventListener('input', checkPasswordMatch);
-            }
-            if (confirmPassword) {
-                confirmPassword.addEventListener('input', checkPasswordMatch);
-            }
-
-            // Profile Update Form Submission (AJAX)
-            const profileForm = document.getElementById('profileUpdateForm');
-            if (profileForm) {
-                profileForm.addEventListener('submit', function(e) {
-                    e.preventDefault();
-
-                    const formData = new FormData(this);
-                    const saveBtn = document.getElementById('saveProfileBtn');
-
-                    saveBtn.disabled = true;
-                    saveBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving...';
-
-                    formData.append('_method', 'PUT');
-                    fetch(this.action, {
-                            method: 'POST',
-                            headers: {
-                                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')
-                                    .content,
-                                'X-Requested-With': 'XMLHttpRequest'
-                            },
-                            body: formData
-                        })
-                        .then(response => response.json())
-                        .then(data => {
-                            if (data.success) {
-                                document.querySelector('.profile-view-name').textContent = document
-                                    .getElementById('editFirstName').value + ' ' + document
-                                    .getElementById('editLastName').value;
-                                document.getElementById('viewEmail').textContent = document
-                                    .getElementById('editEmail').value;
-                                document.getElementById('viewContact').textContent = document
-                                    .getElementById('editContact').value || 'Not set';
-
-                                const editPreview = document.getElementById('editAvatarPreview');
-                                if (editPreview && editPreview.style.display !== 'none') {
-                                    const viewAvatar = document.getElementById('modalAvatar');
-                                    const viewPlaceholder = document.getElementById(
-                                        'modalAvatarPlaceholder');
-                                    if (viewAvatar) {
-                                        viewAvatar.src = editPreview.src;
-                                        viewAvatar.style.display = 'block';
-                                    }
-                                    if (viewPlaceholder) viewPlaceholder.style.display = 'none';
-                                }
-
-                                const editTab = document.getElementById('edit-tab');
-                                const successAlert = document.createElement('div');
-                                successAlert.className = 'alert alert-success';
-                                successAlert.innerHTML = data.message +
-                                    '<button type="button" class="alert-close" onclick="this.parentElement.remove()">&times;</button>';
-                                editTab.insertBefore(successAlert, editTab.firstChild);
-
-                                saveBtn.disabled = false;
-                                saveBtn.innerHTML = '<i class="fas fa-save"></i> Save Changes';
-                                hidePSALoader();
-
-                                setTimeout(() => {
-                                    document.querySelector('.profile-tab[data-tab="view-tab"]')
-                                        .click();
-                                }, 1500);
-                            } else {
-                                alert(data.message || 'Something went wrong');
-                                saveBtn.disabled = false;
-                                saveBtn.innerHTML = '<i class="fas fa-save"></i> Save Changes';
-                                hidePSALoader();
-                            }
-                        })
-                        .catch(error => {
-                            alert('Network error occurred');
-                            saveBtn.disabled = false;
-                            saveBtn.innerHTML = '<i class="fas fa-save"></i> Save Changes';
-                            hidePSALoader();
-                        });
-                });
-            }
-
-            // Password Update Form Submission (AJAX)
-            const passwordForm = document.getElementById('passwordUpdateForm');
-            if (passwordForm) {
-                passwordForm.addEventListener('submit', function(e) {
-                    e.preventDefault();
-
-                    const password = newPassword.value;
-                    const confirm = confirmPassword.value;
-
-                    if (password !== confirm) {
-                        alert('Passwords do not match!');
-                        return;
-                    }
-
-                    if (password.length < 8) {
-                        alert('Password must be at least 8 characters!');
-                        return;
-                    }
-
-                    const saveBtn = document.getElementById('savePasswordBtn');
-                    saveBtn.disabled = true;
-                    saveBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Updating...';
-
-                    fetch(this.action, {
-                            method: 'POST',
-                            headers: {
-                                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')
-                                    .content,
-                                'Content-Type': 'application/json',
-                                'X-Requested-With': 'XMLHttpRequest'
-                            },
-                            body: JSON.stringify({
-                                current_password: document.getElementById('currentPassword')
-                                    .value,
-                                new_password: password,
-                                new_password_confirmation: confirm
-                            })
-                        })
-                        .then(response => response.json())
-                        .then(data => {
-                            if (data.success) {
-                                const passwordTab = document.getElementById('password-tab');
-                                const successAlert = document.createElement('div');
-                                successAlert.className = 'alert alert-success';
-                                successAlert.innerHTML = data.message +
-                                    '<button type="button" class="alert-close" onclick="this.parentElement.remove()">&times;</button>';
-                                passwordTab.insertBefore(successAlert, passwordTab.firstChild);
-
-                                passwordForm.reset();
-                                if (strengthBar) strengthBar.className = 'strength-bar';
-                                if (strengthText) strengthText.textContent = '';
-                                if (matchMessage) matchMessage.innerHTML = '';
-
-                                saveBtn.disabled = false;
-                                saveBtn.innerHTML = '<i class="fas fa-save"></i> Update Password';
-                                hidePSALoader();
-
-                                setTimeout(() => {
-                                    document.querySelector('.profile-tab[data-tab="view-tab"]')
-                                        .click();
-                                }, 2000);
-                            } else {
-                                alert(data.message || 'Current password is incorrect');
-                                saveBtn.disabled = false;
-                                saveBtn.innerHTML = '<i class="fas fa-save"></i> Update Password';
-                                hidePSALoader();
-                            }
-                        })
-                        .catch(error => {
-                            alert('Network error occurred');
-                            saveBtn.disabled = false;
-                            saveBtn.innerHTML = '<i class="fas fa-save"></i> Update Password';
-                            hidePSALoader();
-                        });
-                });
-            }
-
-            // ============================================================
-            //  TWO-FACTOR AUTHENTICATION CODE (UPDATED)
-            // ============================================================
-            const manage2faBtn = document.getElementById('manage2faBtn');
-            const twoFactorPanel = document.getElementById('twoFactorPanel');
-            const apply2faBtn = document.getElementById('apply2faBtn');
-            const showQrBtn = document.getElementById('showQrBtn');
-            const qrPreview = document.getElementById('qrPreview');
-            const qrImage = document.getElementById('qrImage');
-            const qrSecret = document.getElementById('qrSecret');
-            const twoFactorStatus = document.getElementById('twoFactorStatus');
-            const recoveryCodes = document.getElementById('recoveryCodes');
-            const recoveryList = document.getElementById('recoveryList');
-
-            if (manage2faBtn) {
-                manage2faBtn.addEventListener('click', () => {
-                    if (twoFactorPanel) {
-                        twoFactorPanel.style.display = twoFactorPanel.style.display === 'none' ? 'block' :
-                            'none';
-                    }
-                });
-            }
-
-            // Function to display 2FA details
-            function display2FADetails(data) {
-                console.log('Displaying 2FA details:', data);
-
-                if (qrPreview) {
-                    // Show QR code if available
-                    if (data.qr_image || data.qr) {
-                        if (qrImage) {
-                            qrImage.src = data.qr_image || data.qr;
-                            qrImage.style.display = 'block';
-                        }
-                        // Remove manual setup instructions if they exist
-                        const existingManual = qrPreview.querySelector('.manual-setup');
-                        if (existingManual) existingManual.remove();
-                    } else {
-                        // If no QR code, hide image and show instructions
-                        if (qrImage) qrImage.style.display = 'none';
-
-                        // Display manual setup instructions
-                        const manualInstructions = document.createElement('div');
-                        manualInstructions.className = 'manual-setup';
-                        manualInstructions.style.cssText =
-                            'background: #fff3cd; padding: 12px; border-radius: 8px; margin-top: 10px;';
-                        manualInstructions.innerHTML = `
-                    <strong><i class="fas fa-info-circle"></i> Manual Setup Required:</strong><br>
-                    <p style="margin: 8px 0; font-size: 13px;">Your authenticator app may not support QR codes. Use these details instead:</p>
-                    <div style="background: white; padding: 10px; border-radius: 6px; margin: 10px 0;">
-                        <strong>Key (Secret):</strong> <code style="font-size: 14px; word-break: break-all;">${escapeHtml(data.secret)}</code>
-                    </div>
-                    <p style="font-size: 12px; margin: 5px 0;"><i class="fas fa-mobile-alt"></i> In your authenticator app, select "Manual Entry" and enter the details above.</p>
-                `;
-
-                        // Remove previous manual instructions if any
-                        const existingManual = qrPreview.querySelector('.manual-setup');
-                        if (existingManual) existingManual.remove();
-                        qrPreview.appendChild(manualInstructions);
-                    }
-
-                    if (qrSecret && data.secret) {
-                        qrSecret.textContent = data.secret;
-                        qrSecret.style.display = 'block';
-                    }
-
-                    // Make sure QR preview is visible
-                    qrPreview.style.display = 'block';
-                    qrPreview.style.visibility = 'visible';
-
-                    // Scroll to QR code
-                    qrPreview.scrollIntoView({
-                        behavior: 'smooth',
-                        block: 'nearest'
-                    });
-                }
-
-                if (recoveryCodes && data.recovery_codes && data.recovery_codes.length > 0) {
-                    if (recoveryList) {
-                        recoveryList.innerHTML = '';
-                        data.recovery_codes.forEach(code => {
-                            const li = document.createElement('li');
-                            li.textContent = code;
-                            recoveryList.appendChild(li);
-                        });
-                    }
-                    recoveryCodes.style.display = 'block';
-                }
-            }
-
-            // Function to fetch 2FA details
-            async function fetch2FADetails() {
-                try {
-                    const response = await fetch('{{ route('admin.2fa.qr') }}', {
-                        headers: {
-                            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
-                            'Accept': 'application/json'
-                        }
-                    });
-
-                    if (!response.ok) {
-                        throw new Error('Failed to fetch 2FA details');
-                    }
-
-                    const data = await response.json();
-
-                    if (data.success) {
-                        display2FADetails(data);
-                        return true;
-                    } else {
-                        console.warn('2FA details not available:', data.message);
-                        return false;
-                    }
-                } catch (error) {
-                    console.error('Error fetching 2FA details:', error);
-                    if (typeof showToast !== 'undefined') {
-                        showToast('Error', 'Failed to load 2FA details', 'error');
-                    }
-                    return false;
-                }
-            }
-
-            if (apply2faBtn) {
-                apply2faBtn.addEventListener('click', async () => {
-                    const action = document.querySelector('input[name="2fa_action"]:checked');
-                    if (!action) {
-                        if (typeof showToast !== 'undefined') {
-                            showToast('Two-Factor', 'Please select enable or disable first', 'warning');
-                        } else {
-                            alert('Please select enable or disable first');
-                        }
-                        return;
-                    }
-
-                    if (action.value === 'disable') {
-                        if (!confirm(
-                                '⚠️ Warning: Disabling 2FA will make your account less secure.\n\nAre you sure you want to disable two-factor authentication?'
-                            )) {
-                            return;
-                        }
-                    }
-
-                    const btnText = apply2faBtn.innerHTML;
-                    apply2faBtn.disabled = true;
-                    apply2faBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processing...';
-
-                    try {
-                        const response = await fetch('{{ route('admin.2fa.toggle') }}', {
-                            method: 'POST',
-                            headers: {
-                                'Content-Type': 'application/json',
-                                'X-CSRF-TOKEN': document.querySelector(
-                                    'meta[name="csrf-token"]').content,
-                                'Accept': 'application/json'
-                            },
-                            body: JSON.stringify({
-                                action: action.value
-                            })
-                        });
-
-                        const data = await response.json();
-
-                        if (data.success) {
-                            // Update status display
-                            if (twoFactorStatus) {
-                                twoFactorStatus.textContent = data.enabled ? 'Enabled' : 'Disabled';
-                                twoFactorStatus.className =
-                                    `twofa-status ${data.enabled ? 'enabled' : 'disabled'}`;
-                            }
-
-                            // Update radio buttons
-                            const enableRadio = document.querySelector(
-                                'input[name="2fa_action"][value="enable"]');
-                            const disableRadio = document.querySelector(
-                                'input[name="2fa_action"][value="disable"]');
-                            if (enableRadio && disableRadio) {
-                                if (data.enabled) {
-                                    disableRadio.checked = true;
-                                } else {
-                                    enableRadio.checked = true;
-                                }
-                            }
-
-                            // Show/hide QR button
-                            if (showQrBtn) {
-                                showQrBtn.style.display = data.enabled ? 'inline-block' : 'none';
-                            }
-
-                            if (data.enabled) {
-                                // Display QR and recovery codes from response
-                                if (data.qr_image || data.qr) {
-                                    display2FADetails(data);
-                                } else {
-                                    // If not in response, fetch them
-                                    setTimeout(async () => {
-                                        await fetch2FADetails();
-                                    }, 500);
-                                }
-
-                                if (typeof showToast !== 'undefined') {
-                                    showToast('Success',
-                                        '2FA has been enabled! Please scan the QR code with your authenticator app.',
-                                        'success');
-                                }
-                            } else {
-                                // Hide QR preview when disabled
-                                if (qrPreview) {
-                                    qrPreview.style.display = 'none';
-                                    // Remove manual instructions
-                                    const existingManual = qrPreview.querySelector('.manual-setup');
-                                    if (existingManual) existingManual.remove();
-                                }
-                                if (recoveryCodes) recoveryCodes.style.display = 'none';
-                                if (qrImage) qrImage.src = '';
-                                if (qrSecret) qrSecret.textContent = '';
-
-                                if (typeof showToast !== 'undefined') {
-                                    showToast('Success', '2FA has been disabled', 'success');
-                                }
-                            }
-                        } else {
-                            if (typeof showToast !== 'undefined') {
-                                showToast('Error', data.message || 'Unable to update 2FA settings',
-                                    'error');
-                            } else {
-                                alert(data.message || 'Unable to update 2FA settings');
-                            }
-                        }
-                    } catch (error) {
-                        console.error('2FA toggle error:', error);
-                        if (typeof showToast !== 'undefined') {
-                            showToast('Error', 'Network error occurred. Please try again.', 'error');
-                        } else {
-                            alert('Network error occurred. Please try again.');
-                        }
-                    } finally {
-                        apply2faBtn.disabled = false;
-                        apply2faBtn.innerHTML = btnText;
-                    }
-                });
-            }
-
-            if (showQrBtn) {
-                showQrBtn.addEventListener('click', async () => {
-                    const btnText = showQrBtn.innerHTML;
-                    showQrBtn.disabled = true;
-                    showQrBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Loading...';
-
-                    try {
-                        const response = await fetch('{{ route('admin.2fa.qr') }}', {
-                            headers: {
-                                'X-CSRF-TOKEN': document.querySelector(
-                                    'meta[name="csrf-token"]').content,
-                                'Accept': 'application/json'
-                            }
-                        });
-
-                        const data = await response.json();
-
-                        if (data.success) {
-                            if (qrPreview.style.display === 'none' || qrPreview.style.display === '') {
-                                display2FADetails(data);
-                            } else {
-                                qrPreview.style.display = 'none';
-                                if (recoveryCodes) recoveryCodes.style.display = 'none';
-                            }
-                        } else {
-                            if (typeof showToast !== 'undefined') {
-                                showToast('Information',
-                                    '2FA is not enabled yet. Please enable it first.', 'info');
-                            }
-                        }
-                    } catch (error) {
-                        console.error('Error fetching QR code:', error);
-                        if (typeof showToast !== 'undefined') {
-                            showToast('Error', 'Failed to load QR code. Please try again.', 'error');
-                        }
-                    } finally {
-                        showQrBtn.disabled = false;
-                        showQrBtn.innerHTML = btnText;
-                    }
-                });
-            }
-
-            // When Two-Factor tab is opened, check if 2FA is enabled and fetch details
-            const twofaTab = document.querySelector('.profile-tab[data-tab="twofa-tab"]');
-            if (twofaTab) {
-                twofaTab.addEventListener('click', async function() {
-                    // If 2FA is enabled, fetch the QR and recovery codes
-                    const statusElement = document.getElementById('twoFactorStatus');
-                    if (statusElement && statusElement.textContent === 'Enabled') {
-                        // Small delay to ensure tab content is visible
-                        setTimeout(async () => {
-                            await fetch2FADetails();
-                        }, 100);
-                    }
-                });
-            }
-
             window.showPSALoader = showPSALoader;
             window.hidePSALoader = hidePSALoader;
 
+            // auto-dismiss alerts
             setTimeout(() => {
                 document.querySelectorAll('.alert').forEach(alert => {
                     alert.style.opacity = '0';
@@ -1665,11 +804,8 @@
                     setTimeout(() => alert.remove(), 300);
                 });
             }, 4000);
-
             document.querySelectorAll('.alert-close').forEach(btn => {
-                btn.addEventListener('click', function() {
-                    this.parentElement.remove();
-                });
+                btn.addEventListener('click', function() { this.parentElement.remove(); });
             });
         });
     </script>

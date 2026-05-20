@@ -237,7 +237,7 @@ class MailService
             <div class="container">
                 <div class="header">
                     <div class="logo">Philippine Statistics Authority</div>
-                    <div class="subtitle">National ID Appointment Management System</div>
+                    <div class="subtitle">PhilSys Appointment Management System</div>
                 </div>
                 
                 <div class="success">
