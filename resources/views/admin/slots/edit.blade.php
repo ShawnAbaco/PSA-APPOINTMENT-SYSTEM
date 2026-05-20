@@ -169,17 +169,18 @@
         
         if (dayType === 'holiday') {
             capacityInputs.forEach(input => {
-                input.disabled = true;
+                input.readOnly = true;
                 input.value = 0;
+                input.style.backgroundColor = '#f0f0f0';
             });
         } else if (dayType === 'half_day') {
             capacityInputs.forEach(input => {
-                input.disabled = false;
+                input.readOnly = false;
                 input.style.backgroundColor = '#fff3e0';
             });
         } else {
             capacityInputs.forEach(input => {
-                input.disabled = false;
+                input.readOnly = false;
                 input.style.backgroundColor = '';
             });
         }
@@ -229,6 +230,12 @@
         if (!validateCapacityReduction()) return false;
         
         const formData = new FormData(form);
+        
+        // Explicitly add capacity values to ensure they're included
+        formData.set('reg_capacity', regCapacity.value || 0);
+        formData.set('updating_capacity', updatingCapacity.value || 0);
+        formData.set('inquiry_capacity', inquiryCapacity.value || 0);
+        
         const submitBtn = form.querySelector('button[type="submit"]');
         const originalText = submitBtn.innerHTML;
         submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Updating...';
