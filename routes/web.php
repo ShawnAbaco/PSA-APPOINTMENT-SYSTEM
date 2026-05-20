@@ -144,15 +144,22 @@ Route::get('/get-default-capacities', [App\Http\Controllers\Admin\SlotController
         Route::delete('/{id}', [App\Http\Controllers\Admin\SettingsController::class, 'destroyTimeSlot'])->name('destroy');
     });
 
-    // Users
-    Route::get('/users', [App\Http\Controllers\Admin\UserController::class, 'index'])->name('users.index');
-    Route::get('/users/create', [App\Http\Controllers\Admin\UserController::class, 'create'])->name('users.create');
-    Route::post('/users', [App\Http\Controllers\Admin\UserController::class, 'store'])->name('users.store');
-    Route::get('/users/{id}/edit', [App\Http\Controllers\Admin\UserController::class, 'edit'])->name('users.edit');
-    Route::put('/users/{id}', [App\Http\Controllers\Admin\UserController::class, 'update'])->name('users.update');
-    Route::delete('/users/{id}', [App\Http\Controllers\Admin\UserController::class, 'destroy'])->name('users.destroy');
-    Route::put('/users/{id}/approve', [App\Http\Controllers\Admin\UserController::class, 'approveAccount'])->name('users.approve');
-    Route::put('/users/{id}/reject', [App\Http\Controllers\Admin\UserController::class, 'rejectAccount'])->name('users.reject');
+ // Users
+Route::get('/users', [App\Http\Controllers\Admin\UserController::class, 'index'])->name('users.index');
+Route::get('/users/create', [App\Http\Controllers\Admin\UserController::class, 'create'])->name('users.create');
+Route::post('/users', [App\Http\Controllers\Admin\UserController::class, 'store'])->name('users.store');
+Route::get('/users/{id}/edit', [App\Http\Controllers\Admin\UserController::class, 'edit'])->name('users.edit');
+Route::put('/users/{id}', [App\Http\Controllers\Admin\UserController::class, 'update'])->name('users.update');
+Route::delete('/users/{id}', [App\Http\Controllers\Admin\UserController::class, 'destroy'])->name('users.destroy');
+Route::put('/users/{id}/approve', [App\Http\Controllers\Admin\UserController::class, 'approveAccount'])->name('users.approve');
+Route::put('/users/{id}/reject', [App\Http\Controllers\Admin\UserController::class, 'rejectAccount'])->name('users.reject');
+
+// Soft delete routes for users
+Route::get('/users/trashed', [App\Http\Controllers\Admin\UserController::class, 'trashed'])->name('users.trashed');
+Route::post('/users/{id}/restore', [App\Http\Controllers\Admin\UserController::class, 'restore'])->name('users.restore');
+Route::delete('/users/{id}/force-delete', [App\Http\Controllers\Admin\UserController::class, 'forceDelete'])->name('users.force-delete');
+Route::get('/users/debug-employees', [App\Http\Controllers\Admin\UserController::class, 'debugEmployeeIds'])->name('users.debug-employees');
+
 
     // Reports
     Route::get('/reports', [App\Http\Controllers\Admin\ReportController::class, 'index'])->name('reports.index');

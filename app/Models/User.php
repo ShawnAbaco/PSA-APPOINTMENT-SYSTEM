@@ -19,6 +19,9 @@ class User extends Authenticatable
      *
      * @var list<string>
      */
+
+    protected $dates = ['deleted_at'];
+    
     protected $fillable = [
         'employee_id',
         'username',
@@ -157,7 +160,7 @@ class User extends Authenticatable
         if ($this->isAdmin()) {
             return true;
         }
-        
+
         $permissions = $this->permissions ?? [];
         return in_array($permission, $permissions) || in_array('*', $permissions);
     }

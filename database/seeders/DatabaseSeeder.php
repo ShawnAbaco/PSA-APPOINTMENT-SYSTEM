@@ -15,7 +15,7 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
-        
+
          $this->call([
             UserSeeder::class,
             TimeSlotSeeder::class,           // Add this first
@@ -23,7 +23,6 @@ class DatabaseSeeder extends Seeder
             ServicesTableSeeder::class,
             SettingsTableSeeder::class,
             WorkingDaysDefaultsTableSeeder::class,
-            WorkingDaysOverridesSeeder::class,
             SlotCapacityRulesSeeder::class,
             DocumentRequirementsSeeder::class,
         ]);
