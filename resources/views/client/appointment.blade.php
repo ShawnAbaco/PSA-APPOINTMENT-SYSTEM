@@ -7,10 +7,11 @@
     <meta name="viewport"
         content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes, viewport-fit=cover">
     <meta name="csrf-token" content="{{ csrf_token() }}">
-    <title>PhilSys Appointment Management System</title>
+    <title>PhilSys Appointment System</title>
     <link rel="icon" type="image/png" sizes="32x32" href="{{ asset('images/psa.png') }}">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
-    <link rel="stylesheet" href="{{ asset('css/appointment.css') }}">
+    <link rel="stylesheet" href="{{ asset('css/appointment/appointment.css') }}">
+    <link rel="stylesheet" href="{{ asset('css/appointment/responsive.css') }}">
     <!-- SweetAlert2 CSS -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
 
@@ -108,7 +109,7 @@
         </div>
 
         <div class="stepper">
-            <div class="step active" id="step1"><span class="step-num"></span> Guide</div>
+            <div class="step active" id="step1"><span class="step-num">0</span> Guide</div>
             <div class="step" id="step2"><span class="step-num">1</span> Applicants</div>
             <div class="step" id="step3"><span class="step-num">2</span> Schedule</div>
             <div class="step" id="step4"><span class="step-num">3</span> Contact</div>
@@ -130,49 +131,55 @@
 
                 <div class="howto-grid">
                     <div class="howto-card">
-                        <div class="howto-icon">
-                            <i class="fas fa-user-plus"></i>
-                        </div>
                         <span class="howto-step">STEP 1</span>
-                        <h3>Add Applicants</h3>
-                        <p>Add the person/s who will attend the appointment. Maximum of <strong>4 persons</strong> per
-                            booking.</p>
-                        <small>Each person can select their own service type</small>
+                        <h3>Start Booking</h3>
+                        <p>Click <strong>"Start Booking"</strong> button scroll below to begin your appointment process.</p>
+                        <small>Initial step to access the booking system</small>
                     </div>
                     <div class="howto-card">
-                        <div class="howto-icon">
-                            <i class="fas fa-calendar-alt"></i>
-                        </div>
                         <span class="howto-step">STEP 2</span>
-                        <h3>Select Schedule</h3>
-                        <p>Choose your preferred appointment date and available time slot based on your selected
-                            services.</p>
-                        <small>Real-time slot availability</small>
+                        <h3>Add Applicants</h3>
+                        <p>Add up to <strong>4 persons</strong> per booking. Enter name, sex, birthdate, and select service type.</p>
+                        <small>Each person selects their own service</small>
                     </div>
                     <div class="howto-card">
-                        <div class="howto-icon">
-                            <i class="fas fa-phone-alt"></i>
-                        </div>
                         <span class="howto-step">STEP 3</span>
-                        <h3>Contact Info</h3>
-                        <p>Provide your contact details for appointment confirmation and reminders.</p>
-                        <small>Email & mobile number</small>
+                        <h3>Pick Date & Time</h3>
+                        <p>Select a <strong>green highlighted date</strong> on the calendar, then choose an available time slot for each applicant.</p>
+                        <small>Gray dates = unavailable</small>
                     </div>
                     <div class="howto-card">
-                        <div class="howto-icon">
-                            <i class="fas fa-check-double"></i>
-                        </div>
                         <span class="howto-step">STEP 4</span>
-                        <h3>Review & Confirm</h3>
-                        <p>Double-check all information and confirm your appointment.</p>
-                        <small>Download your confirmation as PNG or PDF</small>
+                        <h3>Contact Details</h3>
+                        <p>Provide contact person name, email (optional), and <strong>10-digit mobile number starting with 9</strong>.</p>
+                        <small>For appointment confirmation & reminders</small>
                     </div>
                 </div>
 
+                <div class="howto-grid second-row">
+                    <div class="howto-card">
+                        <span class="howto-step">STEP 5</span>
+                        <h3>Review Information</h3>
+                        <p>Double-check all applicant names, services, date, time slots, and contact info for accuracy before proceeding.</p>
+                        <small>Verify everything is correct</small>
+                    </div>
+                    <div class="howto-card">
+                        <span class="howto-step">STEP 6</span>
+                        <h3>Confirm & Submit</h3>
+                        <p>Check the confirmation box and click <strong>"Confirm & Submit"</strong>. Wait for processing to complete.</p>
+                        <small>Final submission step</small>
+                    </div>
+                    <div class="howto-card">
+                        <span class="howto-step">STEP 7</span>
+                        <h3>Save Confirmation</h3>
+                        <p>Save your <strong>Appointment Slip.</strong> Download your slip as PNG or PDF. A PDF copy will be sent to your email if provided. <strong>If no email was provided, please save your slip now as you cannot retrieve it again.</strong></p>
+                        <small>Don't lose your Slip!</small>
+                    </div>
+                </div>
                 <div style="background: #e3f2fd; padding: 15px; border-radius: 10px; margin-bottom: 20px;">
                     <i class="fas fa-info-circle" style="color: #2c5f8a;"></i>
                     <strong>Important Reminders:</strong>
-                    <ul style="margin-top: 10px; margin-bottom: 0;">
+                    <ul style="margin-top: 10px; margin-bottom: 0; margin-left: 20px">
                         <li>Maximum of 4 persons per appointment</li>
                         <li>Each person can select their own service type</li>
                         <li>Bring valid IDs and required documents</li>
@@ -356,7 +363,7 @@
 
         <!-- Applicants Section -->
         <div style="margin-bottom: 20px;">
-            <div style="background: var(--primary); color: white; padding: 8px 12px; border-radius: 8px; margin-bottom: 10px;">
+            <div style="background: var(--primary); color: rgb(0, 0, 0); padding: 8px 12px; border-radius: 8px; margin-bottom: 10px;">
                 <i class="fas fa-users"></i> Applicants (<span id="sumClients">0</span>)
             </div>
             <div id="sumApplicantsList" style="padding: 10px; background: white; border-radius: 8px; border: 1px solid var(--gray-200);">
@@ -366,7 +373,7 @@
 
         <!-- Schedule Section -->
         <div style="margin-bottom: 20px;">
-            <div style="background: var(--primary); color: white; padding: 8px 12px; border-radius: 8px; margin-bottom: 10px;">
+            <div style="background: var(--primary); color: rgb(0, 0, 0); padding: 8px 12px; border-radius: 8px; margin-bottom: 10px;">
                 <i class="far fa-calendar-alt"></i> Schedule
             </div>
             <div id="sumDateTime" style="padding: 12px; background: white; border-radius: 8px; border: 1px solid var(--gray-200);">
@@ -376,7 +383,7 @@
 
         <!-- Contact Section -->
         <div style="margin-bottom: 20px;">
-            <div style="background: var(--primary); color: white; padding: 8px 12px; border-radius: 8px; margin-bottom: 10px;">
+            <div style="background: var(--primary); color: rgb(0, 0, 0); padding: 8px 12px; border-radius: 8px; margin-bottom: 10px;">
                 <i class="fas fa-address-book"></i> Contact Information
             </div>
             <div id="sumContact" style="padding: 12px; background: white; border-radius: 8px; border: 1px solid var(--gray-200);">
@@ -433,584 +440,6 @@
     <input type="hidden" id="userCity" value="">
     <input type="hidden" id="userAddress" value="">
     <input type="hidden" id="userZipcode" value="">
-
-    <style>
-        /* Per Applicant Time Slot Styles */
-        .applicant-time-slot-card {
-            background: white;
-            border: 1px solid var(--gray-200);
-            border-radius: 12px;
-            margin-bottom: 20px;
-            overflow: hidden;
-            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
-            transition: box-shadow 0.2s ease;
-        }
-
-        .applicant-time-slot-card:hover {
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-        }
-
-        .applicant-time-slot-header {
-            background: linear-gradient(135deg, var(--gray-50) 0%, #f8f9fa 100%);
-            padding: 15px 20px;
-            border-bottom: 1px solid var(--gray-200);
-            display: flex;
-            align-items: center;
-            gap: 12px;
-        }
-
-        .applicant-time-slot-header i {
-            font-size: 1.3rem;
-            color: var(--primary);
-        }
-
-        .applicant-time-slot-header .applicant-name {
-            font-weight: 600;
-            color: var(--gray-800);
-            font-size: 1rem;
-        }
-
-        .applicant-time-slot-header .applicant-service {
-            font-size: 0.75rem;
-            color: var(--gray-500);
-            margin-left: auto;
-            background: var(--gray-100);
-            padding: 4px 10px;
-            border-radius: 20px;
-        }
-
-        /* Selected time display */
-        .applicant-time-selected {
-            padding: 15px 20px;
-            background: linear-gradient(135deg, #e8f5e9 0%, #c8e6c9 100%);
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            flex-wrap: wrap;
-            gap: 10px;
-            border-left: 4px solid var(--success);
-        }
-
-        .applicant-time-selected .selected-time-display {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            flex-wrap: wrap;
-        }
-
-        .applicant-time-selected .selected-time-display i {
-            color: var(--success);
-            font-size: 1.1rem;
-        }
-
-        .applicant-time-selected .selected-time-display span:first-of-type {
-            color: var(--gray-600);
-            font-size: 0.85rem;
-        }
-
-        .applicant-time-selected .selected-time-display .time-value {
-            font-weight: 700;
-            color: var(--gray-800);
-            background: white;
-            padding: 4px 12px;
-            border-radius: 20px;
-            font-size: 0.9rem;
-        }
-
-        /* Change Time button */
-        .btn-change-time {
-            background: white;
-            border: 1px solid var(--gray-300);
-            padding: 8px 16px;
-            border-radius: 25px;
-            cursor: pointer;
-            font-size: 0.8rem;
-            color: var(--gray-700);
-            transition: all 0.2s ease;
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
-            font-weight: 500;
-        }
-
-        .btn-change-time:hover {
-            background: var(--gray-100);
-            border-color: var(--gray-400);
-            transform: translateY(-1px);
-        }
-
-        .btn-change-time i {
-            font-size: 0.75rem;
-        }
-
-        /* Time options container */
-        .applicant-time-options {
-            padding: 20px;
-            display: none;
-            background: #fafbfc;
-        }
-
-        .applicant-time-options.visible {
-            display: block;
-            animation: fadeIn 0.3s ease;
-        }
-
-        @keyframes fadeIn {
-            from {
-                opacity: 0;
-                transform: translateY(-10px);
-            }
-
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-
-        /* Time slots grid - 2 columns on mobile, more on desktop */
-        .time-slots-compact {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 12px;
-            margin-top: 12px;
-        }
-
-        /* Individual time slot option */
-        .time-slot-option {
-            background: white;
-            border: 1px solid var(--gray-300);
-            border-radius: 10px;
-            padding: 10px 12px;
-            cursor: pointer;
-            font-size: 0.85rem;
-            font-weight: 500;
-            transition: all 0.2s ease;
-            color: var(--gray-700);
-            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.02);
-            text-align: center;
-        }
-
-        .time-slot-option:hover:not(.disabled) {
-            background: var(--primary);
-            border-color: var(--primary);
-            color: white;
-            transform: translateY(-2px);
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-        }
-
-        .time-slot-option.selected {
-            background: var(--primary);
-            border-color: var(--primary);
-            color: white;
-            box-shadow: 0 2px 4px rgba(0, 123, 255, 0.3);
-        }
-
-        .time-slot-option.disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
-            background: var(--gray-100);
-            color: var(--gray-500);
-            text-decoration: line-through;
-        }
-
-        .time-slot-option.disabled:hover {
-            background: var(--gray-100);
-            color: var(--gray-500);
-            transform: none;
-            box-shadow: none;
-        }
-
-        /* Slot info messages */
-        .slot-info {
-            background: #e3f2fd;
-            padding: 15px 20px;
-            border-radius: 10px;
-            margin: 15px 0;
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            color: #1565c0;
-            font-size: 0.9rem;
-        }
-
-        .slot-info i {
-            font-size: 1.2rem;
-        }
-
-        /* Selected date display */
-        .selected-date-display {
-            background: #f0fdf4;
-            padding: 12px 16px;
-            border-radius: 10px;
-            margin: 20px 0;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            font-size: 0.9rem;
-            border: 1px solid #bbf7d0;
-        }
-
-        .selected-date-display i {
-            color: var(--success);
-            font-size: 1.1rem;
-        }
-
-        /* Desktop styles - more columns */
-        @media (min-width: 768px) {
-            .time-slots-compact {
-                grid-template-columns: repeat(3, 1fr);
-                gap: 15px;
-            }
-
-            .time-slot-option {
-                padding: 12px 18px;
-                font-size: 0.9rem;
-            }
-        }
-
-        @media (min-width: 1024px) {
-            .time-slots-compact {
-                grid-template-columns: repeat(4, 1fr);
-            }
-        }
-
-        /* Responsive adjustments for mobile */
-        @media (max-width: 768px) {
-            .applicant-time-slot-header {
-                flex-wrap: wrap;
-                gap: 8px;
-            }
-
-            .applicant-time-slot-header .applicant-service {
-                margin-left: 0;
-            }
-
-            .applicant-time-selected {
-                flex-direction: column;
-                align-items: flex-start;
-            }
-
-            .applicant-time-selected .selected-time-display {
-                width: 100%;
-                justify-content: space-between;
-            }
-
-            .btn-change-time {
-                width: 100%;
-                justify-content: center;
-            }
-
-            .time-slots-compact {
-                gap: 10px;
-            }
-
-            .time-slot-option {
-                padding: 10px 12px;
-                font-size: 0.8rem;
-            }
-
-            /* Better touch targets for mobile */
-            .time-slot-option,
-            .btn-change-time {
-                min-height: 44px;
-            }
-        }
-
-        /* Small mobile phones */
-        @media (max-width: 480px) {
-            .time-slots-compact {
-                gap: 8px;
-            }
-
-            .time-slot-option {
-                padding: 8px 10px;
-                font-size: 0.75rem;
-            }
-
-            .applicant-time-options {
-                padding: 15px;
-            }
-        }
-
-        /* Calendar day styles */
-        .calendar-day {
-            cursor: pointer;
-            transition: all 0.2s ease;
-        }
-
-        .calendar-day.available {
-            background: #e8f5e9;
-            color: #2e7d32;
-            font-weight: 500;
-        }
-
-        .calendar-day.available:hover {
-            background: #c8e6c9;
-            transform: scale(1.02);
-        }
-
-        .calendar-day.selected {
-            background: var(--primary);
-            color: white;
-        }
-
-        .calendar-day.disabled {
-            background: #f5f5f5;
-            color: #bdbdbd;
-            cursor: not-allowed;
-        }
-
-        /* Time slots grid inside schedule (if still used) */
-        .time-slots-grid {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 12px;
-            margin-top: 15px;
-        }
-
-        @media (min-width: 768px) {
-            .time-slots-grid {
-                grid-template-columns: repeat(3, 1fr);
-            }
-        }
-
-        @media (min-width: 1024px) {
-            .time-slots-grid {
-                grid-template-columns: repeat(4, 1fr);
-            }
-        }
-
-        .time-slot-card {
-            background: white;
-            border: 1px solid var(--gray-300);
-            border-radius: 10px;
-            padding: 12px 16px;
-            cursor: pointer;
-            transition: all 0.2s ease;
-            text-align: center;
-        }
-
-        .time-slot-card:hover {
-            background: var(--primary);
-            border-color: var(--primary);
-            color: white;
-        }
-
-        .time-slot-card.selected {
-            background: var(--primary);
-            border-color: var(--primary);
-            color: white;
-        }
-
-        /* Loading spinner */
-        .spinner {
-            width: 40px;
-            height: 40px;
-            border: 4px solid #f3f3f3;
-            border-top: 4px solid var(--primary);
-            border-radius: 50%;
-            animation: spin 1s linear infinite;
-            margin: 0 auto;
-        }
-
-        @keyframes spin {
-            0% {
-                transform: rotate(0deg);
-            }
-
-            100% {
-                transform: rotate(360deg);
-            }
-        }
-
-        /* Birthdate input styling */
-        .birthdate-wrapper {
-            position: relative;
-            width: 100%;
-        }
-
-        .birthdate-format-hint {
-            display: block;
-            font-size: 0.7rem;
-            color: #6c757d;
-            margin-top: 4px;
-            font-style: italic;
-        }
-
-        .birthdate-format-hint i {
-            margin-right: 4px;
-            font-size: 0.65rem;
-        }
-
-        /* Style for view requirements button - Red outline (not clicked yet) */
-        .btn-view-req {
-            background-color: transparent !important;
-            color: #dc3545 !important;
-            border: 2px solid #dc3545 !important;
-            padding: 10px 20px;
-            border-radius: 5px;
-            cursor: pointer;
-            font-weight: 600;
-            transition: all 0.3s ease;
-            width: 100%;
-
-        }
-
-        .btn-view-req:hover {
-            background-color: #dc3545 !important;
-            color: white !important;
-            transform: translateY(-1px);
-        }
-
-        /* Style for view requirements button - Green (clicked/read) */
-        .btn-view-req.requirements-read {
-            background-color: #ffffff !important;
-            color: white !important;
-            border: 2px solid #28a745 !important;
-        }
-
-        .btn-view-req.requirements-read:hover {
-            background-color: #218838 !important;
-            border-color: #218838 !important;
-        }
-
-        .btn-view-req:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
-            transform: none;
-        }
-
-        .btn-view-req:disabled:hover {
-            background-color: transparent !important;
-            color: #dc3545 !important;
-        }
-
-        /* Style for disabled acknowledgment checkbox */
-        .req-ack-row input:disabled {
-            cursor: not-allowed;
-            opacity: 0.5;
-        }
-
-        .req-ack-row.disabled-checkbox {
-            opacity: 0.6;
-        }
-
-        .req-ack-row .helper-text {
-            display: block;
-            font-size: 0.75rem;
-            color: #dc3545;
-            margin-top: 5px;
-            font-style: italic;
-        }
-
-        /* Style for disabled view requirements button */
-        .btn-view-req:disabled {
-            background-color: #cccccc !important;
-            color: #666666 !important;
-            cursor: not-allowed !important;
-            opacity: 0.6;
-        }
-
-        /* Style for enabled view requirements button */
-        .btn-view-req:enabled {
-            background-color: #white !important;
-            color: black !important;
-            cursor: pointer !important;
-        }
-
-        .btn-view-req:enabled:hover {
-            background-color: lightgray !important;
-            transform: translateY(-1px);
-        }
-
-        /* Loading spinner for modal */
-        .loading-spinner {
-            text-align: center;
-            padding: 40px;
-        }
-
-        .loading-spinner i {
-            font-size: 2rem;
-            color: var(--primary);
-            animation: spin 1s linear infinite;
-        }
-
-        @keyframes spin {
-            0% {
-                transform: rotate(0deg);
-            }
-
-            100% {
-                transform: rotate(360deg);
-            }
-        }
-
-        /* Requirements list styles - simple list without checkboxes */
-        .requirements-simple-list {
-            max-height: 400px;
-            overflow-y: auto;
-            padding: 10px;
-        }
-
-        .requirements-simple-list ul {
-            margin: 0;
-            padding-left: 20px;
-        }
-
-        .requirements-simple-list li {
-            margin-bottom: 10px;
-            line-height: 1.4;
-        }
-
-        .warning-note {
-            background: #fff3cd;
-            border-left: 4px solid #ffc107;
-            padding: 12px;
-            margin-top: 15px;
-            border-radius: 6px;
-            font-size: 0.85rem;
-            color: #856404;
-        }
-
-        .info-note {
-            background: #d1ecf1;
-            border-left: 4px solid #17a2b8;
-            padding: 12px;
-            margin-top: 15px;
-            border-radius: 6px;
-            font-size: 0.85rem;
-            color: #0c5460;
-        }
-
-        .requirements-header h4 {
-            margin-bottom: 10px;
-            color: var(--primary);
-        }
-
-        /* Guide note styles */
-        .guide-note {
-            background: #e7f3ff;
-            border-left: 4px solid #2196F3;
-            padding: 12px;
-            margin-bottom: 20px;
-            border-radius: 6px;
-            font-size: 0.85rem;
-            color: #0c5460;
-        }
-
-        .guide-note i {
-            margin-right: 8px;
-            color: #2196F3;
-        }
-
-        .step-instruction {
-            font-size: 0.8rem;
-            color: #666;
-            margin-top: 5px;
-            text-align: center;
-
-        }
-    </style>
 
 <!-- QR Code Generator -->
 <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.1/build/qrcode.min.js"></script>
@@ -1956,7 +1385,7 @@
                 <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px;">
                     <div>
                         <strong style="font-size: 1rem;">${escapeHtml(getFullName(c))}</strong>
-                        <span style="display: inline-block; background: var(--primary); color: white; padding: 2px 8px; border-radius: 20px; font-size: 0.7rem; margin-left: 8px;">${getServiceName(c.service)}</span>
+                        <span style="display: inline-block; background: var(--primary); color: black; padding: 2px 8px; border-radius: 20px; font-size: 0.7rem; margin-left: 8px;">${getServiceName(c.service)}</span>
                     </div>
                     <div style="color: var(--success);">
                         <i class="fas fa-clock"></i> ${escapeHtml(slot?.slotLabel || 'Not selected')}
@@ -2197,7 +1626,7 @@ document.getElementById('successDetails').innerHTML = `
             <div style="background: #f8fafc; padding: 12px; border-radius: 8px; margin-bottom: 10px; border-left: 3px solid var(--primary);">
                 <div style="font-weight: 600; margin-bottom: 8px;">${escapeHtml(client.name)}</div>
                 <div style="margin-bottom: 6px;">
-                    <span style="background: var(--primary); color: white; padding: 3px 10px; border-radius: 20px; font-size: 0.7rem; display: inline-block;">${client.service_name}</span>
+                    <span style="background: var(--primary); color: black; padding: 3px 10px; border-radius: 20px; font-size: 0.7rem; display: inline-block;">${client.service_name}</span>
                 </div>
                 <div style="font-size: 0.8rem; color: var(--gray-700); margin-bottom: 4px;">
                     <i class="fas fa-id-card" style="width: 20px;"></i> Client #: ${client.client_number}

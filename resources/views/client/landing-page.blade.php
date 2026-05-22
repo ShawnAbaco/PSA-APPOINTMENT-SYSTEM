@@ -13,9 +13,9 @@
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <link rel="stylesheet" href="https://unpkg.com/leaflet-routing-machine@3.2.12/dist/leaflet-routing-machine.css" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
-    <link rel="stylesheet" href="{{ asset('css/landing-page.css') }}">
+    <link rel="stylesheet" href="{{ asset('css/landing/landing-page.css') }}">
+    <link rel="stylesheet" href="{{ asset('css/landing/responsive.css') }}">
 </head>
-<>
 <body>
 
     <header class="site-header">
@@ -48,7 +48,7 @@
         <section id="home" class="hero-section">
             <div class="container hero-grid">
                 <div class="hero-content">
-                    <div class="badge">PhilSys - PhilSys Appointment System</div>
+                    <div class="badge">PSA - PhilSys Appointment System</div>
                     <h1>Step into the future with <span class="highlight">National ID</span> registration</h1>
                     <p>Schedule your PhilSys registration, ePhilID printing, or data correction appointment. Secure your
                         Philippine Identification System credentials with ease.</p>
@@ -76,49 +76,56 @@
                 </div>
                 <div class="howto-grid">
                     <div class="howto-card">
-                        <div class="howto-icon">
-                            <i class="fas fa-user-plus"></i>
-                        </div>
                         <span class="howto-step">STEP 1</span>
-                        <h3>Add Applicants</h3>
-                        <p>Add the person/s who will attend the appointment. Maximum of <strong>4 persons</strong> per
-                            booking.</p>
-                        <small>Each person can select their own service type</small>
+                        <h3>Start Booking</h3>
+                        <p>Click <strong>"Start Booking"</strong> button scroll below to begin your appointment process.</p>
+                        <small>Initial step to access the booking system</small>
                     </div>
                     <div class="howto-card">
-                        <div class="howto-icon">
-                            <i class="fas fa-calendar-alt"></i>
-                        </div>
                         <span class="howto-step">STEP 2</span>
-                        <h3>Select Schedule</h3>
-                        <p>Choose your preferred appointment date and available time slot based on your selected
-                            services.</p>
-                        <small>Real-time slot availability</small>
+                        <h3>Add Applicants</h3>
+                        <p>Add up to <strong>4 persons</strong> per booking. Enter name, sex, birthdate, and select service type (National ID Registration, Correction/Updating, or Status Inquiry).</p>
+                        <small>Each person selects their own service</small>
                     </div>
                     <div class="howto-card">
-                        <div class="howto-icon">
-                            <i class="fas fa-phone-alt"></i>
-                        </div>
                         <span class="howto-step">STEP 3</span>
-                        <h3>Contact Info</h3>
-                        <p>Provide your contact details for appointment confirmation and reminders.</p>
-                        <small>Email & mobile number</small>
+                        <h3>Pick Date & Time</h3>
+                        <p>Select a <strong>green highlighted date</strong> on the calendar, then choose an available time slot for each applicant.</p>
+                        <small>Gray dates = unavailable</small>
                     </div>
                     <div class="howto-card">
-                        <div class="howto-icon">
-                            <i class="fas fa-check-double"></i>
-                        </div>
                         <span class="howto-step">STEP 4</span>
-                        <h3>Review & Confirm</h3>
-                        <p>Double-check all information and confirm your appointment.</p>
-                        <small>Download your confirmation as PNG or PDF</small>
+                        <h3>Contact Details</h3>
+                        <p>Provide contact person name, email (optional), and <strong>10-digit mobile number starting with 9</strong> (e.g., 9123456789).</p>
+                        <small>For appointment confirmation & reminders</small>
                     </div>
                 </div>
-                <div class="howto-cta">
-                    <a href="javascript:void(0)" class="button button-primary" id="howtoBookBtn">
-                        <i class="fas fa-calendar-check"></i> Book Your Appointment Now →
-                    </a>
+
+                <div class="howto-grid second-row">
+                    <div class="howto-card">
+                        <span class="howto-step">STEP 5</span>
+                        <h3>Review Information</h3>
+                        <p>Double-check all applicant names, services, date, time slots, and contact info for accuracy before proceeding.</p>
+                        <small>Verify everything is correct</small>
+                    </div>
+                    <div class="howto-card">
+                        <span class="howto-step">STEP 6</span>
+                        <h3>Confirm & Submit</h3>
+                        <p>Check the confirmation box and click <strong>"Confirm & Submit"</strong>. Wait for processing to complete.</p>
+                        <small>Final submission step</small>
+                    </div>
+                    <div class="howto-card">
+                        <span class="howto-step">STEP 7</span>
+                        <h3>Save Confirmation</h3>
+                        <p>Save your <strong>Appointment Slip.</strong> Download your slip as PNG or PDF. A PDF copy will be sent to your email if provided. <strong>If no email was provided, please save your slip now as you cannot retrieve it again.</strong></p>
+                        <small>Don't lose your Slip!</small>
+                    </div>
                 </div>
+            </div>
+            <div class="howto-cta">
+                <a href="javascript:void(0)" class="button button-primary" id="howtoBookBtn">
+                    <i class="fas fa-calendar-check"></i> Book Your Appointment Now →
+                </a>
             </div>
         </section>
 
@@ -606,17 +613,6 @@
                 closeModalBtn.addEventListener('click', closeAppointmentModal);
             }
 
-            modal.addEventListener('click', function(e) {
-                if (e.target === modal) {
-                    closeAppointmentModal();
-                }
-            });
-
-            document.addEventListener('keydown', function(e) {
-                if (e.key === 'Escape' && modal.classList.contains('active')) {
-                    closeAppointmentModal();
-                }
-            });
 
             console.log('Appointment modal initialized. Buttons found:', bookButtons.length);
         })();
