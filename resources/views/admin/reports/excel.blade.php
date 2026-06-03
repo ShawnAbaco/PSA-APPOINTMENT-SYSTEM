@@ -442,7 +442,7 @@
             <img src="{{ asset('images/psa.png') }}" alt="PSA Logo">
             <p>
                 <strong>Philippine Statistics Authority</strong><br>
-                Appointment Management System<br>
+                NationalID Appointment System<br>
                 Generated on {{ now()->format('F j, Y \a\t g:i A') }}
             </p>
             <p style="margin-top: 10px; font-style: italic;">

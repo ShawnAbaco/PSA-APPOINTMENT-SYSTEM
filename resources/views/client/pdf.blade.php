@@ -50,7 +50,7 @@
                             <img src="{{ public_path('images/psa-logo.png') }}" alt="PSA" style="height:50px; object-fit:contain;" />
                             <div>
                                 <div style="font-size:16px; font-weight:700; color:#0b3d91;">Philippine Statistics Authority</div>
-                                <div style="font-size:12px; color:#444;">PhilSys Appointment Management System</div>
+                                <div style="font-size:12px; color:#444;">NationalID Appointment System</div>
                             </div>
                         </div>
                     </td>
