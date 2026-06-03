@@ -16,7 +16,7 @@ class MailService
     {
         // Check if mail is enabled in .env (default to true)
         $this->isEnabled = env('MAIL_ENABLED', true);
-        
+
         if ($this->isEnabled) {
             try {
                 $this->initialize();
@@ -30,7 +30,7 @@ class MailService
     protected function initialize()
     {
         $this->mail = new PHPMailer(true);
-        
+
         // Server settings from .env
         $this->mail->isSMTP();
         $this->mail->Host = env('MAIL_HOST', 'smtp.gmail.com');
@@ -39,13 +39,13 @@ class MailService
         $this->mail->Password = env('MAIL_PASSWORD', '');
         $this->mail->SMTPSecure = env('MAIL_ENCRYPTION', 'tls');
         $this->mail->Port = env('MAIL_PORT', 587);
-        
+
         // From address from .env
         $this->mail->setFrom(
             env('MAIL_FROM_ADDRESS', 'noreply@psa.gov.ph'),
             env('MAIL_FROM_NAME', 'PSA Appointment System')
         );
-        
+
         // Disable SSL verification for local development (remove in production)
         $this->mail->SMTPOptions = [
             'ssl' => [
@@ -54,10 +54,10 @@ class MailService
                 'allow_self_signed' => true
             ]
         ];
-        
+
         Log::info('Mail service initialized with .env configuration');
     }
-    
+
     /**
      * Send appointment confirmation email with PDF attachments
      */
@@ -72,15 +72,15 @@ class MailService
             $this->mail->clearAddresses();
             $this->mail->clearAttachments();
             $this->mail->addAddress($appointment->contact_email, $appointment->contact_name);
-            
+
             $this->mail->Subject = 'PSA National ID Appointment Confirmation - ' . $appointment->appointment_number;
-            
+
             // Generate email body
             $body = $this->generateConfirmationEmail($appointment, $clients, $timeSlotLabel);
             $this->mail->isHTML(true);
             $this->mail->Body = $body;
             $this->mail->AltBody = strip_tags($body);
-            
+
             // Generate and attach PDF for each client using the existing pdf.blade.php
             foreach ($clients as $client) {
                 $pdfContent = $this->generateClientPDF($appointment, $client);
@@ -89,17 +89,17 @@ class MailService
                 $this->mail->addStringAttachment($pdfContent, $fileName);
                 Log::info("Attached PDF for: " . $client['name']);
             }
-            
+
             $this->mail->send();
-            
+
             Log::info('Appointment confirmation email sent with attachments', [
                 'appointment_number' => $appointment->appointment_number,
                 'email' => $appointment->contact_email,
                 'clients_count' => count($clients)
             ]);
-            
+
             return true;
-            
+
         } catch (Exception $e) {
             Log::error('Email sending failed: ' . $e->getMessage());
             return false;
@@ -108,7 +108,7 @@ class MailService
             return false;
         }
     }
-    
+
     /**
      * Generate PDF for a single client using the existing pdf.blade.php view
      */
@@ -120,7 +120,7 @@ class MailService
             'updating' => 'Correction/Updating',
             'inquiry' => 'Status Inquiry / Retrieval Of TRN / Other Concern'
         ];
-        
+
         // Build full name if not already present
         if (!isset($client['name']) || empty($client['name'])) {
             $middleName = isset($client['middle_name']) && $client['middle_name'] ? ' ' . $client['middle_name'] : '';
@@ -130,7 +130,7 @@ class MailService
             }
             $client['name'] = $fullName;
         }
-        
+
         // Prepare appointment data matching pdf.blade.php expectations
         $appointmentData = [
             'number' => $appointment->appointment_number,
@@ -141,7 +141,7 @@ class MailService
             'contact_email' => $appointment->contact_email,
             'appointment_number' => $appointment->appointment_number,
         ];
-        
+
         // Prepare client data matching pdf.blade.php expectations
         $clientData = [
             'name' => $client['name'],
@@ -156,7 +156,7 @@ class MailService
             'suffix' => $client['suffix'] ?? '',
             'service' => $client['service'],
         ];
-        
+
         // Render the existing pdf.blade.php view
         // Pass a single client in an array as the view expects multiple clients
         $html = view('client.pdf', [
@@ -167,13 +167,13 @@ class MailService
             'contact_name' => $appointment->contact_name,
             'clients_list' => [$clientData],
         ])->render();
-        
+
         $pdf = Pdf::loadHTML($html);
         $pdf->setPaper('A4', 'portrait');
-        
+
         return $pdf->output();
     }
-    
+
     /**
      * Generate appointment confirmation email body
      */
@@ -184,7 +184,7 @@ class MailService
             'updating' => 'Correction/Updating',
             'inquiry' => 'Status Inquiry / TRN Retrieval'
         ];
-        
+
         // Build applicant list for email
         $applicantsHtml = '';
         foreach ($clients as $index => $client) {
@@ -194,10 +194,10 @@ class MailService
             if (isset($client['suffix']) && $client['suffix']) {
                 $fullName .= ' ' . $client['suffix'];
             }
-            
+
             $clientTimeSlot = $timeSlotLabel ?? $client['time_slot'] ?? 'Not specified';
             $clientNumber = $client['client_number'] ?? 'CLN-' . str_pad($index + 1, 5, '0', STR_PAD_LEFT);
-            
+
             $applicantsHtml .= '
             <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; margin-bottom: 20px; padding: 15px;">
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
@@ -212,7 +212,7 @@ class MailService
                 </div>
             </div>';
         }
-        
+
         $html = '<!DOCTYPE html>
         <html>
         <head>
@@ -237,17 +237,17 @@ class MailService
             <div class="container">
                 <div class="header">
                     <div class="logo">Philippine Statistics Authority</div>
-                    <div class="subtitle">PhilSys Appointment Management System</div>
+                    <div class="subtitle">NationalID Appointment System</div>
                 </div>
-                
+
                 <div class="success">
                     <h3 style="color: #2e7d32;">✓ Appointment Confirmed!</h3>
                     <p>Reference Code: <strong>' . htmlspecialchars($appointment->reference_code) . '</strong></p>
                 </div>
-                
+
                 <p>Dear <strong>' . htmlspecialchars($appointment->contact_name) . '</strong>,</p>
                 <p>Your appointment has been successfully booked.</p>
-                
+
                 <table class="info-table">
                     <tr>
                         <td><strong>Appointment Number:</strong></td>
@@ -266,21 +266,21 @@ class MailService
                         <td>' . ucfirst($appointment->type) . ' (' . count($clients) . ' applicant(s))</td>
                     </tr>
                 </table>
-                
+
                 <h3>📋 Applicant Details</h3>
                 ' . $applicantsHtml . '
-                
+
                 <div class="attachments">
                     <strong>📎 PDF Attachments:</strong>
                     <ul>' . $this->generateAttachmentList($clients) . '</ul>
                     <p>✓ Each applicant has their own personalized appointment slip attached.</p>
                 </div>
-                
+
                 <div class="office">
                     <strong>📍 PSA Misamis Oriental Office</strong><br>
                     Capt. Vicente Roa Street, Brgy. 31, Cagayan de Oro City, 9000 Misamis Oriental
                 </div>
-                
+
                 <div class="reminder">
                     <strong>⏰ Important Reminders:</strong>
                     <ul>
@@ -289,7 +289,7 @@ class MailService
                         <li>Bring original documents (no photocopies)</li>
                     </ul>
                 </div>
-                
+
                 <div class="footer">
                     <p>For inquiries: <strong>misamisoriental@psa.gov.ph</strong> | <strong>0956 576 6106</strong></p>
                     <p>© ' . date('Y') . ' Philippine Statistics Authority</p>
@@ -297,10 +297,10 @@ class MailService
             </div>
         </body>
         </html>';
-        
+
         return $html;
     }
-    
+
     /**
      * Generate list of attached PDFs
      */

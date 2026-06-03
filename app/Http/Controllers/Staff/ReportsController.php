@@ -17,38 +17,38 @@ class ReportsController extends Controller
         // Get date range from request or default to current month
         $startDate = $request->get('start_date', Carbon::now()->startOfMonth()->toDateString());
         $endDate = $request->get('end_date', Carbon::now()->endOfMonth()->toDateString());
-        
+
         // Get status filter (only pending or confirmed allowed for staff)
         $statusFilter = $request->get('status', '');
-        
+
         // Convert to Carbon instances for query
         $startDateCarbon = Carbon::parse($startDate)->startOfDay();
         $endDateCarbon = Carbon::parse($endDate)->endOfDay();
-        
+
         // Build appointment query with filters - ONLY PENDING AND CONFIRMED
         $appointmentQuery = Appointment::with(['clients', 'timeSlot'])
             ->whereBetween('appointment_date', [$startDateCarbon, $endDateCarbon])
             ->whereIn('status', ['pending', 'confirmed']); // 🔥 Only pending and confirmed
-        
+
         if ($statusFilter && in_array($statusFilter, ['pending', 'confirmed'])) {
             $appointmentQuery->where('status', $statusFilter);
         }
-        
+
         // Get appointments with pagination
         $perPage = $request->get('per_page', 5);
         $appointments = $appointmentQuery->orderBy('appointment_date', 'asc')
             ->orderBy('time_slot_id', 'asc')
             ->paginate($perPage);
-        
+
         // Get all appointments for statistics (within date range, only pending/confirmed)
         $allAppointments = Appointment::whereBetween('appointment_date', [$startDateCarbon, $endDateCarbon])
             ->whereIn('status', ['pending', 'confirmed'])
             ->get();
-        
+
         // Summary statistics - ONLY PENDING AND CONFIRMED
         $pendingAppointments = $allAppointments->where('status', 'pending')->count();
         $confirmedAppointments = $allAppointments->where('status', 'confirmed')->count();
-        
+
         // City Summary with status breakdown (only pending and confirmed)
         $citySummary = Appointment::whereBetween('appointment_date', [$startDateCarbon, $endDateCarbon])
             ->whereIn('status', ['pending', 'confirmed'])
@@ -60,15 +60,15 @@ class ReportsController extends Controller
             )
             ->groupBy('user_city')
             ->get();
-        
+
         // Sort the collection in PHP instead of SQL (to avoid the alias reference error)
         $citySummary = $citySummary->sortByDesc(function($item) {
             return $item->pending + $item->confirmed;
         })->values();
-        
+
         // Also get total count for the selected period
         $totalBookings = $allAppointments->count();
-        
+
         return view('staff.reports.index', compact(
             'appointments',
             'startDate',
@@ -79,7 +79,7 @@ class ReportsController extends Controller
             'totalBookings'
         ));
     }
-    
+
     /**
      * Export report to CSV
      */
@@ -88,29 +88,29 @@ class ReportsController extends Controller
         $startDate = $request->get('start_date', Carbon::now()->startOfMonth()->toDateString());
         $endDate = $request->get('end_date', Carbon::now()->endOfMonth()->toDateString());
         $statusFilter = $request->get('status', '');
-        
+
         $startDateCarbon = Carbon::parse($startDate)->startOfDay();
         $endDateCarbon = Carbon::parse($endDate)->endOfDay();
-        
+
         $query = Appointment::with(['clients', 'timeSlot'])
             ->whereBetween('appointment_date', [$startDateCarbon, $endDateCarbon])
             ->whereIn('status', ['pending', 'confirmed']);
-        
+
         if ($statusFilter && in_array($statusFilter, ['pending', 'confirmed'])) {
             $query->where('status', $statusFilter);
         }
-        
+
         $appointments = $query->orderBy('appointment_date', 'asc')->get();
-        
+
         $filename = 'pending_confirmed_report_' . date('Y-m-d_His') . '.csv';
-        
+
         return response()->stream(
             function() use ($appointments) {
                 $handle = fopen('php://output', 'w');
-                
+
                 // Add UTF-8 BOM for Excel compatibility
                 fprintf($handle, chr(0xEF).chr(0xBB).chr(0xBF));
-                
+
                 fputcsv($handle, [
                     'Appointment #',
                     'Date',
@@ -125,12 +125,12 @@ class ReportsController extends Controller
                     'Location (City)',
                     'Created At'
                 ]);
-                
+
                 foreach ($appointments as $appointment) {
                     $clientNames = $appointment->clients->map(function($client) {
                         return $client->first_name . ' ' . $client->last_name;
                     })->implode(', ');
-                    
+
                     $services = $appointment->clients->map(function($client) {
                         $serviceNames = [
                             'reg' => 'Registration',
@@ -139,10 +139,10 @@ class ReportsController extends Controller
                         ];
                         return $serviceNames[$client->service] ?? $client->service;
                     })->unique()->implode(', ');
-                    
+
                     // Fixed time slot label with proper null check
                     $timeSlotLabel = $appointment->timeSlot ? $appointment->timeSlot->slot_label : 'N/A';
-                    
+
                     fputcsv($handle, [
                         $appointment->appointment_number,
                         $appointment->appointment_date,
@@ -158,7 +158,7 @@ class ReportsController extends Controller
                         $appointment->created_at,
                     ]);
                 }
-                
+
                 fclose($handle);
             },
             200,
@@ -168,7 +168,7 @@ class ReportsController extends Controller
             ]
         );
     }
-    
+
     /**
      * Export city summary to CSV
      */
@@ -176,10 +176,10 @@ class ReportsController extends Controller
     {
         $startDate = $request->get('start_date', Carbon::now()->startOfMonth()->toDateString());
         $endDate = $request->get('end_date', Carbon::now()->endOfMonth()->toDateString());
-        
+
         $startDateCarbon = Carbon::parse($startDate)->startOfDay();
         $endDateCarbon = Carbon::parse($endDate)->endOfDay();
-        
+
         $citySummary = Appointment::whereBetween('appointment_date', [$startDateCarbon, $endDateCarbon])
             ->whereIn('status', ['pending', 'confirmed'])
             ->whereNotNull('user_city')
@@ -193,23 +193,23 @@ class ReportsController extends Controller
             ->sortByDesc(function($item) {
                 return $item->pending + $item->confirmed;
             });
-        
+
         $filename = 'city_summary_' . date('Y-m-d_His') . '.csv';
-        
+
         return response()->stream(
             function() use ($citySummary) {
                 $handle = fopen('php://output', 'w');
-                
+
                 // Add UTF-8 BOM for Excel compatibility
                 fprintf($handle, chr(0xEF).chr(0xBB).chr(0xBF));
-                
+
                 fputcsv($handle, [
                     'City',
                     'Pending Appointments',
                     'Confirmed Appointments',
                     'Total'
                 ]);
-                
+
                 foreach ($citySummary as $city) {
                     fputcsv($handle, [
                         $city->user_city,
@@ -218,7 +218,7 @@ class ReportsController extends Controller
                         $city->pending + $city->confirmed
                     ]);
                 }
-                
+
                 fclose($handle);
             },
             200,
@@ -228,7 +228,7 @@ class ReportsController extends Controller
             ]
         );
     }
-    
+
     /**
  * Export report as PDF
  */
@@ -239,22 +239,22 @@ public function exportPdf(Request $request)
         $startDate = $request->get('start_date', Carbon::now()->startOfMonth()->toDateString());
         $endDate = $request->get('end_date', Carbon::now()->endOfMonth()->toDateString());
         $statusFilter = $request->get('status', '');
-        
+
         $startDateCarbon = Carbon::parse($startDate)->startOfDay();
         $endDateCarbon = Carbon::parse($endDate)->endOfDay();
-        
+
         $appointmentQuery = Appointment::whereBetween('appointment_date', [$startDateCarbon, $endDateCarbon]);
-        
+
         if ($statusFilter) {
             $appointmentQuery->where('status', $statusFilter);
         }
-        
+
         // Eager load both clients and timeSlot relationships
         $appointments = $appointmentQuery
             ->with(['clients', 'timeSlot'])
             ->orderBy('appointment_date', 'desc')
             ->get();
-        
+
         $summary = [
             'total' => $appointments->count(),
             'pending' => $appointments->where('status', 'pending')->count(),
@@ -262,9 +262,9 @@ public function exportPdf(Request $request)
             'completed' => $appointments->where('status', 'completed')->count(),
             'cancelled' => $appointments->where('status', 'cancelled')->count(),
         ];
-        
+
         $completionRate = $summary['total'] > 0 ? round(($summary['completed'] / $summary['total']) * 100, 1) : 0;
-        
+
         // City summary
         $citySummary = Appointment::whereBetween('appointment_date', [$startDateCarbon, $endDateCarbon])
             ->whereNotNull('user_city')
@@ -279,31 +279,31 @@ public function exportPdf(Request $request)
             ->groupBy('user_city')
             ->orderBy('total_bookings', 'desc')
             ->get();
-        
+
         $uniqueLocations = $citySummary->count();
         $topCity = $citySummary->isNotEmpty() ? $citySummary->first()->user_city : 'N/A';
         $topCityCount = $citySummary->isNotEmpty() ? $citySummary->first()->total_bookings : 0;
-        
+
         $data = compact(
             'appointments', 'summary', 'startDate', 'endDate', 'statusFilter',
             'completionRate', 'uniqueLocations', 'topCity', 'topCityCount',
             'citySummary'
         );
-        
+
         // Check if DOMPDF is installed
         if (class_exists('Barryvdh\DomPDF\Facade\Pdf')) {
             $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('staff.reports.pdf', $data);
             $pdf->setPaper('A4', 'landscape');
-            
+
             $filename = 'PSA_Appointment_Report_' . $startDate . '_to_' . $endDate . '.pdf';
-            
+
             return $pdf->download($filename);
         } else {
             // Fallback: Force download as HTML file
             $html = view('staff.reports.pdf', $data)->render();
-            
+
             $filename = 'PSA_Appointment_Report_' . $startDate . '_to_' . $endDate . '.xls';
-            
+
             return response($html)
                 ->header('Content-Type', 'application/vnd.ms-excel')
                 ->header('Content-Disposition', 'attachment; filename="' . $filename . '"')
@@ -311,7 +311,7 @@ public function exportPdf(Request $request)
                 ->header('Pragma', 'no-cache')
                 ->header('Expires', '0');
         }
-        
+
     } catch (\Exception $e) {
         return back()->with('error', 'Failed to generate PDF report: ' . $e->getMessage());
     }
@@ -326,19 +326,19 @@ public function exportExcel(Request $request)
         $startDate = $request->get('start_date', Carbon::now()->startOfMonth()->toDateString());
         $endDate = $request->get('end_date', Carbon::now()->endOfMonth()->toDateString());
         $statusFilter = $request->get('status', '');
-        
+
         $startDateCarbon = Carbon::parse($startDate)->startOfDay();
         $endDateCarbon = Carbon::parse($endDate)->endOfDay();
-        
+
         $appointmentQuery = Appointment::whereBetween('appointment_date', [$startDateCarbon, $endDateCarbon]);
-        
+
         if ($statusFilter) {
             $appointmentQuery->where('status', $statusFilter);
         }
-        
+
         // Eager load with timeSlot relationship
         $appointments = $appointmentQuery->with(['clients', 'timeSlot'])->orderBy('appointment_date', 'desc')->get();
-        
+
         $summary = [
             'total' => $appointments->count(),
             'pending' => $appointments->where('status', 'pending')->count(),
@@ -346,9 +346,9 @@ public function exportExcel(Request $request)
             'completed' => $appointments->where('status', 'completed')->count(),
             'cancelled' => $appointments->where('status', 'cancelled')->count(),
         ];
-        
+
         $completionRate = $summary['total'] > 0 ? round(($summary['completed'] / $summary['total']) * 100, 1) : 0;
-        
+
         $citySummary = Appointment::whereBetween('appointment_date', [$startDateCarbon, $endDateCarbon])
             ->whereNotNull('user_city')
             ->select(
@@ -362,18 +362,18 @@ public function exportExcel(Request $request)
             ->groupBy('user_city')
             ->orderBy('total_bookings', 'desc')
             ->get();
-        
+
         $uniqueLocations = $citySummary->count();
         $topCity = $citySummary->isNotEmpty() ? $citySummary->first()->user_city : 'N/A';
         $topCityCount = $citySummary->isNotEmpty() ? $citySummary->first()->total_bookings : 0;
-        
+
         // Set headers for Excel download
         $filename = 'PSA_Appointment_Report_' . $startDate . '_to_' . $endDate . '.xls';
-        
+
         header('Content-Type: application/vnd.ms-excel');
         header('Content-Disposition: attachment; filename="' . $filename . '"');
         header('Cache-Control: max-age=0');
-        
+
         // Output Excel-compatible HTML
         echo '<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel" xmlns="http://www.w3.org/TR/REC-html40">';
         echo '<head>';
@@ -399,7 +399,7 @@ public function exportExcel(Request $request)
         echo '</style>';
         echo '</head>';
         echo '<body>';
-        
+
         // Title
         echo '<table style="width:100%; border: none;">';
         echo '<tr><td style="text-align:center; border:none;" class="header-title">Republic of the Philippines</td></tr>';
@@ -412,7 +412,7 @@ public function exportExcel(Request $request)
         echo '</td></tr>';
         echo '</table>';
         echo '<br>';
-        
+
         // Summary Statistics
         echo '<h3 style="color:#0F3B6F;">SUMMARY STATISTICS</h3>';
         echo '<table class="summary-table" style="width:50%;">';
@@ -426,7 +426,7 @@ public function exportExcel(Request $request)
         echo '<tr><td class="summary-label">Completion Rate</td><td>' . $completionRate . '%</td></tr>';
         echo '</table>';
         echo '<br><br>';
-        
+
         // Detailed Bookings
         echo '<h3 style="color:#0F3B6F;">DETAILED BOOKINGS</h3>';
         echo '<table style="width:100%;">';
@@ -444,20 +444,20 @@ public function exportExcel(Request $request)
         echo '</tr>';
         echo '</thead>';
         echo '<tbody>';
-        
+
         $serviceNames = [
             'reg' => 'Registration',
             'updating' => 'Updating',
             'inquiry' => 'Status Inquiry'
         ];
-        
+
         foreach ($appointments as $appointment) {
             $services = $appointment->clients->pluck('service')->unique()->map(function($s) use ($serviceNames) {
                 return $serviceNames[$s] ?? $s;
             })->implode(', ');
-            
+
             $statusClass = 'status-' . $appointment->status;
-            
+
             // Get time slot label
             $timeSlotLabel = 'N/A';
             if ($appointment->timeSlot) {
@@ -466,7 +466,7 @@ public function exportExcel(Request $request)
                 $timeSlot = \App\Models\TimeSlot::find($appointment->time_slot_id);
                 $timeSlotLabel = $timeSlot ? $timeSlot->slot_label : 'N/A';
             }
-            
+
             echo '<tr>';
             echo '<td>' . htmlspecialchars($appointment->appointment_number) . '</td>';
             echo '<td>' . Carbon::parse($appointment->appointment_date)->format('M d, Y') . '</td>';
@@ -479,7 +479,7 @@ public function exportExcel(Request $request)
             echo '<td style="text-align:center;">' . $appointment->clients->count() . '</td>';
             echo '</tr>';
         }
-        
+
         if ($appointments->isEmpty()) {
             echo '<tr><td colspan="9" style="text-align:center;">No appointments found for this period.</td></tr>';
         } else {
@@ -488,23 +488,23 @@ public function exportExcel(Request $request)
             echo '<td style="text-align:center;"><strong>' . $appointments->count() . '</strong></td>';
             echo '</tr>';
         }
-        
+
         echo '</tbody>';
         echo '</table>';
         echo '<br><br>';
-        
+
         echo '<br>';
         echo '<p style="text-align:center; color:#666; font-style:italic;">';
-        echo 'Philippine Statistics Authority | Appointment Management System<br>';
+        echo 'Philippine Statistics Authority | NationalID Appointment System<br>';
         echo 'Generated on ' . now()->format('F j, Y \a\t g:i A') . '<br>';
         echo 'This report is system-generated and is valid without signature.';
         echo '</p>';
-        
+
         echo '</body>';
         echo '</html>';
-        
+
         exit;
-        
+
     } catch (\Exception $e) {
         return back()->with('error', 'Failed to export Excel: ' . $e->getMessage());
     }

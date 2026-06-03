@@ -128,34 +128,34 @@
     .operator-footer {
         padding: 16px 20px;
     }
-    
+
     .footer-links {
         gap: 16px;
         flex-wrap: wrap;
     }
-    
+
     .footer-copyright {
         font-size: 11px;
     }
-    
+
     .footer-copyright i {
         font-size: 12px;
     }
-    
+
     .footer-devs {
         font-size: 10px;
         flex-direction: column;
         gap: 4px;
     }
-    
+
     .footer-devs i {
         font-size: 10px;
     }
-    
+
     .footer-links a {
         font-size: 11px;
     }
-    
+
     .footer-version {
         font-size: 10px;
     }
@@ -167,21 +167,21 @@
         flex-direction: column;
         gap: 4px;
     }
-    
+
     .footer-devs {
         font-size: 9px;
     }
-    
+
     .footer-links {
         gap: 12px;
         flex-wrap: wrap;
         justify-content: center;
     }
-    
+
     .footer-links a {
         font-size: 10px;
     }
-    
+
     .footer-version {
         font-size: 9px;
         padding: 3px 10px;
@@ -316,7 +316,7 @@
                 @yield('content')
             </div>
 
-           
+
 <!-- FOOTER - Fully Centered -->
 <footer class="operator-footer">
     <div class="footer-content">
@@ -324,17 +324,17 @@
             <div class="footer-copyright">
                 <i class="fas fa-copyright"></i>
                 <span>
-                    2026 PSA Misamis Oriental | PhilSys Appointment Management System. All rights reserved.
+                    2026 PSA Misamis Oriental | NationalID Appointment System. All rights reserved.
                 </span>
             </div>
-            
+
             <div class="footer-devs">
                 <i class="fas fa-code"></i>
                 <span>
-                    Developed by Shawn Laurence M. Abaco | Kent Zyrone L. Flores
+                    Developed by Shawn Laurence M. Abaco and Kent Zyrone L. Flores
                 </span>
             </div>
-            
+
             <div class="footer-links">
                 <a href="#" id="aboutLink">
                     <i class="fas fa-info-circle"></i>
@@ -353,7 +353,7 @@
                     Contact
                 </a>
             </div>
-            
+
             <div class="footer-version">
                 <i class="fas fa-code-branch"></i>
                 v1.0.0
@@ -776,7 +776,7 @@
         }
 
         // ========================
-        // FOOTER LINK 
+        // FOOTER LINK
         // ========================
         function initFooterLinks() {
             const aboutLink = document.getElementById('aboutLink');
@@ -1057,7 +1057,7 @@
                     matchMessage.style.color = '#ef4444';
                 }
             }
-            
+
             if (newPassword) {
                 newPassword.addEventListener('input', updateStrengthDisplay);
                 newPassword.addEventListener('input', checkPasswordMatch);

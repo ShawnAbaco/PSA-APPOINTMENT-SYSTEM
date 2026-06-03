@@ -7,7 +7,7 @@
     <meta name="viewport"
         content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes, viewport-fit=cover">
     <meta name="csrf-token" content="{{ csrf_token() }}">
-    <title>PhilSys Appointment System</title>
+    <title>NationalID Appointment System</title>
     <link rel="icon" type="image/png" sizes="32x32" href="{{ asset('images/psa.png') }}">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <link rel="stylesheet" href="{{ asset('css/appointment/appointment.css') }}">
@@ -36,12 +36,12 @@
         <div class="privacy-modal">
             <h2>Privacy Notice</h2>
             <p>This system collects and processes limited personal information solely for the purpose of scheduling,
-                managing, and confirming PhilSys Appointment Management System, in accordance with the <span
+                managing, and confirming appointments in the NationalID Appointment System, in accordance with the <span
                     class="legal-ref">Data Privacy Act of 2012 (RA 10173)</span> and applicable Philippine Statistics
                 Authority (PSA) policies.</p>
             <p>The personal data collected include your full name, email address or mobile number, selected service, and
                 preferred appointment schedule.</p>
-            <p>Your personal data shall be used exclusively for appointment management and communication purposes. These
+            <p>Your personal data shall be used exclusively for appointment and communication purposes. These
                 data are stored securely and protected by appropriate administrative, technical, and physical
                 safeguards.</p>
             <p>Your personal data will not be shared or disclosed to unauthorized parties, except to authorized PSA
@@ -421,7 +421,7 @@
         <div class="footer-note">
     <div class="copyright-text">
         <i class="fas fa-copyright"></i>
-        2026 PSA - Misamis Oriental | PhilSys Appointment Management System. All rights reserved. | RA 11055 (PhilSys Act)
+        2026 PSA - Misamis Oriental | NationalID Appointment System. All rights reserved. | RA 11055 (PhilSys Act)
     </div>
     <div class="copyright-devs">
         <i class="fas fa-code"></i>
@@ -1734,7 +1734,7 @@ document.getElementById('successDetails').innerHTML = `
             receiptContainer.innerHTML = `
         <div style="text-align: center; margin-bottom: 20px;">
             <h2 style="color: #2c5f8a; margin: 0; font-size: 1.3rem;">Philippine Statistics Authority</h2>
-            <h3 style="color: #4a5568; margin: 5px 0; font-size: 1rem;">PhilSys Appointment Management System</h3>
+            <h3 style="color: #4a5568; margin: 5px 0; font-size: 1rem;">NationalID Appointment System</h3>
             <p style="color: #718096; margin: 5px 0; font-size: 0.85rem;">Applicant Confirmation Slip</p>
         </div>
 
