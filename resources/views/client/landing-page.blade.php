@@ -355,7 +355,7 @@
     </div>
     <div class="copyright-devs">
         <i class="fas fa-code"></i>
-        Developed by Shawn Laurence M. Abaco | Kent Zyrone L. Flores
+        Developed by Shawn Laurence M. Abaco and Kent Zyrone L. Flores
     </div>
     <div class="copyright-version">
         <i class="fas fa-code-branch"></i>
