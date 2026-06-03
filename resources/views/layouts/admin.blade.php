@@ -138,11 +138,11 @@
     .admin-footer {
         padding: 16px 20px;
     }
-    
+
     .footer-links {
         gap: 16px;
     }
-    
+
     .footer-copyright {
         font-size: 11px;
     }
@@ -297,17 +297,17 @@
             <div class="footer-copyright">
                 <i class="fas fa-copyright"></i>
                 <span>
-                    2026 PSA Misamis Oriental | PhilSys Appointment Management System. All rights reserved.
+                    2026 PSA Misamis Oriental | NationalID Appointment System. All rights reserved.
                 </span>
             </div>
-            
+
             <div class="footer-devs">
                 <i class="fas fa-code"></i>
                 <span>
-                    Developed by Shawn Laurence M. Abaco | Kent Zyrone L. Flores
+                    Developed by Shawn Laurence M. Abaco and Kent Zyrone L. Flores
                 </span>
             </div>
-            
+
             <div class="footer-links">
                 <a href="#" id="aboutLink">
                     <i class="fas fa-info-circle"></i>
@@ -325,7 +325,7 @@
                     <i class="fas fa-envelope"></i>
                     Contact
                 </a>
-                
+
             </div>
             <div class="footer-version">
                 <i class="fas fa-code-branch"></i>
@@ -599,7 +599,7 @@
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script>
         // ============================================================
-        //  PSA LOADER CONTROLS 
+        //  PSA LOADER CONTROLS
         // ============================================================
         function showPSALoader(customText = null) {
             const loader = document.getElementById('psaLoaderModal');
@@ -614,7 +614,7 @@
         }
 
         // ============================================================
-        //  TOAST NOTIFICATION 
+        //  TOAST NOTIFICATION
         // ============================================================
         window.showToast = function(title, message, type = 'info') {
             const container = document.getElementById('toastContainer');
@@ -688,7 +688,7 @@
         }
 
         // ============================================================
-        //  MOBILE SIDEBAR TOGGLE 
+        //  MOBILE SIDEBAR TOGGLE
         // ============================================================
         function initMobileSidebar() {
             const toggleBtn = document.getElementById('mobileMenuToggle');

@@ -29,24 +29,24 @@ class ReportController extends Controller
         // Get date range from request or default to current month
         $startDate = $request->get('start_date', Carbon::now()->startOfMonth()->toDateString());
         $endDate = $request->get('end_date', Carbon::now()->endOfMonth()->toDateString());
-        
+
         // Get status filter
         $statusFilter = $request->get('status', '');
-        
+
         // Convert to Carbon instances for query
         $startDateCarbon = Carbon::parse($startDate)->startOfDay();
         $endDateCarbon = Carbon::parse($endDate)->endOfDay();
-        
+
         // Build appointment query with filters
         $appointmentQuery = Appointment::whereBetween('appointment_date', [$startDateCarbon, $endDateCarbon]);
-        
+
         if ($statusFilter) {
             $appointmentQuery->where('status', $statusFilter);
         }
-        
+
         // Get appointments within date range
         $appointments = $appointmentQuery->with('clients')->orderBy('appointment_date', 'desc')->get();
-        
+
         // Summary statistics
         $summary = [
             'total' => $appointments->count(),
@@ -56,42 +56,42 @@ class ReportController extends Controller
             'cancelled' => $appointments->where('status', 'cancelled')->count(),
             'no_show' => $appointments->where('status', 'no_show')->count(),
         ];
-        
+
         // Get appointments by service (from appointment_clients)
         $clientQuery = AppointmentClient::whereBetween('created_at', [$startDateCarbon, $endDateCarbon]);
-        
+
         $byService = $clientQuery->select('service', DB::raw('COUNT(*) as count'))
             ->groupBy('service')
             ->get();
-        
+
         // Get appointments by day of week
         $dayQuery = Appointment::whereBetween('appointment_date', [$startDateCarbon, $endDateCarbon]);
         if ($statusFilter) {
             $dayQuery->where('status', $statusFilter);
         }
-        
+
         $byDay = $dayQuery->select(DB::raw('DAYNAME(appointment_date) as day'), DB::raw('COUNT(*) as count'))
             ->groupBy('day')
             ->orderBy(DB::raw('FIELD(day, "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday")'))
             ->get();
-        
+
         // Get appointments by time slot (using time_slot_id)
         $timeSlotQuery = Appointment::whereBetween('appointment_date', [$startDateCarbon, $endDateCarbon]);
         if ($statusFilter) {
             $timeSlotQuery->where('status', $statusFilter);
         }
-        
+
         $byTimeSlot = $timeSlotQuery->with('timeSlot')
             ->get()
             ->groupBy('timeSlot.slot_label')
             ->map(function($items) {
                 return $items->count();
             });
-        
+
         // Get top clients (most appointments)
         $topClients = AppointmentClient::select(
-                'first_name', 
-                'last_name', 
+                'first_name',
+                'last_name',
                 DB::raw('COUNT(*) as appointment_count')
             )
             ->whereBetween('created_at', [$startDateCarbon, $endDateCarbon])
@@ -99,20 +99,20 @@ class ReportController extends Controller
             ->orderBy('appointment_count', 'desc')
             ->limit(10)
             ->get();
-        
+
         // ========== LOCATION-BASED BOOKINGS DETAILS ==========
-        
+
         // Get detailed bookings grouped by city with client counts
         $bookingsQuery = Appointment::with(['clients', 'timeSlot'])
             ->whereBetween('appointment_date', [$startDateCarbon, $endDateCarbon])
             ->whereNotNull('user_city');
-        
+
         if ($statusFilter) {
             $bookingsQuery->where('status', $statusFilter);
         }
-        
+
         $allBookings = $bookingsQuery->orderBy('appointment_date', 'desc')->get();
-        
+
         // Group by city and add clients count
         $bookingsByLocation = [];
         foreach ($allBookings as $booking) {
@@ -123,7 +123,7 @@ class ReportController extends Controller
             $booking->clients_count = $booking->clients->count();
             $bookingsByLocation[$city][] = $booking;
         }
-        
+
         // ========== INDIVIDUAL BOOKINGS FOR MAP (IMPORTANT!) ==========
         // Get INDIVIDUAL bookings (not grouped by city) for map markers
         $individualBookings = Appointment::with(['clients'])
@@ -157,7 +157,7 @@ class ReportController extends Controller
                     })
                 ];
             });
-        
+
         // City Summary with status breakdown (for statistics)
         $citySummary = Appointment::whereBetween('appointment_date', [$startDateCarbon, $endDateCarbon])
             ->whereNotNull('user_city')
@@ -173,29 +173,29 @@ class ReportController extends Controller
             ->groupBy('user_city')
             ->orderBy('total_bookings', 'desc')
             ->get();
-        
+
         // Calculate trend for each city
         $previousStart = Carbon::parse($startDate)->subDays(30)->startOfDay();
         $previousEnd = Carbon::parse($endDate)->subDays(30)->endOfDay();
-        
+
         foreach ($citySummary as $cityItem) {
             $previousCount = Appointment::where('user_city', $cityItem->user_city)
                 ->whereBetween('appointment_date', [$previousStart, $previousEnd])
                 ->count();
-            
+
             if ($previousCount > 0) {
                 $cityItem->trend = round((($cityItem->total_bookings - $previousCount) / $previousCount) * 100, 1);
             } else {
                 $cityItem->trend = $cityItem->total_bookings > 0 ? 100 : 0;
             }
         }
-        
+
         // 2. Statistics cards for locations
         $uniqueLocations = $citySummary->count();
         $topCity = $citySummary->isNotEmpty() ? $citySummary->first()->user_city : 'N/A';
         $topCityCount = $citySummary->isNotEmpty() ? $citySummary->first()->total_bookings : 0;
         $completionRate = $summary['total'] > 0 ? round(($summary['completed'] / $summary['total']) * 100, 1) : 0;
-        
+
         // 3. Location data for map (aggregated - used for legend/stats only)
         $bookingLocations = Appointment::whereBetween('appointment_date', [$startDateCarbon, $endDateCarbon])
             ->whereNotNull('user_lat')
@@ -213,19 +213,19 @@ class ReportController extends Controller
             )
             ->groupBy('user_city', 'user_lat', 'user_lng')
             ->get();
-        
+
         // 4. City trend data for last 6 months
         $topCities = $citySummary->take(5)->pluck('user_city')->toArray();
         $cityTrendData = [];
         $cityTrendLabels = [];
-        
+
         for ($i = 5; $i >= 0; $i--) {
             $month = Carbon::now()->subMonths($i);
             $cityTrendLabels[] = $month->format('M Y');
         }
-        
+
         $colors = ['#667eea', '#764ba2', '#28a745', '#17a2b8', '#ffc107'];
-        
+
         foreach ($topCities as $index => $city) {
             $monthlyData = [];
             for ($i = 5; $i >= 0; $i--) {
@@ -236,7 +236,7 @@ class ReportController extends Controller
                     ->count();
                 $monthlyData[] = $count;
             }
-            
+
             $cityTrendData[] = [
                 'label' => $city,
                 'data' => $monthlyData,
@@ -247,7 +247,7 @@ class ReportController extends Controller
                 'tension' => 0.4
             ];
         }
-        
+
         // Get service labels and data for chart
         $serviceLabels = [];
         $serviceData = [];
@@ -256,23 +256,23 @@ class ReportController extends Controller
             'updating' => 'Correction/Updating',
             'inquiry' => 'Status Inquiry'
         ];
-        
+
         foreach ($byService as $service) {
             $serviceLabels[] = $serviceNames[$service->service] ?? $service->service;
             $serviceData[] = $service->count;
         }
-        
+
         // Prepare day labels and data
         $dayLabels = [];
         $dayData = [];
         $dayOrder = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
-        
+
         foreach ($dayOrder as $day) {
             $found = $byDay->firstWhere('day', $day);
             $dayLabels[] = $day;
             $dayData[] = $found ? $found->count : 0;
         }
-        
+
         // Get monthly trends for the last 6 months
         $monthlyTrends = Appointment::select(
                 DB::raw('DATE_FORMAT(appointment_date, "%Y-%m") as month'),
@@ -285,7 +285,7 @@ class ReportController extends Controller
             ->groupBy('month')
             ->orderBy('month')
             ->get();
-        
+
         // Get staff performance
         $staffPerformance = User::where('role', 'staff')
             ->leftJoin('appointments', 'users.id', '=', 'appointments.processed_by')
@@ -299,17 +299,17 @@ class ReportController extends Controller
             )
             ->groupBy('users.id', 'users.first_name', 'users.last_name')
             ->get();
-        
+
         // Pass data for appointment status chart
         $pendingAppointments = $summary['pending'];
         $confirmedAppointments = $summary['confirmed'];
         $completedAppointments = $summary['completed'];
         $cancelledAppointments = $summary['cancelled'];
         $totalBookings = $summary['total'];
-        
+
         $psaLat = self::PSA_LAT;
         $psaLng = self::PSA_LNG;
-        
+
         return view('admin.reports.index', compact(
             'summary',
             'byService',
@@ -356,22 +356,22 @@ public function exportPdf(Request $request)
         $startDate = $request->get('start_date', Carbon::now()->startOfMonth()->toDateString());
         $endDate = $request->get('end_date', Carbon::now()->endOfMonth()->toDateString());
         $statusFilter = $request->get('status', '');
-        
+
         $startDateCarbon = Carbon::parse($startDate)->startOfDay();
         $endDateCarbon = Carbon::parse($endDate)->endOfDay();
-        
+
         $appointmentQuery = Appointment::whereBetween('appointment_date', [$startDateCarbon, $endDateCarbon]);
-        
+
         if ($statusFilter) {
             $appointmentQuery->where('status', $statusFilter);
         }
-        
+
         // Eager load both clients and timeSlot relationships
         $appointments = $appointmentQuery
             ->with(['clients', 'timeSlot'])
             ->orderBy('appointment_date', 'desc')
             ->get();
-        
+
         $summary = [
             'total' => $appointments->count(),
             'pending' => $appointments->where('status', 'pending')->count(),
@@ -379,9 +379,9 @@ public function exportPdf(Request $request)
             'completed' => $appointments->where('status', 'completed')->count(),
             'cancelled' => $appointments->where('status', 'cancelled')->count(),
         ];
-        
+
         $completionRate = $summary['total'] > 0 ? round(($summary['completed'] / $summary['total']) * 100, 1) : 0;
-        
+
         // City summary
         $citySummary = Appointment::whereBetween('appointment_date', [$startDateCarbon, $endDateCarbon])
             ->whereNotNull('user_city')
@@ -396,31 +396,31 @@ public function exportPdf(Request $request)
             ->groupBy('user_city')
             ->orderBy('total_bookings', 'desc')
             ->get();
-        
+
         $uniqueLocations = $citySummary->count();
         $topCity = $citySummary->isNotEmpty() ? $citySummary->first()->user_city : 'N/A';
         $topCityCount = $citySummary->isNotEmpty() ? $citySummary->first()->total_bookings : 0;
-        
+
         $data = compact(
             'appointments', 'summary', 'startDate', 'endDate', 'statusFilter',
             'completionRate', 'uniqueLocations', 'topCity', 'topCityCount',
             'citySummary'
         );
-        
+
         // Check if DOMPDF is installed
         if (class_exists('Barryvdh\DomPDF\Facade\Pdf')) {
             $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('admin.reports.pdf', $data);
             $pdf->setPaper('A4', 'landscape');
-            
+
             $filename = 'PSA_Appointment_Report_' . $startDate . '_to_' . $endDate . '.pdf';
-            
+
             return $pdf->download($filename);
         } else {
             // Fallback: Force download as HTML file
             $html = view('admin.reports.pdf', $data)->render();
-            
+
             $filename = 'PSA_Appointment_Report_' . $startDate . '_to_' . $endDate . '.xls';
-            
+
             return response($html)
                 ->header('Content-Type', 'application/vnd.ms-excel')
                 ->header('Content-Disposition', 'attachment; filename="' . $filename . '"')
@@ -428,7 +428,7 @@ public function exportPdf(Request $request)
                 ->header('Pragma', 'no-cache')
                 ->header('Expires', '0');
         }
-        
+
     } catch (\Exception $e) {
         return back()->with('error', 'Failed to generate PDF report: ' . $e->getMessage());
     }
@@ -443,19 +443,19 @@ public function exportExcel(Request $request)
         $startDate = $request->get('start_date', Carbon::now()->startOfMonth()->toDateString());
         $endDate = $request->get('end_date', Carbon::now()->endOfMonth()->toDateString());
         $statusFilter = $request->get('status', '');
-        
+
         $startDateCarbon = Carbon::parse($startDate)->startOfDay();
         $endDateCarbon = Carbon::parse($endDate)->endOfDay();
-        
+
         $appointmentQuery = Appointment::whereBetween('appointment_date', [$startDateCarbon, $endDateCarbon]);
-        
+
         if ($statusFilter) {
             $appointmentQuery->where('status', $statusFilter);
         }
-        
+
         // Eager load with timeSlot relationship
         $appointments = $appointmentQuery->with(['clients', 'timeSlot'])->orderBy('appointment_date', 'desc')->get();
-        
+
         $summary = [
             'total' => $appointments->count(),
             'pending' => $appointments->where('status', 'pending')->count(),
@@ -463,9 +463,9 @@ public function exportExcel(Request $request)
             'completed' => $appointments->where('status', 'completed')->count(),
             'cancelled' => $appointments->where('status', 'cancelled')->count(),
         ];
-        
+
         $completionRate = $summary['total'] > 0 ? round(($summary['completed'] / $summary['total']) * 100, 1) : 0;
-        
+
         $citySummary = Appointment::whereBetween('appointment_date', [$startDateCarbon, $endDateCarbon])
             ->whereNotNull('user_city')
             ->select(
@@ -479,18 +479,18 @@ public function exportExcel(Request $request)
             ->groupBy('user_city')
             ->orderBy('total_bookings', 'desc')
             ->get();
-        
+
         $uniqueLocations = $citySummary->count();
         $topCity = $citySummary->isNotEmpty() ? $citySummary->first()->user_city : 'N/A';
         $topCityCount = $citySummary->isNotEmpty() ? $citySummary->first()->total_bookings : 0;
-        
+
         // Set headers for Excel download
         $filename = 'PSA_Appointment_Report_' . $startDate . '_to_' . $endDate . '.xls';
-        
+
         header('Content-Type: application/vnd.ms-excel');
         header('Content-Disposition: attachment; filename="' . $filename . '"');
         header('Cache-Control: max-age=0');
-        
+
         // Output Excel-compatible HTML
         echo '<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel" xmlns="http://www.w3.org/TR/REC-html40">';
         echo '<head>';
@@ -516,7 +516,7 @@ public function exportExcel(Request $request)
         echo '</style>';
         echo '</head>';
         echo '<body>';
-        
+
         // Title
         echo '<table style="width:100%; border: none;">';
         echo '<tr><td style="text-align:center; border:none;" class="header-title">Republic of the Philippines</td></tr>';
@@ -529,7 +529,7 @@ public function exportExcel(Request $request)
         echo '</td></tr>';
         echo '</table>';
         echo '<br>';
-        
+
         // Summary Statistics
         echo '<h3 style="color:#0F3B6F;">SUMMARY STATISTICS</h3>';
         echo '<table class="summary-table" style="width:50%;">';
@@ -543,7 +543,7 @@ public function exportExcel(Request $request)
         echo '<tr><td class="summary-label">Completion Rate</td><td>' . $completionRate . '%</td></tr>';
         echo '</table>';
         echo '<br><br>';
-        
+
         // Detailed Bookings
         echo '<h3 style="color:#0F3B6F;">DETAILED BOOKINGS</h3>';
         echo '<table style="width:100%;">';
@@ -561,20 +561,20 @@ public function exportExcel(Request $request)
         echo '</tr>';
         echo '</thead>';
         echo '<tbody>';
-        
+
         $serviceNames = [
             'reg' => 'Registration',
             'updating' => 'Updating',
             'inquiry' => 'Status Inquiry'
         ];
-        
+
         foreach ($appointments as $appointment) {
             $services = $appointment->clients->pluck('service')->unique()->map(function($s) use ($serviceNames) {
                 return $serviceNames[$s] ?? $s;
             })->implode(', ');
-            
+
             $statusClass = 'status-' . $appointment->status;
-            
+
             // Get time slot label
             $timeSlotLabel = 'N/A';
             if ($appointment->timeSlot) {
@@ -583,7 +583,7 @@ public function exportExcel(Request $request)
                 $timeSlot = \App\Models\TimeSlot::find($appointment->time_slot_id);
                 $timeSlotLabel = $timeSlot ? $timeSlot->slot_label : 'N/A';
             }
-            
+
             echo '<tr>';
             echo '<td>' . htmlspecialchars($appointment->appointment_number) . '</td>';
             echo '<td>' . Carbon::parse($appointment->appointment_date)->format('M d, Y') . '</td>';
@@ -596,7 +596,7 @@ public function exportExcel(Request $request)
             echo '<td style="text-align:center;">' . $appointment->clients->count() . '</td>';
             echo '</tr>';
         }
-        
+
         if ($appointments->isEmpty()) {
             echo '<tr><td colspan="9" style="text-align:center;">No appointments found for this period.</td></tr>';
         } else {
@@ -605,11 +605,11 @@ public function exportExcel(Request $request)
             echo '<td style="text-align:center;"><strong>' . $appointments->count() . '</strong></td>';
             echo '</tr>';
         }
-        
+
         echo '</tbody>';
         echo '</table>';
         echo '<br><br>';
-        
+
         // City Summary
         if ($citySummary->isNotEmpty()) {
             echo '<h3 style="color:#0F3B6F;">CITY/MUNICIPALITY SUMMARY</h3>';
@@ -626,12 +626,12 @@ public function exportExcel(Request $request)
             echo '</tr>';
             echo '</thead>';
             echo '<tbody>';
-            
+
             foreach ($citySummary as $city) {
-                $cityCompletionRate = $city->total_bookings > 0 
-                    ? round(($city->completed / $city->total_bookings) * 100, 1) 
+                $cityCompletionRate = $city->total_bookings > 0
+                    ? round(($city->completed / $city->total_bookings) * 100, 1)
                     : 0;
-                
+
                 echo '<tr>';
                 echo '<td><strong>' . htmlspecialchars($city->user_city) . '</strong></td>';
                 echo '<td style="text-align:center;">' . $city->total_bookings . '</td>';
@@ -642,23 +642,23 @@ public function exportExcel(Request $request)
                 echo '<td style="text-align:center;">' . $cityCompletionRate . '%</td>';
                 echo '</tr>';
             }
-            
+
             echo '</tbody>';
             echo '</table>';
         }
-        
+
         echo '<br>';
         echo '<p style="text-align:center; color:#666; font-style:italic;">';
-        echo 'Philippine Statistics Authority | Appointment Management System<br>';
+        echo 'Philippine Statistics Authority | NationalID Appointment System<br>';
         echo 'Generated on ' . now()->format('F j, Y \a\t g:i A') . '<br>';
         echo 'This report is system-generated and is valid without signature.';
         echo '</p>';
-        
+
         echo '</body>';
         echo '</html>';
-        
+
         exit;
-        
+
     } catch (\Exception $e) {
         return back()->with('error', 'Failed to export Excel: ' . $e->getMessage());
     }
